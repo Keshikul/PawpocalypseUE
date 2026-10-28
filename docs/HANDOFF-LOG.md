@@ -9,9 +9,8 @@ and the exact next step. Read `docs/00-START-HERE.md` first, then the newest ent
 
 ### Where the project is
 - `C:\Games\pawpocalypseUE\Pawpocalypse`: a **blank UE 5.8.3 C++ project** (`5.8.3-58210709`) created by the designer, plus the
-  complete port handoff. Local git repo initialised on `master` (LFS configured). **The GitHub remote is not created yet**:
-  the plan is a private `pawpocalypse-unreal` under the designer's account; when it exists, `git remote add origin <url>` and
-  `git push -u origin master`, then delete this sentence.
+  complete port handoff. Git repo on `master` (LFS configured), pushed to **`https://github.com/Keshikul/PawpocalypseUE`**
+  (its own repo, separate from the Godot one: designer, 2026-10-28).
 - **No engine settings changed yet.** The template still has Lumen, ray tracing, Substrate, VSM and distance fields ON and the
   OpenWorld startup map: phase 0 step 3 fixes that (docs/03 §7). **Do not build anything on the template defaults.**
 - The Godot game (`C:\Games\pawpocalypse`, GitHub `JanePonomareva/pawpocalypse`, itch 0.2.5) is the specification and keeps
@@ -47,4 +46,4 @@ S3 raster scale, compression, atlas size, OGG import; S4 dock and skill tree wid
 ### Next step
 Open a session in `C:\Games\pawpocalypseUE\Pawpocalypse` and run:
 *"Read docs/00-START-HERE.md and docs/HANDOFF-LOG.md, then do phase 0 steps 1-4 of docs/11-roadmap.md. Do not start the spikes."*
-Phase 0 step 2 (git) is already done.
+Phase 0 step 2 (git) is already done. Push only when the designer asks in that message.

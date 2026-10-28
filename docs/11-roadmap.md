@@ -24,7 +24,7 @@
 
 **Steps**
 1. Read `C:\Games\Knowledge\INDEX.md`, `2D/`, `Unreal/01, 03, 08, 09, 17, 18, 19, 24`, and docs 00-04 here.
-2. ~~`git init`, `.gitignore`, `.gitattributes` (LFS)~~ **done 2026-10-28** (local; the GitHub remote is pending, see `docs/HANDOFF-LOG.md`).
+2. ~~`git init`, `.gitignore`, `.gitattributes` (LFS)~~ **done 2026-10-28** (`https://github.com/Keshikul/PawpocalypseUE`).
 3. Project settings per doc 03 §7 (Lumen, ray tracing, Substrate, Nanite, VSM, distance fields, auto exposure, motion blur, bloom off;
    startup maps; `CommonGameViewportClient`; DPI rule). Remove the OpenWorld default map. Plugins: enable CommonUI, EnhancedInput,
    PythonScriptPlugin, EditorScriptingUtilities; disable unused ones for Game targets.

@@ -68,5 +68,6 @@ The full plan with session prompts is [11-roadmap.md](11-roadmap.md).
 | `docs/` | this handoff |
 | `CLAUDE.md` | the standing rules for any agent working here |
 
-Git: local repo on `master`, LFS for binaries (`.gitattributes`); the GitHub remote (`pawpocalypse-unreal`, private) is pending: see the log.
+Git: `https://github.com/Keshikul/PawpocalypseUE`, branch `master`, LFS for binaries (`.gitattributes`). Its own repo, separate
+from the Godot repo (`JanePonomareva/pawpocalypse`).
 **Session history and the exact next step: [HANDOFF-LOG.md](HANDOFF-LOG.md)** (newest entry first; every session adds one).

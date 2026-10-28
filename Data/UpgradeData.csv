@@ -1,0 +1,16 @@
+id,display_name,base_cost,cost_growth,effect_per_level,effect_type,cap,cap_per_floor,cap_per_reawaken,target_stat,_godot_file
+attack_speed,Attack Speed,9.0,2.4364,1.6771,MULTIPLICATIVE,2.2,0.12,0.15,,data/upgrade_attack_speed.tres
+aura_radius,Aura Radius,120.0,2.082,1.2653,MULTIPLICATIVE,3.0,0.15,0.2,AURA_RADIUS,data/upgrade_aura_radius.tres
+crit_chance,Crit Chance,120.0,2.3131,0.18,ADDITIVE,0.3,0.015,0.02,,data/upgrade_crit_chance.tres
+currency_find,Currency Find,90.0,3.2611,1.1941,MULTIPLICATIVE,-1.0,,,CURRENCY_FIND,data/upgrade_currency_find.tres
+execute,Execute,350.0,2.6996,0.048,ADDITIVE,0.08,0.004,0.005,,data/upgrade_execute.tres
+kitten_count,Kitten Count,150.0,1.2,1.0,ADDITIVE,10.0,2.0,0.5,KITTEN_COUNT,data/upgrade_kitten_count.tres
+kitten_power,Kitten Power,20.0,2.04,1.3,MULTIPLICATIVE,-1.0,,,KITTEN_POWER,data/upgrade_kitten_power.tres
+kitten_speed,Kitten Speed,45.0,2.195,1.5869,MULTIPLICATIVE,3.0,0.15,0.2,KITTEN_SPEED,data/upgrade_kitten_speed.tres
+overkill,Overkill,900.0,1.9738,0.12,ADDITIVE,0.60,0.02,0.01,OVERKILL,data/upgrade_overkill.tres
+paw_damage,Paw Damage,6.0,3.4897,1.4185,MULTIPLICATIVE,-1.0,,,PAW_DAMAGE,data/upgrade_paw_damage.tres
+pounce_cooldown,Pounce Recovery,220.0,3.2973,0.36,ADDITIVE,0.60,0.015,0.01,POUNCE_COOLDOWN,data/upgrade_pounce_cooldown.tres
+pounce_power,Pounce Power,180.0,2.4364,1.8704,MULTIPLICATIVE,4.0,0.35,0.4,POUNCE_POWER,data/upgrade_pounce_power.tres
+shield_pierce,Shield Pierce,260.0,2.082,0.24,ADDITIVE,0.8,0.01,0,SHIELD_PIERCE,data/upgrade_shield_pierce.tres
+shred,Shred,200.0,2.4364,0.072,ADDITIVE,0.05,0.002,0.003,,data/upgrade_shred.tres
+spawn_rate,Spawn Rate,14.0,4.8268,1.7716,MULTIPLICATIVE,8.0,0.6,0.3,SPAWN_RATE,data/upgrade_spawn_rate.tres

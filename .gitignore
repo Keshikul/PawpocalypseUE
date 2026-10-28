@@ -1,0 +1,25 @@
+# Unreal generated
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+*.sln
+*.slnx
+.vs/
+.vsconfig
+.idea/
+*.suo
+*.sdf
+*.VC.db
+*.opensdf
+
+# Plugin build products
+Plugins/**/Binaries/
+Plugins/**/Intermediate/
+
+# Tools and generated outputs
+__pycache__/
+*.pyc
+SourceArt/png/
+build/
+Symbols/

@@ -1,0 +1,2 @@
+id,reawaken_min_stardust,reawaken_min_gain_fraction,reawaken_mult_exponent,reawaken_mult_scale,reawaken_stardust_coefficient,overkill_unlock_reawaken_count,pounce_unlock_reawaken_count,unicorn_unlock_reawaken_count,_godot_file
+reawaken_constants,10.0,2.50,0.5,2.5,0.125,0,0,0,data/reawaken_constants.tres

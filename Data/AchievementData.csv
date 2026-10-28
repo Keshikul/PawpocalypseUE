@@ -1,0 +1,42 @@
+id,display_name,description,requirement_text,metric,threshold,upgrade_id,branch_id,stardust_reward,secret,_godot_file
+boss_1,Park Tyrant Slain,Reward: 4,Defeat The Park Tyrant.,BOSSES_DEFEATED,1.0,,,4,false,data/achievements/achievement_19_boss_1.tres
+boss_2,Rival Champion Slain,Reward: 7,Defeat The Rival Champion.,BOSSES_DEFEATED,2.0,,,7,false,data/achievements/achievement_20_boss_2.tres
+boss_3,Void God Slain,Reward: 9,Defeat The Void God.,BOSSES_DEFEATED,3.0,,,9,false,data/achievements/achievement_21_boss_3.tres
+br_ferocity_5,Apex Predator,Reward: 2,Reach Ferocity branch level 5.,SKILL_BRANCH_LEVEL,5.0,,ferocity,2,false,data/achievements/achievement_42_br_ferocity_5.tres
+br_instinct_5,Sharpened Instinct,Reward: 2,Reach Instinct branch level 5.,SKILL_BRANCH_LEVEL,5.0,,instinct,2,false,data/achievements/achievement_43_br_instinct_5.tres
+br_mystique_6,Deep Mystique,Reward: 2,Reach Mystique branch level 6.,SKILL_BRANCH_LEVEL,6.0,,mystique,2,false,data/achievements/achievement_45_br_mystique_6.tres
+br_unicorn_1,Rainbow Ascendant,Reward: 1,Reach Unicorn branch level 1.,SKILL_BRANCH_LEVEL,1.0,,unicorn,1,false,data/achievements/achievement_46_br_unicorn_1.tres
+br_unicorn_5,Rainbow Cataclysm,Reward: 4,Reach Unicorn branch level 5.,SKILL_BRANCH_LEVEL,5.0,,unicorn,4,false,data/achievements/achievement_47_br_unicorn_5.tres
+br_vitality_5,Boundless Vitality,Reward: 2,Reach Vitality branch level 5.,SKILL_BRANCH_LEVEL,5.0,,vitality,2,false,data/achievements/achievement_44_br_vitality_5.tres
+catnip_1000,Catnip Hoarder,Reward: 1,"Earn 1,000 Catnip across all lives.",LIFETIME_CATNIP,1000.0,,,1,false,data/achievements/achievement_08_catnip_1000.tres
+catnip_100000,Catnip Hoarder,Reward: 1,"Earn 100,000 Catnip across all lives.",LIFETIME_CATNIP,100000.0,,,1,false,data/achievements/achievement_09_catnip_100000.tres
+catnip_10000000,Catnip Baron,Reward: 2,"Earn 10,000,000 Catnip across all lives.",LIFETIME_CATNIP,10000000.0,,,2,false,data/achievements/achievement_10_catnip_10000000.tres
+catnip_1000000000,Catnip Baron,Reward: 5,"Earn 1,000,000,000 Catnip across all lives.",LIFETIME_CATNIP,1000000000.0,,,5,false,data/achievements/achievement_11_catnip_1000000000.tres
+catnip_100000000000,Catnip Baron,Reward: 9,"Earn 100,000,000,000 Catnip across all lives.",LIFETIME_CATNIP,100000000000.0,,,9,false,data/achievements/achievement_12_catnip_100000000000.tres
+kills_1,First Catch,Reward: 1,Catch 1 mice in total.,LIFETIME_KILLS,1.0,,,1,false,data/achievements/achievement_01_kills_1.tres
+kills_100,Pest Control,Reward: 1,Catch 100 mice in total.,LIFETIME_KILLS,100.0,,,1,false,data/achievements/achievement_02_kills_100.tres
+kills_1000,Exterminator,Reward: 1,"Catch 1,000 mice in total.",LIFETIME_KILLS,1000.0,,,1,false,data/achievements/achievement_03_kills_1000.tres
+kills_10000,Infestation Handled,Reward: 2,"Catch 10,000 mice in total.",LIFETIME_KILLS,10000.0,,,2,false,data/achievements/achievement_04_kills_10000.tres
+kills_1000000,Rodent Apocalypse,Reward: 12,"Catch 1,000,000 mice in total.",LIFETIME_KILLS,1000000.0,,,12,false,data/achievements/achievement_07_kills_1000000.tres
+kills_200000,The Pawpocalypse Cometh,Reward: 6,"Catch 200,000 mice in total.",LIFETIME_KILLS,200000.0,,,6,false,data/achievements/achievement_06_kills_200000.tres
+kills_50000,Plague Doctor,Reward: 3,"Catch 50,000 mice in total.",LIFETIME_KILLS,50000.0,,,3,false,data/achievements/achievement_05_kills_50000.tres
+reawaken_1,Nine Lives,Reward: 1,Reawaken 1 time.,REAWAKEN_COUNT,1.0,,,1,false,data/achievements/achievement_13_reawaken_1.tres
+reawaken_12,Eternal Return 12,Reward: 7,Reawaken 12 times.,REAWAKEN_COUNT,12.0,,,7,false,data/achievements/achievement_18_reawaken_12.tres
+reawaken_2,Eternal Return 2,Reward: 1,Reawaken 2 times.,REAWAKEN_COUNT,2.0,,,1,false,data/achievements/achievement_14_reawaken_2.tres
+reawaken_3,Eternal Return 3,Reward: 2,Reawaken 3 times.,REAWAKEN_COUNT,3.0,,,2,false,data/achievements/achievement_15_reawaken_3.tres
+reawaken_5,Eternal Return 5,Reward: 2,Reawaken 5 times.,REAWAKEN_COUNT,5.0,,,2,false,data/achievements/achievement_16_reawaken_5.tres
+reawaken_8,Eternal Return 8,Reward: 4,Reawaken 8 times.,REAWAKEN_COUNT,8.0,,,4,false,data/achievements/achievement_17_reawaken_8.tres
+stage_2,Evolution Stage 2,Reward: 2,Reach evolution stage 2 by defeating bosses.,EVOLUTION_STAGE,2.0,,,2,false,data/achievements/achievement_27_stage_2.tres
+stage_3,Evolution Stage 3,Reward: 4,Reach evolution stage 3 by defeating bosses.,EVOLUTION_STAGE,3.0,,,4,false,data/achievements/achievement_28_stage_3.tres
+stage_4,Evolution Stage 4,Reward: 6,Reach evolution stage 4 — the cat rides the unicorn.,EVOLUTION_STAGE,4.0,,,6,false,data/achievements/achievement_29_stage_4.tres
+up_aura_radius_15,Wide Reach,Reward: 1,Reach Wide — Aura Radius level 15.,UPGRADE_LEVEL,15.0,aura_radius,,1,false,data/achievements/achievement_33_up_aura_radius_15.tres
+up_currency_find_25,Protection Racket,Reward: 1,Reach Lucky — Currency Find level 25.,UPGRADE_LEVEL,25.0,currency_find,,1,false,data/achievements/achievement_37_up_currency_find_25.tres
+up_kitten_count_10,Full House,Reward: 1,Reach Full — Kitten Count level 10.,UPGRADE_LEVEL,10.0,kitten_count,,1,false,data/achievements/achievement_35_up_kitten_count_10.tres
+up_kitten_power_25,Kitten Trainer,Reward: 1,Reach Kitten — Kitten Power level 25.,UPGRADE_LEVEL,25.0,kitten_power,,1,false,data/achievements/achievement_34_up_kitten_power_25.tres
+up_kitten_speed_20,Fleet Paws,Reward: 1,Reach Fleet — Kitten Speed level 20.,UPGRADE_LEVEL,20.0,kitten_speed,,1,false,data/achievements/achievement_39_up_kitten_speed_20.tres
+up_overkill_15,Overkill Artist,Reward: 1,Reach Overkill — Overkill level 15.,UPGRADE_LEVEL,15.0,overkill,,1,false,data/achievements/achievement_38_up_overkill_15.tres
+up_paw_damage_20,Heavy Paws,Reward: 1,Reach Heavy — Paw Damage level 20.,UPGRADE_LEVEL,20.0,paw_damage,,1,false,data/achievements/achievement_31_up_paw_damage_20.tres
+up_paw_damage_60,Devastating Paws,Reward: 3,Reach Devastating — Paw Damage level 60.,UPGRADE_LEVEL,60.0,paw_damage,,3,false,data/achievements/achievement_32_up_paw_damage_60.tres
+up_pounce_power_20,Apex Pounce,Reward: 2,Reach Apex — Pounce Power level 20.,UPGRADE_LEVEL,20.0,pounce_power,,2,false,data/achievements/achievement_41_up_pounce_power_20.tres
+up_shield_pierce_15,Shieldbreaker,Reward: 2,Reach Shieldbreaker — Shield Pierce level 15.,UPGRADE_LEVEL,15.0,shield_pierce,,2,false,data/achievements/achievement_40_up_shield_pierce_15.tres
+up_spawn_rate_20,Swarm Caller,Reward: 2,Reach Swarm — Spawn Rate level 20.,UPGRADE_LEVEL,20.0,spawn_rate,,2,false,data/achievements/achievement_36_up_spawn_rate_20.tres

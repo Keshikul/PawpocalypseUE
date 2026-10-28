@@ -1,0 +1,88 @@
+id,display_name,effect_type,level_costs,level_effects,required_reawakens,parent,parent_is_required,icon_path,is_unlock,exclusive_with,extra_effects,job_id,gated_by_boss,_godot_file
+anvil_paw,Anvil Paw,DOUBLE_STRIKE_SHARE,80;240;720;2200;6400;18000;48000;120000;300000;720000,0.05;0.1;0.15;0.2;0.25;0.3;0.35;0.4;0.45;0.5,0,job_blacksmith,true,res://assets/art/skills/skill_anvil_paw.svg,,,,,,data/skill_tree/anvil_paw.tres
+audit,Audit,BAIT_IN_CATNIP,560,3.0,1,job_tax_collector,true,res://assets/art/skills/skill_audit.svg,true,,,,,data/skill_tree/audit.tres
+aura_damage,Aura Power,AURA_DAMAGE_MULTIPLICATIVE,15;60;195;600;1800;4650;12300;33000;82500;210000,1.18;1.36;1.54;1.72;1.9;2.1;2.32;2.55;2.78;3,0,unlock_aura,true,res://assets/art/skills/skill_aura_damage.svg,,,,,,data/skill_tree/aura_damage.tres
+aura_reach,Aura Reach,AURA_RADIUS_MULTIPLICATIVE,20;60;190;580;1600;4500;12000;30000;75000;180000,1.08;1.17;1.26;1.36;1.46;1.56;1.67;1.78;1.89;2,0,unlock_aura,true,res://assets/art/skills/skill_aura_reach.svg,,,,,,data/skill_tree/aura_reach.tres
+auto_bait,Auto-Bait,AUTO_BAIT,480,1,2,auto_travel,true,res://assets/art/skills/skill_auto_bait.svg,true,,,,,data/skill_tree/auto_bait.tres
+auto_card,Auto-Card,AUTO_CARD,260,1,1,legacy,true,res://assets/art/skills/skill_auto_card.svg,true,,,,,data/skill_tree/auto_card.tres
+auto_travel,Auto-Travel,AUTO_TRAVEL,220,1,1,legacy,true,res://assets/art/skills/skill_auto_travel.svg,true,,,,,data/skill_tree/auto_travel.tres
+blueprint,Blueprint,CARD_FORESIGHT,120;900;6000,1;2;3,0,job_engineer,true,res://assets/art/skills/skill_blueprint.svg,,,,,,data/skill_tree/blueprint.tres
+body_count,Body Count,BODY_COUNT,70;220;700;2200;6800;21000;64000;195000;590000;1750000,0.01;0.02;0.03;0.04;0.05;0.06;0.07;0.08;0.09;0.1,3,reputation,true,res://assets/art/skills/skill_body_count.svg,,,,,,data/skill_tree/body_count.tres
+butchers_rhythm,Butcher's Rhythm,GUARANTEED_CRIT_SHARE,400,0.1,2,claws,true,res://assets/art/skills/skill_butchers_rhythm.svg,true,job_blacksmith;job_daredevil,,,,data/skill_tree/butchers_rhythm.tres
+carry,Carry,AURA_RADIUS_STILLNESS,40;120;380;1150;3200;9000;24000;60000;150000;360000,0.05;0.1;0.15;0.2;0.25;0.3;0.35;0.4;0.45;0.5,0,job_town_crier,true,res://assets/art/skills/skill_carry.svg,,,,,,data/skill_tree/carry.tres
+cartography,Cartography,SHOW_BIOME_REWARDS,260,1,1,legacy,true,res://assets/art/skills/skill_cartography.svg,true,,,,,data/skill_tree/cartography.tres
+cat_burglars_cut,Cat Burglar's Cut,OVERKILL_TO_CATNIP,520,0.5,1,job_cat_burglar,true,res://assets/art/skills/skill_cat_burglars_cut.svg,true,,,,,data/skill_tree/cat_burglars_cut.tres
+claws,Claws,DAMAGE_ADDITIVE,5;15;50;140;390;1065;2750;7665;19335;46665,0.15;0.27;0.4;0.54;0.69;0.85;1.02;1.15;1.23;1.3,0,,,res://assets/art/skills/skill_claws.svg,,,"{""mult"":[1.06,1.12,1.19,1.26,1.33,1.41,1.49,1.57,1.66,1.75]}",,,data/skill_tree/claws.tres
+compound,Compound,CATNIP_INTEREST,40;120;380;1150;3200;9000;24000;60000;150000;360000,0.002;0.004;0.006;0.008;0.01;0.012;0.014;0.016;0.018;0.02,0,job_tax_collector,true,res://assets/art/skills/skill_compound.svg,,,,,,data/skill_tree/compound.tres
+compound_interest,Compound Interest,CATNIP_INTEREST_REALTIME,550,0.01,2,fortune,true,res://assets/art/skills/skill_compound_interest.svg,true,job_unemployed;job_tax_collector,,,,data/skill_tree/compound_interest.tres
+crash_landing,Crash Landing,POUNCE_CRATER,80;240;720;2200;6400;18000;48000;120000;300000;720000,0.2;0.4;0.6;0.8;1;1.2;1.4;1.6;1.8;2,0,job_daredevil,true,res://assets/art/skills/skill_crash_landing.svg,,,,,,data/skill_tree/crash_landing.tres
+critical_mass,Critical Mass,PRISM_SHARDS,30;90;260;760;2100;5800;15000;38000;92000;220000,0.5;0.8;1.1;1.4;1.7;2;2.3;2.6;2.9;3.2,4,unlock_full_spectrum,true,res://assets/art/skills/skill_critical_mass.svg,,,,,,data/skill_tree/critical_mass.tres
+crowd_work,Crowd Work,AURA_CROWD_SCALING,520,0.04,1,job_town_crier,true,res://assets/art/skills/skill_crowd_work.svg,true,,,,,data/skill_tree/crowd_work.tres
+curiosity,Curiosity,CURIOSITY,6400,1.0,2,second_opinion,true,res://assets/art/skills/skill_curiosity.svg,true,,,,,data/skill_tree/curiosity.tres
+deadweight,Deadweight,AMBUSH_SNARE,25;75;230;700;1900;5200;14000;34000;85000;200000,0.44;0.48;0.52;0.56;0.6;0.64;0.68;0.72;0.76;0.8,1,unlock_snare,true,res://assets/art/skills/skill_deadweight.svg,,,,,,data/skill_tree/deadweight.tres
+deep_pockets,Deep Pockets,BAIT_CARRIES_OVER,480,1,2,fortune,true,res://assets/art/skills/skill_deep_pockets.svg,true,,,,,data/skill_tree/deep_pockets.tres
+dent,Dent,SHRED_ADDITIVE,40;120;380;1150;3200;9000;24000;60000;150000;360000,0.005;0.011;0.017;0.023;0.029;0.035;0.04;0.044;0.047;0.05,0,job_blacksmith,true,res://assets/art/skills/skill_dent.svg,,,,,,data/skill_tree/dent.tres
+echo,Echo,AURA_ECHO,80;240;720;2200;6400;18000;48000;120000;300000;720000,0.1;0.2;0.3;0.4;0.5;0.6;0.7;0.8;0.9;1,0,job_town_crier,true,res://assets/art/skills/skill_echo.svg,,,,,,data/skill_tree/echo.tres
+fence,Fence,CATNIP_KILL_STACK,40;120;380;1150;3200;9000;24000;60000;150000;360000,0.002;0.004;0.006;0.008;0.01;0.012;0.014;0.016;0.018;0.02,0,job_cat_burglar,true,res://assets/art/skills/skill_fence.svg,,,,,,data/skill_tree/fence.tres
+fortune,Fortune,FORTUNE_CATNIP_YIELD,130;410;1240;3600;9800;27000;71000;188000;420000;950000,1.038;1.068;1.096;1.122;1.148;1.172;1.196;1.22;1.244;1.268,0,,,res://assets/art/skills/skill_fortune.svg,,,"{""golden"":[0.005,0.01,0.015,0.021,0.027,0.033,0.038,0.042,0.046,0.05]}",,,data/skill_tree/fortune.tres
+funnel,Funnel,AMBUSH_FUNNEL,25;75;230;700;1900;5200;14000;34000;85000;200000,1;1.25;1.5;1.75;2;2.25;2.5;2.75;2.9;3,1,unlock_snare,true,res://assets/art/skills/skill_funnel.svg,,,,,,data/skill_tree/funnel.tres
+grand_finale,Grand Finale,KITTEN_ILLUSION_PULL,540,1.4,1,job_magician,true,res://assets/art/skills/skill_grand_finale.svg,true,,,,,data/skill_tree/grand_finale.tres
+gridlock,Gridlock,SNARE_CONTAGION,600,0.6,2,unlock_snare,true,res://assets/art/skills/skill_gridlock.svg,true,job_engineer;job_ratcatcher,,,,data/skill_tree/gridlock.tres
+grudge_ledger,Grudge Ledger,GRUDGE_PER_CARD,70;220;700;2200;6800;21000;64000;195000;590000;1750000,0.01;0.02;0.03;0.04;0.05;0.06;0.07;0.08;0.09;0.1,2,reputation,true,res://assets/art/skills/skill_grudge_ledger.svg,,,,,,data/skill_tree/grudge_ledger.tres
+hammerfall,Hammerfall,PAW_CLEAVE,520,3,1,job_blacksmith,true,res://assets/art/skills/skill_hammerfall.svg,true,,,,,data/skill_tree/hammerfall.tres
+infestation,Infestation,SPAWN_RATE_ON_KILL,80;240;720;2200;6400;18000;48000;120000;300000;720000,0.1;0.2;0.3;0.4;0.5;0.6;0.7;0.8;0.9;1,0,job_ratcatcher,true,res://assets/art/skills/skill_infestation.svg,,,,,,data/skill_tree/infestation.tres
+inscrutable,Inscrutable,DETERMINISTIC_CRIT,560,1.0,1,job_sphinx,true,res://assets/art/skills/skill_inscrutable.svg,true,,,,,data/skill_tree/inscrutable.tres
+instinct,Instinct,KITTEN_DAMAGE_ADDITIVE,5;15;50;140;375;1000;2500;7000;17500;45000,0.35;0.58;0.85;1.15;1.5;1.9;2.3;2.7;3.1;3.5,0,,,res://assets/art/skills/skill_instinct.svg,,,,,,data/skill_tree/instinct.tres
+job_blacksmith,Blacksmith,GRANTS_JOB,60,1.0,0,claws,true,res://assets/art/jobs/job_blacksmith.svg,true,job_daredevil;butchers_rhythm,,blacksmith,tier_6,data/skill_tree/job_blacksmith.tres
+job_cat_burglar,Cat Burglar,GRANTS_JOB,70,1.0,0,instinct,true,res://assets/art/jobs/job_cat_burglar.svg,true,job_sphinx;sixth_sense,,cat_burglar,tier_11,data/skill_tree/job_cat_burglar.tres
+job_daredevil,Daredevil,GRANTS_JOB,60,1.0,0,claws,true,res://assets/art/jobs/job_daredevil.svg,true,job_blacksmith;butchers_rhythm,,daredevil,tier_8,data/skill_tree/job_daredevil.tres
+job_engineer,Engineer,GRANTS_JOB,80,1.0,2,unlock_snare,true,res://assets/art/jobs/job_engineer.svg,true,job_ratcatcher;gridlock,,engineer,,data/skill_tree/job_engineer.tres
+job_magician,Magician,GRANTS_JOB,70,1.0,1,unlock_aura,true,res://assets/art/jobs/job_magician.svg,true,job_town_crier;standing_wave,,magician,,data/skill_tree/job_magician.tres
+job_ratcatcher,Ratcatcher,GRANTS_JOB,90,1.0,1,unlock_snare,true,res://assets/art/jobs/job_ratcatcher.svg,true,job_engineer;gridlock,,ratcatcher,,data/skill_tree/job_ratcatcher.tres
+job_sphinx,Sphinx,GRANTS_JOB,90,1.0,0,instinct,true,res://assets/art/jobs/job_sphinx.svg,true,job_cat_burglar;sixth_sense,,sphinx,tier_12,data/skill_tree/job_sphinx.tres
+job_tax_collector,Tax Collector,GRANTS_JOB,100,1.0,2,fortune,true,res://assets/art/jobs/job_tax_collector.svg,true,job_unemployed;compound_interest,,tax_collector,,data/skill_tree/job_tax_collector.tres
+job_town_crier,Town Crier,GRANTS_JOB,50,1.0,0,unlock_aura,true,res://assets/art/jobs/job_town_crier.svg,true,job_magician;standing_wave,,town_crier,tier_3,data/skill_tree/job_town_crier.tres
+job_unemployed,Unemployed,GRANTS_JOB,120,1.0,3,fortune,true,res://assets/art/jobs/job_unemployed.svg,true,job_tax_collector;compound_interest,,unemployed,,data/skill_tree/job_unemployed.tres
+kitten_foreman,Kitten Foreman,KITTEN_SEEKS_CLUSTER,420,1,2,vitality,true,res://assets/art/skills/skill_kitten_foreman.svg,true,,,,,data/skill_tree/kitten_foreman.tres
+last_stand,Last Stand,LAST_STAND_DAMAGE,70;220;700;2200;6800;21000;64000;195000;590000;1750000,1.2;1.4;1.6;1.8;2;2.2;2.4;2.6;2.8;3,2,swarm_logic,true,res://assets/art/skills/skill_last_stand.svg,,,,,,data/skill_tree/last_stand.tres
+legacy,Legacy,LEGACY_CATNIP_CARRYOVER,155;510;1540;4370;9500;22200;49300;110000;240000;520000,0.05;0.09;0.13;0.18;0.23;0.29;0.35;0.42;0.46;0.5,0,fortune,true,res://assets/art/skills/skill_legacy.svg,,,"{""levels"":[2.0,4.0,6.0,9.0,12.0,15.0,18.0,22.0,24.0,26.0],""biome"":[2.0,2.0,3.0,3.0,4.0,4.0,5.0,5.0,6.0,6.0]}",,,data/skill_tree/legacy.tres
+levy,Levy,KILL_TITHE,80;240;720;2200;6400;18000;48000;120000;300000;720000,20;40;60;80;100;120;140;160;180;200,0,job_tax_collector,true,res://assets/art/skills/skill_levy.svg,,,,,,data/skill_tree/levy.tres
+long_lunch,Long Lunch,STILLNESS_BANK,80;240;720;2200;6400;18000;48000;120000;300000;720000,0.5;1;1.5;2;2.5;3;3.5;4;4.5;5,0,job_unemployed,true,res://assets/art/skills/skill_long_lunch.svg,,,,,,data/skill_tree/long_lunch.tres
+misdirection,Misdirection,ENEMY_DRIFT,40;120;380;1150;3200;9000;24000;60000;150000;360000,0.1;0.2;0.3;0.4;0.5;0.6;0.7;0.8;0.9;1,0,job_magician,true,res://assets/art/skills/skill_misdirection.svg,,,,,,data/skill_tree/misdirection.tres
+momentum,Momentum,POUNCE_LOCK_KILL_REFUND,40;120;380;1150;3200;9000;24000;60000;150000;360000,0.05;0.1;0.15;0.2;0.25;0.3;0.35;0.4;0.45;0.5,0,job_daredevil,true,res://assets/art/skills/skill_momentum.svg,,,,,,data/skill_tree/momentum.tres
+nine_lives_insurance,Fine Print,POUNCE_INSURANCE,540,1.0,1,job_daredevil,true,res://assets/art/skills/skill_nine_lives_insurance.svg,true,,,,,data/skill_tree/nine_lives_insurance.tres
+overflow,Overflow,OVERKILL_BOMB,520,10,2,unlock_overkill,true,res://assets/art/skills/skill_overflow.svg,true,,,,,data/skill_tree/overflow.tres
+overkill,Overkill Splash,OVERKILL_ADDITIVE,190;510;1300;3100;7200;16000;38000;82000;180000;400000,0.045;0.07;0.1;0.13;0.16;0.19;0.22;0.25;0.265;0.28,0,unlock_overkill,true,res://assets/art/skills/skill_overkill_splash.svg,,,,,,data/skill_tree/overkill.tres
+overtime,Overtime,CARD_REROLLS,60;220;800;2600;8000,1;2;3;4;5,0,job_engineer,true,res://assets/art/skills/skill_overtime.svg,,,,,,data/skill_tree/overtime.tres
+patience,Patience,CRIT_DAMAGE_FROM_SLOWNESS,40;120;380;1150;3200;9000;24000;60000;150000;360000,0.2;0.4;0.6;0.8;1;1.2;1.4;1.6;1.8;2,0,job_sphinx,true,res://assets/art/skills/skill_patience.svg,,,,,,data/skill_tree/patience.tres
+pickpocket,Pickpocket,SCAVENGE_ADDITIVE,80;240;720;2200;6400;18000;48000;120000;300000;720000,0.05;0.1;0.15;0.2;0.25;0.3;0.35;0.4;0.45;0.5,0,job_cat_burglar,true,res://assets/art/skills/skill_pickpocket.svg,,,,,,data/skill_tree/pickpocket.tres
+pied_piper,The Pied Piper,SPAWN_AROUND_PLAYER,560,280,1,job_ratcatcher,true,res://assets/art/skills/skill_pied_piper.svg,true,,,,,data/skill_tree/pied_piper.tres
+play_with_food,Play With Food,AMBUSH_PLAY_WITH_FOOD,25;75;230;700;1900;5200;14000;34000;85000;200000,1.1;1.2;1.3;1.4;1.5;1.6;1.7;1.8;1.9;2,1,unlock_snare,true,res://assets/art/skills/skill_play_with_food.svg,,,,,,data/skill_tree/play_with_food.tres
+pounce,Pounce Power,POUNCE_DAMAGE_MULTIPLICATIVE,70;220;600;1600;4100;10000;26000;65000;160000;400000,1.18;1.36;1.54;1.72;1.9;2.1;2.3;2.5;2.7;2.9,0,unlock_pounce,true,res://assets/art/skills/skill_pounce_power.svg,,,,,,data/skill_tree/pounce.tres
+prototype,Prototype,CARD_PROTOTYPE,560,1,1,job_engineer,true,res://assets/art/skills/skill_prototype.svg,true,,,,,data/skill_tree/prototype.tres
+refraction,Refraction,PRISM_CHAIN,30;90;260;760;2100;5800;15000;38000;92000;220000,1;1.444;1.889;2.333;2.778;3.222;3.667;4.111;4.556;5,3,unlock_prism,true,res://assets/art/skills/skill_refraction.svg,,,,,,data/skill_tree/refraction.tres
+reputation,Reputation,REPUTATION_PER_WAVE,70;220;700;2200;6800;21000;64000;195000;590000;1750000,0.005;0.01;0.015;0.02;0.025;0.03;0.035;0.04;0.045;0.05,1,instinct,true,res://assets/art/skills/skill_reputation.svg,,,,,,data/skill_tree/reputation.tres
+riddle,Riddle,CRIT_EXECUTE_CHANCE,80;240;720;2200;6400;18000;48000;120000;300000;720000,0.05;0.1;0.15;0.2;0.25;0.3;0.35;0.4;0.45;0.5,0,job_sphinx,true,res://assets/art/skills/skill_riddle.svg,,,,,,data/skill_tree/riddle.tres
+second_helping,Second Helping,SECOND_HELPING,4800,1.0,2,legacy,true,res://assets/art/skills/skill_second_helping.svg,true,,,,,data/skill_tree/second_helping.tres
+second_opinion,Second Opinion,REROLL_PER_LEVEL,70;240;800;2600;8600,1;2;3;4;5,1,deadweight,true,res://assets/art/skills/skill_second_opinion.svg,,,,,,data/skill_tree/second_opinion.tres
+severance,Severance,REAWAKEN_SCALING,40;120;380;1150;3200;9000;24000;60000;150000;360000,0.01;0.014;0.018;0.022;0.026;0.03;0.034;0.038;0.044;0.05,0,job_unemployed,true,res://assets/art/skills/skill_severance.svg,,,,,,data/skill_tree/severance.tres
+sixth_sense,Sixth Sense,SPAWN_FORESIGHT,500,1.0,2,instinct,true,res://assets/art/skills/skill_sixth_sense.svg,true,job_cat_burglar;job_sphinx,,,,data/skill_tree/sixth_sense.tres
+sleight_of_hand,Sleight of Hand,VANISH_INTERVAL,80;240;720;2200;6400;18000;48000;120000;300000;720000,3;3.3;3.75;4.3;5;6;6.7;7.5;8.6;10,0,job_magician,true,res://assets/art/skills/skill_sleight_of_hand.svg,,,,,,data/skill_tree/sleight_of_hand.tres
+spectrum,Spectrum,PRISM_STATUS,30;90;260;760;2100;5800;15000;38000;92000;220000,1.15;1.3;1.45;1.6;1.75;1.9;2.05;2.2;2.35;2.5,3,refraction,true,res://assets/art/skills/skill_spectrum.svg,,,,,,data/skill_tree/spectrum.tres
+standing_wave,Standing Wave,AURA_BEAT,450,1.0,2,unlock_aura,true,res://assets/art/skills/skill_standing_wave.svg,true,job_town_crier;job_magician,,,,data/skill_tree/standing_wave.tres
+swarm,Swarm,SPAWN_RATE_MULTIPLICATIVE,60;190;600;1900;6000;18500;57000;176000;545000;1700000,1.1;1.25;1.4;1.55;1.7;1.85;2;2.15;2.3;2.5,1,funnel,true,res://assets/art/skills/skill_swarm.svg,,,,,,data/skill_tree/swarm.tres
+swarm_logic,Swarm Logic,CROWD_DAMAGE,70;220;700;2200;6800;21000;64000;195000;590000;1750000,1.05;1.1;1.15;1.2;1.26;1.32;1.38;1.44;1.5;1.6,1,claws,true,res://assets/art/skills/skill_swarm_logic.svg,,,,,,data/skill_tree/swarm_logic.tres
+traps,Traps,SNARED_DAMAGE_MULTIPLICATIVE,40;120;380;1150;3200;9000;24000;60000;150000;360000,1.1;1.2;1.3;1.41;1.52;1.63;1.74;1.84;1.92;2,0,job_ratcatcher,true,res://assets/art/skills/skill_traps.svg,,,,,,data/skill_tree/traps.tres
+unicorn,Rainbow Gut,POOP_DAMAGE_MULTIPLICATIVE,80;240;650;1700;4200;10000;25000;60000;150000;360000,1.3;1.6;1.9;2.2;2.5;2.8;3.1;3.4;3.7;4,0,unlock_poop,true,res://assets/art/skills/skill_unicorn_power.svg,,,,,,data/skill_tree/unicorn.tres
+union_rules,Union Rules,SECOND_JOB_SHARE,900,0.5,1,job_unemployed,true,res://assets/art/skills/skill_union_rules.svg,true,,,,,data/skill_tree/union_rules.tres
+unlock_aura,Aura,AURA_DAMAGE_MULTIPLICATIVE,20,1,0,,,res://assets/art/skills/skill_aura.svg,true,,,,,data/skill_tree/unlock_aura.tres
+unlock_full_spectrum,Full Spectrum,PRISM_SWEEP,9000,1,4,spectrum,true,res://assets/art/skills/skill_unlock_full_spectrum.svg,true,,,,,data/skill_tree/unlock_full_spectrum.tres
+unlock_overkill,Overkill,OVERKILL_ADDITIVE,65,0.02,0,claws,true,res://assets/art/skills/skill_overkill.svg,true,,,,,data/skill_tree/unlock_overkill.tres
+unlock_poop,Rainbow Poop,POOP_DAMAGE_MULTIPLICATIVE,600,1,0,unlock_unicorn,true,res://assets/art/skills/skill_rainbow_poop.svg,true,,,,,data/skill_tree/unlock_poop.tres
+unlock_pounce,Pounce,POUNCE_DAMAGE_MULTIPLICATIVE,20,1,0,claws,true,res://assets/art/skills/skill_pounce.svg,true,,,,,data/skill_tree/unlock_pounce.tres
+unlock_prism,Prism,PRISM_BEAM,220,0.35,3,unlock_unicorn,true,res://assets/art/skills/skill_unlock_prism.svg,true,,,,,data/skill_tree/unlock_prism.tres
+unlock_reflex,Auto-Pounce,AUTO_POUNCE,30,1.1,0,unlock_pounce,true,res://assets/art/skills/skill_reflex.svg,true,,,,,data/skill_tree/unlock_reflex.tres
+unlock_snare,Snare,AMBUSH_SNARE,35,0.4,1,,,res://assets/art/skills/skill_snare.svg,true,,,,,data/skill_tree/unlock_snare.tres
+unlock_unicorn,Unicorn,POOP_DAMAGE_MULTIPLICATIVE,2500,1,0,,,res://assets/art/skills/skill_unicorn.svg,true,,,,,data/skill_tree/unlock_unicorn.tres
+vitality,Vitality,KITTEN_COUNT,10;60;240;960;3300;10800;33000;96000;246000;600000,1;2;3;4;5;6;7;8;9;10,0,instinct,true,res://assets/art/skills/skill_vitality.svg,,,,,,data/skill_tree/vitality.tres
+whisker_trade,Feral Instinct,KITTEN_CRIT_SHARE,90;280;880;2700;8200;25000;76000;230000;700000;2100000,0.1;0.2;0.3;0.4;0.5;0.6;0.7;0.8;0.9;1,2,kitten_foreman,true,res://assets/art/skills/skill_whisker_trade.svg,,,,,,data/skill_tree/whisker_trade.tres

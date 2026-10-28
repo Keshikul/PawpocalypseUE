@@ -1,0 +1,29 @@
+id,display_name,description,effect,level_values,cost,cost_values,flavour,weight,icon_path,_godot_file
+bloodlust,Bloodlust,Every kill takes {v}s off your Pounce cooldown.,POUNCE_KILL_REFUND,0.05;0.1;0.18;0.3,NONE,,POUNCE,1.0,res://assets/art/cards/card_bloodlust.svg,data/cards/card_bloodlust.tres
+bounty,Bounty,Signature enemies pay {v}x Catnip.,SIGNATURE_BOUNTY,2.0;3.0;5.0,NONE,,FORTUNE,1.0,res://assets/art/cards/card_bounty.svg,data/cards/card_bounty.tres
+catnip_bomb,Catnip Bomb,Every {v}th kill drops a catnip bomb.,CATNIP_BOMB_EVERY,50.0;35.0;25.0;15.0,NONE,,SWARM,1.0,res://assets/art/cards/card_catnip_bomb.svg,data/cards/card_catnip_bomb.tres
+chain_pounce,Chain Pounce,Pounce leaps on to {v} more enemies before it lands.,POUNCE_CHAIN,1.0;2.0;3.0;5.0,NONE,,POUNCE,1.0,res://assets/art/cards/card_chain_pounce.svg,data/cards/card_chain_pounce.tres
+close_quarters,Close Quarters,"Your aura detonates for {v} seconds of damage, but shrinks to {c}x its radius.",AURA_PULSE,5.0;8.0,AURA_RADIUS,0.7;0.55,AURA,0.6,res://assets/art/cards/card_close_quarters.svg,data/cards/card_close_quarters.tres
+compound_interest,Compound Interest,Every level pays out {v}x your banked Catnip as interest.,CATNIP_INTEREST,0.1;0.2;0.35,NONE,,FORTUNE,1.0,res://assets/art/cards/card_compound_interest.svg,data/cards/card_compound_interest.tres
+dilated,Dilated,See {v} more cards every time you level up.,EXTRA_CHOICE,1.0;2.0,NONE,,DECK,0.7,res://assets/art/cards/card_dilated.svg,data/cards/card_dilated.tres
+ember_trail,Ember Trail,"Your aura leaves a burning trail behind you, dealing {v}x your aura damage.",AURA_TRAIL,0.25;0.4;0.6;0.85,NONE,,AURA,1.0,res://assets/art/cards/card_ember_trail.svg,data/cards/card_ember_trail.tres
+feral_focus,Feral Focus,"Pounce craters burn for {v}x your damage, but the aura shrinks to {c}x.",POUNCE_CRATER,1.5;2.5,AURA_RADIUS,0.7;0.55,POUNCE,0.5,res://assets/art/cards/card_feral_focus.svg,data/cards/card_feral_focus.tres
+fixation,Fixation,Your next {v} hands are dealt only from cards you already own.,FIXATION_HANDS,1.0;2.0;3.0,NONE,,DECK,0.8,res://assets/art/cards/card_fixation.svg,data/cards/card_fixation.tres
+giblets,Giblets,"Enemies your kittens kill burst, dealing {v}x their own health to everything nearby.",KITTEN_KILL_EXPLODES,0.5;0.8;1.2;1.8,NONE,,KITTEN,1.0,res://assets/art/cards/card_giblets.svg,data/cards/card_giblets.tres
+gilded_kitten,Gilded Kitten,One kitten turns gold and hits {v}x as hard as its siblings.,GOLDEN_KITTEN,4.0;8.0;16.0;32.0,NONE,,KITTEN,0.8,res://assets/art/cards/card_gilded_kitten.svg,data/cards/card_gilded_kitten.tres
+gold_rush,Gold Rush,Golden enemies turn up {v}x as often.,GOLDEN_FREQUENCY,2.0;3.0;5.0;8.0,NONE,,SWARM,1.0,res://assets/art/cards/card_gold_rush.svg,data/cards/card_gold_rush.tres
+hoarder,Hoarder,"Levelling up pays {v}x your bank as interest, but kills pay only {c}x Catnip.",CATNIP_INTEREST,0.4;0.7,CATNIP_YIELD,0.6;0.45,FORTUNE,0.5,res://assets/art/cards/card_hoarder.svg,data/cards/card_hoarder.tres
+hot_borders,Hot Borders,"Enemies near the edge of the area burn for {v}x your aura damage, so strays are not simply lost.",EDGE_BURN,0.10;0.16;0.24,NONE,,ZONE,1.0,res://assets/art/cards/card_hot_borders.svg,data/cards/card_hot_borders.tres
+lingering_rainbow,Lingering Rainbow,Rainbow puddles stay for {v} seconds longer.,POOP_DURATION,3.0;6.0;10.0,NONE,,ZONE,1.0,res://assets/art/cards/card_lingering_rainbow.svg,data/cards/card_lingering_rainbow.tres
+lone_hunter,Lone Hunter,One kitten turns gold and hits {v}x as hard. The other {c} wander off.,LONE_HUNTER,12.0;20.0,KITTEN_COUNT,2.0;3.0,KITTEN,0.5,res://assets/art/cards/card_lone_hunter.svg,data/cards/card_lone_hunter.tres
+not_that_one,Not That One,Remove {v} cards from this run's deck for good.,BANISH,1.0;2.0,NONE,,DECK,0.7,res://assets/art/cards/card_not_that_one.svg,data/cards/card_not_that_one.tres
+notoriety,Notoriety,Signature enemies turn up {v}x as often.,SIGNATURE_FREQUENCY,1.5;2.0;3.0,NONE,,SWARM,1.0,res://assets/art/cards/card_notoriety.svg,data/cards/card_notoriety.tres
+peer_pressure,Peer Pressure,"When you Pounce, every kitten pounces its own target for {v}x your Pounce damage.",KITTEN_MIMIC_POUNCE,0.2;0.35;0.55;0.8,NONE,,KITTEN,1.0,res://assets/art/cards/card_peer_pressure.svg,data/cards/card_peer_pressure.tres
+rainbow_trail,Rainbow Trail,You leave a rainbow puddle every {v} seconds just by walking.,POOP_TRAIL,4.0;2.5;1.5,NONE,,ZONE,0.9,res://assets/art/cards/card_rainbow_trail.svg,data/cards/card_rainbow_trail.tres
+rigor,Rigor,Enemies caught in your aura crawl at {v}x speed.,AURA_SLOW,0.75;0.6;0.45,NONE,,AURA,1.0,res://assets/art/cards/card_rigor.svg,data/cards/card_rigor.tres
+scavenger,Scavenger,Enemies that wander off still pay {v}x their Catnip instead of being lost.,SCAVENGE,0.3;0.55;0.8,NONE,,FORTUNE,1.0,res://assets/art/cards/card_scavenger.svg,data/cards/card_scavenger.tres
+scorched_landing,Scorched Landing,Pounce leaves a crater that burns for {v}x your damage.,POUNCE_CRATER,0.5;0.8;1.2;1.8,NONE,,POUNCE,1.0,res://assets/art/cards/card_scorched_landing.svg,data/cards/card_scorched_landing.tres
+slow_burn,Slow Burn,"The edges burn for {v}x your aura damage, but only {c}x as many enemies spawn.",EDGE_BURN,0.30;0.45,SPAWN_RATE,0.7;0.6,ZONE,0.5,res://assets/art/cards/card_slow_burn.svg,data/cards/card_slow_burn.tres
+spite,Spite,Gain {v} rerolls of the cards you are offered.,REROLL,2.0;3.0;5.0,NONE,,DECK,0.9,res://assets/art/cards/card_spite.svg,data/cards/card_spite.tres
+stampede,Stampede,"Every {v}th kill drops a catnip bomb, but enemies move at {c}x speed.",CATNIP_BOMB_EVERY,25.0;15.0;10.0,MOUSE_SPEED,1.4;1.7;2.0,SWARM,0.6,res://assets/art/cards/card_stampede.svg,data/cards/card_stampede.tres
+thunderclap,Thunderclap,Every few seconds your aura detonates for {v} seconds of damage at once.,AURA_PULSE,1.5;2.5;4.0;6.0,NONE,,AURA,1.0,res://assets/art/cards/card_thunderclap.svg,data/cards/card_thunderclap.tres

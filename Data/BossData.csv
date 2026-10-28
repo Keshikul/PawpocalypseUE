@@ -1,0 +1,6 @@
+id,display_name,texture_path,total_hp,reward_catnip,time_limit_sec,bait_cost_catnip,bait_requires_wave,bait_required,kills_per_bait,add_speed_px_per_sec,add_heal_fraction,add_hp_fraction,add_interval_sec,phase_hp_thresholds,phase_vulnerable_sec,phase_shield_sec,_godot_file
+factory_foreman,The Foreman,res://assets/art/bosses/boss_factory_foreman.svg,2.07098e+12,340000,3300,5252320,0,40,2200,68.0,0.025,0.0012,9.0,0.75;0.50;0.25,3.0;2.2;1.6;1.1,1.0;1.8;2.4;3.0,data/boss_factory_foreman.tres
+litter_king,The Litter King,res://assets/art/bosses/boss_litter_king.svg,8.0768e+12,1.156e+06,3700,17857900,0,40,2800,74.0,0.03,0.0014,8.0,0.80;0.60;0.40;0.20,3.0;2.4;1.9;1.4;1.0,1.0;1.6;2.2;2.8;3.4,data/boss_litter_king.tres
+park_tyrant,The Park Tyrant,res://assets/art/bosses/boss_park_tyrant.svg,2.93798e+06,1800.0,300.0,3400,0,40,240,62.0,0.025,0.0012,16.0,0.5,3.5;2.5,1.0;1.5,data/boss_park_tyrant.tres
+rival_champion,The Rival Champion,res://assets/art/bosses/boss_rival_champion.svg,3.64195e+09,70000.0,800.0,133634,0,40,811,62.0,0.025,0.0012,13.0,0.67;0.33,3.0;2.2;1.5,1.0;1.8;2.4,data/boss_rival_champion.tres
+void_god,The Void God,res://assets/art/bosses/boss_void_god.svg,3.49125e+10,100000.0,2900.0,1544800,0,40,1500,62.0,0.025,0.0012,10.0,0.67;0.33,3.0;2.0;1.2,1.0;2.0;2.8,data/boss_void_god.tres

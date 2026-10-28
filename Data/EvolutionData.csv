@@ -1,0 +1,8 @@
+id,stage,display_name,weapon_type,weapon_multiplier,texture_path,tint,ability_ids,_godot_file
+stage_1,1,Tiny Kitten,PAW,1,res://assets/art/player/player_cat_stage_1.svg,1;1;1;1,,data/evolution/stage_1.tres
+stage_2,2,Armored Tomcat,SLINGSHOT,1.0667,res://assets/art/player/player_cat_stage_2.svg,1;1;1;1,,data/evolution/stage_2.tres
+stage_3,3,Cyber Cat,RAINBOW_MINIGUN,1.1333,res://assets/art/player/player_cat_stage_3.svg,1;1;1;1,,data/evolution/stage_3.tres
+stage_4,4,Rainbow Cavalry,HORN_LASER,1.2,res://assets/art/player/player_cat_stage_4.svg,1;1;1;1,,data/evolution/stage_4.tres
+stage_5,5,Alicorn,RAINBOW_GUNS,1.2667,res://assets/art/player/player_cat_stage_5.svg,1;1;1;1,,data/evolution/stage_5.tres
+stage_6,6,Void Unicorn,RAINBOW_MINIGUN,1.3333,res://assets/art/player/player_cat_stage_6.svg,1;1;1;1,,data/evolution/stage_6.tres
+stage_7,7,The Last Unicorn,LASER_CANNON,1.4,res://assets/art/player/player_cat_stage_7.svg,1;1;1;1,,data/evolution/stage_7.tres

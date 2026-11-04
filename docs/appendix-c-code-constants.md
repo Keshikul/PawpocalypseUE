@@ -5,7 +5,7 @@
 > presentation numbers (sizes, colours, timings of effects) into the C++ class that owns them, with the Godot reason as the
 > comment. `Palette.*` colours come from the generated token header instead.
 
-456 constants.
+576 constants.
 
 | file:line | name | value | reason (Godot comment) |
 |---|---|---|---|
@@ -28,10 +28,10 @@
 | `scripts/autoload/game_state.gd:1275` | `CARRY_FULL_SECONDS` | `3.0` | Carry: the aura radius bonus currently earned by holding still.  Capped at CARRY_FULL_SECONDS because an uncapped version rewards leaving the game alone, whi... |
 | `scripts/autoload/game_state.gd:1296` | `FENCE_MAX_KILLS` | `100` | Fence: the Catnip multiplier earned by kills already made this wave.  The kill count is capped rather than the multiplier, so the wording on the node ("per k... |
 | `scripts/autoload/game_state.gd:1443` | `MOUNTED_STAGE` | `4` | THE MOUNT FOLLOWS THE UNICORN NODE (designer, 2026-09-14: "when the unicorn is awakened it should stay awakened. So the player should have the unicorn ... mo... |
-| `scripts/autoload/game_state.gd:1713` | `CURRENCY_EPSILON` | `1e-6` | Hard bound on any bulk purchase, xMax included.  The loop below terminates on its own for every upgrade the game actually ships — it stops the moment a level... |
-| `scripts/autoload/game_state.gd:1715` | `BULK_MAX_STEPS` | `500` |  |
-| `scripts/autoload/game_state.gd:1884` | `MAX_GOLDEN_CHANCE` | `0.35` | Added to a biome's authored Golden Mouse chance, not multiplied — a biome with no goldens at all should stay that way, and a multiplier on 0.0 is 0.0 either ... |
-| `scripts/autoload/game_state.gd:2519` | `DEBUG_UNCAPPED_STEP` | `25` | Sets every upgrade to the highest level that respects its own cap (or an arbitrary high level for uncapped lines), for fast late-game testing. Levels added p... |
+| `scripts/autoload/game_state.gd:1717` | `CURRENCY_EPSILON` | `1e-6` | Hard bound on any bulk purchase, xMax included.  The loop below terminates on its own for every upgrade the game actually ships — it stops the moment a level... |
+| `scripts/autoload/game_state.gd:1719` | `BULK_MAX_STEPS` | `500` |  |
+| `scripts/autoload/game_state.gd:1888` | `MAX_GOLDEN_CHANCE` | `0.35` | Added to a biome's authored Golden Mouse chance, not multiplied — a biome with no goldens at all should stay that way, and a multiplier on 0.0 is 0.0 either ... |
+| `scripts/autoload/game_state.gd:2534` | `DEBUG_UNCAPPED_STEP` | `25` | Sets every upgrade to the highest level that respects its own cap (or an arbitrary high level for uncapped lines), for fast late-game testing. Levels added p... |
 | `scripts/autoload/input_device.gd:48` | `AXIS_CLAIM` | `0.5` | A stick or trigger has to pass this to count as the player choosing the pad. Resting drift sits well under it; the Input Map's own dead zones are the same 0.5. |
 | `scripts/autoload/input_device.gd:52` | `MOUSE_CLAIM_PX` | `6.0` | Mouse motion has to add up to this many pixels, within MOUSE_QUIET_SEC of the last motion, to take the cat back from the stick. A desk bump is a few pixels o... |
 | `scripts/autoload/input_device.gd:53` | `MOUSE_QUIET_SEC` | `0.25` |  |
@@ -44,7 +44,114 @@
 | `scripts/autoload/input_device.gd:460` | `PAD_AUDIO_WAIT_SEC` | `2.0` |  |
 | `scripts/autoload/save_manager.gd:13` | `SLOT_COUNT` | `5` | Five slots (designer, 2026-08-20). |
 | `scripts/autoload/save_manager.gd:112` | `AUTOSAVE_SECONDS` | `30.0` |  |
+| `scripts/data/achievement_data.gd:39` | `threshold` | `1.0` |  |
+| `scripts/data/achievement_data.gd:48` | `stardust_reward` | `0.0` | Hidden achievements stay masked in the list until earned. Use sparingly — a list that is mostly "???" tells the player nothing to aim at. Stardust paid on un... |
+| `scripts/data/boss_data.gd:40` | `total_hp` | `34900000.0` |  |
+| `scripts/data/boss_data.gd:41` | `reward_catnip` | `0.0` |  |
+| `scripts/data/boss_data.gd:43` | `time_limit_sec` | `0.0` | Seconds from first engagement to forced retreat. <= 0 disables the timer. |
+| `scripts/data/boss_data.gd:58` | `bait_cost_catnip` | `0.0` | What one summon costs, in Catnip. The boss does not arrive on a timer or a kill count any more — the player BUYS it (v4 Phase 2, designer decision 2026-08-14... |
+| `scripts/data/boss_data.gd:81` | `bait_requires_wave` | `0` | THE FIGHT HAS TO BE EARNED (2026-08-24).  The Bait cannot be bought until the boss's own biome has reached this wave. Price alone does not do it: a boss pric... |
+| `scripts/data/boss_data.gd:111` | `bait_required` | `40` | --- BAIT (2026-08-27, designer decision) ----------------------------------- HOW MANY BAIT ONE SUMMON COSTS. Bait drops from kills in this boss's OWN biome, ... |
+| `scripts/data/boss_data.gd:121` | `kills_per_bait` | `240` | Kills in this biome per bait dropped. This is where the per-biome difficulty lives — `bait_required` stays 40 everywhere so the readout is always "x / 40" an... |
+| `scripts/data/boss_data.gd:138` | `add_interval_sec` | `14.0` | --- void-kitten adds (v3 review §5) ---------------------------------------- The review's diagnosis of the boss fight was "it has one verb": hover a single t... |
+| `scripts/data/boss_data.gd:140` | `add_hp_fraction` | `0.0012` | Add HP, as a fraction of the boss's own total. |
+| `scripts/data/boss_data.gd:142` | `add_heal_fraction` | `0.025` | Boss HP restored when one reaches the boss, as a fraction of the boss total. |
+| `scripts/data/boss_data.gd:143` | `add_speed_px_per_sec` | `62.0` |  |
+| `scripts/data/card_data.gd:181` | `weight` | `1.0` | Relative draw weight. Cards with costs are rarer, because a hand of three trades is a worse offer than a hand with one. |
+| `scripts/data/combat_constants_data.gd:26` | `base_paw_damage` | `5.5` | --- the paw: the cat's own attack (v5, 2026-08-19) ------------------------  Damage used to be one continuous rate applied to everything inside the aura, and... |
+| `scripts/data/combat_constants_data.gd:27` | `base_attack_speed` | `2.0` |  |
+| `scripts/data/combat_constants_data.gd:30` | `base_paw_reach` | `62.0` | How far the swipe lands, in pixels. Shorter than the aura's 77 — the aura is the upgrade that stops you having to be on top of things. |
+| `scripts/data/combat_constants_data.gd:37` | `shred_max_stacks` | `10` | --- shred: the reward for staying on one mouse ----------------------------  Each consecutive strike on the SAME target adds a stack; switching targets reset... |
+| `scripts/data/combat_constants_data.gd:40` | `shred_stack_seconds` | `2.5` | A stack expires this long after the last strike that fed it, so walking away costs the ramp rather than banking it. |
+| `scripts/data/combat_constants_data.gd:42` | `base_damage_per_sec` | `11.0` |  |
+| `scripts/data/combat_constants_data.gd:43` | `crit_multiplier` | `2.0` |  |
+| `scripts/data/combat_constants_data.gd:49` | `base_aura_radius` | `77.0` | Matches the cat's own on-screen size (Player.SPRITE_TARGET_PX is 154, so a 77 radius draws a circle exactly as wide as the sprite). Now that the aura is VISI... |
+| `scripts/data/combat_constants_data.gd:50` | `base_kitten_damage_per_sec` | `3.0` |  |
+| `scripts/data/combat_constants_data.gd:51` | `base_kitten_contact_radius` | `30.0` |  |
+| `scripts/data/combat_constants_data.gd:56` | `base_kitten_detection_radius` | `500.0` | First-pass value (Skill Tree Doc §3/§4 only specify % bonuses, not a base) — flag before relying on it for real balance work, same caveat as Reawaken/Poop co... |
+| `scripts/data/combat_constants_data.gd:62` | `poop_aura_fraction` | `0.35` | Rainbow Poop's zone DPS as a FRACTION OF AURA DPS, the way Pounce is also expressed. Replaces `base_poop_damage_per_sec` as the ability's damage source — see... |
+| `scripts/data/combat_constants_data.gd:66` | `base_poop_damage_per_sec` | `2.0` | HISTORICAL — no longer read by CombatResolver.poop_dps. Kept only so the GDD and Technical Design Doc, which both still name it, do not dangle until the Phas... |
+| `scripts/data/combat_constants_data.gd:67` | `poop_cooldown_sec` | `8.0` |  |
+| `scripts/data/combat_constants_data.gd:68` | `poop_duration_sec` | `3.0` |  |
+| `scripts/data/combat_constants_data.gd:69` | `poop_radius_px` | `250.0` |  |
+| `scripts/data/combat_constants_data.gd:80` | `pounce_cooldown_sec` | `5.0` | --- Pounce (v3 review §5.1) ------------------------------------------------- The answer to end-game cursor-parking: once aura damage outruns the spawn rate ... |
+| `scripts/data/combat_constants_data.gd:81` | `pounce_damage_seconds` | `2.0` |  |
+| `scripts/data/combat_constants_data.gd:82` | `pounce_radius_px` | `160.0` |  |
+| `scripts/data/combat_constants_data.gd:86` | `pounce_vulnerable_multiplier` | `5.0` | Landing a Pounce inside a signature's (or a boss phase's) VULNERABLE window multiplies it. This is the whole reason the invulnerability cycle exists — it was... |
+| `scripts/data/combat_constants_data.gd:118` | `evolution_damage_per_stage` | `5.04` | Base of the evolution damage multiplier: `base ^ (stage - 1)`, applied in GameState._rebuild_stats(). Data rather than a literal because v4 Phase 2 forced it... |
+| `scripts/data/combat_constants_data.gd:149` | `pounce_max_aura_multiple` | `2.0` | Hard ceiling on SUSTAINED Pounce damage, as a multiple of aura DPS (CombatResolver.pounce_aura_multiple). v4 Phase 4.  Pounce is three multiplicative dials l... |
+| `scripts/data/combat_constants_data.gd:159` | `overkill_bounty_max_multiple` | `4.0` | Ceiling on the Overkill bounty, in multiples of the victim's own reward (CombatResolver.overkill_bounty). v4 Phase 4.  The surplus it converts is unbounded —... |
+| `scripts/data/combat_constants_data.gd:184` | `overkill_bounty_exponent` | `0.0` | Sub-linear Overkill. When ABOVE ZERO this replaces the flat ceiling above with `wasted ** exponent`, and the ceiling stops being read.  Why a curve rather th... |
+| `scripts/data/enemy_data.gd:17` | `tier` | `1` |  |
+| `scripts/data/enemy_data.gd:18` | `hp` | `10.0` |  |
+| `scripts/data/enemy_data.gd:51` | `reward_catnip` | `0.0` |  |
+| `scripts/data/enemy_data.gd:52` | `invuln_vulnerable_sec` | `0.0` | 0 = never shields (common enemies) |
+| `scripts/data/enemy_data.gd:53` | `invuln_shield_sec` | `0.0` |  |
+| `scripts/data/enemy_data.gd:79` | `speed_multiplier` | `1.0` | Multiplies the authored wander speed. Gristle is fat and unbothered. |
+| `scripts/data/enemy_data.gd:83` | `lifetime_sec` | `0.0` | Seconds before it gives up and leaves. 0 = never times out (every ordinary mouse). A fleeing enemy with no timeout would be farmable forever by simply corner... |
+| `scripts/data/enemy_data.gd:106` | `sprite_target_px` | `46.0` | Longest edge in pixels the sprite is scaled to, so art of any source resolution lands at a consistent on-screen size. |
+| `scripts/data/evolution_data.gd:38` | `stage` | `1` |  |
+| `scripts/data/evolution_data.gd:41` | `weapon_multiplier` | `1.0` |  |
+| `scripts/data/job_data.gd:28` | `paw_damage_multiplier` | `1.0` | --- the trade, as multipliers on stats that already exist ----------------- 1.0 is neutral everywhere, so a job only states what it changes. |
+| `scripts/data/job_data.gd:29` | `aura_damage_multiplier` | `1.0` |  |
+| `scripts/data/job_data.gd:30` | `aura_radius_multiplier` | `1.0` |  |
+| `scripts/data/job_data.gd:31` | `kitten_damage_multiplier` | `1.0` |  |
+| `scripts/data/job_data.gd:32` | `pounce_damage_multiplier` | `1.0` |  |
+| `scripts/data/job_data.gd:35` | `all_damage_multiplier` | `1.0` | Rides the same multiplicative bracket Claws' "mult" channel does, so it multiplies paw and aura alike rather than being a fourth kind of damage. |
+| `scripts/data/job_data.gd:37` | `catnip_multiplier` | `1.0` | Catnip yield, multiplied into the same place Fortune goes. |
+| `scripts/data/job_data.gd:41` | `crit_chance_multiplier` | `1.0` | Multiplies CombatStats.crit_chance. Added 2026-09-12 for the Sphinx, whose whole trade is "your hits are rarer and much bigger". |
+| `scripts/data/job_data.gd:46` | `attack_speed_multiplier` | `1.0` | Multiplies CombatStats.attack_speed_multiplier, beside the shop's own line. The other half of the Sphinx: crits three times as often, swung at half speed. |
+| `scripts/data/job_data.gd:55` | `crit_chance_bonus` | `0.0` | FLAT crit chance the job hands over, added before crit_chance_multiplier.  Without this the Sphinx was pure cost and ci/check_damage said so the first time i... |
+| `scripts/data/job_data.gd:65` | `crit_damage_multiplier` | `1.0` | Multiplies CombatStats.crit_multiplier.  Also the Sphinx, and also forced by arithmetic rather than taste. Expected damage is 1 + chance * (multiplier - 1), ... |
+| `scripts/data/job_data.gd:70` | `enemy_health_multiplier` | `1.0` | Multiplies every enemy's max health. The Ratcatcher's cost: twice as many arrive and each takes longer to put down. ABOVE 1.0 IS THE COST HERE, which is back... |
+| `scripts/data/job_data.gd:74` | `spawn_rate_multiplier` | `1.0` | Multiplies TierData.spawn_rate_per_min, beside the shop's own Spawn Rate. Added for the Ratcatcher: more to kill, each of them killed slower. |
+| `scripts/data/job_data.gd:79` | `extra_cards_in_hand` | `0` | --- the trades that are not stats ----------------------------------------- Extra cards in every pick hand. The card economy is the only build axis the shop ... |
+| `scripts/data/job_data.gd:82` | `pounce_lock_sec` | `0.0` | Seconds the cat cannot move after a Pounce. The cost that makes a x4 Pounce a decision rather than a gift. |
+| `scripts/data/job_data.gd:90` | `required_reawakens` | `0` | Reawakens required when no boss drops it. Only read when `dropped_by_biome` is empty. |
 | `scripts/data/pawpocalypse_save_data.gd:57` | `CURRENT_VERSION` | `7` | Bumped whenever the schema changes in a way older saves can't satisfy. v2 added the split-invariant reawaken fields below (v3 review fix 1): a v1 save has no... |
+| `scripts/data/pawpocalypse_save_data.gd:60` | `catnip` | `0.0` |  |
+| `scripts/data/pawpocalypse_save_data.gd:61` | `stardust` | `0.0` |  |
+| `scripts/data/pawpocalypse_save_data.gd:62` | `reawaken_count` | `0` |  |
+| `scripts/data/pawpocalypse_save_data.gd:70` | `lifetime_catnip_ever` | `0.0` | --- v2: split-invariant reawaken grants (v3 review fix 1) --- Lifetime Catnip across ALL cycles — the basis every Reawaken grant is computed from. Never reset. |
+| `scripts/data/pawpocalypse_save_data.gd:73` | `lifetime_catnip_this_cycle` | `0.0` | Progress toward the NEXT Reawaken. Separate from lifetime_catnip_ever, which never resets; this one is zeroed by reawaken() and must survive a restart. |
+| `scripts/data/pawpocalypse_save_data.gd:76` | `stardust_granted_ever` | `0.0` | What has already been paid out, so a grant against the lifetime bank can subtract it and pay only the difference. |
+| `scripts/data/pawpocalypse_save_data.gd:89` | `lifetime_kills` | `0` | --- v4: lifetime statistics and achievements --- Kills across every tier and every Reawaken. `tier_kill_count` resets and is display-only, so it could not ba... |
+| `scripts/data/pawpocalypse_save_data.gd:105` | `last_played_unix` | `0.0` | --- timestamps (no version bump; see above) --- Unix seconds at the moment this save was written. It outlived offline accrual because the main menu's slot ca... |
+| `scripts/data/pawpocalypse_save_data.gd:109` | `play_seconds_this_cycle` | `0.0` | Wall-clock seconds played this cycle. Reset by reawaken() in lockstep with `lifetime_catnip_this_cycle`, which it was the denominator of before offline accru... |
+| `scripts/data/pawpocalypse_save_data.gd:116` | `total_play_seconds` | `0.0` | Total seconds played on this save, across every Reawaken cycle.  Distinct from `play_seconds_this_cycle`, which resets with the run. This one never resets: i... |
+| `scripts/data/pawpocalypse_save_data.gd:123` | `final_boss_seconds` | `0.0` | `total_play_seconds` at the instant the final boss died, or 0 if it has not.  Stored rather than derived because the run continues afterwards — by the time a... |
+| `scripts/data/pawpocalypse_save_data.gd:216` | `catches_level` | `0` |  |
+| `scripts/data/pawpocalypse_save_data.gd:217` | `catches_points` | `0.0` |  |
+| `scripts/data/pawpocalypse_save_data.gd:218` | `rerolls` | `0` |  |
+| `scripts/data/pawpocalypse_save_data.gd:219` | `extra_choices` | `0` |  |
+| `scripts/data/pawpocalypse_save_data.gd:220` | `banishes` | `0` |  |
+| `scripts/data/pawpocalypse_save_data.gd:221` | `fixation_hands` | `0` |  |
+| `scripts/data/pawpocalypse_save_data.gd:225` | `cards_taken_this_run` | `0` |  |
+| `scripts/data/reawaken_constants_data.gd:42` | `reawaken_min_stardust` | `25.0` | Stardust the FIRST Reawaken must be worth before it is offered. Sets when a new player meets the meta layer at all, so it is a pacing dial, not a safety one:... |
+| `scripts/data/reawaken_constants_data.gd:66` | `reawaken_min_gain_fraction` | `6.0` | Every LATER Reawaken must grow `stardust_granted_ever` by at least this fraction before it is offered. 0.5 = "+50% on everything you have earned". Scale-free... |
+| `scripts/data/reawaken_constants_data.gd:68` | `reawaken_stardust_coefficient` | `0.5` |  |
+| `scripts/data/reawaken_constants_data.gd:69` | `reawaken_mult_per_point` | `1.01` |  |
+| `scripts/data/reawaken_constants_data.gd:100` | `reawaken_mult_scale` | `10.0` | --- Reawaken multiplier soft cap (review fix 4, F3) --- `reawaken_mult_per_point ^ stardust` alone is super-exponential: Catnip grows exponentially across ti... |
+| `scripts/data/reawaken_constants_data.gd:101` | `reawaken_mult_exponent` | `0.5` |  |
+| `scripts/data/reawaken_constants_data.gd:103` | `pounce_unlock_reawaken_count` | `1` |  |
+| `scripts/data/reawaken_constants_data.gd:104` | `overkill_unlock_reawaken_count` | `2` |  |
+| `scripts/data/reawaken_constants_data.gd:105` | `unicorn_unlock_reawaken_count` | `3` |  |
+| `scripts/data/skill_branch_data.gd:389` | `required_reawakens` | `0` | Reawakens required before the tree will sell this branch at all.  0 = available from the first Reawaken. Added 2026-08-20 because the tree had no pacing of i... |
+| `scripts/data/tier_data.gd:52` | `spawn_rate_per_min` | `16.0` | The biome's own arrival rate, and the ONLY thing that sets it besides what the player has bought (GameState.get_spawn_rate_multiplier: the Spawn Rate line, S... |
+| `scripts/data/tier_data.gd:53` | `required_evolution_stage` | `1` |  |
+| `scripts/data/tier_data.gd:81` | `golden_chance` | `0.0` | Chance per spawn that a Golden Mouse appears instead of anything in the pool. Rolled BEFORE the pool, so a golden is never also a signature. |
+| `scripts/data/tier_data.gd:109` | `catnip_to_unlock` | `0.0` | Catnip that must have been EARNED THIS RUN before this biome opens (designer, 2026-08-19: "based on catnip earned and not kills", "slightly harder to unlock"... |
+| `scripts/data/tier_data.gd:130` | `reward_multiplier` | `1.0` | Flat multiplier on every Catnip reward paid in this biome — the reason to go deeper (designer, 2026-08-19: "make the new floors payout more").  Enemy HP and ... |
+| `scripts/data/tier_data.gd:150` | `kills_per_wave` | `0.0` | WAVES - within-biome escalation (2026-08-24).  A biome used to be FLAT. Once the player is spawn-bound - which is 92% of the game - income is kills/sec x rew... |
+| `scripts/data/tier_data.gd:156` | `wave_kill_growth` | `1.10` | Each wave costs this much more than the last. THE SENSITIVE ONE: at 1.30 the late waves in a biome the player has settled in fall 95 minutes apart, which is ... |
+| `scripts/data/tier_data.gd:161` | `wave_hp_growth` | `1.35` | Reward grows SLOWER than HP, the same relationship the biome ladder uses (3.40 against 3.90). Set them equal and a wave is a rename rather than an escalation. |
+| `scripts/data/tier_data.gd:162` | `wave_reward_growth` | `1.28` |  |
+| `scripts/data/upgrade_data.gd:84` | `base_cost` | `0.0` |  |
+| `scripts/data/upgrade_data.gd:85` | `cost_growth` | `1.1` |  |
+| `scripts/data/upgrade_data.gd:86` | `effect_per_level` | `0.0` |  |
+| `scripts/data/upgrade_data.gd:88` | `cap` | `-1.0` | -1 = uncapped |
+| `scripts/data/upgrade_data.gd:107` | `cap_per_floor` | `0.0` | How much this line's cap rises for each biome unlocked beyond the first (designer, 2026-08-19: "maybe we can increase max skill upgrade with each floor so it... |
+| `scripts/data/upgrade_data.gd:120` | `cap_per_reawaken` | `0.0` | How much this line's cap rises per Reawaken (economy plan, Step 7).  Same shape as cap_per_floor and the same exemption for uncapped lines, but it answers a ... |
 | `scripts/systems/anim_sheet.gd:25` | `ROW_MOVE` | `0` | Row indices. Row 0 is the one an enemy is almost always in. |
 | `scripts/systems/anim_sheet.gd:26` | `ROW_ATTACK` | `1` |  |
 | `scripts/systems/anim_sheet.gd:30` | `ENEMY_MOVE_FRAMES` | `2` | Frames per row, matching tools/make_anim_atlas.py's ENEMY_SETS. |
@@ -122,6 +229,10 @@
 | `scripts/systems/dock_navigator.gd:39` | `PRESS_REPEAT_MAX_HZ` | `12.0` |  |
 | `scripts/systems/dock_navigator.gd:40` | `PRESS_RAMP_SEC` | `1.2` |  |
 | `scripts/systems/dock_navigator.gd:44` | `ROW_PROMPT_GAP` | `10.0` | The gap between the selected row's field-side edge and the press glyph. |
+| `scripts/systems/enemy.gd:49` | `speed_px_per_sec` | `80.0` |  |
+| `scripts/systems/enemy.gd:50` | `wander_turn_rate` | `1.5` | radians/sec of random heading drift |
+| `scripts/systems/enemy.gd:65` | `flee_centre_bias` | `0.55` | How hard a FLEEING enemy is pulled back toward the middle of the play area, as a weight against its run-away direction (0 = straight away, 1 = as much centre... |
+| `scripts/systems/enemy.gd:75` | `flier_speed_multiplier` | `2.1` | How much faster a FLIER crosses the play area than a ground enemy.  Lives here rather than in EnemyData for the same reason `speed_px_per_sec` does: movement... |
 | `scripts/systems/enemy.gd:77` | `SHIELD_TINT` | `Color(0.55, 0.9, 1.0, 0.6)` |  |
 | `scripts/systems/enemy.gd:81` | `SNARE_TINT` | `Color(0.46, 0.64, 0.95, 1.0)` | Cold and slightly dimmed: a mouse wading through a Snare. Multiplied with the shield tint rather than replacing it, so a shielded snared mouse reads as both ... |
 | `scripts/systems/enemy.gd:123` | `PLAY_WITH_FOOD_HP_FRACTION` | `0.20` | What counts as "already nearly dead" for Play With Food. |
@@ -149,26 +260,29 @@
 | `scripts/systems/ground_shadow.gd:30` | `FLIER_WIDTH` | `0.55` | A flier is off the ground: its shadow is smaller, fainter and further down. |
 | `scripts/systems/ground_shadow.gd:31` | `FLIER_ALPHA` | `0.6` |  |
 | `scripts/systems/ground_shadow.gd:32` | `FLIER_DROP` | `0.18` |  |
-| `scripts/systems/hud.gd:85` | `REAWAKEN_GLOW_HZ` | `0.35` | Rainbow pulse on the Reawaken tab while a reset is worth taking.  Reawakening is the one irreversible decision in the game and it lives behind a tab, so a pl... |
-| `scripts/systems/hud.gd:86` | `REAWAKEN_GLOW_SATURATION` | `0.75` |  |
-| `scripts/systems/hud.gd:90` | `BIOME_READY_TINT` | `Color(1.25, 1.18, 0.72)` | The tint an available biome's row takes. It also jitters (UiJuice); it used to sit 4% larger, which nobody could see. |
-| `scripts/systems/hud.gd:92` | `ICON_PLATE_PAD` | `5.0` | Currency-icon backplate. Small on purpose — see _add_icon_backplate(). |
-| `scripts/systems/hud.gd:93` | `ICON_PLATE_RADIUS` | `8` |  |
-| `scripts/systems/hud.gd:96` | `ICON_PLATE_COLOR` | `Color(1.0, 0.976, 0.89, 0.82)` | Paper, like every Stacklands plate, at an alpha that lets a dark floor show through enough to say "this is over the field". |
-| `scripts/systems/hud.gd:282` | `TAB_BADGE_COLOUR` | `Palette.ALERT` | The Stacklands alert red - the exclamation on a quest tab. |
-| `scripts/systems/hud.gd:298` | `HERE_COLOR` | `Palette.UI_GOOD` | Realm-list colours. A boss arena is a fight; a hunting realm is somewhere to farm. With twelve rows the list needs to answer "which of these will try to kill... |
-| `scripts/systems/hud.gd:299` | `BOSS_BIOME_COLOR` | `Palette.UI_DANGER` |  |
-| `scripts/systems/hud.gd:300` | `BOSS_BIOME_CLEARED_COLOR` | `Palette.STARDUST` |  |
-| `scripts/systems/hud.gd:350` | `HUD_REFRESH_HZ` | `15.0` | Panel refreshes are COALESCED, not driven one-per-signal.  `currency_changed` and `kill_count_changed` each fire once per mouse killed. On a maxed save that ... |
-| `scripts/systems/hud.gd:419` | `EDGE_MARGIN` | `20.0` |  |
-| `scripts/systems/hud.gd:734` | `POUNCE_GAUGE_MARGIN` | `18.0` |  |
-| `scripts/systems/hud.gd:1813` | `STAGE_BANNER_HOLD` | `2.2` | Evolution happens three times in a whole game, so the stage number is news exactly three times. It used to hold a permanent row in an opaque corner panel for... |
-| `scripts/systems/hud.gd:1814` | `STAGE_BANNER_FADE` | `1.1` |  |
-| `scripts/systems/hud.gd:1818` | `WELCOME_BANNER_HOLD` | `4.5` | The welcome-back line holds longer: it carries a number the player is meant to read and be pleased about, where the stage banner mostly carries a name they a... |
-| `scripts/systems/hud.gd:2001` | `FPS_REFRESH_SEC` | `0.5` | Once a second, not once a frame. An FPS counter that updates every frame is unreadable — the digits change faster than they can be focused on — and it also m... |
+| `scripts/systems/hud.gd:80` | `REAWAKEN_GLOW_HZ` | `0.35` | Rainbow pulse on the Reawaken tab while a reset is worth taking.  Reawakening is the one irreversible decision in the game and it lives behind a tab, so a pl... |
+| `scripts/systems/hud.gd:81` | `REAWAKEN_GLOW_SATURATION` | `0.75` |  |
+| `scripts/systems/hud.gd:85` | `BIOME_READY_TINT` | `Color(1.25, 1.18, 0.72)` | The tint an available biome's row takes. It also jitters (UiJuice); it used to sit 4% larger, which nobody could see. |
+| `scripts/systems/hud.gd:87` | `ICON_PLATE_PAD` | `5.0` | Currency-icon backplate. Small on purpose — see _add_icon_backplate(). |
+| `scripts/systems/hud.gd:88` | `ICON_PLATE_RADIUS` | `8` |  |
+| `scripts/systems/hud.gd:91` | `ICON_PLATE_COLOR` | `Color(1.0, 0.976, 0.89, 0.82)` | Paper, like every Stacklands plate, at an alpha that lets a dark floor show through enough to say "this is over the field". |
+| `scripts/systems/hud.gd:277` | `TAB_BADGE_COLOUR` | `Palette.ALERT` | The Stacklands alert red - the exclamation on a quest tab. |
+| `scripts/systems/hud.gd:293` | `HERE_COLOR` | `Palette.UI_GOOD` | Realm-list colours. A boss arena is a fight; a hunting realm is somewhere to farm. With twelve rows the list needs to answer "which of these will try to kill... |
+| `scripts/systems/hud.gd:294` | `BOSS_BIOME_COLOR` | `Palette.UI_DANGER` |  |
+| `scripts/systems/hud.gd:295` | `BOSS_BIOME_CLEARED_COLOR` | `Palette.STARDUST` |  |
+| `scripts/systems/hud.gd:345` | `HUD_REFRESH_HZ` | `15.0` | Panel refreshes are COALESCED, not driven one-per-signal.  `currency_changed` and `kill_count_changed` each fire once per mouse killed. On a maxed save that ... |
+| `scripts/systems/hud.gd:414` | `EDGE_MARGIN` | `20.0` |  |
+| `scripts/systems/hud.gd:729` | `POUNCE_GAUGE_MARGIN` | `18.0` |  |
+| `scripts/systems/hud.gd:1808` | `STAGE_BANNER_HOLD` | `2.2` | Evolution happens three times in a whole game, so the stage number is news exactly three times. It used to hold a permanent row in an opaque corner panel for... |
+| `scripts/systems/hud.gd:1809` | `STAGE_BANNER_FADE` | `1.1` |  |
+| `scripts/systems/hud.gd:1813` | `WELCOME_BANNER_HOLD` | `4.5` | The welcome-back line holds longer: it carries a number the player is meant to read and be pleased about, where the stage banner mostly carries a name they a... |
+| `scripts/systems/hud.gd:1996` | `FPS_REFRESH_SEC` | `0.5` | Once a second, not once a frame. An FPS counter that updates every frame is unreadable — the digits change faster than they can be focused on — and it also m... |
 | `scripts/systems/kitten.gd:47` | `SPRITE_TARGET_PX` | `96.0` | On-screen size the art is fitted to, the same pattern Player and Enemy use. A hardcoded `scale` in the scene silently halves the kitten the moment the source... |
 | `scripts/systems/kitten.gd:57` | `GOLDEN_TINT` | `Color(1.30, 1.06, 0.40)` | The gold the GOLDEN_KITTEN card paints its chosen kitten (designer, 2026-08-20).  A modulate rather than separate art, for the same reason the whoosh is draw... |
 | `scripts/systems/kitten.gd:65` | `HALO_COLOUR` | `Color(0.62, 0.84, 1.0)` | A cold white-blue, chosen to be the thing gold is NOT — the two marks have to be told apart in peripheral vision, at 96px, against eight biome palettes. |
+| `scripts/systems/kitten.gd:73` | `speed_px_per_sec` | `260.0` |  |
+| `scripts/systems/kitten.gd:74` | `orbit_radius_px` | `18.0` | kept below base_kitten_contact_radius so orbiting still counts as contact |
+| `scripts/systems/kitten.gd:85` | `roam_speed_ratio` | `0.45` | Roaming, for when there is nothing in detection range. A kitten frozen mid-screen reads as broken — the whole premise is that they are autonomous hunters, an... |
 | `scripts/systems/kitten.gd:88` | `ROAM_HEADING_SEC` | `1.4` | How long a kitten holds one wander heading before picking another. Short enough to look alive, long enough not to jitter on the spot. |
 | `scripts/systems/kitten.gd:91` | `ROAM_TURN_SPREAD` | `1.2` | radians |
 | `scripts/systems/kitten.gd:129` | `ILLUSION_TINT` | `Color(0.72, 0.80, 1.0, 0.45)` | Pale, cold and half-there. Alpha does the work; the hue shift stops a translucent kitten reading as a merely faded one. |
@@ -273,6 +387,8 @@
 | `scripts/systems/pounce_gauge.gd:19` | `READY_RING` | `5.0` |  |
 | `scripts/systems/pounce_gauge.gd:20` | `READY_HZ` | `0.9` |  |
 | `scripts/systems/pounce_gauge.gd:23` | `WEDGE_ALPHA` | `0.62` | The wedge: dark enough to read as "not yet" over the paw, light enough to see the paw through it. |
+| `scripts/systems/prompt_icon.gd:16` | `icon_px` | `28` | The glyph's height in pixels; a keycap matches it. |
+| `scripts/systems/prompt_label.gd:17` | `icon_px` | `28` |  |
 | `scripts/systems/rainbow_bar.gd:21` | `HUE_CYCLE_PER_SEC` | `0.22` | Hue scroll speed, in full rainbows per second. |
 | `scripts/systems/rainbow_bar.gd:23` | `HUE_SPAN` | `0.75` | Horizontal density of the gradient — how much hue separates the two ends. |
 | `scripts/systems/rainbow_bar.gd:26` | `BAND_COUNT` | `48` | Vertical bands the fill is drawn in. Enough to look smooth, few enough to stay cheap. |
@@ -281,6 +397,9 @@
 | `scripts/systems/rainbow_bar.gd:30` | `SPARK_RISE_PX` | `26.0` |  |
 | `scripts/systems/rainbow_bar.gd:31` | `SPARK_DRIFT_PX` | `18.0` |  |
 | `scripts/systems/rainbow_bar.gd:32` | `SPARK_MAX_RADIUS` | `2.6` |  |
+| `scripts/systems/rainbow_frame.gd:19` | `width` | `4.0` |  |
+| `scripts/systems/rainbow_frame.gd:20` | `corner` | `8.0` |  |
+| `scripts/systems/rainbow_frame.gd:21` | `turns_per_sec` | `0.12` |  |
 | `scripts/systems/reawaken_ceremony.gd:22` | `FLASH_IN_SEC` | `0.35` |  |
 | `scripts/systems/reawaken_ceremony.gd:23` | `HOLD_SEC` | `1.1` |  |
 | `scripts/systems/reawaken_ceremony.gd:24` | `FADE_OUT_SEC` | `0.45` |  |
@@ -338,59 +457,60 @@
 | `scripts/systems/tier_controller.gd:44` | `MAX_LIVE_ENEMIES` | `320` | Hard ceiling on live mice, regardless of spawn rate. Tier 8 at a maxed Spawn Rate is ~40 spawns/second against a ~16 second wander, which is several hundred ... |
 | `scripts/systems/tier_controller.gd:47` | `EXECUTE_COLOR` | `Color(0.78, 0.09, 0.12, 0.95)` | Execute's spatter. Deep arterial red rather than the bright red the HUD uses for damage numbers — this has to read as a finisher, not as a warning. |
 | `scripts/systems/tier_controller.gd:51` | `MIN_SPAWN_INTERVAL` | `1.0 / 60.0` | One frame at 60fps. A Timer cannot fire faster than the frame rate, so this is the point past which the spawn rate has to be delivered as a batch per tick ra... |
+| `scripts/systems/tier_controller.gd:68` | `ui_margin_right` | `600.0` | Width of the HUD dock. Mice are kept out of this strip: a mouse that spawns behind the upgrade panel is unkillable and unreadable, and it still counts agains... |
 | `scripts/systems/tier_controller.gd:73` | `MIN_PLAYFIELD_WIDTH` | `200.0` | The narrowest arena the game still works in. Below this the edge-burn band has no room on the X axis, the spawner's edge positions collapse together and the ... |
-| `scripts/systems/tier_controller.gd:423` | `SPAWN_EDGE_INSET` | `24.0` | keeps spawns clear of play_bounds' exclusive far edges |
-| `scripts/systems/tier_controller.gd:424` | `SPAWN_DIRECTION_SPREAD` | `0.9` | radians (~52°) either side of dead-center |
-| `scripts/systems/tier_controller.gd:606` | `MAX_STRIKES_PER_FRAME` | `12` |  |
-| `scripts/systems/tier_controller.gd:850` | `PIED_PIPER_COLOR` | `Color(0.84, 0.62, 0.46, 0.85)` | HAMMERFALL: the swipe carries through whatever is standing behind the target.  "Behind" is measured along the line from the cat THROUGH the target, so this i... |
-| `scripts/systems/tier_controller.gd:854` | `HAMMERFALL_COLOR` | `Color(1.0, 0.62, 0.48, 0.9)` | The carry-through's colour - the Claws trunk's red, because that is whose node it is and the player should read it as their own paw, not a new source. |
-| `scripts/systems/tier_controller.gd:858` | `ANVIL_ECHO_REACH` | `1.35` | How much wider the doubled Anvil Paw arc is struck. Enough to separate the two blows at a glance, small enough that it still reads as the same paw. |
-| `scripts/systems/tier_controller.gd:860` | `HAMMERFALL_LANE_PX` | `70.0` |  |
-| `scripts/systems/tier_controller.gd:861` | `HAMMERFALL_RANGE_PX` | `280.0` |  |
-| `scripts/systems/tier_controller.gd:1030` | `MAX_DAMAGE_ZONES` | `64` | Bounded so a long run with a fast trail cannot grow this without limit — the trail drops on a fixed cadence, so the ceiling is only ever hit if the cadence a... |
-| `scripts/systems/tier_controller.gd:1037` | `ZONE_COLOR_TRAIL` | `Color(0.55, 0.82, 1.0, 1.0)` | The four colours the shared zone primitive is worn in. |
-| `scripts/systems/tier_controller.gd:1038` | `ZONE_COLOR_CRATER` | `Color(1.0, 0.52, 0.24, 1.0)` |  |
-| `scripts/systems/tier_controller.gd:1039` | `ZONE_COLOR_ECHO` | `Color(0.62, 0.88, 0.94, 1.0)` |  |
-| `scripts/systems/tier_controller.gd:1113` | `AURA_TRAIL_DROP_SEC` | `0.2` | AURA_TRAIL: the aura leaves a damaging trail behind the player.  Dropped on a cadence rather than every frame, and only when the player has actually MOVED — ... |
-| `scripts/systems/tier_controller.gd:1114` | `AURA_TRAIL_LIFETIME_SEC` | `2.5` |  |
-| `scripts/systems/tier_controller.gd:1115` | `AURA_TRAIL_MIN_MOVE_PX` | `18.0` |  |
-| `scripts/systems/tier_controller.gd:1147` | `DRAG_TETHER_SEC` | `0.35` | KITTEN_DRAG, drawn as a tether from each hauling kitten to what it is hauling.  The card's whole content is that a kitten brings the mouse TO you rather than... |
-| `scripts/systems/tier_controller.gd:1148` | `DRAG_TETHER_COLOR` | `Color(0.98, 0.80, 0.52, 0.65)` |  |
-| `scripts/systems/tier_controller.gd:1176` | `RUSH_PULSE_SEC` | `0.55` | INFESTATION's rush, made visible at the cat.  The bonus rises with every kill and decays continuously, so the player is either riding a rush or not and had n... |
-| `scripts/systems/tier_controller.gd:1178` | `RUSH_VISIBLE_AT` | `0.15` | Below this the rush is a rounding error and the ring would be noise. |
-| `scripts/systems/tier_controller.gd:1205` | `FINALE_REACH_PX` | `150.0` | GRAND FINALE: the kittens the Magician switched off drag instead of bite.  Reaches only mice near a LIVE kitten, which is what makes this the kittens doing t... |
-| `scripts/systems/tier_controller.gd:1240` | `GRIDLOCK_REACH_PX` | `120.0` | GRIDLOCK: the snared drag down whatever strays over them.  Fliers are the ONLY population this can reach, because everything on the ground is already inside ... |
-| `scripts/systems/tier_controller.gd:1265` | `ECHO_DROP_SEC` | `1.0` | ECHO: a second, weaker aura that lags a beat behind the cat.  ONE zone, dropped on a cadence and living exactly as long as the cadence, so there is never mor... |
-| `scripts/systems/tier_controller.gd:1291` | `EDGE_BURN_BAND_PX` | `90.0` | EDGE_BURN: mice near the rim of the play area take damage over time, so the ones wandering off are not simply lost.  Expressed as a fraction of aura DPS for ... |
-| `scripts/systems/tier_controller.gd:1326` | `AURA_PULSE_INTERVAL_SEC` | `6.0` | AURA_PULSE: the aura periodically detonates for a burst.  The card's value is the burst SIZE in seconds-of-aura-DPS, so the cadence has to live here as a con... |
-| `scripts/systems/tier_controller.gd:1496` | `PRISM_BEAM_DRAW_INTERVAL` | `0.12` | Beams are DRAWN at a lower rate than they are RESOLVED. At 60fps a beam per frame per chain link is hundreds of self-freeing nodes a second, which is the sha... |
-| `scripts/systems/tier_controller.gd:1498` | `PRISM_SHARDS_PER_DETONATION` | `10.0` | Shards needed before the screen goes off. |
-| `scripts/systems/tier_controller.gd:1563` | `PRISM_COLOR` | `Color(0.95, 0.75, 1.0, 0.95)` |  |
-| `scripts/systems/tier_controller.gd:1728` | `POUNCE_CRATER_LIFETIME_SEC` | `3.0` |  |
-| `scripts/systems/tier_controller.gd:1832` | `MAX_SPLASH_BEAMS_PER_FRAME` | `3` | Overkill (v3 review F7, replacing Multi-Strike): damage past a mouse's last hit point carries to the nearest surviving mouse instead of evaporating.  Deliber... |
-| `scripts/systems/tier_controller.gd:1843` | `OVERKILL_SPLASH_COLOR` | `Color(1.0, 0.55, 0.42, 0.85)` | The colour the spill is drawn in - the same warm red the Claws trunk uses, so a player reads it as "your damage, gone somewhere else" rather than as a new me... |
-| `scripts/systems/tier_controller.gd:2036` | `BOSS_DEATH_SEQUENCE_SEC` | `1.1` | How long the boss death sequence runs before anything else is allowed to happen. Matches Boss._play_death_sequence()'s shake + collapse. |
-| `scripts/systems/tier_controller.gd:2066` | `BOSS_BANNER_WIDTH` | `760.0` | Boss banner geometry. Top-centre, above the diorama, on its own CanvasLayer rather than in HUD.tscn — every tier has a boss now, but the banner only exists w... |
-| `scripts/systems/tier_controller.gd:2067` | `BOSS_BANNER_TOP` | `18.0` |  |
-| `scripts/systems/tier_controller.gd:2068` | `BOSS_BAR_HEIGHT` | `18.0` |  |
-| `scripts/systems/tier_controller.gd:2072` | `UI_PANEL_BG` | `Palette.UI_PANEL` | Matches the HUD dock's flat panel (scenes/ui/hud.tscn) so the two read as one interface rather than two authors: Stacklands paper with a black frame. The bar... |
-| `scripts/systems/tier_controller.gd:2073` | `UI_PANEL_BORDER` | `Palette.INK` |  |
-| `scripts/systems/tier_controller.gd:2074` | `BOSS_BAR_TRACK` | `Palette.UI_SLOT` |  |
-| `scripts/systems/tier_controller.gd:2075` | `BOSS_BAR_FILL` | `Palette.UI_DANGER` |  |
-| `scripts/systems/tier_controller.gd:2076` | `BOSS_BAR_SHIELDED` | `Palette.STARDUST` |  |
-| `scripts/systems/tier_controller.gd:2306` | `AUTO_TRAVEL_POLL_SEC` | `1.0` | Auto-travel, checked on a timer rather than on an event (2026-08-20).  It used to fire from ONE place: the moment a boss died. That was correct when a boss k... |
-| `scripts/systems/tier_controller.gd:2547` | `CUT_MAX_RATIO` | `2.0` | Kills only ever pay Catnip now — Catnip is Reawaken-only (GameState header). CAT BURGLAR'S CUT: damage that would have been thrown away is sold instead.  The... |
-| `scripts/systems/tier_controller.gd:2685` | `CATNIP_BOMB_DAMAGE_SECONDS` | `4.0` | CATNIP_BOMB_EVERY: every Nth kill detonates where the last mouse died.  Damage is expressed in SECONDS OF AURA DPS, like Pounce, rather than as a flat number... |
-| `scripts/systems/tier_controller.gd:2686` | `CATNIP_BOMB_RADIUS` | `240.0` |  |
-| `scripts/systems/tier_controller.gd:2870` | `MAX_TEMP_KITTENS` | `6` | Bounded because signature kills are frequent and the pool is pre-sized: the realm reserves exactly this much headroom above the purchasable maximum. |
-| `scripts/systems/tier_controller.gd:2885` | `KITTEN_EXPLOSION_RADIUS` | `150.0` | KITTEN_KILL_EXPLODES: a mouse that dies in a kitten's paws detonates.  A fraction of the VICTIM's max HP rather than of the player's damage, which is what th... |
-| `scripts/systems/tier_controller.gd:2915` | `BONUS_POP_GAP_MSEC` | `70` | THE BONUS POPS (VFX audit, designer 2026-10-01: "look into all skills and see what other vfx we are missing and make them"). Three things paid extra on a kil... |
-| `scripts/systems/tier_controller.gd:2916` | `POP_BOUNTY` | `Color(1.0, 0.84, 0.3, 1.0)` |  |
-| `scripts/systems/tier_controller.gd:2917` | `POP_TOYED` | `Color(1.0, 0.5, 0.75, 1.0)` |  |
-| `scripts/systems/tier_controller.gd:2918` | `POP_SPECTRUM` | `Color(0.45, 0.95, 0.45, 1.0)` |  |
-| `scripts/systems/tier_controller.gd:2948` | `GIBLETS_RED` | `Color(0.62, 0.04, 0.06, 0.92)` | GIBLETS, IN RED (designer, 2026-10-01: "giblets should have a bloody red burst effect"). It was an orange ring - the colour of a Pounce - for a card whose wh... |
-| `scripts/systems/tier_controller.gd:2949` | `GIBLETS_CHUNK` | `Color(0.42, 0.02, 0.05, 1.0)` |  |
-| `scripts/systems/tier_controller.gd:2950` | `GIBLETS_MIN_GAP_MSEC` | `60` |  |
+| `scripts/systems/tier_controller.gd:432` | `SPAWN_EDGE_INSET` | `24.0` | keeps spawns clear of play_bounds' exclusive far edges |
+| `scripts/systems/tier_controller.gd:433` | `SPAWN_DIRECTION_SPREAD` | `0.9` | radians (~52°) either side of dead-center |
+| `scripts/systems/tier_controller.gd:615` | `MAX_STRIKES_PER_FRAME` | `12` |  |
+| `scripts/systems/tier_controller.gd:866` | `PIED_PIPER_COLOR` | `Color(0.84, 0.62, 0.46, 0.85)` | HAMMERFALL: the swipe carries through whatever is standing behind the target.  "Behind" is measured along the line from the cat THROUGH the target, so this i... |
+| `scripts/systems/tier_controller.gd:870` | `HAMMERFALL_COLOR` | `Color(1.0, 0.62, 0.48, 0.9)` | The carry-through's colour - the Claws trunk's red, because that is whose node it is and the player should read it as their own paw, not a new source. |
+| `scripts/systems/tier_controller.gd:874` | `ANVIL_ECHO_REACH` | `1.35` | How much wider the doubled Anvil Paw arc is struck. Enough to separate the two blows at a glance, small enough that it still reads as the same paw. |
+| `scripts/systems/tier_controller.gd:876` | `HAMMERFALL_LANE_PX` | `70.0` |  |
+| `scripts/systems/tier_controller.gd:877` | `HAMMERFALL_RANGE_PX` | `280.0` |  |
+| `scripts/systems/tier_controller.gd:1046` | `MAX_DAMAGE_ZONES` | `64` | Bounded so a long run with a fast trail cannot grow this without limit — the trail drops on a fixed cadence, so the ceiling is only ever hit if the cadence a... |
+| `scripts/systems/tier_controller.gd:1053` | `ZONE_COLOR_TRAIL` | `Color(0.55, 0.82, 1.0, 1.0)` | The four colours the shared zone primitive is worn in. |
+| `scripts/systems/tier_controller.gd:1054` | `ZONE_COLOR_CRATER` | `Color(1.0, 0.52, 0.24, 1.0)` |  |
+| `scripts/systems/tier_controller.gd:1055` | `ZONE_COLOR_ECHO` | `Color(0.62, 0.88, 0.94, 1.0)` |  |
+| `scripts/systems/tier_controller.gd:1129` | `AURA_TRAIL_DROP_SEC` | `0.2` | AURA_TRAIL: the aura leaves a damaging trail behind the player.  Dropped on a cadence rather than every frame, and only when the player has actually MOVED — ... |
+| `scripts/systems/tier_controller.gd:1130` | `AURA_TRAIL_LIFETIME_SEC` | `2.5` |  |
+| `scripts/systems/tier_controller.gd:1131` | `AURA_TRAIL_MIN_MOVE_PX` | `18.0` |  |
+| `scripts/systems/tier_controller.gd:1163` | `DRAG_TETHER_SEC` | `0.35` | KITTEN_DRAG, drawn as a tether from each hauling kitten to what it is hauling.  The card's whole content is that a kitten brings the mouse TO you rather than... |
+| `scripts/systems/tier_controller.gd:1164` | `DRAG_TETHER_COLOR` | `Color(0.98, 0.80, 0.52, 0.65)` |  |
+| `scripts/systems/tier_controller.gd:1192` | `RUSH_PULSE_SEC` | `0.55` | INFESTATION's rush, made visible at the cat.  The bonus rises with every kill and decays continuously, so the player is either riding a rush or not and had n... |
+| `scripts/systems/tier_controller.gd:1194` | `RUSH_VISIBLE_AT` | `0.15` | Below this the rush is a rounding error and the ring would be noise. |
+| `scripts/systems/tier_controller.gd:1221` | `FINALE_REACH_PX` | `150.0` | GRAND FINALE: the kittens the Magician switched off drag instead of bite.  Reaches only mice near a LIVE kitten, which is what makes this the kittens doing t... |
+| `scripts/systems/tier_controller.gd:1256` | `GRIDLOCK_REACH_PX` | `120.0` | GRIDLOCK: the snared drag down whatever strays over them.  Fliers are the ONLY population this can reach, because everything on the ground is already inside ... |
+| `scripts/systems/tier_controller.gd:1281` | `ECHO_DROP_SEC` | `1.0` | ECHO: a second, weaker aura that lags a beat behind the cat.  ONE zone, dropped on a cadence and living exactly as long as the cadence, so there is never mor... |
+| `scripts/systems/tier_controller.gd:1307` | `EDGE_BURN_BAND_PX` | `90.0` | EDGE_BURN: mice near the rim of the play area take damage over time, so the ones wandering off are not simply lost.  Expressed as a fraction of aura DPS for ... |
+| `scripts/systems/tier_controller.gd:1342` | `AURA_PULSE_INTERVAL_SEC` | `6.0` | AURA_PULSE: the aura periodically detonates for a burst.  The card's value is the burst SIZE in seconds-of-aura-DPS, so the cadence has to live here as a con... |
+| `scripts/systems/tier_controller.gd:1512` | `PRISM_BEAM_DRAW_INTERVAL` | `0.12` | Beams are DRAWN at a lower rate than they are RESOLVED. At 60fps a beam per frame per chain link is hundreds of self-freeing nodes a second, which is the sha... |
+| `scripts/systems/tier_controller.gd:1514` | `PRISM_SHARDS_PER_DETONATION` | `10.0` | Shards needed before the screen goes off. |
+| `scripts/systems/tier_controller.gd:1579` | `PRISM_COLOR` | `Color(0.95, 0.75, 1.0, 0.95)` |  |
+| `scripts/systems/tier_controller.gd:1744` | `POUNCE_CRATER_LIFETIME_SEC` | `3.0` |  |
+| `scripts/systems/tier_controller.gd:1848` | `MAX_SPLASH_BEAMS_PER_FRAME` | `3` | Overkill (v3 review F7, replacing Multi-Strike): damage past a mouse's last hit point carries to the nearest surviving mouse instead of evaporating.  Deliber... |
+| `scripts/systems/tier_controller.gd:1859` | `OVERKILL_SPLASH_COLOR` | `Color(1.0, 0.55, 0.42, 0.85)` | The colour the spill is drawn in - the same warm red the Claws trunk uses, so a player reads it as "your damage, gone somewhere else" rather than as a new me... |
+| `scripts/systems/tier_controller.gd:2058` | `BOSS_DEATH_SEQUENCE_SEC` | `1.1` | How long the boss death sequence runs before anything else is allowed to happen. Matches Boss._play_death_sequence()'s shake + collapse. |
+| `scripts/systems/tier_controller.gd:2088` | `BOSS_BANNER_WIDTH` | `760.0` | Boss banner geometry. Top-centre, above the diorama, on its own CanvasLayer rather than in HUD.tscn — every tier has a boss now, but the banner only exists w... |
+| `scripts/systems/tier_controller.gd:2089` | `BOSS_BANNER_TOP` | `18.0` |  |
+| `scripts/systems/tier_controller.gd:2090` | `BOSS_BAR_HEIGHT` | `18.0` |  |
+| `scripts/systems/tier_controller.gd:2094` | `UI_PANEL_BG` | `Palette.UI_PANEL` | Matches the HUD dock's flat panel (scenes/ui/hud.tscn) so the two read as one interface rather than two authors: Stacklands paper with a black frame. The bar... |
+| `scripts/systems/tier_controller.gd:2095` | `UI_PANEL_BORDER` | `Palette.INK` |  |
+| `scripts/systems/tier_controller.gd:2096` | `BOSS_BAR_TRACK` | `Palette.UI_SLOT` |  |
+| `scripts/systems/tier_controller.gd:2097` | `BOSS_BAR_FILL` | `Palette.UI_DANGER` |  |
+| `scripts/systems/tier_controller.gd:2098` | `BOSS_BAR_SHIELDED` | `Palette.STARDUST` |  |
+| `scripts/systems/tier_controller.gd:2328` | `AUTO_TRAVEL_POLL_SEC` | `1.0` | Auto-travel, checked on a timer rather than on an event (2026-08-20).  It used to fire from ONE place: the moment a boss died. That was correct when a boss k... |
+| `scripts/systems/tier_controller.gd:2569` | `CUT_MAX_RATIO` | `2.0` | Kills only ever pay Catnip now — Catnip is Reawaken-only (GameState header). CAT BURGLAR'S CUT: damage that would have been thrown away is sold instead.  The... |
+| `scripts/systems/tier_controller.gd:2707` | `CATNIP_BOMB_DAMAGE_SECONDS` | `4.0` | CATNIP_BOMB_EVERY: every Nth kill detonates where the last mouse died.  Damage is expressed in SECONDS OF AURA DPS, like Pounce, rather than as a flat number... |
+| `scripts/systems/tier_controller.gd:2708` | `CATNIP_BOMB_RADIUS` | `240.0` |  |
+| `scripts/systems/tier_controller.gd:2887` | `MAX_TEMP_KITTENS` | `6` | Bounded because signature kills are frequent and the pool is pre-sized: the realm reserves exactly this much headroom above the purchasable maximum. |
+| `scripts/systems/tier_controller.gd:2902` | `KITTEN_EXPLOSION_RADIUS` | `150.0` | KITTEN_KILL_EXPLODES: a mouse that dies in a kitten's paws detonates.  A fraction of the VICTIM's max HP rather than of the player's damage, which is what th... |
+| `scripts/systems/tier_controller.gd:2932` | `BONUS_POP_GAP_MSEC` | `70` | THE BONUS POPS (VFX audit, designer 2026-10-01: "look into all skills and see what other vfx we are missing and make them"). Three things paid extra on a kil... |
+| `scripts/systems/tier_controller.gd:2933` | `POP_BOUNTY` | `Color(1.0, 0.84, 0.3, 1.0)` |  |
+| `scripts/systems/tier_controller.gd:2934` | `POP_TOYED` | `Color(1.0, 0.5, 0.75, 1.0)` |  |
+| `scripts/systems/tier_controller.gd:2935` | `POP_SPECTRUM` | `Color(0.45, 0.95, 0.45, 1.0)` |  |
+| `scripts/systems/tier_controller.gd:2965` | `GIBLETS_RED` | `Color(0.62, 0.04, 0.06, 0.92)` | GIBLETS, IN RED (designer, 2026-10-01: "giblets should have a bloody red burst effect"). It was an orange ring - the colour of a Pounce - for a card whose wh... |
+| `scripts/systems/tier_controller.gd:2966` | `GIBLETS_CHUNK` | `Color(0.42, 0.02, 0.05, 1.0)` |  |
+| `scripts/systems/tier_controller.gd:2967` | `GIBLETS_MIN_GAP_MSEC` | `60` |  |
 | `scripts/systems/tutorial.gd:30` | `LAYER` | `7` | Above the HUD and the skill tree (both layer 1), under Settings (8), the pause menu (9) and the Reawaken ceremony (10). |
 | `scripts/systems/tutorial.gd:33` | `LAYER_OVER_DRAFT` | `101` | Above the card draft (CatchesPickUI is 100), for the one step that lives on it. |
 | `scripts/systems/tutorial.gd:37` | `GRACE_SEC` | `1.5` | A step's condition must hold this long before it shows: a player who already knows acts first and never sees it. |

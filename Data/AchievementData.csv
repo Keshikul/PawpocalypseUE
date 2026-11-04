@@ -2,9 +2,7 @@ id,display_name,description,requirement_text,metric,threshold,upgrade_id,branch_
 boss_1,Park Tyrant Slain,Reward: 4,Defeat The Park Tyrant.,BOSSES_DEFEATED,1.0,,,4,false,data/achievements/achievement_19_boss_1.tres
 boss_2,Rival Champion Slain,Reward: 7,Defeat The Rival Champion.,BOSSES_DEFEATED,2.0,,,7,false,data/achievements/achievement_20_boss_2.tres
 boss_3,Void God Slain,Reward: 9,Defeat The Void God.,BOSSES_DEFEATED,3.0,,,9,false,data/achievements/achievement_21_boss_3.tres
-br_ferocity_5,Apex Predator,Reward: 2,Reach Ferocity branch level 5.,SKILL_BRANCH_LEVEL,5.0,,ferocity,2,false,data/achievements/achievement_42_br_ferocity_5.tres
 br_instinct_5,Sharpened Instinct,Reward: 2,Reach Instinct branch level 5.,SKILL_BRANCH_LEVEL,5.0,,instinct,2,false,data/achievements/achievement_43_br_instinct_5.tres
-br_mystique_6,Deep Mystique,Reward: 2,Reach Mystique branch level 6.,SKILL_BRANCH_LEVEL,6.0,,mystique,2,false,data/achievements/achievement_45_br_mystique_6.tres
 br_unicorn_1,Rainbow Ascendant,Reward: 1,Reach Unicorn branch level 1.,SKILL_BRANCH_LEVEL,1.0,,unicorn,1,false,data/achievements/achievement_46_br_unicorn_1.tres
 br_unicorn_5,Rainbow Cataclysm,Reward: 4,Reach Unicorn branch level 5.,SKILL_BRANCH_LEVEL,5.0,,unicorn,4,false,data/achievements/achievement_47_br_unicorn_5.tres
 br_vitality_5,Boundless Vitality,Reward: 2,Reach Vitality branch level 5.,SKILL_BRANCH_LEVEL,5.0,,vitality,2,false,data/achievements/achievement_44_br_vitality_5.tres

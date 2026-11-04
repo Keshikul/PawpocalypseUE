@@ -308,10 +308,8 @@ Every multiplier column is in `Data/JobData.csv`.
 | up_kitten_speed_20 | Fleet Paws | UPGRADE_LEVEL | 20.0 | 1 | Reach Fleet — Kitten Speed level 20. | false |
 | up_shield_pierce_15 | Shieldbreaker | UPGRADE_LEVEL | 15.0 | 2 | Reach Shieldbreaker — Shield Pierce level 15. | false |
 | up_pounce_power_20 | Apex Pounce | UPGRADE_LEVEL | 20.0 | 2 | Reach Apex — Pounce Power level 20. | false |
-| br_ferocity_5 | Apex Predator | SKILL_BRANCH_LEVEL | 5.0 | 2 | Reach Ferocity branch level 5. | false |
 | br_instinct_5 | Sharpened Instinct | SKILL_BRANCH_LEVEL | 5.0 | 2 | Reach Instinct branch level 5. | false |
 | br_vitality_5 | Boundless Vitality | SKILL_BRANCH_LEVEL | 5.0 | 2 | Reach Vitality branch level 5. | false |
-| br_mystique_6 | Deep Mystique | SKILL_BRANCH_LEVEL | 6.0 | 2 | Reach Mystique branch level 6. | false |
 | br_unicorn_1 | Rainbow Ascendant | SKILL_BRANCH_LEVEL | 1.0 | 1 | Reach Unicorn branch level 1. | false |
 | br_unicorn_5 | Rainbow Cataclysm | SKILL_BRANCH_LEVEL | 5.0 | 4 | Reach Unicorn branch level 5. | false |
 

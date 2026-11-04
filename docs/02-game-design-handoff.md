@@ -55,7 +55,9 @@ the resolver decides HOW MUCH. It is stateless: it returns DPS numbers and calle
 | **Paw** | Discrete strikes on the mouse under the cursor at `strikes_per_sec = base_attack_speed (2.0) x attack_speed_multiplier`. Strike = `base_paw_damage (4.0) x paw_damage_multiplier x shred x damage_scale`. Real crit roll per strike (`crit_multiplier` 2.0). The swipe draws an ink-edged arc and three claw slashes. **Shred**: consecutive strikes on the same mouse add `shred_per_stack` each, up to `shred_max_stacks` (10), the streak decaying after `shred_stack_seconds` (2.5). The resolver is told the stack count; the realm owns the streak. Projections count shred at HALF its ceiling. At most 12 strikes resolve per frame |
 | **Aura** | Continuous damage inside a radius (`base_aura_radius` 77 px, `base_damage_per_sec` 8). **Exactly 0.0 until the Aura node is bought**, deliberately zero rather than small ("you do not have this yet" must not read as "this is weak") |
 | **damage_scale** | Shared by paw and aura on purpose: `evolution_multiplier x weapon_multiplier x (1 + additive_sum) x multiplicative_product x reawaken_multiplier`. Claws applies to both; splitting it made Claws worthless from Reawaken 2 on |
-| **Kittens** | Real pooled entities (not an abstract DPS). Each seeks the nearest mouse within `base_kitten_detection_radius` (500) and deals continuous contact damage (`base_kitten_damage_per_sec` 5, contact radius 30). Scale with evolution, **never with the weapon multiplier**. With nothing in range they **roam** (slower than hunt speed, so "spotted something" reads with no other cue): a frozen kitten reads as broken AI. The pool **grows to what the player owns** (it was once sized from the base cap and a deep run paid for invisible kittens). Kitten share of damage: ~43% at ten minutes, ~6.5% at the end; it must never reach zero |
+| **Kittens** | Real pooled entities (not an abstract DPS). Each seeks the nearest mouse within `base_kitten_detection_radius` (500) and deals continuous contact damage (`base_kitten_damage_per_sec` 5, contact radius 30). Scale with Kitten Power and Instinct's brackets (and Feral Instinct's crit
+share), **never with evolution or the weapon multiplier** (`combat_resolver.gd` `kitten_dps()`; this line and the Godot GDD once
+said "with evolution": the game never has, and pawsim's `kitten_dps_each` explains how that claim was invented and removed). With nothing in range they **roam** (slower than hunt speed, so "spotted something" reads with no other cue): a frozen kitten reads as broken AI. The pool **grows to what the player owns** (it was once sized from the base cap and a deep run paid for invisible kittens). Kitten share of damage: ~43% at ten minutes, ~6.5% at the end; it must never reach zero |
 | **Pounce** | Active burst (LMB / RT) worth `pounce_damage_seconds` (2.0) **seconds of player DPS** (never a flat number: the curve spans ten orders of magnitude), radius 160 px, cooldown 5 s, x`pounce_vulnerable_multiplier` (5) inside an enemy's vulnerable window. **Capped on the PRODUCT** of its dials at `pounce_max_aura_multiple` (2.0) x aura DPS (uncapped it measured 90.6% of all damage); the timing bonus sits OUTSIDE the cap. The cooldown is a clock disc in the field's bottom corner opposite the dock. Pounce slams the floor and leaves a crater zone (3 s). On a pad it fires on RT's press EDGE only |
 | **Rainbow Poop** | Periodic AoE ground zone (`poop_cooldown_sec` 8, duration 3, radius 250, `poop_aura_fraction` 0.35 of player DPS), its own node under the Unicorn |
 | **Overkill** | A killing blow's WASTED damage splashes to the **nearest** survivor and **never chains** (late-game per-frame damage dwarfs whole HP pools; a chain would clear the board every frame). `take_damage()` returns the excess. The **Overkill bounty** pays Catnip for damage with nowhere to go, priced in the victim's own reward, exponent 0.4, capped at `overkill_bounty_max_multiple` (4x) |
@@ -142,8 +144,9 @@ sparkle, size.
   Realms page **in every biome** (outside a boss biome it names where the next boss is); when a summon is in hand the
   button leans and the zone plate reads "Bait ready" in its rainbow frame.
 - **Boss fights**: HP phases (`phase_hp_thresholds`) with vulnerable/shield windows, adds that heal the boss
-  (`add_*`), a **time limit counted from first ENGAGEMENT**. Running out sends the player back one biome AND switches
-  auto-travel off (or it would teleport them into the fight they just lost). A refused summon must not eat the bait
+  (`add_*`), a **time limit counted from first ENGAGEMENT**. Running out: the boss withdraws with its adds, the bait is
+  gone, the player stays where they are (tier_controller.gd `_check_boss_time_limit()`, read 2026-11-03; this line once said
+  it also sent the player back a biome and switched auto-travel off, which the Godot code does not do). A refused summon must not eat the bait
   (a real bug). **Boss HP sets WHEN a gate opens, not how long a fight lasts** (the sim engages at the earliest
   winnable moment): never tune boss HP by watching fight duration.
 - **`bosses_defeated` (biome id -> bool) is the ledger.** Keys stay biome ids forever (re-keying un-clears saves).
@@ -210,8 +213,26 @@ Fifteen lines, **not uniform** (`UPGRADE_PATHS`):
 - **Cards only offer what the player has unlocked** (no Pounce card before Pounce).
 - Card levels: taking a card you hold levels it (`level_values`).
 - Auto-pick is a tree node (Auto-Card), off in a new game.
+- **Second Opinion** (tree): rerolls handed over **once per Catches level**, i.e. once per hand (designer, 2026-10-29; Godot
+  had granted them on every kill that did not level, doc 01 §5 F1). A kill while a hand is up banks XP, levels nothing,
+  grants nothing.
 - Three effects are implemented with no card (`KITTEN_DRAG`, `KITTEN_FROM_SIGNATURE`, `OVERKILL_TARGETS`): port the
   effect code, keep the "no card" list in the test.
+- **The deal** (`card_manager.gd`, ported as `PcCardDraw`): weighted by `CardData.weight` (cost cards are rarer), without
+  replacement, from the eligible cards in deck (file) order. On a level-up, Catnip Interest pays BEFORE the hand. The hand
+  opens with **Blueprint**'s promised cards (a promise, not a preview: drawn once, then dealt), the rest drawn around them
+  and deduped. **Fixation** deals only owned cards while it lasts, falling back to the whole pool when too few are owned,
+  and is spent on the deal, not on a reroll. Then auto-pick (node owned AND setting on) takes one at random and the screen
+  never opens; otherwise **Prototype** marks one card of the hand to arrive above its level (capped at its max).
+- **Taking a card**: only a card in the hand; it closes the hand, counts for Grudge Ledger, and the deck cards act at once
+  (Spite adds rerolls, Dilated SETS the extra choices, Fixation adds hands, Not That One adds banishes).
+- **Reroll** spends one and re-deals; **banish** spends one, removes the card for the run and re-deals WITHOUT consuming the
+  level (banishing the deck dry closes the screen). Both redo Prototype's mark on the new hand and Blueprint's promise, as
+  the deal does (doc 01 §5 F11, designer 2026-11-03; they used to keep the thrown-away hand's).
+- A new run keeps **Overtime**'s rerolls (a Stardust purchase) and drops everything else the deal carried.
+- **Randomness**: Godot draws from the engine's global RNG, shared with the sounds' random pitch, so its hands cannot be
+  replayed. The port draws from `PcRng` per deal (seed, deal number): the same rules and weights, reproducible hands (doc 01
+  §5 F12).
 
 ## 8. Currencies and Reawaken
 
@@ -246,8 +267,12 @@ Fifteen lines, **not uniform** (`UPGRADE_PATHS`):
 - **Nothing but a new game resets the tree.** **A node the layout does not seat cannot be bought**: a test asserts
   every data node is drawn and nothing is drawn without data (the v6 tree shipped Legacy unbuyable while every gate
   passed). Layout: even spacing by construction, no link crossing a node or another link (both measured).
-- Node keys are `"<branch_id>_<level>"`: **parse from the RIGHT** (`aura_power_3` parsed from the left was the
-  Reawaken crash).
+- Nodes are keyed by **branch id alone** (since 2026-08-21); nothing is parsed. The old `"<branch_id>_<level>"` keys
+  (`aura_power_3` parsed from the left was the Reawaken crash) survive only in v5 saves, which the save port migrates.
+- **The fork**: a branch's `exclusive_with` rivals close each other, for BUYING only (a save from before the rule keeps
+  what it owns); the tooltip names the rival that closed the door. A `gated_by_boss` node needs that boss beaten; Stardust
+  buys what is behind it. Buying a job node hands its job over (once); buying Auto-Travel or Auto-Card switches that
+  automation ON (otherwise the player buys it and nothing happens). Muscle Memory II grants levels for free (never lowers).
 - Visual states: three (owned, buyable, locked); rainbow rings on verb unlocks, gold halo on buyable now, a single
   gold ring on job nodes, the Unicorn pulses rainbow. Played from keys and pad: every node reachable from where the tree
   opens, Q / X jumps to the next affordable node, right stick pans, RT/LT (= / -) zoom.
@@ -262,12 +287,33 @@ picked once at the start of a run. Beating a boss opens the gate on its job's no
 `gated_by_boss`); Stardust buys it. Each job has a ladder, a verb and a rule-changer under it. **Jobs have never been
 judged as a system by the designer**: port them exactly, do not "fix" them.
 
+Rules (ported in `PcJobs`, 2026-10-29): the job IN EFFECT is the run lock (`run_job`), never the standing preference
+(`current_job`, what the picker offers back as "last run"); locking sets both, `take_job` the preference only. A Reawaken
+clears the lock and the second job and asks again. **Union Rules** (a tree node, share 0.5) allows a second job, never the
+primary, at its share of the DISTANCE from 1.0 (x2.5 at half is x1.75); additive terms (crit chance bonus) and costs in
+seconds (Pounce lock) are scaled and ADDED; extra cards are scaled and FLOORED (half a card is none). The share clamps to
+[0, 1]. A stored second job pays nothing once the node is not owned. The picker asks while the run's job is unchosen and
+at least one job is held (doc 01 §5 F6), and asks for a second only when another job is held.
+
 ## 11. Achievements
 
-41, paying **1-12 Stardust each, claimed by hand**. A new achievement is a data row, nothing else (every metric reads
+39 (41 until 2026-11-03, when the two counting merged-away branches were removed: F2), paying **1-12 Stardust each, claimed by hand**. A new achievement is a data row, nothing else (every metric reads
 an existing counter). The list refreshes only while its tab is open. **If a system pays the player, a test asserts
 the BALANCE moves** (achievement Stardust was never granted for a whole version while every gate passed). Steam
 achievements later mirror these (doc 10 §5).
+
+The rules (`achievement_manager.gd`, ported as `PcAchievements`):
+- **Earning is a full re-scan** of the roster against the live counters, run after anything that can move one; nothing
+  un-earns. A counter at exactly the threshold earns it (`>=`). Bosses count the permanent ledger, not this cycle's
+  passage; the stage is the earned evolution stage (the Unicorn's mounted look does not count).
+- **Earning and collecting are two events** (2026-08-19). A claim pays through the achievement grant (spendable Stardust
+  AND Stardust ever granted, so it raises the Reawaken multiplier) and is marked before paying: a second claim pays nothing.
+  Claim All takes every waiting reward in roster order.
+- **An achievement that pays nothing cannot be claimed** (2026-08-20): with every reward at 0 the Claim buttons, the badge
+  and Claim All disappear by themselves.
+- **A load replaces both sets and re-scans** (a save restores counters without the events). A New Game and a save too old
+  to keep its progress empty both sets.
+- The list is in **file order** (the numbered `.tres` names), not id order.
 
 ## 12. The ending
 

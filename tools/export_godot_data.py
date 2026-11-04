@@ -8,6 +8,9 @@ by a headless editor script, read directly by pawsim and the C++ sim library).
     py tools/export_godot_data.py --godot C:/Games/pawpocalypse --out Data
     py tools/export_godot_data.py --godot C:/Games/pawpocalypse --out Data --catalogue docs/appendix-a-content-catalogue.md
 
+It also writes Data/CodeConstants.csv (tools/export_code_constants.py: the gameplay constants living in Godot CODE, chosen
+by the reviewed Data/CodeConstantsMap.csv, which is source and never exported).
+
 Standard library only. Conventions (docs/07-data-pipeline.md):
   - one row per resource, first column `id` (lower-case string id, never an FName)
   - lists joined with ';' (CSV tools leave it alone), dictionaries as JSON
@@ -25,6 +28,9 @@ import os
 import re
 import sys
 from collections import defaultdict
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from export_code_constants import export as export_code_constants  # noqa: E402
 
 RE_EXT = re.compile(r'\[ext_resource type="(\w+)"[^\]]*path="([^"]+)"[^\]]*id="([^"]+)"\]')
 RE_HEADER = re.compile(r'\[gd_resource type="Resource" script_class="(\w+)"')
@@ -207,6 +213,7 @@ def main() -> int:
     ap.add_argument("--godot", required=True, help="root of the Godot project (holds project.godot)")
     ap.add_argument("--out", required=True, help="folder for the CSVs")
     ap.add_argument("--catalogue", help="also write a markdown content catalogue here")
+    ap.add_argument("--code-map", help="the reviewed constants map (default: this repo's Data/CodeConstantsMap.csv)")
     args = ap.parse_args()
 
     ex = Exporter(args.godot)
@@ -243,6 +250,10 @@ def main() -> int:
         total += len(recs)
         print(f"{cls:28s} {len(recs):4d} rows -> {path}")
     print(f"TOTAL {total} resources in {len(by_class)} classes")
+
+    # The gameplay constants that live in Godot CODE, from the reviewed Data/CodeConstantsMap.csv (docs/06 §5).
+    if export_code_constants(args.godot, args.out, *([args.code_map] if args.code_map else [])) != 0:
+        return 1
 
     if args.catalogue:
         write_catalogue(by_class, args.catalogue)

@@ -49,16 +49,38 @@ never project names or design decisions.
 ## Build and tools (Windows; run batch files from PowerShell)
 ```
 "C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat" PawpocalypseEditor Win64 Development -Project="C:\Games\pawpocalypseUE\Pawpocalypse\Pawpocalypse.uproject" -WaitMutex
-py tools/export_godot_data.py --godot C:/Games/pawpocalypse --out Data --catalogue docs/appendix-a-content-catalogue.md
+py tools/export_godot_data.py --godot C:/Games/pawpocalypse --out Data --catalogue docs/appendix-a-content-catalogue.md   # + CodeConstants.csv from the reviewed Data/CodeConstantsMap.csv
 py tools/list_godot_code_constants.py --godot C:/Games/pawpocalypse --out docs/appendix-c-code-constants.md
+py tools/gen_paw_rows.py                                                 # DataTable row structs from the Data/*.csv headers
+py tools/gen_paw_tokens.py                                               # UI/PawTokens.h, the colours, from Godot's palette.gd
+py tools/gen_data_strings.py                                             # ST_Data.csv: data names for the string tables
+py tools/import_data.py [--check | --self-test]                          # Data/*.csv -> DT_* (headless, editor closed) + parity
 py tools/make_port_map.py --godot C:/Games/pawpocalypse --out docs/appendix-b-godot-to-unreal-map.md
+powershell -ExecutionPolicy Bypass -File tools\build_pawcore_tests.ps1   # PawCore L1 tests, plain MSVC, seconds (-Long: long suite)
+powershell -ExecutionPolicy Bypass -File tools\check_all.ps1             # every gate (-Full: + negative tests and long runs)
+py tools/make_godot_fixtures.py [--only tree] [--check]                  # Godot ground truth (scratch copy, sandboxed)
+py tools/sabotage_pawcore.py [--only NAME]                               # one-line PawCore sabotages; each must be CAUGHT
+py tools/run_automation.py [--no-build] [Pawpocalypse.Realm]             # engine automation tests, headless (editor closed; builds first)
+py tools/sabotage_realm.py [--only NAME]                                 # game-module sabotages of the realm tests (UBT each, ~1 min)
+py tools/packaged_bench.py [--seconds 20]                                # L5: paw.Bench in the packaged build (build/package): frame gate
+py tools/godot_tour.py [--skip-godot] [--skip-ue]                         # the screenshot tour, both games -> build/tour/compare (opens windows)
+UnrealEditor-Cmd.exe ... -run=pythonscript -script=C:/abs/tools/create_field_materials.py   # the field materials (then create_maps.py)
+py tools/trim_game_plugins.py                                            # rewrites the .uproject plugin list (doc 03 §7)
 ```
+- PawCore test sources are wrapped in `#if defined(PAWCORE_STANDALONE_TESTS)` (UBT compiles every `.cpp` in the module folder);
+  `Private/PawCoreModule.cpp` is the only PawCore file allowed an engine include.
 - Close the editor before building after header/`UPROPERTY`/new-file changes; Live Coding only for `.cpp` bodies; never Hot Reload.
 - Headless editor Python: `UnrealEditor-Cmd.exe <uproject> -run=pythonscript -script=C:/abs/forward/slash.py -nullrhi -unattended -nop4
   -SCCProvider=None -stdout`, editor closed, `unreal.log_warning` for output.
 - Never kill or close the designer's editor; check for running editor processes before headless runs; never two test runs at once.
 - Write Python to files and run them (heredocs break on this project's apostrophes).
-- `tools/check_all.ps1` (to be built in phase 1) is the one command that runs every gate.
+- `tools/check_all.ps1` is the one command that runs every gate (everyday set; `-Full` = nightly, ~5.5 h). Run it before calling
+  anything done: done is exit 0. Exit 2 means a gate was SKIPPED (an editor was open): not proven, not done. The engine gates
+  run on the editor target it builds first; never on an older DLL. Porting a Godot manager follows the recipe in docs/09 §7: real Godot fixture, coverage asserted, sabotages seen
+  caught.
+- A designer decision that changes a Godot rule is made in the Godot repo first (left uncommitted for the designer), then the
+  fixtures are regenerated (`py tools/make_godot_fixtures.py --only <name>`) and PawCore follows. Godot findings: docs/01 §5, and the same list for the designer in the Godot repo's
+  `docs/pawpocalypse-port-findings.md` (the one Godot file the port writes without a decision; left uncommitted).
 
 ## Folders
 ```

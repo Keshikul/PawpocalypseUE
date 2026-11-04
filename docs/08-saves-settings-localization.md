@@ -6,60 +6,78 @@
 
 ## 1. The save: what it holds
 
-The Godot save (`PawpocalypseSaveData`) is flat. Ported field for field into `FPawSaveState` (PawCore) -> JSON:
+**Built 2026-11-03 (phase 4 slice 1, HANDOFF-LOG (31)): `PcSave` (PawCore) is Godot's `PawpocalypseSaveData` (schema v7) field for
+field, and `CaptureSave` / `ApplySave` are `save_game()` / `load_game()`, proven against the REAL save_manager.gd (fixture `save`,
+3,000 random states saved and 3,000 random saves loaded over random live states; PcSaveTests).**
 
-| Group | Fields |
+| Group | Fields (Godot's names, which are also the JSON keys) |
 |---|---|
-| Header | `magic` "PAWSAVE", `version`, `crc32` of the body, `written_unix`, `game_build` |
-| Currencies | `catnip`, `stardust` (double) |
-| Progress | `reawaken_count`, `upgrade_levels` {id: int}, `skill_branch_levels` {id: int}, `bosses_defeated` {biome: bool}, `bosses_cleared_cycle`, `final_boss_defeated`, `final_boss_seconds` |
-| Lifetime | `lifetime_catnip_ever`, `lifetime_catnip_this_cycle`, `stardust_granted_ever`, `lifetime_kills`, `tier_kill_counts` {biome: int}, `bait_spent` |
+| Schema | `version` (7: Godot's own number, so a Godot save imports 1:1) |
+| Currencies | `catnip`, `stardust` |
+| Progress | `reawaken_count`, `upgrade_levels` {id: int} (EVERY known id, zeros included: a load only overwrites the ids it finds), `skill_branch_levels`, `bosses_defeated` {biome: true}, `bosses_cleared_cycle`, `final_boss_defeated`, `final_boss_seconds` |
+| Lifetime | `lifetime_catnip_ever`, `lifetime_catnip_this_cycle`, `stardust_granted_ever`, `lifetime_kills`, `tier_kill_counts` {biome: int} (the live biome banked in first), `bait_spent` |
 | Achievements | `achievements_earned`, `achievements_claimed` |
 | Clocks | `last_played_unix`, `play_seconds_this_cycle`, `total_play_seconds` |
-| Run state | current biome, waves per biome, bait held, XP/level, owned cards and levels (per-run), `run_job`, `run_job_chosen`, `current_job`, `jobs_held` |
-| Per-slot toggles | `auto_travel`, `auto_pick_card` (in the SAVE, not settings: a new game starts with both off) |
-| Migrations/flags | `unicorn_split`, `tutorial_done` {step: bool} |
+| Jobs | `jobs_held`, `current_job`, `run_job`, `run_job_chosen`, `run_job_second` (Union Rules' second job: F23, 2026-11-03; "" by default, no version bump) |
+| Per-slot toggles | `auto_travel`, `auto_pick_card` (in the SAVE, not settings: a new game starts with both off; `UPawGameSubsystem::Slot()`) |
+| Migrations / flags | `unicorn_split`, `tutorial_done` {step: true} |
+| The run's cards (F24, 2026-11-03) | `run_cards_saved`, `cards_owned` {card: level}, `cards_banished`, `catches_level`, `catches_points`, `rerolls`, `extra_choices`, `banishes`, `fixation_hands`, `hand` [ids], `promised` [ids], `prototype_card`, `cards_taken_this_run`: replaced whole on load (unknown ids dropped; the Prototype mark only on a card in the hand); a save without `run_cards_saved` leaves memory's; a restored hand is up again at once (the HUD opens the pick on any pending hand; Godot: `reoffer_after_load`) |
+
+**NOT saved, exactly as in Godot**: the live biome (a load forgets it: the realm restores the counter on arrival), the wave
+counters, the per-run kill counters. A load leaves those as they were in
+memory; the title's New Game resets everything first. (Until 2026-11-03 the run's cards were not saved either; the designer
+decided they are, F24, fixed in Godot first.)
+
+**The load, Godot's order** (it matters: the achievement re-scan runs before the jobs and per-biome maps are restored): the
+currencies and ledger and the KNOWN upgrade ids; kills and clocks; the tree (v6 shape migration, Unicorn split; every known
+branch takes the saved level or 0); the achievements (replaced, re-scanned); the toggles; the per-biome maps; the biome
+forgotten; the jobs (`current_job` through `take_job`, so one not held is refused; `run_job` seeded from it on an old save).
+A save older than v7 takes Godot's reset path (Catnip and upgrade levels kept, everything else of the progression reset, a save
+written at once).
 
 **Rule from the Godot history**: `debug_reset_progress()` / New Game must clear EVERYTHING the save carries (it once left jobs,
-kills, play clock and run state from the slot the title screen had loaded). A test fills every field, starts a new game, and
-asserts every field is back to its default.
+kills, play clock and run state from the slot the title screen had loaded). `UPawGameSubsystem::NewGame()` clears the progress
+and the slot's toggles and tutorial.
 
-## 2. The container (decided, D8)
+## 2. The container (decided, D8; built 2026-11-03)
 
-- **JSON text** (diffable, like the Godot `.tres`), written by PawCore's serialiser (every field; unknown keys ignored; missing keys
-  defaulted), `int64` and `double` exact (doubles written with 17 significant digits, round-trip tested).
-- **Atomic write** exactly as Godot does it and as the KB recommends: write `slot_N.tmp.json`, verify (re-read + CRC), rename the
-  old slot to `slot_N.bak.json`, rename the temp into place. A slot that will not load (bad CRC, bad JSON) falls back to its
-  backup and the player is told; the broken file is moved aside as `.corrupt`. A crash between renames is finished at startup.
-  Never crash on load `[KB U/10 §1]`.
-- **Location**: `FPaths::ProjectSavedDir()/SaveGames/` via `IPlatformFile`, or through `ISaveGameSystem` with a byte array so a
-  console port swaps the backend (`[KB P/01]`: save data via the platform service). **Decision: go through `ISaveGameSystem`**
-  (`UGameplayStatics::SaveDataToSlot`/`LoadDataFromSlot` take raw bytes) so consoles cost nothing later; implement temp/backup
-  on top with slot names `slot_N`, `slot_N_tmp`, `slot_N_bak`.
-- **Five slots**, slot metadata (biome, Reawakens, mice caught, play time, last played) readable without loading the whole game
-  (a small `slot_N_meta` entry written with each save) `[KB U/10 §1]`.
-- **When it saves** (Godot timings kept): autosave every 30 s; on focus loss / suspend; on close (handle the window close request,
-  save, then quit; code paths that quit directly save first); on events via `RequestSave()` which coalesces to ONE write at the
-  end of the frame (a bulk buy emits one event per level: a write per level froze an xMax press 137 ms; coalesced 4.8 ms). Reawaken,
-  quit and the pause menu's Save write immediately. Skip autosave for a game with no progress (an idle title screen never writes an
-  empty slot).
-- **Writes off the game thread**: serialise on the game thread (small), write on a worker (`AsyncTask`), queue (never two writes at
-  once), synchronous on exit `[KB U/10 §1]`.
-- **Only completed transactions are saved** `[KB U/10 §3]`: a card hand on screen is saved as "hand pending" with its seeded
-  contents so it cannot be re-rolled by reloading; a boss fight in progress is saved as "not engaged" (the bait is refunded or the
-  fight restarts: designer decision, recommend refund); the Reawaken ceremony saves before it plays.
-- **Versioning**: the Godot rule "a version bump is a progression WIPE" is replaced by real migrations (`v1 -> v2 -> ...`), each
-  with a test that loads a stored file of the previous version. A data change that alters what a saved value means bumps the
-  version in the same commit `[KB U/10 §2]`.
+- **The file** (`PcSave` WriteSaveFile / ReadSaveFile): one header line `PAWSAVE <format> <crc32> <body length>`, then the body
+  as JSON with Godot's key names. The format is the CONTAINER's version (1). Every double is written as the shortest text that
+  reads back bit for bit (std::to_chars), integers exactly; unknown keys ignored, missing keys defaulted (Godot's @export); a
+  wrong type, a bad checksum, a cut-short body or a newer format is refused whole, never half-read. **Godot's own .tres is
+  lossy** (16 significant digits, and a double that is exactly a float32 is written with float32's digits: 66126.65625 ->
+  "66126.66"); the port is not, so the fixture compares Godot's written doubles within 1e-7 (KB Godot gotchas).
+- **Storage** (`IPawSaveStorage`): `FPawPlatformSaveStorage` over `ISaveGameSystem` (consoles cost nothing later; on Windows
+  files under Saved/SaveGames), `FPawFolderSaveStorage` for `-PawSaveDir=<folder>`, `FPawMemorySaveStorage` for the tests (with
+  write failures and cut-short writes on demand). Entries: `slot_N`, `slot_N_tmp`, `slot_N_bak`, `slot_N_corrupt` (N = 0..4).
+- **The atomic write** (`ISaveGameSystem` has no rename, so not Godot's two renames): on a worker, one write at a time
+  (`UE::Tasks::FPipe`): write the temp, read it back and compare, copy the current slot to the backup ONLY if it reads (Godot's
+  rename put a broken slot over the good backup), write the slot, delete the temp. A slot holding a newer build's save is never
+  overwritten. **Startup recovery**: a slot that is missing or will not read is kept aside as `_corrupt`, then finished from the
+  verified temp, else the backup; a good slot is never replaced (a stray temp is deleted). **A load** of a slot that will not read
+  falls back to its backup (`LoadedFromBackup`, the broken file kept); both broken: nothing applied (`Corrupt`). Never crash on
+  load `[KB U/10 §1]`.
+- **Five slots**; the summary (`ReadSlotSummary`, Godot's slot_summary) reads the ~3 KB save itself, as Godot does (no separate
+  meta entry). **The last slot used** belongs to the settings (SettingsManager.last_slot): until the settings slice the active
+  slot starts at 0.
+- **When it saves** (Godot timings): every 30 s of unpaused play (`Autosave`, skipped with nothing to keep: an idle fresh install
+  never writes an empty slot); on focus loss and suspend; on quit (`Deinitialize`, synchronously); and at the end of a frame in
+  which a save-worthy thing happened, ONE write however many: Godot's signals (upgrade_purchased, branch_leveled_up,
+  boss_defeated, job_taken, achievement_claimed, card_taken, reawakened) are replaced by a digest of exactly what they report,
+  compared once a frame (a bulk buy of 54 levels is one write; auto-picked cards and cheats are covered by construction).
+  `RequestSave()` coalesces the same way; `SaveGame(slot)` writes now and makes that slot active. Startup loads the active slot
+  (Godot's SaveManager._ready), before the realm starts.
+- **Only completed transactions are saved** `[KB U/10 §3]`: a hand on screen is saved WITH its contents (and Blueprint's promise,
+  Prototype's mark) and comes back up on load, so reloading is not a reroll (F24); a boss fight is not saved (Godot saves none).
+- **Versioning**: the body's `version` is Godot's schema (7); a schema below it takes Godot's reset path. A change to the file
+  layout bumps the container format, with a migration and a test loading a stored file of the previous format `[KB U/10 §2]`.
 - **Settings never in the save** (per device, §3). **Steam Auto-Cloud** on the save folder later (no code) `[KB S/03]`.
-- Dev flags: `-NoSave` (tests and tours never touch real slots), `-LoadSlot=N`, and every automated run uses a sandboxed save dir
-  (the Godot project once committed a real Reawaken to the designer's save from a throwaway repro). Tests refuse to start
-  unsandboxed.
+- **Sandbox** (docs/09 §1 rule 4): `-NoSave` turns saving off; `-PawSaveDir=<folder>` keeps the slots there; an automation run or
+  an `-unattended` run with neither never reads or writes the real slots (`Pawpocalypse.Save.Sandbox`); the packaged bench and the
+  screenshot tour pass `-NoSave`. Tests hand in a memory storage (`UseStorageForTest`).
 
-### 2.1 Importing itch saves (if the designer says yes, Q3)
-`UPawGodotSaveImporter`: reads `%APPDATA%/Godot/app_userdata/Pawpocalypse/save_slot_N.tres` (text resource), parses the flat
-`key = value` lines (the exporter's parser handles the same syntax), maps fields 1:1 into `FPawSaveState`, writes a new slot, and
-never modifies the Godot file. A test imports a fixture save from each Godot save version still in the wild.
+### 2.1 Importing itch saves
+**Decided 2026-11-03 (designer, Q3): no.** The Unreal build does not import Godot saves.
 
 ## 3. Settings (per device)
 
@@ -81,11 +99,21 @@ All 20 real languages at 100%.
 
 **Unreal**: FText everywhere, **string tables** keyed by stable keys, English as source, translations compiled to `.locres`.
 
+**Live since 2026-11-01** (phase 3's HUD): `Content/Pawpocalypse/Localization/Strings/ST_UI.csv` (hand-written, Godot's English
+as the source, a comment per row) and `ST_Data.csv` (generated by `tools/gen_data_strings.py` from the `display_name` of
+`Data/UpgradeData.csv`, `TierData.csv`, `BossData.csv`: `UPG_<id>_name`, `TIER_<id>_name`, `BOSS_<id>_name`), registered by
+the game module's `StartupModule` (`PawText::RegisterTables`, `FStringTableRegistry::Internal_LocTableFromFile` relative to the
+Content folder) and staged loose (`+DirectoriesToAlwaysStageAsUFS=(Path="Pawpocalypse/Localization")`; the packaged build
+shows the text). Accessors `PawText::Ui(Key[, Args])`, `PawText::Data(Prefix, Id)`; numbers through `PawText::Amount`
+(`Amounts.short`, culture-invariant until its suffixes join a table) and `PawText::Count` / `TwoDigits` / `Fixed` (Godot's `str()`, `"%02d"`, `"%.Nf"`: ungrouped, a '.' point in every
+language; designer 2026-11-02, "match Godot"). L0 gate `ui-rules`: no hard-coded text in the UI code, no `FText::AsNumber`, every key it names exists, every `ST_UI` key is named. A quoted CSV value may
+span lines (`SHOP_kitten_power_locked`, tested).
+
 | Godot | Unreal |
 |---|---|
 | `tr("Catch 1 mice in total.")` | `PAW_TEXT("ACH", "kills_1_requirement")` -> `FText::FromStringTable("ST_Achievements", "kills_1_requirement")` |
 | `msgctxt` for short ambiguous words | a distinct key per meaning (string table keys are already unique) |
-| `.format({"n": x})` | `FText::Format(Pattern, FFormatNamedArguments{{TEXT("n"), FText::AsNumber(x)}})`. **Argument names are `FString`, not FName** (FName case flips in packaged builds and the placeholder shows raw) `[KB U/05 §3]` |
+| `.format({"n": x})` | `FText::Format(Pattern, FFormatNamedArguments{{TEXT("n"), PawText::Count(x)}})` (Godot prints the int ungrouped). **Argument names are `FString`, not FName** (FName case flips in packaged builds and the placeholder shows raw) `[KB U/05 §3]` |
 | `tr_n(singular, plural, n)` | ICU plural in ONE pattern: `"{n}|plural(one=Reawaken,other=Reawakens)"`, per language forms (Polish, Russian, Czech, Ukrainian need `few`/`many`) |
 | `{pounce}` action tokens | kept as literal tokens in the English source; the prompt rich-text decorator replaces them (doc 05 §5). Translators keep them untouched (the bible's rule) |
 | `xa` pseudo-locale | Unreal's built-in pseudo-localisation (`-culture=` + the Localization Dashboard preview) **plus** the existing `xa.po` carried as an extra culture for the tour, because it is what the Godot tests compared against |
@@ -107,7 +135,8 @@ All 20 real languages at 100%.
 
 - **Unreal culture codes** differ from Godot's: `zh_Hans` -> `zh-Hans`, `zh_Hant` -> `zh-Hant`, `pt_BR` -> `pt-BR`, `es_MX` ->
   `es-MX`. Map them once in `port_po.py` and in the language menu.
-- Numbers: `FText::AsNumber` is culture-aware; the abbreviated big-number format (`Amounts.short`: K, M, B, then scientific) is a
+- Numbers: Godot prints them culture-invariant (no grouping, '.' point), so the port does too (`PawText::Count` / `Fixed`;
+  `FText::AsNumber` would group and localise them: gated out of the UI code). The abbreviated big-number format (`Amounts.short`: K, M, B, then scientific) is a
   game rule in PawCore, its suffixes are translatable strings.
 - String tables are loose CSVs: register them at startup and **stage the folder** (`DirectoriesToAlwaysStageAsUFS`), or they are
   missing in packaged builds; an empty string-table CSV fails to import (needs the header and one row) `[KB U/20 §2]`.

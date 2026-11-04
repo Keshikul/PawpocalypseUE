@@ -15,11 +15,19 @@
   merged into it, never the reverse). Never commit, push or export unless the designer asks in that message (Godot standing rule).
 - **Cooking**: only assets reachable from `MapsToCook` and always-cook lists are packaged. **Everything shipped lives under
   `/Game/Pawpocalypse`** with `+DirectoriesToAlwaysCook=(Path="/Game/Pawpocalypse")`; Primary Asset types (visual definitions)
-  registered with `CookRule=AlwaysCook`; maps `L_Title`, `L_Realm` (and test maps for packaged tests in Development only).
+  registered with `CookRule=AlwaysCook`; maps `L_Title`, `L_Realm` (and test maps for packaged tests in Development only)
+  **listed in `MapsToCook`**: `DirectoriesToAlwaysCook` did NOT cook the maps under it (UE 5.8.3, 2026-11-01: only the
+  `GameDefaultMap` L_Title was cooked; the packaged L_Realm failed "does not exist on disk or in the loader"). Check a package
+  with `UnrealPak <Pawpocalypse-Windows.utoc> -List`.
   String tables and hardware cursors staged as UFS `[KB U/19 §1]`.
 - `DefaultScalability.ini`: scalability cvars only (anything else stops the cook) `[KB U/12 §2]`.
 
 ## 2. Packaging script (`tools/package.ps1`)
+
+**Not written yet** (phase 8). Until then the phase gates package by hand (no version bump, no listing; the archive is
+`build/package`, git-ignored), then run `py tools/packaged_bench.py`:
+`RunUAT.bat BuildCookRun -project=<abs uproject> -noP4 -platform=Win64 -clientconfig=Development -build -cook -stage -pak
+-archive -archivedirectory=<abs>/build/package -nodebuginfo -utf8output -unattended` (~1 min warm on the dev PC).
 
 UAT `BuildCookRun` wrapper `[KB U/19 §2]`:
 - `-Config Development|Shipping`, clean archive dir, no prereqs in the Steam depot (Steam installs the VC++ redist via its own

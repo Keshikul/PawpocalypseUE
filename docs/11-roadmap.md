@@ -23,14 +23,19 @@
 ## Phase 0 - setup and spikes
 
 **Steps**
-1. Read `C:\Games\Knowledge\INDEX.md`, `2D/`, `Unreal/01, 03, 08, 09, 17, 18, 19, 24`, and docs 00-04 here.
+1. **Steps 1, 3, 4 done 2026-10-28** (HANDOFF-LOG). Read `C:\Games\Knowledge\INDEX.md`, `2D/`, `Unreal/01, 03, 08, 09, 17, 18, 19, 24`, and docs 00-04 here.
 2. ~~`git init`, `.gitignore`, `.gitattributes` (LFS)~~ **done 2026-10-28** (`https://github.com/Keshikul/PawpocalypseUE`).
 3. Project settings per doc 03 §7 (Lumen, ray tracing, Substrate, Nanite, VSM, distance fields, auto exposure, motion blur, bloom off;
    startup maps; `CommonGameViewportClient`; DPI rule). Remove the OpenWorld default map. Plugins: enable CommonUI, EnhancedInput,
    PythonScriptPlugin, EditorScriptingUtilities; disable unused ones for Game targets.
-4. Module layout per doc 03 §1 (`PawCore`, `Pawpocalypse`, `PawpocalypseEditor`) and the standalone PawCore test build script.
+4. Module layout per doc 03 §1 (`PawCore`, `Pawpocalypse`, `PawpocalypseEditor`) and the standalone PawCore test build script
+   (`tools/build_pawcore_tests.ps1`). Maps from `tools/create_maps.py`.
 5. Spikes S1-S4 (doc 04 §8), each in `Source/Pawpocalypse/Dev/Spikes` + a scratch map; record results in doc 04 §10 and
-   `Knowledge/2D/02` (as `[Verified]` with date); delete spike code.
+   `Knowledge/2D/02` (as `[Verified]` with date); delete spike code. **Status 2026-10-28: S1 DONE: exact colour proven (21
+   swatches within 1-2 offscreen and on screen, exposure 0 EV, negative-tested); AA = FXAA. S2 DONE: renderer = instanced quads (13 draw calls, 0.6 ms game thread; Slate the fallback). S3 DONE: 2x
+   rasters, BC7, 2048 pages; render resolution fixed at 100 %; no AA vs FXAA is designer question Q9. S4 DONE: the doc 05
+   UI structure passed 1,193 pad/keyboard focus checks. All four spikes recorded; spike code still to delete (after a
+   commit keeps it in history).**
 
 **Exit criteria**: editor and Game targets build from the command line; Shipping builds; settings diff reviewed; spike decisions
 written: AA method, renderer, raster scale and compression, dock/tree widget structure; the colour readback within +/-2 proven on
@@ -46,6 +51,15 @@ at least the ink, cream and three palette colours; 320-enemy scene measured at 1
 `PcAchievements`, `PcFormat`, `PcRng`; `Data/CodeConstants.csv` + the constants map for the gameplay rows of appendix C; pawsim
 re-pointed at the CSVs (byte-identical report); `pawcore_sim` CLI; the three-way mirror.
 
+**Status 2026-10-30 (HANDOFF-LOG (17))**: PHASE 1 DONE: pawsim on the CSVs (byte-identical, 90-setting sweep); `PcData`
+(+ generated `PcDataRows.h`, `PcEnums.h`); validator (55 rules, each negative-tested; found 2 Godot data bugs); `PcFormat`;
+`PcRng`; `PcCombat`; `PcStats`; `PcEconomy`; `PcCards`; `PcTree`, `PcJobs`, `PcProgress`, `PcAchievements`, the card draw `PcCardDraw` (2026-10-29) (all against the real Godot code on random states); `pawcore_sim` +
+the PawCore/pawsim mirror; long property suite; validator fuzz; `tools/check_all.ps1`; Second Opinion fixed in Godot and
+PawCore by the designer's decision (doc 01 §5 F1); `Data/CodeConstants.csv` (56 gameplay constants from the reviewed map of
+all 458 Godot code constants; PawCore and pawsim read it) (HANDOFF (15)); `tools/import_data.py` + the 12 DataTables + parity;
+`FPawDataAdapter` and `Pawpocalypse.Data.Parity`, the game's third of the mirror (HANDOFF (15)). The nightly
+`check_all.ps1 -Full` ran green on all of this 2026-10-30 (HANDOFF (17)).
+
 **Exit criteria**: L1 tests (port the assertion intent of Godot `check_resources`, `check_cards`, `check_damage`'s pure parts,
 `check_overkill`, the economy halves of `check_playthrough`) green and each negative-tested; mirror green at every evolution stage;
 pawsim CSV report identical to the Godot-parsing report; no `float` in PawCore.
@@ -55,17 +69,89 @@ comments' reasoning with each function."*
 
 ## Phase 2 - the realm
 
+**DONE 2026-11-01** (HANDOFF-LOG (20)): every exit criterion met, the packaged-build gate included.
+
 **Steps**: `PcField` (pool, spawner with the biome mix, golden, gristle, fliers, signature shields, waves, kittens seek/roam with
 the spatial grid, paw strikes with shred and crit, aura, zones, Pounce with the product cap and craters, overkill splash + bounty,
 Rainbow Poop, Prism, Execute, boss phases/adds/time limit/bait, per-step budgets); `UPawRealmSubsystem` fixed step; `APawRealmView`
 with the ortho camera, logical-size handling, the chosen sprite renderer (placeholder art from spike S3 is fine), shadows, the cat
-following the pointer, the events drain; travel without level loads; a minimal debug HUD; the cheat overlay (F1).
+following the pointer, the events drain; travel without level loads; a minimal debug HUD; the cheat overlay (F1). (Built 2026-10-31:
+slice 7 below; the F1 panel moved to phase 3, its actions are console commands meanwhile.)
 
-**Exit criteria**: `Paw.Realm.*` tests: card effects run, stress (320 enemies) frame time inside budget, kitten spread, overkill
-never chains, boss timeout sends back a biome and turns auto-travel off, a refused summon keeps the bait; travel < 16 ms;
-frame-rate independence test green; a headless 1000x PawCore soak of the first three biomes clean.
+**How phase 2 is proved** (decided 2026-10-29, HANDOFF (16)): Godot's realm is frame-driven and rolls the engine's global RNG
+(shared with sound pitch), so unlike the managers it cannot be replayed row by row. Its PURE parts are ported into
+`PcFieldRules` and checked against the real Godot code (`field_rules_fixture.gd`: getters, cadence, pool pick, playfield, a real
+`Enemy` node's `activate`/`take_damage`); the stateful `PcField` is pinned by rule tests from the Godot code and comments, each
+negative-tested by a source sabotage. A rule that is pure in Godot goes through the fixture; one that is not gets a rule test.
+
+**Slices** (each: port, fixture or rule tests, sabotages, `check_all`, docs, handoff):
+1. **DONE (16)**: pool, spawner (golden, weighted mix, edge, inward heading, batches, the 320 ceiling), movement (wander,
+   flier, gristle, golden flee + turn-back, Misdirection), lifetime, leaving the field, Funnel, shield cycles, damage intake
+   (Shield Pierce, Traps, thresholds, Play With Food, Spectrum), the paw (rate, reach, shred, crit, Execute), Overkill splash
+   (never chains), the kill payout (signature bounty, Overkill bounty, Catnip, kill count, Catches), events; Infestation and
+   Compound Interest ticked by the field (TierController did it).
+2. **DONE (18)**: kittens (pool sized to ownership and grown, the two-pass claim tally, sticky least-claimed targets with
+   rebalancing, Kitten Foreman, roam, the orbit approach, contact damage) + Gilded Kitten, Lone Hunter, Kitten Drag, Kitten
+   From Signature, Kitten Kill Explodes (F13), Grand Finale. No spatial grid: measured unnecessary (doc 04 §6).
+3. **DONE (18)**: the aura (contact, Crowd Work, Aura Slow, Overkill from aura kills: F16), the Snare/Deadweight, Gridlock, the
+   slow's life and Traps, the damage zone (trail, echo, its ceiling), Edge Burn, the pulse + Standing Wave, Rainbow Poop (Poop
+   Trail, Poop Duration), the cat's stillness clocks (Carry, Long Lunch's bank).
+4. **DONE (18)**: Pounce (ownership, cooldown, the press edge, Reflex, the vulnerable bonus, Chain, Kitten Mimic, the crater card,
+   the Daredevil's Cone of Shame, Nine Lives Insurance, Crash Landing, Bloodlust, Momentum). (The product cap is `PcCombat`'s.)
+5. **DONE (18)**: Anvil Paw, Butcher's Rhythm, Inscrutable, Riddle (F17), Hammerfall; Cat Burglar's Cut, Overflow, the Catnip
+   Bomb, Long Lunch, Levy; Scavenge + Pickpocket on a despawn (missed by slice 1); Pied Piper, Sixth Sense, Sleight of Hand; the
+   Prism (beam, Refraction, Full Spectrum, Spectrum kills, Critical Mass).
+6. **DONE (18)**: the boss (bait summon all-or-nothing, phases by HP, the shield cycle and the relocation on each opened window,
+   drift; the fight clock from the first engagement, the timeout: it leaves and the bait is spent), its adds (launch, re-aim,
+   heal on arrival, intercepted by the cat's whole damage and the poop), everything else reaching it (paw when no mouse is in
+   reach, aura while engaging, zones, pulse, poop, Pounce, the kittens' add-then-boss duty), the defeat (credited at once) and
+   the travel after the death sequence, Auto-Bait, Auto-Travel. **Correction**: the exit criterion below said "timeout sends
+   back a biome and turns auto-travel off"; Godot 4.7.1 does neither (`_check_boss_time_limit()` withdraws the boss and nothing
+   else), and Godot is the spec until parity. The criterion now reads as Godot behaves.
+7. **DONE (19)**: the engine side. `FPawRealmSim` (the fixed step over a real frame, the 8-step guard, the snapshot the
+   presentation interpolates from, the frame's events, travel, the Reawaken's deferred travel), `UPawRealmSubsystem`,
+   `UPawGameSubsystem` (the data from the DataTables, the progress), `APawRealmView` (orthographic camera, the input, effects
+   from events, interpolated drawing) over `UPawSpriteRenderer` (spike S2's instanced quads: floor, zones, shadows, bodies,
+   effects; pooled, parked, one batch a layer) with four generated materials (`tools/create_field_materials.py`; placeholder
+   discs until phase 6's atlas), placed in L_Realm by `tools/create_maps.py`; the debug HUD (`paw.DebugHud`); the cheats as
+   console commands (`paw.Cheat.*`, rules in `PcCheats`: found F18; the F1 panel is phase 3's UI).
+
+**Exit criteria** (`Paw.Realm.*` = the `Pawpocalypse.Realm.*` tests): `Paw.Realm.*` tests: card effects run, stress (320 enemies) frame time inside budget, kitten spread, overkill
+never chains, boss timeout withdraws the boss with the bait spent and nothing credited, a refused summon keeps the bait;
+travel < 16 ms; frame-rate independence test green; a headless 1000x PawCore soak of the first three biomes clean.
+**Status 2026-10-31**: the PawCore halves are met: kitten spread (Godot's own `check_kitten_spread`, ported), Overkill never
+chains, the boss timeout, a refused summon, the 320-mouse step (0.093 ms) and the soak (3 seeds x 3 game hours through the
+first three biomes, boss fights included, every step's invariants held, at 1,100-7,800x real time). **The engine halves are
+met (2026-10-31)**: `Pawpocalypse.Realm.*` (7 tests, 16 sabotages caught): frame-rate independence (30/50/60/144/240 fps and
+jittered, bit for bit), travel 0.006 ms (the field) / 0.03 ms (with the redraw) against 16 ms, the 320-mouse frame (advance +
+draw) 0.064 ms in the editor build against the 4 ms game-thread budget. **Closed 2026-11-01**: `Pawpocalypse.Realm.CardEffects` (23 card effects observed at their consumers in a live game
+instance, each against a no-card control on one seed; the 3 cardless ones asserted; coverage over every effect) and
+`.EveryCard` (the whole deck at once), 29 sabotages caught; the packaged gate (`py tools/packaged_bench.py`, `paw.Bench`): a
+packaged Development build at 1280x800 on the dev PC (RTX 5070), 320 mice + 20 kittens: game thread 1.40 ms mean / 2.73 ms p99
+(budget 4 ms), render thread 2.89 / 8.79 ms, GPU 0.40 / 0.43 ms, 13.6 draw calls (budget 50), the realm's steps + draw
+0.08 ms; the cooked L_Realm draws every body, shadow and the floor (screenshot checked). Its first run failed for real: L_Realm
+was not cooked (fixed with `MapsToCook`, doc 10 §1).
 
 ## Phase 3 - progression UI
+
+**Status 2026-11-01 (HANDOFF-LOG (21))**: slice 1 DONE: the Common UI root layout and the HUD (status row, zone plate, wave
+line, Catches XP bar, Pounce clock, boss panel; the dock with six tabs, badges, side flip and the Upgrades page with bulk buy
+and hold-to-buy), the field measured beside the dock, the string tables and the colour tokens; `PcHud` (the decisions) in
+PawCore. Next: the other dock pages (Realms with gates and Bait, Reawaken with confirm, Catches, Achievements with claims,
+Jobs), then the card pick, the skill tree, the ceremonies, the victory screen.
+Slice 2 DONE (HANDOFF-LOG (22)): the Realms page (gates, here, bosses, Bait, auto-travel) and the Reawaken page (payout,
+multiplier, two-press confirm, the reset). Next: Catches, Achievements (claims), Jobs; then the card pick.
+Slice 3 DONE (HANDOFF-LOG (23)): the Catches page (every card, held or what stands in the way; the auto-pick box), the
+Achievements page (rows, Claim, Claim all, the summary) and the Jobs page; Territory wins after a Reawaken (F20, decided
+2026-11-01). Every dock page is built. Next: the card pick screen, then the skill tree, the ceremony and the job picker.
+Slice 4 DONE (HANDOFF-LOG (24)): the card pick screen (Menu stack, the field held by a pause holder, the guard, Take / Banish /
+Reroll, pad rows; doc 05 §6.1). Next: the skill tree screen, then the ceremony and the job picker.
+Slice 5 started (HANDOFF-LOG (24)): the skill tree's PawCore half, `PcTreeLayout` (exact against Godot). Next: the tree screen (generated labels / blurbs / colours, the canvas, links and rings, states, pan / zoom, tooltip, the Reawaken spend step).
+Slice 5 DONE (HANDOFF-LOG (25)): the skill tree screen, browse and the Reawaken spend step. Next: the Reawaken ceremony and the job picker around the spend step, then the achievement toast, then the victory screen (phase 3's remaining steps).
+Slice 6 DONE (HANDOFF-LOG (26)): the Reawaken ceremony (HUD top layer, the field runs under it, held with the field) and the job picker (Modal stack, `PcHud JobPicker` exact against the real job_picker.gd, Union Rules' second ask), in hud.gd's order around the spend step (doc 05 §6.3). Next: the victory screen. (Godot has no achievement toast: hud.gd only refreshes the list and the tab badge, the sound is phase 6.)
+Slice 7 DONE (HANDOFF-LOG (27)): the victory screen (Modal stack, the field held; `PcProgress RaisesVictory` and `PcHud DurationParts` exact against the real hud.tscn's VictoryScreen; Godot's DEFAULT-theme look, measured; doc 05 §6.3), and numbers printed Godot's way everywhere (ungrouped, culture-invariant; designer 2026-11-02). Every phase 3 screen in the steps below is built except the Unicorn ceremony (with the tree's art, phase 6). Next: side-by-side screenshots of the card pick, the tree, the job picker and the victory screen against Godot (the exit criterion's tour), then `Paw.Playthrough` through the UI entry points, then the nightly `-Full`.
+Exit tour DONE (HANDOFF-LOG (28)): `py tools/godot_tour.py`, twelve shots side by side with Godot (`build/tour/compare/`). Fixed from it: the job picker's look (Godot's default theme, F21 for the designer) and the Realms auto-travel box (hidden until owned); the dims measure equal. Left: art, fonts, tab icons, tutorial (phase 6). Next: `Paw.Playthrough` through the UI entry points, then the nightly `-Full`.
+Playthrough DONE (HANDOFF-LOG (29)): `Pawpocalypse.UI.Playthrough`, a whole run through the UI's entry points (reset, real kills, the dock, travel, the five bosses by Bait, the ending, the Reawaken with its ceremony, 74 nodes in the spend step, the starting biome, kills again); invariants only; 4 sabotages caught. It found F22 (the Realms page ignores this cycle's passage; Godot as it is, pinned). **Every phase 3 exit criterion is met but the packaged-build gate** (CLAUDE.md: packaged gates close every phase), which waits for the designer to ask for a package. Next: the nightly `-Full`; then phase 4.
 
 **Steps**: Common UI root layout; HUD screen with the dock (6 tabs, badges, side flip), status row, Pounce clock, XP bar, boss
 banner; shop rows with bulk buy and hold-repeat; Realms with gates and Bait; Reawaken tab + confirm + ceremony; card pick; skill tree
@@ -76,9 +162,21 @@ entry points; tree seating/spacing/crossing tests green; screenshot tour of ever
 
 ## Phase 4 - title, saves, settings, pause
 
+**Status 2026-11-03 (HANDOFF-LOG (31))**: started. Before it, the designer's F21 (the job picker and victory screen wear the game
+theme) and F22 (the Realms rows ask this run's passage) were fixed in Godot and the port followed. Slice 1 DONE: the save in
+PawCore (`PcSave`: Godot's PawpocalypseSaveData field for field, save_game() / load_game() exact against the real save_manager.gd,
+fixture `save`; the file: header + JSON, every double exact, checksum; `PcJson`). Slice 2 DONE: the container
+(`Source/Pawpocalypse/Save`: `UPawSaveSubsystem` over `IPawSaveStorage` (ISaveGameSystem / a folder / memory): five slots, the
+atomic write and startup recovery, backup fallback, newer builds never touched, the end-of-frame save, autosave every 30 s of
+unpaused play, focus loss, suspend and quit; the sandbox: `-NoSave`, `-PawSaveDir=`, automation never touches real slots); the
+per-slot automations moved onto `UPawGameSubsystem::Slot()` (and the tree's Auto-Travel / Auto-Card now switch them on, a port
+bug fixed); `Pawpocalypse.Save.*` (8 tests). Next: slice 3, the title screen (slots with summaries, New Game / Continue / Load /
+delete, the garden, Report a bug, Discord) on L_Title; then the pause menu, the settings popup (and the last slot used). Q3 decided: no Godot save importer. F24 decided and done (the run's cards
+and XP are saved, a hand on screen comes back up); F23 fixed with every other open finding (the second job is saved). The nightly `-Full` after it: HANDOFF-LOG (33).
+
 **Steps**: save container (doc 08 §2) with temp/backup/CRC/queue/async, five slots + metadata, autosave rules, request-save
 coalescing, new game clears everything; title screen (slots, garden, Report a bug, Discord); pause menu; settings popup (audio,
-video, controls placeholders); the Godot save importer if Q3 = yes.
+video, controls placeholders). (No Godot save importer: Q3 = no, 2026-11-03.)
 
 **Exit criteria**: round trip of every field; corrupt-slot fallback; crash-between-renames recovery; busy-state saves (card hand,
 boss engaged, ceremony); previous-version load test; designer's save dir untouched by every test (sandbox check).

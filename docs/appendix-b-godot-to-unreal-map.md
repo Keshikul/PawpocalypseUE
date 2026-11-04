@@ -4,21 +4,21 @@
 > from the Godot repo. The script fails if a Godot script is not mapped. Phase = the roadmap phase that ports it (doc 11).
 > Also port: `ci/*.gd` gates -> doc 09 §3; `tools/*.py` -> docs 06-07 (pawsim, shop_step, palette, art generators kept).
 
-79 scripts, 29,258 lines.
+79 scripts, 29,493 lines.
 
 | Godot script | lines | Unreal destination | phase | note |
 |---|---|---|---|---|
-| `scripts/autoload/achievement_manager.gd` | 214 | PcAchievements + UPawAchievementSubsystem | 3 | metrics read existing counters; claims pay Stardust (assert the balance moves) |
+| `scripts/autoload/achievement_manager.gd` | 221 | PcAchievements + UPawAchievementSubsystem | 3 | metrics read existing counters; claims pay Stardust (assert the balance moves) |
 | `scripts/autoload/audio_manager.gd` | 412 | UPawAudioSubsystem + DT_AudioEvents | 6 | EVENTS table -> CSV; rate limits; buses |
 | `scripts/autoload/boba_cameo.gd` | 367 | UPawBobaSubsystem + cameo widget | 6 | menus only; Suppress() over the tree |
-| `scripts/autoload/card_manager.gd` | 695 | PcCards + UPawGameSubsystem facade | 1 | XP curve constants -> CodeConstants.csv |
+| `scripts/autoload/card_manager.gd` | 787 | PcCards + UPawGameSubsystem facade | 1 | XP curve constants -> CodeConstants.csv |
 | `scripts/autoload/combat_resolver.gd` | 281 | PcCombat | 1 | the one damage path; keep every comment |
-| `scripts/autoload/game_state.gd` | 2976 | PcStats, PcEconomy, PcProgress, PcJobs + UPawGameSubsystem | 1 | 2,976 lines: split by area; delegates mirror the signals |
+| `scripts/autoload/game_state.gd` | 2995 | PcStats, PcEconomy, PcProgress, PcJobs + UPawGameSubsystem | 1 | 2,976 lines: split by area; delegates mirror the signals |
 | `scripts/autoload/input_device.gd` | 562 | UPawInputDeviceSubsystem (ULocalPlayerSubsystem) | 5 | family vs cursor source; warp echo; field owner |
 | `scripts/autoload/pack_loader.gd` | 100 | - (not ported) | 0 | Unreal mounts paks; chunking in doc 10 §3 |
-| `scripts/autoload/save_manager.gd` | 516 | UPawSaveSubsystem + PcSave serialiser | 4 | temp/backup/CRC; coalesced request_save; branch split/merge migrations |
+| `scripts/autoload/save_manager.gd` | 541 | UPawSaveSubsystem + PcSave serialiser | 4 | temp/backup/CRC; coalesced request_save; branch split/merge migrations |
 | `scripts/autoload/settings_manager.gd` | 576 | UPawGameUserSettings | 4 | per device; bindings via Enhanced Input user settings |
-| `scripts/autoload/skill_tree_manager.gd` | 344 | PcTree | 1 | parse keys from the RIGHT; never reset except new game |
+| `scripts/autoload/skill_tree_manager.gd` | 344 | PcTree | 1 | ported 2026-10-29; nodes keyed by branch id alone (no key parsing since 2026-08-21); never reset except new game |
 | `scripts/data/achievement_data.gd` | 52 | FPawAchievementRow / PcAchievement | 1 |  |
 | `scripts/data/boss_data.gd` | 146 | FPawBossRow / PcBoss | 1 |  |
 | `scripts/data/card_data.gd` | 229 | FPawCardRow / PcCard | 1 | Effect, Cost, Flavour enums by name |
@@ -26,7 +26,7 @@
 | `scripts/data/enemy_data.gd` | 106 | FPawEnemyRow / PcEnemy | 1 | MovementKind by name |
 | `scripts/data/evolution_data.gd` | 56 | FPawEvolutionRow / PcEvolution + UPawVisualDefinition | 1 | texture/tint go to the visual definition |
 | `scripts/data/job_data.gd` | 130 | FPawJobRow / PcJob | 1 |  |
-| `scripts/data/pawpocalypse_save_data.gd` | 199 | FPawSaveState (PcSave) | 4 | doc 08 §1 |
+| `scripts/data/pawpocalypse_save_data.gd` | 231 | FPawSaveState (PcSave) | 4 | doc 08 §1 |
 | `scripts/data/reawaken_constants_data.gd` | 105 | FPawReawakenConstantsRow / PcReawakenConstants | 1 |  |
 | `scripts/data/skill_branch_data.gd` | 489 | FPawSkillNodeRow / PcSkillNode | 1 | EffectType by name; extra_effects JSON channels |
 | `scripts/data/tier_data.gd` | 219 | FPawTierRow / PcTier | 1 |  |
@@ -40,7 +40,7 @@
 | `scripts/systems/boss_add.gd` | 109 | PcField boss adds | 2 | heal the boss |
 | `scripts/systems/boss_telegraph.gd` | 91 | M_FxShape telegraph | 6 |  |
 | `scripts/systems/catches_pick_ui.gd` | 442 | UPawCardPickScreen | 3 | 3 cards keep one; reroll |
-| `scripts/systems/cheat_overlay.gd` | 278 | UPawCheatOverlay (dev only) | 2 | F1; compiled out of Shipping |
+| `scripts/systems/cheat_overlay.gd` | 278 | PcCheats + paw.Cheat.* commands; UPawCheatOverlay panel (dev only) | 2 | F1 panel in phase 3; compiled out of Shipping |
 | `scripts/systems/combat_stats.gd` | 68 | PcStats::CombatStats | 1 |  |
 | `scripts/systems/controls_panel.gd` | 331 | UPawControlsPanel (settings) | 5 | remapping rows, system keys |
 | `scripts/systems/currency_icons.gd` | 117 | UPawCurrencyIcon widget | 3 | tooltips; HitTest only on icons |
@@ -50,11 +50,11 @@
 | `scripts/systems/fonts.gd` | 114 | F_Paw composite font | 7 | CJK/Thai faces |
 | `scripts/systems/golden_sparkle.gd` | 127 | sprite material glow + Niagara sparkle | 6 |  |
 | `scripts/systems/ground_shadow.gd` | 73 | shadow instanced component (own Z band) | 2 | one layer: batching |
-| `scripts/systems/hud.gd` | 3040 | UPawHudScreen + UPawDock + pages | 3 | 3,040 lines; dirty flags at 15 Hz; dock side |
+| `scripts/systems/hud.gd` | 3053 | UPawHudScreen + UPawDock + pages | 3 | 3,040 lines; dirty flags at 15 Hz; dock side |
 | `scripts/systems/input_bindings.gd` | 422 | UPawInputBindings (logical actions over Enhanced Input) | 5 | LOGICAL member lists |
 | `scripts/systems/input_glyphs.gd` | 212 | UPawGlyphs + CommonInputBaseControllerData per family | 5 | no Nintendo |
-| `scripts/systems/job_picker.gd` | 219 | UPawJobPicker | 3 |  |
-| `scripts/systems/kitten.gd` | 503 | PcField kittens + renderer | 2 | seek nearest via grid; roam; pool grows to owned |
+| `scripts/systems/job_picker.gd` | 227 | UPawJobPicker | 3 |  |
+| `scripts/systems/kitten.gd` | 507 | PcField kittens + renderer | 2 | seek nearest via grid; roam; pool grows to owned |
 | `scripts/systems/locales.gd` | 133 | language menu + culture code map | 7 | zh_Hans -> zh-Hans etc. |
 | `scripts/systems/main_menu.gd` | 912 | UPawMainMenu (L_Title) | 4 | slots, garden, Report a bug, Discord |
 | `scripts/systems/menu_focus.gd` | 116 | UPawMenuFocus helper (explicit navigation wiring) | 5 | guard_ok held-Space guard |
@@ -75,7 +75,7 @@
 | `scripts/systems/skill_tree_sky.gd` | 154 | tree background material/widget | 6 |  |
 | `scripts/systems/skill_tree_ui.gd` | 2396 | UPawSkillTreeScreen | 3 | 2,396 lines: lattice layout, nav_pick, pan/zoom, states |
 | `scripts/systems/sprite_liveliness.gd` | 74 | sprite material vertex pulse | 6 | per-instance phase |
-| `scripts/systems/tier_controller.gd` | 3008 | PcField + UPawRealmSubsystem + APawRealmView | 2 | 3,008 lines: the field sim; split sim from view |
+| `scripts/systems/tier_controller.gd` | 3029 | PcField + UPawRealmSubsystem + APawRealmView | 2 | 3,008 lines: the field sim; split sim from view |
 | `scripts/systems/tutorial.gd` | 561 | UPawTutorialOverlay | 6 | reads only; writes tutorial_done |
 | `scripts/systems/ui_juice.gd` | 194 | UPawUiJuice (widget transforms/tweens) | 6 |  |
 | `scripts/systems/unicorn_ceremony.gd` | 242 | UPawUnicornCeremony | 6 | whinny |
@@ -86,4 +86,4 @@
 | `scripts/systems/vfx_shards.gd` | 122 | Niagara shards | 6 | floor of one when reduced |
 | `scripts/systems/vfx_slam.gd` | 106 | M_FxShape ring | 6 |  |
 | `scripts/systems/vfx_swipe.gd` | 227 | M_FxShape arc + slashes | 6 | ink-edged arc, three claw slashes |
-| `scripts/systems/victory_screen.gd` | 132 | UPawVictoryScreen | 3 | first-clear time |
+| `scripts/systems/victory_screen.gd` | 146 | UPawVictoryScreen | 3 | first-clear time |

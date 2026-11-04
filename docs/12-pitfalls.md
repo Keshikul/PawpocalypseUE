@@ -21,7 +21,7 @@
 | Kitten pool sized from the base cap: deep runs paid for invisible kittens | Pool-grows-to-owned test |
 | Three skill branches unbuyable for a day while every gate passed | Playthrough test buys through the real UI path; tree seating test both directions |
 | Achievement Stardust never granted for a whole version | Test asserts the BALANCE moves |
-| `aura_power_3` parsed from the left = the Reawaken crash | Keys parsed from the right; test with multi-word ids |
+| `aura_power_3` parsed from the left = the Reawaken crash | Gone in Godot since 2026-08-21: nodes are keyed by branch id alone, nothing is parsed. Only v5 saves still carry old ids; the save port migrates them (`_migrate_branch_levels`), tested with multi-word ids (phase 4) |
 | New Game left the previous slot's jobs, kills, clock and run state | New-game-clears-everything test over every save field |
 | `begin_biome()` early-returned on a stale id, so a restore was a no-op | `BeginBiome` always resets when called by load/Reawaken; test |
 | Bulk buy wrote a save per level (137 ms freeze) | Coalesced `RequestSave()`; test counts writes |
@@ -77,6 +77,8 @@
 | Editor run killed mid-way | `Select-Object -First N` in a PowerShell pipeline | Pipe to `Out-Null`, read the log |
 | Bash tool fails before running | Apostrophe in a quoted heredoc | Write scripts to files (this project's content has apostrophes everywhere) |
 | Two test runs corrupt each other | Concurrent editor sessions | One at a time |
+| A sabotage run reports MISSED and the clean build FAILS for every test at once | Another Unreal process started mid-run (another project's soak, 2026-10-31): the tools refuse and nothing ran | Never kill what is not ours. Fixed 2026-10-31: the guard (`tools/unreal_procs.py`) ignores a process that names another project's `.uproject`; one of this project, or naming none, still blocks |
+| A sabotage reads MISSED though the test would fail | The test crashed the editor (it faked a state the field cannot have: a boss in a biome with none) and the runner counts "no test ran" as not caught | Build test states through the real entry points (summon, travel), never by setting flags |
 
 ## 4. 2D-in-Unreal traps (research, to be verified by the spikes)
 
@@ -84,8 +86,17 @@
 |---|---|---|
 | Colours wrong/washed out | Tonemapper, auto exposure | doc 04 §3 + colour gate |
 | Creatures overlap in the wrong order / flicker | Translucency sorts per component; never inside an instanced component | Depth from Y with masked sprites (doc 04 §4) |
-| Jagged sprite edges | Masked = 1-bit alpha | MSAA + alpha-to-coverage (spike S1) |
+| Jagged sprite edges | Masked = 1-bit alpha | FXAA (spike S1, doc 04 §10). Not MSAA (masked outlines are inside the quad) and not the Alpha to Coverage flag (broken on desktop) |
+| Pad returns to the wrong row after switching keyboard -> pad | Common UI re-applies `GetDesiredFocusTarget()` on a device change; the remembered row was stale | Track the remembered row on every focus change (doc 05 §2 rule 8) |
+| A navigation test passes with a rule missing | The walk only took shortest paths | Press every rule (doc 04 §10, S4) |
+| The whole game looks soft | Desktop default screen percentage renders 1080p at 810p (4K at 1080p) and upscales | `r.ScreenPercentage.Default.Desktop.Mode=0`, `Default=100` (doc 03 §7) |
+| Cook fails: "imports class ... in a module that is not available on the platform" (Interchange, NNEDenoiser) | Plugin restricted to the Editor target, content still referenced by engine config | `+DirectoriesToNeverCook` for its content root (doc 03 §7) |
+| Layers missing for the first seconds of a packaged run | Components are not drawn until their PSOs are precached | Warm-up before measuring; PSO check in phase 8 |
+| Field drawn too small (0.57x) in a window, right in a capture | Default `MaintainYFOV`: ortho width = visible height | `OrthoWidth = 1080` + `MaintainYFOV` on the camera (doc 04 §6) |
+| Colour readback all black, or every colour off by one gamma step | Offscreen runs have no back buffer; render target gamma | Scene capture + `RTF_RGBA8` + `bForceLinearGamma=false` (doc 04 §3.5) |
 | Smeared fast fliers | Temporal AA | Forward + MSAA or FXAA |
+| Effect rings invisible | Additive blend over the light paper floor: no headroom (2026-10-31, `[Verified]`) | Translucent effects over light biomes (doc 04 §5.1) |
+| Shadows missing under bodies | The shadow centred so close under the disc that the body covers all but a faded sliver | Centre it at the feet (0.45 x size below), check a screenshot |
 | Blurry sprites | Streaming / mips | Never Stream; right raster size |
 | Fringes around small sprites | Atlas mip bleeding | Padding + extrusion |
 | Low fps with many sprites | One Actor/component each | Instanced renderer, entities as data |

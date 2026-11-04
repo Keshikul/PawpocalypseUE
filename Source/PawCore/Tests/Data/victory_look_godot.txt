@@ -1,0 +1,90 @@
+# Godot 4.7.1 VictoryScreen as drawn (the real hud.tscn, headless 1920x1920), generated 2026-10-28 by
+# tools/godot_fixtures/victory_fixture.gd. Colours are Godot Color() values (sRGB floats).
+viewport=(1920.0, 1920.0)
+layer=128
+box.size=(596.0, 273.0) pos=(662.0, 823.5) separation=18
+Headline.font_size=44
+Headline.font_color=(0.102, 0.102, 0.102, 1.0)
+Headline.font= Open Sans SemiBold
+Headline.theme_owner_has_theme=true
+Headline.size=(596.0, 67.0) min=(392.0, 67.0) pos=(662.0, 823.5)
+Headline.outline_size=0 outline_color=(0.0, 0.0, 0.0, 1.0)
+Headline.line_spacing=3
+Flavour.font_size=17
+Flavour.font_color=(0.102, 0.102, 0.102, 1.0)
+Flavour.font= Open Sans SemiBold
+Flavour.theme_owner_has_theme=true
+Flavour.size=(596.0, 57.0) min=(1.0, 57.0) pos=(662.0, 908.5)
+Flavour.outline_size=0 outline_color=(0.0, 0.0, 0.0, 1.0)
+Flavour.line_spacing=3
+TimeLabel.font_size=28
+TimeLabel.font_color=(0.102, 0.102, 0.102, 1.0)
+TimeLabel.font= Open Sans SemiBold
+TimeLabel.theme_owner_has_theme=true
+TimeLabel.size=(596.0, 43.0) min=(297.0, 43.0) pos=(662.0, 983.5)
+TimeLabel.outline_size=0 outline_color=(0.0, 0.0, 0.0, 1.0)
+TimeLabel.line_spacing=3
+OkButton.font_size=16
+OkButton.font_color=(0.102, 0.102, 0.102, 1.0)
+OkButton.font= Open Sans SemiBold
+OkButton.theme_owner_has_theme=true
+OkButton.size=(200.0, 52.0) min=(200.0, 52.0) pos=(860.0, 1044.5)
+ok.style.normal=StyleBoxTexture texture=res://assets/art/ui/ui_button_normal.svg texture_margins=16.0,16.0,16.0,16.0 margins=16.0,6.0,16.0,6.0
+ok.style.hover=StyleBoxTexture texture=res://assets/art/ui/ui_button_hover.svg texture_margins=16.0,16.0,16.0,16.0 margins=16.0,6.0,16.0,6.0
+ok.style.pressed=StyleBoxTexture texture=res://assets/art/ui/ui_button_pressed.svg texture_margins=16.0,16.0,16.0,16.0 margins=16.0,6.0,16.0,6.0
+ok.style.focus=StyleBoxFlat bg=(0.6, 0.6, 0.6, 1.0) border=(1.0, 0.439, 0.333, 1.0) w=3,3,3,3 radius=12,12,12,12 draw_center=false margins=-1.0,-1.0,-1.0,-1.0
+ok.style.disabled=StyleBoxTexture texture=res://assets/art/ui/ui_button_disabled.svg texture_margins=16.0,16.0,16.0,16.0 margins=16.0,6.0,16.0,6.0
+ok.font_hover_color=(0.102, 0.102, 0.102, 1.0)
+ok.font_pressed_color=(0.561, 0.514, 0.435, 1.0)
+ok.font_focus_color=(0.102, 0.102, 0.102, 1.0)
+ok.font_disabled_color=(0.78, 0.757, 0.671, 1.0)
+root.has_theme=true
+dim.color=(0.05, 0.04, 0.08, 0.88) mouse_filter=0
+panel.variation=WindowPanel min=(640.0, 0.0)
+panel.style=StyleBoxTexture texture=res://assets/art/ui/ui_window.svg texture_margins=48.0,48.0,48.0,48.0 margins=22.0,20.0,22.0,20.0
+panel.size=(640.0, 313.0) pos=(640.0, 803.5)
+headline.text=THE VOID IS QUIET
+flavour.text=You have killed the last thing that moved.\nThe cat is unimpressed.
+flavour.autowrap=3
+time.text=Cleared in 1h 10m 00s
+ok.text=OK ok.min=(200.0, 52.0)
+focus_owner=OkButton
+jp.layer=90
+jp.panel.style=StyleBoxTexture texture=res://assets/art/ui/ui_window.svg texture_margins=48.0,48.0,48.0,48.0 margins=22.0,20.0,22.0,20.0
+jp.panel.size=(560.0, 577.0) pos=(680.0, 671.5)
+jp.title.font_size=24
+jp.title.font_color=(0.102, 0.102, 0.102, 1.0)
+jp.title.font= Open Sans SemiBold
+jp.title.theme_owner_has_theme=true
+jp.title.size=(516.0, 37.0) min=(218.0, 37.0) pos=(702.0, 691.5)
+jp.title.outline_size=0 outline_color=(0.0, 0.0, 0.0, 1.0)
+jp.title.line_spacing=3
+jp.note.font_size=17
+jp.note.font_color=(0.102, 0.102, 0.102, 1.0)
+jp.note.font= Open Sans SemiBold
+jp.note.theme_owner_has_theme=true
+jp.note.size=(516.0, 27.0) min=(1.0, 27.0) pos=(702.0, 738.5)
+jp.note.outline_size=0 outline_color=(0.0, 0.0, 0.0, 1.0)
+jp.note.line_spacing=3
+jp.button.font_size=16
+jp.button.font_color=(0.102, 0.102, 0.102, 1.0)
+jp.button.font= Open Sans SemiBold
+jp.button.theme_owner_has_theme=true
+jp.button.size=(516.0, 62.0) min=(118.0, 62.0) pos=(702.0, 775.5)
+jp.button.style.normal=StyleBoxTexture texture=res://assets/art/ui/ui_button_normal.svg texture_margins=16.0,16.0,16.0,16.0 margins=16.0,6.0,16.0,6.0
+jp.button.style.hover=StyleBoxTexture texture=res://assets/art/ui/ui_button_hover.svg texture_margins=16.0,16.0,16.0,16.0 margins=16.0,6.0,16.0,6.0
+jp.button.style.pressed=StyleBoxTexture texture=res://assets/art/ui/ui_button_pressed.svg texture_margins=16.0,16.0,16.0,16.0 margins=16.0,6.0,16.0,6.0
+jp.button.style.focus=StyleBoxFlat bg=(0.6, 0.6, 0.6, 1.0) border=(1.0, 0.439, 0.333, 1.0) w=3,3,3,3 radius=12,12,12,12 draw_center=false margins=-1.0,-1.0,-1.0,-1.0
+jp.button.style.disabled=StyleBoxTexture texture=res://assets/art/ui/ui_button_disabled.svg texture_margins=16.0,16.0,16.0,16.0 margins=16.0,6.0,16.0,6.0
+jp.button.font_hover_color=(0.102, 0.102, 0.102, 1.0)
+jp.button.font_pressed_color=(0.561, 0.514, 0.435, 1.0)
+jp.button.font_focus_color=(0.102, 0.102, 0.102, 1.0)
+jp.button.font_disabled_color=(0.78, 0.757, 0.671, 1.0)
+jp.blurb.font_size=14
+jp.blurb.font_color=(0.5608, 0.5333, 0.4353, 1.0)
+jp.blurb.font= Open Sans SemiBold
+jp.blurb.theme_owner_has_theme=true
+jp.blurb.size=(516.0, 47.0) min=(1.0, 47.0) pos=(702.0, 843.5)
+jp.blurb.outline_size=0 outline_color=(0.0, 0.0, 0.0, 1.0)
+jp.blurb.line_spacing=3
+jp.focus_owner=Daredevil   (last run)

@@ -49,18 +49,54 @@ The Godot game keeps its rules in autoloads (`GameState` 2,976 lines, `CombatRes
 
 | Area | Content (Godot origin) |
 |---|---|
-| `PcData` | plain structs mirroring every CSV row (`PcTier`, `PcEnemy`, `PcBoss`, `PcUpgrade`, `PcSkillNode`, `PcCard`, `PcJob`, `PcEvolution`, `PcAchievement`, `PcCombatConstants`, `PcReawakenConstants`) and a validator (ranges, cross references, the economy invariants of `check_resources`) |
+| `PcData` | plain structs mirroring every CSV row (`PcTier`, `PcEnemy`, `PcBoss`, `PcUpgrade`, `PcSkillBranch`, `PcCard`, `PcJob`, `PcEvolution`, `PcAchievement`, `PcCombatConstants`, `PcReawakenConstants`) and a validator (ranges, cross references, the economy invariants of `check_resources`) |
 | `PcCombat` | the resolver: `PawStrikeDamage`, `StrikesPerSec`, `PawDps`, `AuraDps`, `PlayerDps`, `KittenDps`, `PounceBurst`, `PounceCapScale`, `PoopDps`, `OverkillBounty` (`combat_resolver.gd`) |
 | `PcStats` | `CombatStats` rebuilt from shop levels, tree, cards, job, evolution, Reawaken (`GameState._rebuild_stats`) |
 | `PcEconomy` | prices, bulk buy, caps per floor/Reawaken, branch gating, Bait, Reawaken grant and multiplier, Legacy, gates (`GameState`) |
-| `PcProgress` | boss ledger, evolution stage, visual stage, waves, biome unlocks, passage per cycle, final boss |
-| `PcCards` | XP track, hand dealing (seeded), eligibility, costs, effects state (`CardManager`) |
-| `PcTree` | node levels, parent rules, unlocked vs owned, key parsing from the right (`SkillTreeManager`) |
-| `PcJobs`, `PcAchievements` | job pick/run state; metrics and claims |
+| `PcProgress` | the rules that CHANGE progress (`GameState`'s mutations): boss ledger (power vs this cycle's passage, the final-boss clock and ending flag), visual stage, Catnip/Stardust credited and spent, kills and the wave turnover (Compound, Reputation, Fence, Infestation), travel (banked kills, Second Helping's deferred half, deepest biome), bait, the shop purchase (single, bulk, preview), the Reawaken (incl. the run's cards and `PcJobs::ClearRunJobs`), the play clocks, New Game. The pure reads stay in `PcEconomy`/`PcStats` (evolution stage, waves, biome gates) |
+| `PcCards` | XP track, eligibility, hand size, costs, effect totals (`CardManager`'s pure half). **`PcCardDraw`**: the deal (weighted, without replacement, deck in Godot's file order), Blueprint's promise, Prototype's mark, Fixation, auto-pick, reroll, banish, taking a card, the level-up that deals (`CardManager`'s stateful half). Every random number comes from a `PcCardRolls`: `PcRngCardRolls` (PcRng per seed and deal) in the game, Godot's own PCG32 stream in the tests. Deal state (hand, promise, mark, rerolls, banishes, Fixation) lives in `PcProgress` (the struct) |
+| `PcHud` (2026-11-01) | The HUD's DECISIONS, no strings (hud.gd, tier_controller.gd's boss panel): the shop's row order and each row's kind (hidden, kitten-locked, MAX, price, bulk) and enabled state, the buy multipliers, the press; the Catches bar within the level; the zone plate (bait first, then next biome ready, then the Catnip gate); the wave line; the Pounce clock; the boss panel; the tab badges and visibility. The game module turns each into string-table text |
+| `PcTree` | node levels, what the tree sells (required parent, rival fork, boss key, Reawaken gate), prices, purchase, free grants (`SkillTreeManager`). Nodes are keyed by branch id alone; the old `<branch>_<level>` keys only survive in v5 saves, migrated by the save port (`save_manager.gd` `_migrate_branch_levels`, phase 4) |
+| `PcJobs` | jobs held, the run lock vs the standing preference, Union Rules' second job and share, every job term, the hat, `is_neutral`/`has_a_cost`, the picker's two rules (`GameState` jobs, `JobData`, `JobPicker.should_ask`). The one home of the job math: `PcStats`, `PcEconomy`, `PcCards` and the validator call it |
+| `PcAchievements` | the roster in Godot's display order (the sorted `.tres` names, kept by the loader from `_godot_file`), each metric's progress value, the full re-scan that earns (returns the ids earned, in roster order), claims one by one and all at once through `GrantAchievementStardust`, the badge (unclaimed count and Stardust), the load (`apply_save_data`). Earned/claimed sets live in `PcProgress` (the struct). PawCore has no signals: the game module calls `EvaluateAchievements` after every change that can move a counter (`AchievementManager`) |
 | `PcField` | **the realm simulation**: enemy pool (struct-of-arrays), spawning, movement verbs, shields, golden flee, kittens (seek/roam), zones (poop, crater, trails), Pounce, overkill splash, Prism beams, boss phases and adds, wave counters, at a fixed 60 Hz step (`TierController`, `Enemy`, `Kitten`, `Boss`, `BossAdd`) |
 | `PcEvents` | an event queue the field and economy push to (`Kill{id, x, y, golden, crit}`, `Strike`, `PounceSlam`, `BossPhase`, `LevelUp`, `HandOffered`, `Purchase`...), drained by the game module each frame for VFX, audio and UI dirty flags |
 | `PcRng` | stateless hash RNG (seed, tick, entity id, salt) `[KB U/03 §4.2]` |
 | `PcFormat` | number formatting rules that are game rules (`Amounts.short`) as plain strings; the game module wraps them in FText |
+
+**Status 2026-10-29**: built and proved against the real Godot code (doc 09 §7): `PcData` (+ generated `PcDataRows.h`,
+`PcEnums.h`, loader `PcCsv`), the validator `PcValidate` (57 rules), `PcFormat`, `PcRng`, `PcCombat`, `PcStats`, `PcEconomy`
+(prices, rewards, waves, biome gates, Reawaken, Bait, Legacy), `PcCards` + `PcCardDraw`, `PcTree`, `PcJobs`, `PcProgress`,
+`PcAchievements`. The gameplay constants that live in Godot code are `PcGameData::Code` (`PcConstants.h`), loaded from
+`Data/CodeConstants.csv` (doc 06 §5); a function that reads one takes the data. `PcEvents` became the field's own queue
+(`PcFieldEvent`, drained by the game). **`PcField` is complete as a simulation (2026-10-31, docs/11 phase 2 slices 1-6)**:
+the mice, the kittens, the aura, Snare and zones, Pounce, the paw's and the kill's extras, the Prism, the boss and its adds;
+its pure parts (`PcFieldRules`) checked against the real Godot code, the rest pinned by rule tests and sabotages (doc 09 §7).
+**The engine side is built (2026-10-31, slice 7)**: `FPawRealmSim` (the clock and the glue, no engine), `UPawRealmSubsystem`,
+`APawRealmView` + `UPawSpriteRenderer`, `UPawGameSubsystem` (the data and the progress, thin until phase 3), the debug HUD and
+the cheats (`PcCheats` + console commands); `Pawpocalypse.Realm.*` (doc 09 §7). Note the name: the STATE every rule reads is the struct
+`Pc::PcProgress` in `PcStats.h` (levels, wallet, run state); the planned `PcProgress` module holds the rules that change it
+(boss ledger, waves, passage).
+
+**What the game must do for `PcField`** (the field cannot see these events itself). Slice 7 wired the input (the cursor;
+Pounce = the left mouse button or the right trigger past 0.5, read raw until phase 5), the drain, `TravelRequested`, travel,
+the Reawaken's handling (`FPawRealmSim::OnReawakened`) and the bounds on a resize; `UPawRealmSubsystem::OnProgressChanged` is
+the call for the purchases and tree levels phase 3 brings; `UPawRealmSubsystem::SetViewSize` / `SetDock` (2026-11-01) measure the field beside the dock's REAL rect (the HUD reports it; a press over it is never a Pounce: `IsOverDock`); `UPawRealmSubsystem::ChooseCard` (2026-11-01) is the card pick's: it
+takes the card from the hand (`PcCardDraw` `ChooseCard`), rebuilds the field's stats, as Godot's `choose()` does, and
+re-counts the kittens (F14, designer 2026-11-03: a kitten-cost card takes them at once; Auto-Card's pick does the same inside the
+field). `StartRealm(Seed)` starts a fresh sim; a fixed seed replays a session (the tests' control and subject runs):
+- Feed `PcFieldInput` every step: the cat's position (the cursor, or the pad-steered cat), `bPounceDown` (the Pounce action
+  HELD: the field finds the press edge itself, so a pad trigger cannot re-fire on jitter), and the settings
+  `bAutoPickSetting`, `bAutoTravelSetting`, `bAutoBaitSetting`.
+- Call `SyncFieldKittens` where Godot re-counted the kittens: a Kitten Count purchase, a tree level, a Reawaken, a card taken
+  (doc 01 §5 F14, since 2026-11-03). Call `RefreshFieldStats` after anything that changes the stats outside a kill. Call
+  `DismissFieldBoss` (then `SyncFieldKittens`) on a Reawaken. `SummonFieldBoss` is the Summon button.
+- Drain `PcFieldEvent`s every step: sounds and effects key off them, and `TravelRequested` (Slot = the biome index) is the
+  field asking the game to travel (Auto-Travel, or after a first boss clear once the death sequence has played).
+- Travel and Reawaken call `BeginField` again; nothing in a field is worth keeping across biomes. On a Reawaken whose
+  starting biome (Territory, `PcEconomy::StartingBiomeIndex`) is deeper than the next one, Godot travels there after
+  `boss_death_sequence_sec` (`TierController._on_reawakened()`): the game's to do, like every travel.
+- On a resize or a dock-side change, `SetFieldBounds`: the mice, the kittens' roaming and the boss's relocations all read it.
 
 Types: `double` for every economy and damage value (D13), `int64` for counts, `int32` for indices, `std::string` ids
 (lower case), a small `PcVec2` (double x, y in field pixels). No `float` in PawCore at all: a test greps for it.
@@ -80,13 +116,14 @@ Types: `double` for every economy and damage value (D13), `int64` for counts, `i
 | `SaveManager` | `UPawSaveSubsystem` | GameInstance subsystem | Slots, autosave timer, request-save coalescing (doc 08) |
 | `AudioManager` | `UPawAudioSubsystem` | GameInstance subsystem | Event table, rate limits, buses (doc 07) |
 | `BobaCameo` | `UPawBobaSubsystem` | GameInstance subsystem | `EnterMenu`/`LeaveMenu`/`Suppress` |
-| `TierController` | `UPawRealmSubsystem` + `APawRealmView` | `UTickableWorldSubsystem` + one actor | Drives `PcField`; the view actor owns the camera, backdrop, sprite renderer components |
+| `TierController` | `UPawRealmSubsystem` + `APawRealmView` | `UWorldSubsystem` + one actor | Drives `PcField` through `FPawRealmSim`; the view actor owns the camera and the sprite renderer and advances the realm from its own tick, right before it draws (a `UTickableWorldSubsystem` ticks after every actor, so the view would draw the previous frame's steps: a frame of latency between the cursor and the cat, for nothing) |
 | `Player`, `Enemy`, `Kitten`, `Boss` | entities in `PcField`; drawn by `UPawSpriteRenderer` | not Actors | doc 04 §5 |
-| `HUD` | `UPawRootLayout` + `UPawHudScreen` + dock pages | Common UI | Owned by `APawPlayerController`, never the GameMode `[KB U/03 §1]` |
+| `HUD` | `UPawRootLayout` + `UPawHudScreen` + dock pages | Common UI | Owned by `APawPlayerController`, never the GameMode `[KB U/03 §1]`. **Built 2026-11-01** (`Source/Pawpocalypse/UI`): `UPawRootLayout`, `UPawHudScreen` (status row, XP bar, Pounce clock, boss panel, the dock with the Upgrades page), `UPawButton`, `UPawPounceClock`, `PawText` (the string tables), `PawUiKit` (brushes, text, bars), `PawTokens.h` (generated colours), `PawUiConstants.h` (Godot's presentation constants); doc 05 §6.1 |
 | `SkillTreeUI` | `UPawSkillTreeScreen` | Common UI activatable | doc 05 §6 |
 | `MainMenu`, `PauseMenu`, `SettingsDialog`, `VictoryScreen`, ceremonies | activatable screens | | |
 | `Tutorial` | `UPawTutorialOverlay` | widget, read-only | Reads views, writes only `tutorial_done` |
-| `CheatOverlay` (F1) | `UPawCheatOverlay` | dev only | `#if !UE_BUILD_SHIPPING` |
+| `CheatOverlay` (F1) | `PcCheats` (the rules) + `paw.Cheat.*` console commands (`Dev/PawCheats.cpp`, built); the F1 panel `UPawCheatOverlay` in phase 3 | dev only | `#if !UE_BUILD_SHIPPING` |
+| (Godot's debug readouts) | `APawDebugHud` (`paw.DebugHud`) | dev only | the GameMode's HUD class outside Shipping |
 | `Palette` (generated) | `PawTokens.h` (generated) | header | `py tools/palette.py --cpp` (doc 07 §3) |
 
 **Framework classes** stay thin: `APawGameMode` (sets classes; no state, no UI), `APawPlayerController` (input
@@ -109,14 +146,15 @@ were those scene changes. In Unreal:
 ## 5. Time: the fixed step
 
 ```
-UPawRealmSubsystem::Tick(RealDelta):
+FPawRealmSim::Advance(RealDelta):                    // called by APawRealmView's tick, then it draws
     if (Paused) return;
     Accumulator += RealDelta * GameSpeed;            // GameSpeed: 1 in play; 5/20 in the soak; never World Time Dilation
     Steps = 0
     while (Accumulator >= Step && Steps < MaxStepsPerFrame /*8*/):
         Field.Step(Step /*1/60*/); Model.Step(Step)  // PawCore
         Accumulator -= Step; ++Steps
-    if (Steps == MaxStepsPerFrame) Accumulator = 0   // spiral-of-death guard; log it in dev
+    if (Steps == MaxStepsPerFrame && Accumulator >= Step) Accumulator = 0   // spiral guard: only time really owed
+                                                     // is dropped (counted in StepsDropped, on the debug HUD)
     Alpha = Accumulator / Step                       // presentation interpolates positions by Alpha
     DrainEvents()                                    // VFX, audio, UI dirty flags
 ```
@@ -132,9 +170,11 @@ UPawRealmSubsystem::Tick(RealDelta):
 
 ## 6. Data at runtime
 
-- DataTables (`DT_Tiers`, `DT_Enemies`, ... one per CSV) imported headless from `Data/*.csv` (doc 06). At startup the
-  adapter `FPawDataAdapter` copies every row into `PcData` and runs the **same validator** pawsim's checks use;
-  development builds fail loudly, Shipping logs and clamps `[KB U/05 §2]`.
+- DataTables (`DT_TierData`, `DT_EnemyData`, ... one per CSV, `DT_CodeConstants` included) imported headless from
+  `Data/*.csv` (doc 06 §4, §9). Their rows hold each cell as TEXT; `FPawDataAdapter::BuildGameData` rebuilds the CSV text,
+  parses it with PawCore's own `Pc::BuildGameData` and runs the **same validator** pawsim's checks use (built and proven equal
+  to the CSV route, 2026-10-29). `UPawGameSubsystem::Initialize` calls it at startup (built 2026-10-31): development builds
+  log every problem as an error, Shipping as a warning `[KB U/05 §2]`.
 - **Ids are lower-case `FString`/`std::string`, never `FName`-as-identity** (FName case differs between editor and
   packaged builds; a `FindRow` miss and a raw `{Name}` placeholder appeared only in packaged builds) `[KB U/05 §3]`.
   Row names may be FNames because DataTables require it, but lookups go through `IdFromName()` (lower-cases) and a
@@ -154,6 +194,7 @@ The template enabled 3D features this game never uses. `Config/DefaultEngine.ini
 GameDefaultMap=/Game/Pawpocalypse/Maps/L_Title.L_Title
 EditorStartupMap=/Game/Pawpocalypse/Maps/L_Realm.L_Realm
 GameInstanceClass=/Script/Pawpocalypse.PawGameInstance
+GlobalDefaultGameMode=/Script/Pawpocalypse.PawGameMode
 
 [/Script/Engine.RendererSettings]
 r.DynamicGlobalIlluminationMethod=0      ; no Lumen (template had 1)
@@ -166,11 +207,13 @@ r.GenerateMeshDistanceFields=False
 r.Shadow.Virtual.Enable=0                 ; no shadows from lights at all; ground shadows are sprites
 r.AllowStaticLighting=False
 r.DefaultFeature.AutoExposure=False       ; exposure must never move (doc 04 §3)
+r.DefaultFeature.LocalExposure.HighlightContrastScale=1.0   ; 1.0 = no local tone change (engine default); the template had 0.8
+r.DefaultFeature.LocalExposure.ShadowContrastScale=1.0
 r.DefaultFeature.MotionBlur=False
 r.DefaultFeature.Bloom=False
 r.DefaultFeature.AmbientOcclusion=False
 r.DefaultFeature.LensFlare=False
-r.AntiAliasingMethod=<spike S1 decides>   ; doc 04 §4
+r.AntiAliasingMethod=1                    ; FXAA, chosen by spike S1 (doc 04 §10); no AA vs FXAA open as Q9 (doc 01)
 r.SkinCache.CompileShaders=False
 
 [/Script/Engine.Engine]
@@ -183,7 +226,23 @@ UIScaleRule=ShortestSide                  ; 1080 -> 1.0, linear: the UI matches 
 
 Remove from the `.uproject` any plugin the game does not use for Game targets (`TargetAllowList`), keep `CommonUI`,
 `EnhancedInput`, `PythonScriptPlugin` + `EditorScriptingUtilities` (editor), `Paper2D` only if spike S1 picks it. The
-template's `[ConsoleVariables]` CommonUI lines are already in `DefaultEngine.ini` (correct file `[KB U/03 §6]`).
+`[ConsoleVariables]` CommonUI lines belong in `DefaultEngine.ini` `[KB U/03 §6]`; the 5.8.3 template had written them to
+`DefaultGame.ini` (ignored there), phase 0 moved them.
+
+**As set in phase 0 (2026-10-28)**, `Config/DefaultEngine.ini` / `DefaultGame.ini` carry the block above (the AA line since S1),
+plus `bUseSplitscreen=False`, `+DirectoriesToAlwaysCook=(Path="/Game/Pawpocalypse")`, `+DirectoriesToNeverCook` for
+`/Interchange` and `/NNEDenoiser` (added in spike S2: with those plugins editor-only, the cook failed on their content, which
+engine config still references), and `[SystemSettings] r.ScreenPercentage.Default.Desktop.Mode=0`,
+`r.ScreenPercentage.Default=100` (added in spike S3: the desktop default rendered 1080p at 810p and upscaled), `CommonInputSettings bEnableEnhancedInputSupport=True` and
+Enhanced Input `bEnableUserSettings=True` (in `DefaultInput.ini`: the class is `config=Input`) (doc 05 §1). The `.uproject` restricts **154 default-enabled engine plugins to the
+Editor target** (69 runtime plugins the game never uses: mobile, MetaHuman/ControlRig/IK, cloth, PCG, Datasmith/glTF/Interchange,
+media players, MsQuic/Oodle network...; plus every editor-only and content-only plugin, because those pull runtime plugins such as
+ControlRig and RigVM back into the game through their dependencies). Kept for the game: CommonUI, EnhancedInput, Niagara,
+MetaSound and the audio plugins, Paper2D (until S1/S2), OnlineSubsystem/Null, XInputDevice, the device-profile selector,
+RenderDoc/PIX (dev captures). Result: the game exe links 34 plugin folders instead of 64; Shipping exe 112 MB unpackaged.
+Check what really ships with the link response file
+`Intermediate/Build/Win64/x64/Pawpocalypse/<Config>/Pawpocalypse.exe.rsp`, not the `.target` receipt (that lists every enabled
+plugin, code or not). To use a restricted plugin in the game, delete its `TargetAllowList`.
 
 ## 8. Coding rules
 

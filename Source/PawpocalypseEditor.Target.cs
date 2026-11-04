@@ -10,6 +10,6 @@ public class PawpocalypseEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V7;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_8;
-		ExtraModuleNames.Add("Pawpocalypse");
+		ExtraModuleNames.AddRange(new string[] { "Pawpocalypse", "PawpocalypseEditor" });
 	}
 }

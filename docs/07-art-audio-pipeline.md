@@ -39,6 +39,24 @@ tools/import_art.py (headless) ->  /Game/Pawpocalypse/Art/...           (T_*, co
 - **Premultiplied alpha** in the rasteriser output (dark fringes otherwise when scaled) or straight alpha with a material that
   handles it consistently; spike S3 picks one and the material matches.
 
+### 2.1 Changing a design (what the designer does)
+
+Shapes are not edited in Unreal (no SVG editing or production SVG import, doc 04 R11), and they were not edited in Godot
+either: Godot only imported the generated SVGs. The source of a design is its generator in `tools/art/` (the sweet grammar)
+plus `palette.py` for its colours. A change is: edit the generator -> `--batch <family>` contact sheet -> `--write` -> one
+command rasterises, packs and reimports (`tools/import_art.py`, phase 6), and the textures update in the editor. **What is
+editable inside Unreal**: everything in a creature's visual definition (`UPawVisualDefinition`, doc 03 §6): which texture,
+on-screen size, tint/flash colours, sounds; gameplay numbers stay in `Data/*.csv`. Until phase 6 builds that pipeline,
+changes are made in the Godot project and re-exported (CLAUDE.md: no design changes during the port).
+
+### 2.2 Decided by spike S3 (2026-10-28, doc 04 §10)
+
+Raster at **2x** the largest on-screen size at 1080p (target x 1.03 pulse; the cat x 1.08 hop more), rounded up to 4, with
+`resvg_py`; field sprites compressed **BC7** (no measurable loss on this flat art, a quarter of the memory); atlas pages
+**2048 x 2048**, cells edge-extruded **4 px**. The 52 field sprites take 2 pages, 11.2 MB of VRAM. The first versions of
+`tools/raster_svg.py` / `tools/pack_atlas.py` are `tools/spikes/s3_raster_pack.py` (shelf packer; trimming and pivots still
+to add).
+
 ## 3. Colour tokens
 
 - `tools/art/palette.py` is the single source of every colour. Add an emitter: `py tools/art/palette.py --cpp` writes
@@ -52,7 +70,7 @@ tools/import_art.py (headless) ->  /Game/Pawpocalypse/Art/...           (T_*, co
 
 | Kind | Settings | Why |
 |---|---|---|
-| Creature / cat / weapon / hat atlas pages | sRGB, compression per spike S3 (BC7 or `UserInterface2D` RGBA), mips ON with padding, filter Bilinear/Trilinear, **Never Stream**, texture group `World` or a custom `Sprites` group, LOD bias 0 | Drawn smaller than rasterised at 1080p; streaming blurs 2D |
+| Creature / cat / weapon / hat atlas pages | sRGB, **BC7** (spike S3), mips ON with padding, filter Bilinear/Trilinear, **Never Stream**, texture group `World` or a custom `Sprites` group, LOD bias 0 | Drawn smaller than rasterised at 1080p; streaming blurs 2D |
 | Backdrop floors | Seamless tile textures, mips ON, Never Stream, wrap Repeat | The field grows with the aspect (up to 32:9): the floor must tile, not stretch. A test renders each biome at 16:9, 16:10, 21:9, 32:9 and checks for seams (Godot gated seams too) |
 | Props on backdrops | in the atlas, placed by the ported `BiomeBackdrop` layout code as static instances in their own Z band | |
 | UI icons, cards, tab icons, currency icons, glyphs | `UserInterface2D`, no mips, Never Stream, sized for 2x | Drawn 1:1 in UI |
@@ -60,7 +78,8 @@ tools/import_art.py (headless) ->  /Game/Pawpocalypse/Art/...           (T_*, co
 
 - **Atlas cells padded and edge-extruded** by at least 2^(mip levels used) px (mip bleeding).
 - **Naming**: textures `T_<id>` where `<id>` is the Godot asset name (`T_enemy_backyard_mouse`); atlas pages
-  `T_Atlas_<group>_<n>`; materials `M_Sprite_Masked`, `M_Sprite_Glow`, `M_Shadow`, `M_FxShape`, `M_Floor`; instances `MI_*`;
+  `T_Atlas_<group>_<n>`; materials `M_Sprite_Masked`, `M_Sprite_Glow`, `M_Shadow`, `M_FxShape`, `M_Floor`; instances `MI_*` (until phase 6 the
+  renderer draws with the generated placeholders `M_FieldFlat`/`Soft`/`Disc`/`Ring`, doc 04 §5.1);
   data assets `DA_Visual_<id>` `[KB U/16 §1]`.
 - **Folders**: everything shipped under `/Game/Pawpocalypse/` (always cooked): `Art/Atlas`, `Art/Backdrops`, `Art/UI`,
   `Art/Cursors` (the `Slate` folder sits outside `/Game` content by engine convention), `Materials`, `Data`, `Audio`, `Fonts`,

@@ -14,7 +14,46 @@ import re
 RE_CONST = re.compile(r'^\s*const\s+([A-Z][A-Z0-9_]*)\s*(?::\s*[\w\[\]]+)?\s*:?=\s*(.+?)\s*(?:#\s*(.*))?$')
 NUMERIC = re.compile(r'^[-+]?(\d+\.?\d*(e[-+]?\d+)?|\.\d+)(\s*[-+*/]\s*[-+]?\d+\.?\d*)*$', re.I)
 COLOR = re.compile(r'^(Color\(|Palette\.)')
-SKIP_DIRS = {"ci"}
+# Numeric @export defaults are tunables in code too (enemy and kitten speeds live there). A scene may override one;
+# tools/export_code_constants.py refuses that for the ones it exports. A trailing ':' opens a setter block.
+RE_EXPORT = re.compile(r'^@export(?:_\w+(?:\([^)]*\))?)?\s+var\s+([a-z_][a-z0-9_]*)\s*:\s*(?:float|int)\s*=\s*([^#:]+?)\s*:?\s*(?:#\s*(.*))?$')
+
+
+def reason_above(lines: list[str], i: int, comment: str) -> str:
+    """The trailing # comment of line i (1-based), else the ## doc comment right above it."""
+    comment = comment.lstrip("#").strip()  # a trailing `## doc` comment leaves one '#' after the regex takes the first
+    j, why = i - 2, []
+    while j >= 0 and lines[j].strip().startswith("##"):
+        why.insert(0, lines[j].strip().lstrip("#").strip())
+        j -= 1
+    return comment or " ".join(why)
+
+
+def scan(godot: str) -> list[tuple[str, int, str, str, str, str]]:
+    """(file, line, name, value, kind, reason) for every numeric/colour const, and every numeric @export default, under
+    scripts/, sorted by file and line. tools/export_code_constants.py checks Data/CodeConstantsMap.csv against exactly
+    this list."""
+    rows = []
+    scripts = os.path.join(godot, "scripts")
+    for d, _, files in os.walk(scripts):
+        for fn in sorted(files):
+            if not fn.endswith(".gd"):
+                continue
+            path = os.path.join(d, fn)
+            rel = os.path.relpath(path, godot).replace(os.sep, "/")
+            with open(path, encoding="utf-8") as f:
+                lines = f.read().splitlines()
+            for i, line in enumerate(lines, 1):
+                m = RE_CONST.match(line) or RE_EXPORT.match(line)
+                if not m:
+                    continue
+                name, value, comment = m.group(1), m.group(2).strip(), (m.group(3) or "").strip()
+                kind = "number" if NUMERIC.match(value) else "colour" if COLOR.match(value) else None
+                if kind is None:
+                    continue
+                rows.append((rel, i, name, value, kind, reason_above(lines, i, comment)))
+    rows.sort(key=lambda r: (r[0], r[1]))
+    return rows
 
 
 def main() -> int:
@@ -22,32 +61,7 @@ def main() -> int:
     ap.add_argument("--godot", required=True)
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
-    rows = []
-    scripts = os.path.join(a.godot, "scripts")
-    for d, _, files in os.walk(scripts):
-        for fn in sorted(files):
-            if not fn.endswith(".gd"):
-                continue
-            path = os.path.join(d, fn)
-            rel = os.path.relpath(path, a.godot).replace(os.sep, "/")
-            with open(path, encoding="utf-8") as f:
-                lines = f.read().splitlines()
-            for i, line in enumerate(lines, 1):
-                m = RE_CONST.match(line)
-                if not m:
-                    continue
-                name, value, comment = m.group(1), m.group(2).strip(), (m.group(3) or "").strip()
-                kind = "number" if NUMERIC.match(value) else "colour" if COLOR.match(value) else None
-                if kind is None:
-                    continue
-                # nearest preceding ## doc comment, for the reason
-                j, why = i - 2, []
-                while j >= 0 and lines[j].strip().startswith("##"):
-                    why.insert(0, lines[j].strip().lstrip("#").strip())
-                    j -= 1
-                reason = comment or " ".join(why)
-                rows.append((rel, i, name, value, kind, reason))
-    rows.sort(key=lambda r: (r[0], r[1]))
+    rows = scan(a.godot)
     out = [
         "# Appendix C - Gameplay constants that live in Godot CODE (generated)",
         "",

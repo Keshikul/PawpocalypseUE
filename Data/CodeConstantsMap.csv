@@ -1,0 +1,582 @@
+godot_name,destination,literal,note
+scripts/autoload/game_state.gd:BOSS_REALMS,code_constants:boss_realms,,"a list, so not in appendix C"
+scripts/autoload/game_state.gd:begin_biome(),code_constants:second_helping_biome_index,arrived >= 3,a literal in begin_biome(): Second Helping's deferred half pays on arriving at biome index 3 (0-based) or deeper
+scripts/autoload/audio_manager.gd:SFX_VOICES,audio,,
+scripts/autoload/audio_manager.gd:MUSIC_FADE_SEC,audio,,
+scripts/autoload/boba_cameo.gd:TRAIL_POINTS,presentation,,
+scripts/autoload/boba_cameo.gd:TRAIL_STEP,presentation,,
+scripts/autoload/card_manager.gd:LEVEL_COST_BASE,code_constants:card_level_cost_base,,
+scripts/autoload/card_manager.gd:LEVEL_COST_GROWTH,code_constants:card_level_cost_growth,,
+scripts/autoload/card_manager.gd:BASE_HAND_SIZE,code_constants:base_hand_size,,
+scripts/autoload/game_state.gd:EVOLUTION_STAGE_COUNT,code_constants:evolution_stage_count,,
+scripts/autoload/game_state.gd:MAX_WAVE,code_constants:max_wave,,
+scripts/autoload/game_state.gd:CROWD_THRESHOLD,code_constants:crowd_threshold,,
+scripts/autoload/game_state.gd:LAST_STAND_THRESHOLD,code_constants:last_stand_threshold,,
+scripts/autoload/game_state.gd:REALTIME_INTEREST_PERIOD_SEC,code_constants:realtime_interest_period_sec,,
+scripts/autoload/game_state.gd:LUNCH_FULL_SECONDS,code_constants:lunch_full_seconds,,
+scripts/autoload/game_state.gd:LEVY_EVERY,code_constants:levy_every,,
+scripts/autoload/game_state.gd:INFESTATION_DECAY_PER_SEC,code_constants:infestation_decay_per_sec,,
+scripts/autoload/game_state.gd:INFESTATION_CEILING,code_constants:infestation_ceiling,,
+scripts/autoload/game_state.gd:CARRY_FULL_SECONDS,code_constants:carry_full_seconds,,
+scripts/autoload/game_state.gd:FENCE_MAX_KILLS,code_constants:fence_max_kills,,
+scripts/autoload/game_state.gd:MOUNTED_STAGE,code_constants:mounted_stage,,
+scripts/autoload/game_state.gd:CURRENCY_EPSILON,code_constants:currency_epsilon,,
+scripts/autoload/game_state.gd:BULK_MAX_STEPS,code_constants:bulk_max_steps,,
+scripts/autoload/game_state.gd:MAX_GOLDEN_CHANCE,code_constants:max_golden_chance,,
+scripts/autoload/game_state.gd:DEBUG_UNCAPPED_STEP,dev,,the cheat overlay's max-out step
+scripts/autoload/input_device.gd:AXIS_CLAIM,input,,
+scripts/autoload/input_device.gd:MOUSE_CLAIM_PX,input,,
+scripts/autoload/input_device.gd:MOUSE_QUIET_SEC,input,,
+scripts/autoload/input_device.gd:BOOT_QUIET_SEC,input,,
+scripts/autoload/input_device.gd:TOAST_SEC,input,,
+scripts/autoload/input_device.gd:WARP_ECHO_MSEC,input,,
+scripts/autoload/input_device.gd:MODAL_GUARD_MSEC,input,,
+scripts/autoload/input_device.gd:FOCUS_PROMPT_INSET,input,,
+scripts/autoload/input_device.gd:PAW_PX,input,,
+scripts/autoload/input_device.gd:PAD_AUDIO_WAIT_SEC,input,,
+scripts/autoload/save_manager.gd:SLOT_COUNT,save,,
+scripts/autoload/save_manager.gd:AUTOSAVE_SECONDS,save,,
+scripts/data/pawpocalypse_save_data.gd:CURRENT_VERSION,save,,
+scripts/systems/anim_sheet.gd:ROW_MOVE,presentation,,
+scripts/systems/anim_sheet.gd:ROW_ATTACK,presentation,,
+scripts/systems/anim_sheet.gd:ENEMY_MOVE_FRAMES,presentation,,
+scripts/systems/anim_sheet.gd:ENEMY_ATTACK_FRAMES,presentation,,
+scripts/systems/aura_ring.gd:SEGMENTS,presentation,,
+scripts/systems/aura_ring.gd:RING_WIDTH,presentation,,
+scripts/systems/aura_ring.gd:RING_COLOR,presentation,,
+scripts/systems/aura_ring.gd:FILL_COLOR,presentation,,
+scripts/systems/aura_ring.gd:RAINBOW_HUE_CYCLE_PER_SEC,presentation,,
+scripts/systems/aura_ring.gd:RAINBOW_SATURATION,presentation,,
+scripts/systems/aura_ring.gd:RAINBOW_RING_ALPHA,presentation,,
+scripts/systems/aura_ring.gd:RAINBOW_FILL_ALPHA,presentation,,
+scripts/systems/aura_ring.gd:RAINBOW_ARC_SPAN,presentation,,
+scripts/systems/aura_ring.gd:RAINBOW_ARC_COUNT,presentation,,
+scripts/systems/aura_ring.gd:POLL_INTERVAL_SEC,presentation,,
+scripts/systems/biome_backdrop.gd:SHAPE_ALPHA,presentation,,
+scripts/systems/biome_backdrop.gd:BACKDROP_TILE_SCALE,presentation,,
+scripts/systems/biome_backdrop.gd:PATCH_COUNT,presentation,,
+scripts/systems/biome_backdrop.gd:PATCH_ALPHA,presentation,,
+scripts/systems/biome_backdrop.gd:PUDDLE_COUNT,presentation,,
+scripts/systems/biome_backdrop.gd:PUDDLE_ALPHA,presentation,,
+scripts/systems/biome_backdrop.gd:PUDDLE_RIM_PX,presentation,,
+scripts/systems/biome_backdrop.gd:BLOB_VERTS,presentation,,
+scripts/systems/biome_backdrop.gd:BLOB_JITTER,presentation,,
+scripts/systems/biome_backdrop.gd:LANDMARK_PX,presentation,,
+scripts/systems/biome_backdrop.gd:LANDMARK_COUNT,presentation,,
+scripts/systems/biome_backdrop.gd:BORDER_SCALE,presentation,,
+scripts/systems/biome_backdrop.gd:BORDER_STEP_PX,presentation,,
+scripts/systems/biome_backdrop.gd:PROP_ALPHA,presentation,,
+scripts/systems/biome_backdrop.gd:EDGE_ALPHA,presentation,,
+scripts/systems/biome_backdrop.gd:PROP_PX,presentation,,
+scripts/systems/biome_backdrop.gd:EDGE_PX,presentation,,
+scripts/systems/biome_backdrop.gd:SWAY_DEG,presentation,,
+scripts/systems/boss.gd:SHIELD_TINT,presentation,,
+scripts/systems/boss.gd:RELOCATE_SPEED,code_constants:boss_relocate_speed,,
+scripts/systems/boss.gd:DRIFT_SPEED,code_constants:boss_drift_speed,,
+scripts/systems/boss.gd:DRIFT_INTERVAL,code_constants:boss_drift_interval,,
+scripts/systems/boss.gd:TWITCH_INTERVAL,presentation,,
+scripts/systems/boss.gd:TWITCH_IDLE_PX,presentation,,
+scripts/systems/boss.gd:TWITCH_ANGRY_PX,presentation,,
+scripts/systems/boss.gd:ARENA_INSET,code_constants:boss_arena_inset,,
+scripts/systems/boss.gd:DEATH_SHAKE_SEC,presentation,,
+scripts/systems/boss.gd:DEATH_COLLAPSE_SEC,presentation,,
+scripts/systems/boss_add.gd:SEGMENTS,presentation,,
+scripts/systems/boss_add.gd:RADIUS,presentation,,
+scripts/systems/boss_add.gd:CORE_COLOR,presentation,,
+scripts/systems/boss_add.gd:RING_COLOR,presentation,,
+scripts/systems/boss_add.gd:ARRIVE_PX,code_constants:boss_add_arrive_px,,
+scripts/systems/boss_telegraph.gd:SEGMENTS,presentation,,
+scripts/systems/boss_telegraph.gd:RADIUS,presentation,,
+scripts/systems/boss_telegraph.gd:RING_WIDTH,presentation,,
+scripts/systems/boss_telegraph.gd:WARNING_SEC,presentation,,
+scripts/systems/boss_telegraph.gd:PULSE_MIN_HZ,presentation,,
+scripts/systems/boss_telegraph.gd:PULSE_MAX_HZ,presentation,,
+scripts/systems/boss_telegraph.gd:OPEN_COLOR,presentation,,
+scripts/systems/boss_telegraph.gd:SHIELDED_COLOR,presentation,,
+scripts/systems/boss_telegraph.gd:TRACK_COLOR,presentation,,
+scripts/systems/catches_pick_ui.gd:CARD_HOVER_SCALE,presentation,,
+scripts/systems/catches_pick_ui.gd:CARD_HOVER_SEC,presentation,,
+scripts/systems/catches_pick_ui.gd:ART_HEIGHT,presentation,,
+scripts/systems/catches_pick_ui.gd:COST_COLOUR,presentation,,
+scripts/systems/cheat_overlay.gd:DEBUG_CATNIP_GRANT,dev,,
+scripts/systems/cheat_overlay.gd:DEBUG_STARDUST_GRANT,dev,,
+scripts/systems/controls_panel.gd:LISTEN_SEC,input,,
+scripts/systems/controls_panel.gd:RESET_WIDTH,input,,
+scripts/systems/currency_icons.gd:BUTTON_ICON_PX,presentation,,
+scripts/systems/currency_icons.gd:LABEL_ICON_PX,presentation,,
+scripts/systems/damage_zone_field.gd:BAND_COUNT,presentation,,
+scripts/systems/damage_zone_field.gd:SEGMENTS,presentation,,
+scripts/systems/damage_zone_field.gd:RING_WIDTH,presentation,,
+scripts/systems/dock_navigator.gd:NAV_REPEAT_DELAY,input,,
+scripts/systems/dock_navigator.gd:NAV_REPEAT_HZ,input,,
+scripts/systems/dock_navigator.gd:PRESS_REPEAT_DELAY,input,,
+scripts/systems/dock_navigator.gd:PRESS_REPEAT_START_HZ,input,,
+scripts/systems/dock_navigator.gd:PRESS_REPEAT_MAX_HZ,input,,
+scripts/systems/dock_navigator.gd:PRESS_RAMP_SEC,input,,
+scripts/systems/dock_navigator.gd:ROW_PROMPT_GAP,input,,
+scripts/systems/enemy.gd:SHIELD_TINT,presentation,,
+scripts/systems/enemy.gd:SNARE_TINT,presentation,,
+scripts/systems/enemy.gd:PLAY_WITH_FOOD_HP_FRACTION,code_constants:play_with_food_hp_fraction,,
+scripts/systems/enemy.gd:ANIM_FRAME_SEC,presentation,,
+scripts/systems/enemy.gd:GLOW_SCALE,presentation,,
+scripts/systems/enemy.gd:GLOW_HZ,presentation,,
+scripts/systems/fonts.gd:DEFAULT_FACE,presentation,,
+scripts/systems/fonts.gd:CJK_EXTRA_SPACING,presentation,,
+scripts/systems/golden_sparkle.gd:MOTE_COUNT,presentation,,
+scripts/systems/golden_sparkle.gd:HALO_SEGMENTS,presentation,,
+scripts/systems/golden_sparkle.gd:HALO_RADIUS,presentation,,
+scripts/systems/golden_sparkle.gd:HALO_BREATHE,presentation,,
+scripts/systems/golden_sparkle.gd:ORBIT_MIN,presentation,,
+scripts/systems/golden_sparkle.gd:ORBIT_MAX,presentation,,
+scripts/systems/golden_sparkle.gd:MOTE_RADIUS,presentation,,
+scripts/systems/golden_sparkle.gd:TRAIL_MAX,presentation,,
+scripts/systems/golden_sparkle.gd:TRAIL_INTERVAL,presentation,,
+scripts/systems/golden_sparkle.gd:TRAIL_LIFETIME,presentation,,
+scripts/systems/golden_sparkle.gd:GOLD_CORE,presentation,,
+scripts/systems/golden_sparkle.gd:GOLD_EDGE,presentation,,
+scripts/systems/ground_shadow.gd:Z_LAYER,presentation,,
+scripts/systems/ground_shadow.gd:ALPHA,presentation,,
+scripts/systems/ground_shadow.gd:WIDTH_SHARE,presentation,,
+scripts/systems/ground_shadow.gd:FEET,presentation,,
+scripts/systems/ground_shadow.gd:FLIER_WIDTH,presentation,,
+scripts/systems/ground_shadow.gd:FLIER_ALPHA,presentation,,
+scripts/systems/ground_shadow.gd:FLIER_DROP,presentation,,
+scripts/systems/hud.gd:REAWAKEN_GLOW_HZ,presentation,,
+scripts/systems/hud.gd:REAWAKEN_GLOW_SATURATION,presentation,,
+scripts/systems/hud.gd:BIOME_READY_TINT,presentation,,
+scripts/systems/hud.gd:ICON_PLATE_PAD,presentation,,
+scripts/systems/hud.gd:ICON_PLATE_RADIUS,presentation,,
+scripts/systems/hud.gd:ICON_PLATE_COLOR,presentation,,
+scripts/systems/hud.gd:TAB_BADGE_COLOUR,presentation,,
+scripts/systems/hud.gd:HERE_COLOR,presentation,,
+scripts/systems/hud.gd:BOSS_BIOME_COLOR,presentation,,
+scripts/systems/hud.gd:BOSS_BIOME_CLEARED_COLOR,presentation,,
+scripts/systems/hud.gd:HUD_REFRESH_HZ,presentation,,
+scripts/systems/hud.gd:EDGE_MARGIN,presentation,,
+scripts/systems/hud.gd:POUNCE_GAUGE_MARGIN,presentation,,
+scripts/systems/hud.gd:STAGE_BANNER_HOLD,presentation,,
+scripts/systems/hud.gd:STAGE_BANNER_FADE,presentation,,
+scripts/systems/hud.gd:WELCOME_BANNER_HOLD,presentation,,
+scripts/systems/hud.gd:FPS_REFRESH_SEC,presentation,,
+scripts/systems/kitten.gd:SPRITE_TARGET_PX,presentation,,
+scripts/systems/kitten.gd:GOLDEN_TINT,presentation,,
+scripts/systems/kitten.gd:HALO_COLOUR,presentation,,
+scripts/systems/kitten.gd:ROAM_HEADING_SEC,code_constants:kitten_roam_heading_sec,,
+scripts/systems/kitten.gd:ROAM_TURN_SPREAD,code_constants:kitten_roam_turn_spread,,
+scripts/systems/kitten.gd:ILLUSION_TINT,presentation,,
+scripts/systems/kitten.gd:REBALANCE_MARGIN,code_constants:kitten_rebalance_margin,,
+scripts/systems/main_menu.gd:SLOT_TEXT_MARGIN,presentation,,
+scripts/systems/main_menu.gd:SLOT_DELETE_HEIGHT,presentation,,
+scripts/systems/main_menu.gd:SLOT_NUMBER_FONT,presentation,,
+scripts/systems/main_menu.gd:CLUSTER_PX,presentation,,
+scripts/systems/main_menu.gd:CLUSTER_GAP,presentation,,
+scripts/systems/main_menu.gd:SLOT_HOVER_SCALE,presentation,,
+scripts/systems/palette.gd:INK,palette,,
+scripts/systems/palette.gd:EYE,palette,,
+scripts/systems/palette.gd:GOLD,palette,,
+scripts/systems/palette.gd:STARDUST,palette,,
+scripts/systems/palette.gd:ALERT,palette,,
+scripts/systems/palette.gd:DISABLED,palette,,
+scripts/systems/palette.gd:RED_FACE,palette,,
+scripts/systems/palette.gd:RED_HEADER,palette,,
+scripts/systems/palette.gd:CORAL_FACE,palette,,
+scripts/systems/palette.gd:CORAL_HEADER,palette,,
+scripts/systems/palette.gd:ORANGE_FACE,palette,,
+scripts/systems/palette.gd:ORANGE_HEADER,palette,,
+scripts/systems/palette.gd:YELLOW_FACE,palette,,
+scripts/systems/palette.gd:YELLOW_HEADER,palette,,
+scripts/systems/palette.gd:BLUE_FACE,palette,,
+scripts/systems/palette.gd:BLUE_HEADER,palette,,
+scripts/systems/palette.gd:GREEN_FACE,palette,,
+scripts/systems/palette.gd:GREEN_HEADER,palette,,
+scripts/systems/palette.gd:SLATE_FACE,palette,,
+scripts/systems/palette.gd:SLATE_HEADER,palette,,
+scripts/systems/palette.gd:DARK_FACE,palette,,
+scripts/systems/palette.gd:DARK_HEADER,palette,,
+scripts/systems/palette.gd:GREY_FACE,palette,,
+scripts/systems/palette.gd:GREY_HEADER,palette,,
+scripts/systems/palette.gd:CREAM_FACE,palette,,
+scripts/systems/palette.gd:CREAM_HEADER,palette,,
+scripts/systems/palette.gd:BLACK_FACE,palette,,
+scripts/systems/palette.gd:BLACK_HEADER,palette,,
+scripts/systems/palette.gd:UI_PANEL,palette,,
+scripts/systems/palette.gd:UI_PANEL_BAND,palette,,
+scripts/systems/palette.gd:UI_PANEL_FRAME,palette,,
+scripts/systems/palette.gd:UI_TEXT,palette,,
+scripts/systems/palette.gd:UI_TEXT_MUTED,palette,,
+scripts/systems/palette.gd:UI_TEXT_DISABLED,palette,,
+scripts/systems/palette.gd:UI_BUTTON,palette,,
+scripts/systems/palette.gd:UI_BUTTON_HOVER,palette,,
+scripts/systems/palette.gd:UI_BUTTON_PRESSED,palette,,
+scripts/systems/palette.gd:UI_BUTTON_DISABLED,palette,,
+scripts/systems/palette.gd:UI_BUTTON_FRAME,palette,,
+scripts/systems/palette.gd:UI_SLOT,palette,,
+scripts/systems/palette.gd:UI_BADGE,palette,,
+scripts/systems/palette.gd:UI_FOCUS,palette,,
+scripts/systems/palette.gd:UI_CATNIP,palette,,
+scripts/systems/palette.gd:UI_STARDUST,palette,,
+scripts/systems/palette.gd:UI_TAB_UPGRADES,palette,,
+scripts/systems/palette.gd:UI_TAB_REAWAKEN,palette,,
+scripts/systems/palette.gd:UI_TAB_REALMS,palette,,
+scripts/systems/palette.gd:UI_TAB_CATCHES,palette,,
+scripts/systems/palette.gd:UI_TAB_AWARDS,palette,,
+scripts/systems/palette.gd:UI_BOSS_BANNER,palette,,
+scripts/systems/palette.gd:UI_BOSS_BANNER_TEXT,palette,,
+scripts/systems/palette.gd:UI_DANGER,palette,,
+scripts/systems/palette.gd:UI_GOOD,palette,,
+scripts/systems/palette.gd:UI_CARD_PLATE,palette,,
+scripts/systems/palette.gd:UI_CARD_SWARM,palette,,
+scripts/systems/palette.gd:UI_CARD_POUNCE,palette,,
+scripts/systems/palette.gd:UI_CARD_AURA,palette,,
+scripts/systems/palette.gd:UI_CARD_DECK,palette,,
+scripts/systems/palette.gd:UI_CARD_TAKE,palette,,
+scripts/systems/palette.gd:UI_CARD_BANISH,palette,,
+scripts/systems/palette.gd:SKY_BASE,palette,,
+scripts/systems/palette.gd:SKY_CLOUD,palette,,
+scripts/systems/palette.gd:SKY_CLOUD_WARM,palette,,
+scripts/systems/palette.gd:SKY_STAR,palette,,
+scripts/systems/palette.gd:SKY_PLATE,palette,,
+scripts/systems/palette.gd:SKY_PLATE_EDGE,palette,,
+scripts/systems/player.gd:SPRITE_TARGET_PX,presentation,,
+scripts/systems/player.gd:STICK_CROSSING_SEC,input,,the stick cursor's speed
+scripts/systems/player.gd:STICK_CURVE,input,,the stick cursor's response curve
+scripts/systems/player.gd:STILL_EPSILON_PX,code_constants:player_still_epsilon_px,,
+scripts/systems/player.gd:HOP_SEC,presentation,,
+scripts/systems/player.gd:HOP_HEIGHT_PX,presentation,,
+scripts/systems/player.gd:HOP_SQUASH,presentation,,
+scripts/systems/player.gd:HOP_CROUCH_SHARE,presentation,,
+scripts/systems/player.gd:HOP_LAND_SHARE,presentation,,
+scripts/systems/player.gd:HAT_WIDTH_FRACTION,presentation,,
+scripts/systems/player.gd:WEAPON_WIDTH_FRACTION,presentation,,
+scripts/systems/player.gd:MOUNTED_FROM_STAGE,presentation,,the same number as game_state.gd MOUNTED_STAGE: the view reads code_constants mounted_stage
+scripts/systems/player.gd:WEAPON_WIDTH_FRACTION_MOUNTED,presentation,,
+scripts/systems/player.gd:HAT_WIDTH_FRACTION_MOUNTED,presentation,,
+scripts/systems/player.gd:PLAYER_ROWS,presentation,,
+scripts/systems/player.gd:ANIM_FRAME_SEC,presentation,,
+scripts/systems/player.gd:STRIKE_HOLD_SEC,presentation,,
+scripts/systems/poly_guard.gd:MIN_EXTENT_PX,presentation,,
+scripts/systems/poly_guard.gd:MAX_POINTS_FOR_CROSS_TEST,presentation,,
+scripts/systems/poop_zone_visual.gd:SEGMENTS,presentation,,
+scripts/systems/poop_zone_visual.gd:HUE_CYCLE_PER_SEC,presentation,,
+scripts/systems/poop_zone_visual.gd:RING_WIDTH,presentation,,
+scripts/systems/poop_zone_visual.gd:BAND_COUNT,presentation,,
+scripts/systems/pounce_gauge.gd:DIAMETER,presentation,,
+scripts/systems/pounce_gauge.gd:RING,presentation,,
+scripts/systems/pounce_gauge.gd:READY_RING,presentation,,
+scripts/systems/pounce_gauge.gd:READY_HZ,presentation,,
+scripts/systems/pounce_gauge.gd:WEDGE_ALPHA,presentation,,
+scripts/systems/rainbow_bar.gd:HUE_CYCLE_PER_SEC,presentation,,
+scripts/systems/rainbow_bar.gd:HUE_SPAN,presentation,,
+scripts/systems/rainbow_bar.gd:BAND_COUNT,presentation,,
+scripts/systems/rainbow_bar.gd:SPARK_SPAWN_PER_SEC,presentation,,
+scripts/systems/rainbow_bar.gd:SPARK_LIFETIME,presentation,,
+scripts/systems/rainbow_bar.gd:SPARK_RISE_PX,presentation,,
+scripts/systems/rainbow_bar.gd:SPARK_DRIFT_PX,presentation,,
+scripts/systems/rainbow_bar.gd:SPARK_MAX_RADIUS,presentation,,
+scripts/systems/reawaken_ceremony.gd:FLASH_IN_SEC,presentation,,
+scripts/systems/reawaken_ceremony.gd:HOLD_SEC,presentation,,
+scripts/systems/reawaken_ceremony.gd:FADE_OUT_SEC,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:LINE_WIDTH,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:LINE_WIDTH_OWNED,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:DIM,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:SHUT,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:RAINBOW_INSET,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:RAINBOW_WIDTH,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:RAINBOW_CORNER,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:RAINBOW_SEGMENTS,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:RAINBOW_TURNS_PER_SEC,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:PULSE_RINGS,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:PULSE_STEP,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:PULSE_WIDTH,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:PULSE_HZ,presentation,,
+scripts/systems/skill_tree_connector_layer.gd:JOB_RING_COLOUR,presentation,,
+scripts/systems/skill_tree_sky.gd:CLOUD_COUNT,presentation,,
+scripts/systems/skill_tree_sky.gd:CLOUD_ALPHA,presentation,,
+scripts/systems/skill_tree_sky.gd:CLOUD_WOBBLE_PERIOD,presentation,,
+scripts/systems/skill_tree_sky.gd:CLOUD_VERTS,presentation,,
+scripts/systems/skill_tree_sky.gd:STAR_COUNT,presentation,,
+scripts/systems/skill_tree_ui.gd:READY_LERP,presentation,,
+scripts/systems/skill_tree_ui.gd:NODE_GAP,presentation,,
+scripts/systems/skill_tree_ui.gd:ZOOM_MIN,presentation,,
+scripts/systems/skill_tree_ui.gd:ZOOM_MAX,presentation,,
+scripts/systems/skill_tree_ui.gd:ZOOM_STEP,presentation,,
+scripts/systems/skill_tree_ui.gd:FIT_MARGIN,presentation,,
+scripts/systems/skill_tree_ui.gd:FIT_MAX,presentation,,
+scripts/systems/skill_tree_ui.gd:SEPARATION_PASSES,presentation,,
+scripts/systems/skill_tree_ui.gd:SHINE_COLOR,presentation,,
+scripts/systems/skill_tree_ui.gd:SHINE_PERIOD_SEC,presentation,,
+scripts/systems/skill_tree_ui.gd:HALO_PAD,presentation,,
+scripts/systems/skill_tree_ui.gd:HALO_RADIUS,presentation,,
+scripts/systems/skill_tree_ui.gd:HALO_SHADOW,presentation,,
+scripts/systems/skill_tree_ui.gd:HALO_PERIOD_SEC,presentation,,
+scripts/systems/skill_tree_ui.gd:CLOSE_SPEND_GAP_BOTTOM,presentation,,
+scripts/systems/skill_tree_ui.gd:HEX_PITCH,presentation,,
+scripts/systems/skill_tree_ui.gd:CAPTION_FONT_PX,presentation,,
+scripts/systems/skill_tree_ui.gd:CAPTION_LINES,presentation,,
+scripts/systems/skill_tree_ui.gd:HEX_REACH,presentation,,
+scripts/systems/skill_tree_ui.gd:CONE_PENALTY,presentation,,
+scripts/systems/skill_tree_ui.gd:BACKWARD_PENALTY,presentation,,
+scripts/systems/skill_tree_ui.gd:CROWDING_PENALTY,presentation,,
+scripts/systems/skill_tree_ui.gd:LIMB_PUSH_MAX,presentation,,
+scripts/systems/skill_tree_ui.gd:NAV_ANGLE_PENALTY,presentation,,
+scripts/systems/skill_tree_ui.gd:FOLLOW_BOX,presentation,,
+scripts/systems/skill_tree_ui.gd:FOLLOW_SEC,presentation,,
+scripts/systems/skill_tree_ui.gd:PAN_PX_PER_SEC,presentation,,
+scripts/systems/skill_tree_ui.gd:ZOOM_PER_SEC,presentation,,
+scripts/systems/sprite_liveliness.gd:FACING_DEADZONE_PX_PER_SEC,presentation,,
+scripts/systems/sprite_liveliness.gd:PULSE_AMPLITUDE,presentation,,
+scripts/systems/sprite_liveliness.gd:PULSE_HZ,presentation,,
+scripts/systems/tier_controller.gd:INITIAL_ENEMY_POOL_SIZE,presentation,,"pool pre-size, not a rule: the field's pool is sized from max_live_enemies"
+scripts/systems/tier_controller.gd:MAX_LIVE_ENEMIES,code_constants:max_live_enemies,,
+scripts/systems/tier_controller.gd:EXECUTE_COLOR,presentation,,
+scripts/systems/tier_controller.gd:MIN_SPAWN_INTERVAL,code_constants:min_spawn_interval,,
+scripts/systems/tier_controller.gd:MIN_PLAYFIELD_WIDTH,code_constants:min_playfield_width,,
+scripts/systems/tier_controller.gd:SPAWN_EDGE_INSET,code_constants:spawn_edge_inset,,
+scripts/systems/tier_controller.gd:SPAWN_DIRECTION_SPREAD,code_constants:spawn_direction_spread,,
+scripts/systems/tier_controller.gd:MAX_STRIKES_PER_FRAME,code_constants:max_strikes_per_frame,,
+scripts/systems/tier_controller.gd:PIED_PIPER_COLOR,presentation,,
+scripts/systems/tier_controller.gd:HAMMERFALL_COLOR,presentation,,
+scripts/systems/tier_controller.gd:ANVIL_ECHO_REACH,presentation,,"the doubled swipe's drawn reach, not its hit reach"
+scripts/systems/tier_controller.gd:HAMMERFALL_LANE_PX,code_constants:hammerfall_lane_px,,
+scripts/systems/tier_controller.gd:HAMMERFALL_RANGE_PX,code_constants:hammerfall_range_px,,
+scripts/systems/tier_controller.gd:MAX_DAMAGE_ZONES,code_constants:max_damage_zones,,
+scripts/systems/tier_controller.gd:ZONE_COLOR_TRAIL,presentation,,
+scripts/systems/tier_controller.gd:ZONE_COLOR_CRATER,presentation,,
+scripts/systems/tier_controller.gd:ZONE_COLOR_ECHO,presentation,,
+scripts/systems/tier_controller.gd:AURA_TRAIL_DROP_SEC,code_constants:aura_trail_drop_sec,,
+scripts/systems/tier_controller.gd:AURA_TRAIL_LIFETIME_SEC,code_constants:aura_trail_lifetime_sec,,
+scripts/systems/tier_controller.gd:AURA_TRAIL_MIN_MOVE_PX,code_constants:aura_trail_min_move_px,,
+scripts/systems/tier_controller.gd:DRAG_TETHER_SEC,presentation,,
+scripts/systems/tier_controller.gd:DRAG_TETHER_COLOR,presentation,,
+scripts/systems/tier_controller.gd:RUSH_PULSE_SEC,presentation,,
+scripts/systems/tier_controller.gd:RUSH_VISIBLE_AT,presentation,,the Infestation ring's visibility threshold
+scripts/systems/tier_controller.gd:FINALE_REACH_PX,code_constants:finale_reach_px,,
+scripts/systems/tier_controller.gd:GRIDLOCK_REACH_PX,code_constants:gridlock_reach_px,,
+scripts/systems/tier_controller.gd:ECHO_DROP_SEC,code_constants:echo_drop_sec,,
+scripts/systems/tier_controller.gd:EDGE_BURN_BAND_PX,code_constants:edge_burn_band_px,,
+scripts/systems/tier_controller.gd:AURA_PULSE_INTERVAL_SEC,code_constants:aura_pulse_interval_sec,,
+scripts/systems/tier_controller.gd:PRISM_BEAM_DRAW_INTERVAL,presentation,,"beams are drawn at this rate, resolved every step"
+scripts/systems/tier_controller.gd:PRISM_SHARDS_PER_DETONATION,code_constants:prism_shards_per_detonation,,
+scripts/systems/tier_controller.gd:PRISM_COLOR,presentation,,
+scripts/systems/tier_controller.gd:POUNCE_CRATER_LIFETIME_SEC,code_constants:pounce_crater_lifetime_sec,,
+scripts/systems/tier_controller.gd:MAX_SPLASH_BEAMS_PER_FRAME,presentation,,"caps the overkill spill BEAMS drawn, not the spill"
+scripts/systems/tier_controller.gd:OVERKILL_SPLASH_COLOR,presentation,,
+scripts/systems/tier_controller.gd:BOSS_DEATH_SEQUENCE_SEC,code_constants:boss_death_sequence_sec,,
+scripts/systems/tier_controller.gd:BOSS_BANNER_WIDTH,presentation,,
+scripts/systems/tier_controller.gd:BOSS_BANNER_TOP,presentation,,
+scripts/systems/tier_controller.gd:BOSS_BAR_HEIGHT,presentation,,
+scripts/systems/tier_controller.gd:UI_PANEL_BG,presentation,,
+scripts/systems/tier_controller.gd:UI_PANEL_BORDER,presentation,,
+scripts/systems/tier_controller.gd:BOSS_BAR_TRACK,presentation,,
+scripts/systems/tier_controller.gd:BOSS_BAR_FILL,presentation,,
+scripts/systems/tier_controller.gd:BOSS_BAR_SHIELDED,presentation,,
+scripts/systems/tier_controller.gd:AUTO_TRAVEL_POLL_SEC,code_constants:auto_travel_poll_sec,,
+scripts/systems/tier_controller.gd:CUT_MAX_RATIO,code_constants:cut_max_ratio,,
+scripts/systems/tier_controller.gd:CATNIP_BOMB_DAMAGE_SECONDS,code_constants:catnip_bomb_damage_seconds,,
+scripts/systems/tier_controller.gd:CATNIP_BOMB_RADIUS,code_constants:catnip_bomb_radius,,
+scripts/systems/tier_controller.gd:MAX_TEMP_KITTENS,code_constants:max_temp_kittens,,
+scripts/systems/tier_controller.gd:KITTEN_EXPLOSION_RADIUS,code_constants:kitten_explosion_radius,,
+scripts/systems/tier_controller.gd:BONUS_POP_GAP_MSEC,presentation,,
+scripts/systems/tier_controller.gd:POP_BOUNTY,presentation,,
+scripts/systems/tier_controller.gd:POP_TOYED,presentation,,
+scripts/systems/tier_controller.gd:POP_SPECTRUM,presentation,,
+scripts/systems/tier_controller.gd:GIBLETS_RED,presentation,,
+scripts/systems/tier_controller.gd:GIBLETS_CHUNK,presentation,,
+scripts/systems/tier_controller.gd:GIBLETS_MIN_GAP_MSEC,presentation,,
+scripts/systems/tutorial.gd:LAYER,presentation,,
+scripts/systems/tutorial.gd:LAYER_OVER_DRAFT,presentation,,
+scripts/systems/tutorial.gd:GRACE_SEC,presentation,,
+scripts/systems/tutorial.gd:BREATHER_SEC,presentation,,
+scripts/systems/tutorial.gd:GIVE_UP_SEC,presentation,,
+scripts/systems/tutorial.gd:HOVER_DELAY_SEC,presentation,,
+scripts/systems/tutorial.gd:BOSS_LINE_SEC,presentation,,
+scripts/systems/tutorial.gd:HOVER_KILLS,presentation,,"a tutorial cue, not a rule"
+scripts/systems/tutorial.gd:THINK_HZ,presentation,,
+scripts/systems/tutorial.gd:PAW_PX,presentation,,
+scripts/systems/tutorial.gd:TAP_PERIOD_SEC,presentation,,
+scripts/systems/tutorial.gd:TAP_DOWN_SEC,presentation,,
+scripts/systems/tutorial.gd:TAP_DIP_PX,presentation,,
+scripts/systems/tutorial.gd:WIDE_TARGET_PX,presentation,,
+scripts/systems/tutorial.gd:PLATE_GAP,presentation,,
+scripts/systems/tutorial.gd:LINE_PX,presentation,,
+scripts/systems/tutorial.gd:GLYPH_PX,presentation,,
+scripts/systems/ui_juice.gd:HOVER_SCALE,presentation,,
+scripts/systems/ui_juice.gd:PRESS_SCALE,presentation,,
+scripts/systems/ui_juice.gd:HOVER_IN_SEC,presentation,,
+scripts/systems/ui_juice.gd:HOVER_OUT_SEC,presentation,,
+scripts/systems/ui_juice.gd:PRESS_SEC,presentation,,
+scripts/systems/ui_juice.gd:RELEASE_SEC,presentation,,
+scripts/systems/ui_juice.gd:PUNCH_SEC,presentation,,
+scripts/systems/ui_juice.gd:JITTER_DEG,presentation,,
+scripts/systems/ui_juice.gd:JITTER_STEP_SEC,presentation,,
+scripts/systems/ui_juice.gd:POP_IN_FROM,presentation,,
+scripts/systems/ui_juice.gd:POP_IN_SEC,presentation,,
+scripts/systems/unicorn_ceremony.gd:LAYER,presentation,,
+scripts/systems/unicorn_ceremony.gd:HEIGHT_SHARE,presentation,,
+scripts/systems/unicorn_ceremony.gd:HOP_SEC,presentation,,
+scripts/systems/unicorn_ceremony.gd:HOPS,presentation,,
+scripts/systems/unicorn_ceremony.gd:RAINBOW_AT,presentation,,
+scripts/systems/unicorn_ceremony.gd:FADE_AT,presentation,,
+scripts/systems/unicorn_ceremony.gd:FADE_SEC,presentation,,
+scripts/systems/unicorn_ceremony.gd:SKIP_AFTER,presentation,,
+scripts/systems/unicorn_ceremony.gd:CONFETTI,presentation,,
+scripts/systems/unicorn_ceremony.gd:CONFETTI_RAIN,presentation,,
+scripts/systems/unicorn_ceremony.gd:STARS,presentation,,
+scripts/systems/upgrade_tooltip.gd:MARGIN_PX,presentation,,
+scripts/systems/upgrade_tooltip.gd:WIDTH_PX,presentation,,
+scripts/systems/vfx_beam.gd:TIP_FRACTION,presentation,,
+scripts/systems/vfx_beam.gd:MIN_LENGTH_PX,presentation,,
+scripts/systems/vfx_burst.gd:SEGMENTS,presentation,,
+scripts/systems/vfx_edge_fire.gd:EDGE_ALPHA,presentation,,
+scripts/systems/vfx_edge_fire.gd:FIRE_COLOR,presentation,,
+scripts/systems/vfx_edge_fire.gd:BREATH_PER_SEC,presentation,,
+scripts/systems/vfx_edge_fire.gd:BREATH_DEPTH,presentation,,
+scripts/systems/vfx_edge_fire.gd:EMBER_COUNT,presentation,,
+scripts/systems/vfx_edge_fire.gd:EMBER_DRIFT_PER_SEC,presentation,,
+scripts/systems/vfx_slam.gd:DURATION,presentation,,
+scripts/systems/vfx_slam.gd:SQUASH,presentation,,
+scripts/systems/vfx_slam.gd:CRACKS,presentation,,
+scripts/systems/vfx_slam.gd:CRACK_JOINTS,presentation,,
+scripts/systems/vfx_slam.gd:RING_WIDTH,presentation,,
+scripts/systems/vfx_slam.gd:INK_EDGE,presentation,,
+scripts/systems/vfx_slam.gd:RING_COLOR,presentation,,
+scripts/systems/vfx_slam.gd:DUST_COLOR,presentation,,
+scripts/systems/vfx_swipe.gd:SEGMENTS,presentation,,
+scripts/systems/vfx_swipe.gd:ARC_SPAN,presentation,,
+scripts/systems/vfx_swipe.gd:REACH_FRACTION,presentation,,
+scripts/systems/vfx_swipe.gd:COLOR,presentation,,
+scripts/systems/vfx_swipe.gd:WIDTH,presentation,,
+scripts/systems/vfx_swipe.gd:DURATION,presentation,,
+scripts/systems/vfx_swipe.gd:INK_EDGE,presentation,,
+scripts/systems/vfx_swipe.gd:CLAW_COUNT,presentation,,
+scripts/systems/vfx_swipe.gd:CLAW_LENGTH,presentation,,
+scripts/systems/vfx_swipe.gd:CLAW_GAP,presentation,,
+scripts/systems/vfx_swipe.gd:CLAW_WIDTH,presentation,,
+scripts/systems/vfx_swipe.gd:CLAW_AT,presentation,,
+scripts/systems/vfx_swipe.gd:CRIT_COLOR,presentation,,
+scripts/systems/vfx_swipe.gd:CRIT_WIDTH_SCALE,presentation,,
+scripts/systems/vfx_swipe.gd:EARNED_COLOR,presentation,,
+scripts/systems/vfx_swipe.gd:EARNED_WIDTH_SCALE,presentation,,
+scripts/data/achievement_data.gd:threshold,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/achievement_data.gd:stardust_reward,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/boss_data.gd:total_hp,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/boss_data.gd:reward_catnip,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/boss_data.gd:time_limit_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/boss_data.gd:bait_cost_catnip,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/boss_data.gd:bait_requires_wave,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/boss_data.gd:bait_required,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/boss_data.gd:kills_per_bait,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/boss_data.gd:add_interval_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/boss_data.gd:add_hp_fraction,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/boss_data.gd:add_heal_fraction,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/boss_data.gd:add_speed_px_per_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/card_data.gd:weight,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:base_paw_damage,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:base_attack_speed,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:base_paw_reach,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:shred_max_stacks,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:shred_stack_seconds,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:base_damage_per_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:crit_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:base_aura_radius,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:base_kitten_damage_per_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:base_kitten_contact_radius,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:base_kitten_detection_radius,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:poop_aura_fraction,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:base_poop_damage_per_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:poop_cooldown_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:poop_duration_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:poop_radius_px,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:pounce_cooldown_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:pounce_damage_seconds,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:pounce_radius_px,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:pounce_vulnerable_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:evolution_damage_per_stage,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:pounce_max_aura_multiple,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:overkill_bounty_max_multiple,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/combat_constants_data.gd:overkill_bounty_exponent,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/enemy_data.gd:tier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/enemy_data.gd:hp,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/enemy_data.gd:reward_catnip,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/enemy_data.gd:invuln_vulnerable_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/enemy_data.gd:invuln_shield_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/enemy_data.gd:speed_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/enemy_data.gd:lifetime_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/enemy_data.gd:sprite_target_px,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/evolution_data.gd:stage,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/evolution_data.gd:weapon_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:paw_damage_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:aura_damage_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:aura_radius_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:kitten_damage_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:pounce_damage_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:all_damage_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:catnip_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:crit_chance_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:attack_speed_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:crit_chance_bonus,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:crit_damage_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:enemy_health_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:spawn_rate_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:extra_cards_in_hand,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:pounce_lock_sec,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/job_data.gd:required_reawakens,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/pawpocalypse_save_data.gd:catnip,save,,a save field's default
+scripts/data/pawpocalypse_save_data.gd:stardust,save,,a save field's default
+scripts/data/pawpocalypse_save_data.gd:reawaken_count,save,,a save field's default
+scripts/data/pawpocalypse_save_data.gd:lifetime_catnip_ever,save,,a save field's default
+scripts/data/pawpocalypse_save_data.gd:lifetime_catnip_this_cycle,save,,a save field's default
+scripts/data/pawpocalypse_save_data.gd:stardust_granted_ever,save,,a save field's default
+scripts/data/pawpocalypse_save_data.gd:lifetime_kills,save,,a save field's default
+scripts/data/pawpocalypse_save_data.gd:last_played_unix,save,,a save field's default
+scripts/data/pawpocalypse_save_data.gd:play_seconds_this_cycle,save,,a save field's default
+scripts/data/pawpocalypse_save_data.gd:total_play_seconds,save,,a save field's default
+scripts/data/pawpocalypse_save_data.gd:final_boss_seconds,save,,a save field's default
+scripts/data/pawpocalypse_save_data.gd:banishes,save,,a save field's default (the run's cards, F24)
+scripts/data/pawpocalypse_save_data.gd:cards_taken_this_run,save,,a save field's default (the run's cards, F24)
+scripts/data/pawpocalypse_save_data.gd:catches_level,save,,a save field's default (the run's cards, F24)
+scripts/data/pawpocalypse_save_data.gd:catches_points,save,,a save field's default (the run's cards, F24)
+scripts/data/pawpocalypse_save_data.gd:extra_choices,save,,a save field's default (the run's cards, F24)
+scripts/data/pawpocalypse_save_data.gd:fixation_hands,save,,a save field's default (the run's cards, F24)
+scripts/data/pawpocalypse_save_data.gd:rerolls,save,,a save field's default (the run's cards, F24)
+scripts/data/reawaken_constants_data.gd:reawaken_min_stardust,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/reawaken_constants_data.gd:reawaken_min_gain_fraction,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/reawaken_constants_data.gd:reawaken_stardust_coefficient,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/reawaken_constants_data.gd:reawaken_mult_per_point,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/reawaken_constants_data.gd:reawaken_mult_scale,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/reawaken_constants_data.gd:reawaken_mult_exponent,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/reawaken_constants_data.gd:pounce_unlock_reawaken_count,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/reawaken_constants_data.gd:overkill_unlock_reawaken_count,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/reawaken_constants_data.gd:unicorn_unlock_reawaken_count,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/skill_branch_data.gd:required_reawakens,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/tier_data.gd:spawn_rate_per_min,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/tier_data.gd:required_evolution_stage,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/tier_data.gd:golden_chance,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/tier_data.gd:catnip_to_unlock,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/tier_data.gd:reward_multiplier,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/tier_data.gd:kills_per_wave,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/tier_data.gd:wave_kill_growth,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/tier_data.gd:wave_hp_growth,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/tier_data.gd:wave_reward_growth,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/upgrade_data.gd:base_cost,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/upgrade_data.gd:cost_growth,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/upgrade_data.gd:effect_per_level,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/upgrade_data.gd:cap,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/upgrade_data.gd:cap_per_floor,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/data/upgrade_data.gd:cap_per_reawaken,data,,a data field's default: generated into PcDataRows.h (tools/gen_pc_data.py)
+scripts/systems/enemy.gd:speed_px_per_sec,code_constants:enemy_speed_px_per_sec,,
+scripts/systems/enemy.gd:wander_turn_rate,code_constants:enemy_wander_turn_rate,,
+scripts/systems/enemy.gd:flee_centre_bias,code_constants:enemy_flee_centre_bias,,
+scripts/systems/enemy.gd:flier_speed_multiplier,code_constants:enemy_flier_speed_multiplier,,
+scripts/systems/kitten.gd:speed_px_per_sec,code_constants:kitten_speed_px_per_sec,,
+scripts/systems/kitten.gd:orbit_radius_px,code_constants:kitten_orbit_radius_px,,
+scripts/systems/kitten.gd:roam_speed_ratio,code_constants:kitten_roam_speed_ratio,,
+scripts/systems/prompt_icon.gd:icon_px,presentation,,
+scripts/systems/prompt_label.gd:icon_px,presentation,,
+scripts/systems/rainbow_frame.gd:width,presentation,,
+scripts/systems/rainbow_frame.gd:corner,presentation,,
+scripts/systems/rainbow_frame.gd:turns_per_sec,presentation,,
+scripts/systems/tier_controller.gd:ui_margin_right,presentation,,the dock-width fallback before the HUD lays out; the view owns the playfield rect
+scripts/systems/boss.gd:_tick_movement() relocating,code_constants:boss_relocate_distance_px,global_position.distance_to(_anchor) > 90.0,"a literal in Boss._tick_movement(): farther than this from its anchor the boss moves at RELOCATE_SPEED (a relocation), nearer it drifts"
+scripts/systems/boss.gd:_tick_movement() wobble x,code_constants:boss_wobble_x_px,"randf_range(-70.0, 70.0)","a literal in Boss._tick_movement(): the idle drift target wanders up to this far across from the anchor, so the boss never looks parked"
+scripts/systems/boss.gd:_tick_movement() wobble y,code_constants:boss_wobble_y_px,"randf_range(-50.0, 50.0)","a literal in Boss._tick_movement(): the idle drift target wanders up to this far up or down from the anchor"

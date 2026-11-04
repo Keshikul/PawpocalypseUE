@@ -8,7 +8,7 @@ and the exact next step. Read `docs/00-START-HERE.md` first, then the newest ent
 ## 2026-11-04 (34) - A whole-codebase review; one port bug fixed: the kittens chased the oldest boss add
 
 ### Where the project is
-- Unchanged from (33) but for the fix below: phase 4 slices 1-2 done, the title screen next. Nothing committed in either repo.
+- Unchanged from (33) but for the fix below: phase 4 slices 1-2 done, the title screen next. The port is committed and pushed (`10c118e`); the Godot repo is not.
 
 ### What happened
 1. **A review of the docs and the code** (PawCore whole; the game module's Core, Data, Realm, Render, Save, Dev and the UI's
@@ -57,9 +57,9 @@ and the exact next step. Read `docs/00-START-HERE.md` first, then the newest ent
   the ACTIVE slot unless `SaveGame(newSlot)` runs the same frame (`paw.Cheat.Reset` does this to the real slot today);
   `LoadGame` does not restart the realm (ApplySave clears `CurrentBiomeId`): any Load must `StartRealm`; `paw.Cheat.Reawaken`
   leaves the realm biome-less (no ceremony, spend step or travel).
-- **Gates (the build order and SKIP are done, item 3):** both sabotage scripts edit real sources with nothing committed since
-  `7410909`; no sanitizer build of PawCore; the colour lint skips `Realm/`; Dev/Spikes still compiles into Shipping.
-- Still open from (33): commit both repos; the F19 hint's translations; F6; the phase 3 packaged-build gate.
+- **Gates (the build order and SKIP are done, item 3):** both sabotage scripts edit real sources (safe only while the tree is
+  committed); no sanitizer build of PawCore; the colour lint skips `Realm/`; Dev/Spikes still compiles into Shipping.
+- Still open from (33): commit the Godot repo (the designer's call); the F19 hint's translations; F6; the phase 3 packaged-build gate.
 
 ### Next step
 *"Act on the rest of HANDOFF-LOG (34)'s findings: the non-finite guards in PcFormat / PcJson; write up the save findings for the

@@ -1,7 +1,9 @@
 """L0 static gates for PawCore (docs/09 §1, CLAUDE.md hard rules). Seconds, no build.
 
   no-float      `double` for every economy/damage value: the word `float` does not appear in PawCore code (comments
-                and string literals are stripped first, so "float64" in a comment is fine; doctest is third-party).
+                and string literals are stripped first, so "float64" in a comment is fine; doctest is third-party). ONE
+                exception, FLOAT_IS_THE_SPEC: PcBackdrop, which reproduces Godot's float32 Vector2 / RandomNumberGenerator
+                (real_t) bit for bit; no economy or damage value lives there.
   engine-free   PawCore includes only the C++ standard library, its own Pc*.h headers and the vendored doctest; the one
                 exception is Private/PawCoreModule.cpp, the Unreal module glue.
   test-guard    every .cpp under Tests/ is wrapped in `#if defined(PAWCORE_STANDALONE_TESTS)` or `PAWCORE_SIM_CLI`
@@ -35,7 +37,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CORE = ROOT / "Source" / "PawCore"
 UI = ROOT / "Source" / "Pawpocalypse" / "UI"
 ST_UI = ROOT / "Content" / "Pawpocalypse" / "Localization" / "Strings" / "ST_UI.csv"
-UI_KEY = re.compile(r'TEXT\("((?:TAB|PAGE|SHOP|ZONE|WAVE|BOSS|REALMS|BAIT|REAWAKEN|CATCHES|AWARDS|JOBS|PICK|TREE|PROMPT|CEREMONY|JOBPICK|VICTORY|DURATION)_[a-z0-9_]+)"\)')
+UI_KEY = re.compile(r'TEXT\("((?:TAB|PAGE|SHOP|ZONE|WAVE|BOSS|REALMS|BAIT|REAWAKEN|CATCHES|AWARDS|JOBS|PICK|TREE|PROMPT|CEREMONY|JOBPICK|VICTORY|DURATION|TITLE|PAUSE|SETTINGS|CONTROLS|INPUT|KEY|HUD|QUICK)_[a-z0-9_]+)"\)')
 # A colour built from numbers: FLinearColor(1, 0, 0), FColor Name{255, ...}, FromHex(...); not a function returning one.
 UI_COLOUR = re.compile(r"\bF(?:Linear)?Color\s*(?:\w+\s*)?[({]\s*[-+]?[\d.]|FromHex|FromSRGBColor")
 UI_TEXT = re.compile(r"FText::FromString\s*\(|\bLOCTEXT\s*\(|\bNSLOCTEXT\s*\(")
@@ -74,9 +76,16 @@ def sources(core):
     return [p for p in core.rglob("*") if p.suffix in (".h", ".cpp") and "ThirdParty" not in p.parts]
 
 
+# Files whose float IS the specification: Godot's real_t (Vector2, Rect2, randf) reproduced exactly (phase 6 slice 2,
+# fixture `backdrop`: the same layout in double drifts off Godot's, sabotage backdrop_blob_in_double). Nothing else, ever.
+FLOAT_IS_THE_SPEC = {"Public/PcBackdrop.h", "Private/PcBackdrop.cpp"}
+
+
 def check_no_float(core):
     bad = []
     for p in sources(core):
+        if p.relative_to(core).as_posix() in FLOAT_IS_THE_SPEC:
+            continue
         code = strip_comments_and_strings(p.read_text(encoding="utf-8"))
         for no, line in enumerate(code.splitlines(), 1):
             if re.search(r"\bfloat\b", line):
@@ -117,8 +126,9 @@ def check_generated():
         if r.returncode != 0:
             bad.append("%s --check: %s" % (script, (r.stdout + r.stderr).strip()[-300:]))
     # The game's DataTable row structs, from the Data/*.csv headers (tools/gen_paw_rows.py).
-    for script, args in (("gen_paw_rows.py", ["--check"]), ("gen_paw_tokens.py", ["--godot", GODOT, "--check"]),
-                         ("gen_data_strings.py", ["--check"]), ("gen_tree_tables.py", ["--godot", GODOT, "--check"])):
+    for script, args in (("gen_paw_rows.py", ["--check"]), ("gen_paw_tokens.py", ["--check"]),
+                         ("gen_data_strings.py", ["--check"]), ("gen_tree_tables.py", ["--godot", GODOT, "--check"]),
+                         ("gen_input_defaults.py", ["--check"])):
         r = subprocess.run([sys.executable, str(ROOT / "tools" / script)] + args, capture_output=True, text=True)
         if r.returncode != 0:
             bad.append("%s --check: %s" % (script, (r.stdout + r.stderr).strip()[-300:]))
@@ -147,6 +157,11 @@ def check_ui(ui_dir, st_ui):
             # Godot prints numbers with str() / "%d" / "%.Nf": never grouped, never localised (PawText Count, Fixed).
             if re.search(r"FText::As(?:Number|Percent|Currency)\s*\(", line):
                 bad.append("%s:%d formats a number the engine's way (Godot's is PawText::Count / Fixed)" % (path.name, n))
+    # The string tables load loose at run time: one saved with CRLF doubles every line break inside a quoted value
+    # (measured 2026-11-06: a cell's CR LF reads as two breaks). LF only.
+    for table_csv in sorted(st_ui.parent.glob("ST_*.csv")):
+        if b"\r" in table_csv.read_bytes():
+            bad.append("%s has CR line endings (LF only: a CRLF string table doubles its line breaks)" % table_csv.name)
     for key in sorted(named - table):
         bad.append("ST_UI has no key %s" % key)
     for key in sorted(table - named):

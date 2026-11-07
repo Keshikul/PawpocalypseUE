@@ -4,6 +4,7 @@
 #include "PcCsv.h"
 #include "PcFormat.h"
 
+#include <cmath>
 #include <cstdlib>
 #include <sstream>
 #include <string>
@@ -82,6 +83,43 @@ TEST_CASE("Amounts.short past the int64 range prints digits, never an overflowed
 	CHECK(S.find('-') == std::string::npos);
 	CHECK(S.substr(S.size() - 2) == "Qi");
 	CHECK(S.rfind("1000000000", 0) == 0);
+}
+
+// Godot 4.7.1, measured 2026-11-04 (a probe in the sandboxed scratch copy): short(NAN) and short(INF) =
+// "-9223372036854775808Qi", short(-INF) = "--9223372036854775808Qi"; "%.Nf" % NAN / INF / -INF = "nan" / "inf" / "-inf" for
+// N = 0..3; int() and roundi() of NAN, INF, -INF and 1e300 = -9223372036854775808.
+TEST_CASE("Formatting never reads past its text on NaN or an infinity, and says what Godot says")
+{
+	const double Nan = std::nan("");
+	const double Inf = HUGE_VAL;
+	// ShortAmount: Godot's suffix (the last), the value instead of int()'s overflow, as past the int64 range.
+	CHECK(Pc::ShortAmount(Nan) == "nanQi");
+	CHECK(Pc::ShortAmount(Inf) == "infQi");
+	CHECK(Pc::ShortAmount(-Inf) == "-infQi");
+	Pc::PcAmountStyle Zz;
+	Zz.Group = 10000.0;
+	Zz.Suffixes = { "W", "Y", "Z", "J", "G", "X" };
+	CHECK(Pc::ShortAmount(Nan, Zz) == "nanX");
+	CHECK(Pc::ShortAmount(Inf, Zz) == "infX");
+	for (int Digits = 0; Digits <= 3; ++Digits)
+	{
+		CAPTURE(Digits);
+		CHECK(Pc::FixedLikeGodot(Nan, Digits) == "nan");
+		CHECK(Pc::FixedLikeGodot(Inf, Digits) == "inf");
+		CHECK(Pc::FixedLikeGodot(-Inf, Digits) == "-inf");
+	}
+	for (const double V : {Nan, Inf, -Inf, 1e300, -1e300, 9223372036854775808.0})
+	{
+		CAPTURE(V);
+		CHECK(Pc::IntLikeGodot(V) == "-9223372036854775808");
+		CHECK(Pc::RoundiLikeGodot(V) == "-9223372036854775808");
+	}
+	// The edges of int64 still convert.
+	CHECK(Pc::IntLikeGodot(-9223372036854775808.0) == "-9223372036854775808");
+	CHECK(Pc::IntLikeGodot(9223372036854774784.0) == "9223372036854774784");
+	CHECK(Pc::RoundiLikeGodot(-2.5) == "-3");
+	// The widest finite value still prints whole.
+	CHECK(Pc::FixedLikeGodot(1.7976931348623157e308, 6).size() == 316);
 }
 
 #endif

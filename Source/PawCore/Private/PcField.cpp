@@ -74,7 +74,7 @@ namespace Pc
 			return -A + 2.0 * A * Unit(F, Entity, Salt);
 		}
 
-		void Push(PcField& F, PcFieldEventKind Kind, int32_t Slot, double X, double Y, double Value = 0.0, uint16_t Flags = 0,
+		void Push(PcField& F, PcFieldEventKind Kind, int32_t Slot, double X, double Y, double Value = 0.0, uint32_t Flags = 0,
 			double ToX = 0.0, double ToY = 0.0)
 		{
 			PcFieldEvent E;
@@ -171,7 +171,11 @@ namespace Pc
 			{
 				DetonateCatnipBomb(F, D, P, In, F.X[I], F.Y[I]);
 			}
-			uint16_t Flags = 0;
+			uint32_t Flags = 0;
+			if (F.BeamKill[I] != 0)
+			{
+				Flags |= FieldFlag::Beam;
+			}
 			if (E.bSparkle)
 			{
 				Flags |= FieldFlag::Golden;
@@ -389,7 +393,7 @@ namespace Pc
 			ClearBossAdds(F);
 			const bool bFinal = !D.Code.BossRealms.empty() && Tier.Id == D.Code.BossRealms.back();
 			Push(F, PcFieldEventKind::BossDefeated, -1, F.BossX, F.BossY, B.RewardCatnip,
-				static_cast<uint16_t>((Mark.bNew ? FieldFlag::New : 0) | (bFinal ? FieldFlag::Final : 0)
+				static_cast<uint32_t>((Mark.bNew ? FieldFlag::New : 0) | (bFinal ? FieldFlag::Final : 0)
 					| (RaisesVictory(D, Tier.Id, Mark) ? FieldFlag::Victory : 0)));
 			F.Stats = RebuildStats(D, P); // the evolution stage moved
 			const size_t Next = static_cast<size_t>(F.TierIndex) + 1;
@@ -834,7 +838,7 @@ namespace Pc
 			{
 				Damage = Damage * F.Stats.CritMultiplier;
 			}
-			const uint16_t Flags = static_cast<uint16_t>(FieldFlag::Boss | (Crit != PcCrit::None ? FieldFlag::Crit : 0)
+			const uint32_t Flags = static_cast<uint32_t>(FieldFlag::Boss | (Crit != PcCrit::None ? FieldFlag::Crit : 0)
 				| (Crit == PcCrit::Earned ? FieldFlag::Earned : 0));
 			Push(F, PcFieldEventKind::Strike, -1, F.CatX, F.CatY, Damage, Flags, F.BossX, F.BossY);
 			BossTakeDamage(F, D, P, In, Damage, F.Stats.ShieldPierceFraction);
@@ -873,6 +877,7 @@ namespace Pc
 			const PcCrit Crit = RollCrit(F, D, P, Swing);
 			const bool bCrit = Crit != PcCrit::None;
 			bool bFinisher = false;
+			bool bThreshold = false;
 			// Only an arming from an EARLIER swing may be spent now (F17, designer 2026-11-03, fixed in Godot first: the
 			// code used to arm and spend on the same swing, against its own comment).
 			const bool bRiddleReady = F.bRiddleArmed;
@@ -904,11 +909,13 @@ namespace Pc
 			{
 				Damage = std::max(Damage, F.Hp[I]);
 				bFinisher = true;
+				bThreshold = true;
 			}
 			const double StruckX = F.X[I];
 			const double StruckY = F.Y[I];
-			const uint16_t Flags = static_cast<uint16_t>((bCrit ? FieldFlag::Crit : 0) | (Crit == PcCrit::Earned ? FieldFlag::Earned : 0)
-				| (bEcho ? FieldFlag::Echo : 0) | (bFinisher ? FieldFlag::Execute : 0));
+			const uint32_t Flags = static_cast<uint32_t>((bCrit ? FieldFlag::Crit : 0) | (Crit == PcCrit::Earned ? FieldFlag::Earned : 0)
+				| (bEcho ? FieldFlag::Echo : 0) | (bFinisher ? FieldFlag::Execute : 0) | (bRiddleArmedNow ? FieldFlag::Riddle : 0)
+				| (bThreshold ? FieldFlag::Threshold : 0));
 			Push(F, PcFieldEventKind::Strike, Target, F.CatX, F.CatY, Damage, Flags, StruckX, StruckY);
 			// Where the blow landed, captured BEFORE it lands (a dead mouse is pooled; reading its position afterwards gave
 			// Hammerfall a stale point and it almost never fired).

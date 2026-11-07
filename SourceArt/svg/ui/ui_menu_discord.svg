@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<!-- "Discord": a chat bubble with a face, in Discord's blurple so the colour
+     says which chat. Not their logo (that is theirs); a bubble is ours.
+     Title-screen cluster icon (designer, 2026-09-21). -->
+<g stroke-linejoin="round" stroke-linecap="round">
+<path d="M22 20 h84 a12 12 0 0 1 12 12 v52 a12 12 0 0 1 -12 12 h-46 l-22 20 v-20 h-16 a12 12 0 0 1 -12 -12 v-52 a12 12 0 0 1 12 -12 z" fill="#2A1A33"/>
+<path d="M24 25 h80 a8 8 0 0 1 8 8 v50 a8 8 0 0 1 -8 8 h-46 l-15 14 v-14 h-19 a8 8 0 0 1 -8 -8 v-50 a8 8 0 0 1 8 -8 z" fill="#5865F2"/>
+<ellipse cx="48" cy="56" rx="9" ry="11" fill="#2A1A33"/>
+<ellipse cx="80" cy="56" rx="9" ry="11" fill="#2A1A33"/>
+<ellipse cx="48" cy="56" rx="6" ry="8" fill="#F6F6F6"/>
+<ellipse cx="80" cy="56" rx="6" ry="8" fill="#F6F6F6"/>
+<circle cx="50" cy="58" r="3" fill="#2A1A33"/>
+<circle cx="82" cy="58" r="3" fill="#2A1A33"/>
+<polyline points="54,76 58,80 64,82 70,80 74,76" fill="none" stroke="#2A1A33" stroke-width="4"/>
+</g>
+</svg>

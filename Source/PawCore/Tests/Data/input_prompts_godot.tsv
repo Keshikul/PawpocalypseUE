@@ -1,0 +1,54 @@
+# Godot 4.7.1 InputGlyphs ground truth (scripts/systems/input_glyphs.gd, the real project.godot [input]), generated 2026-10-28
+# by tools/godot_fixtures/input_glyphs_fixture.gd: InputGlyphs.bbcode(template, family), the BBCode neutralised:
+# an inline glyph is <g:stem>, a keycap <k:label>.
+id	family	template	prompt
+blurb_pounce	0	Teaches you to POUNCE — a burst on {pounce}, worth more if you time it into a vulnerable window. Its two shop lines appear once you own it.	Teaches you to POUNCE — a burst on <g:input_keyboard_mouse_left>, worth more if you time it into a vulnerable window. Its two shop lines appear once you own it.
+blurb_pounce	1	Teaches you to POUNCE — a burst on {pounce}, worth more if you time it into a vulnerable window. Its two shop lines appear once you own it.	Teaches you to POUNCE — a burst on <g:input_xbox_trigger_r>, worth more if you time it into a vulnerable window. Its two shop lines appear once you own it.
+blurb_pounce	2	Teaches you to POUNCE — a burst on {pounce}, worth more if you time it into a vulnerable window. Its two shop lines appear once you own it.	Teaches you to POUNCE — a burst on <g:input_playstation_trigger_r>, worth more if you time it into a vulnerable window. Its two shop lines appear once you own it.
+blurb_pounce	3	Teaches you to POUNCE — a burst on {pounce}, worth more if you time it into a vulnerable window. Its two shop lines appear once you own it.	Teaches you to POUNCE — a burst on <g:input_steam_deck_trigger_r>, worth more if you time it into a vulnerable window. Its two shop lines appear once you own it.
+blurb_pounce	4	Teaches you to POUNCE — a burst on {pounce}, worth more if you time it into a vulnerable window. Its two shop lines appear once you own it.	Teaches you to POUNCE — a burst on <g:input_xbox_trigger_r>, worth more if you time it into a vulnerable window. Its two shop lines appear once you own it.
+empty	0		
+empty	1		
+empty	2		
+empty	3		
+empty	4		
+hud_other	0	{press} Select   {open_skill_tree} Skills   {pause} Pause	<k:Space> Select   <k:T> Skills   <k:Esc> Pause
+hud_other	1	{press} Select   {open_skill_tree} Skills   {pause} Pause	<g:input_xbox_face_down> Select   <g:input_xbox_face_up> Skills   <g:input_xbox_start> Pause
+hud_other	2	{press} Select   {open_skill_tree} Skills   {pause} Pause	<g:input_playstation_face_down> Select   <g:input_playstation_face_up> Skills   <g:input_playstation_start> Pause
+hud_other	3	{press} Select   {open_skill_tree} Skills   {pause} Pause	<g:input_steam_deck_face_down> Select   <g:input_steam_deck_face_up> Skills   <g:input_steam_deck_start> Pause
+hud_other	4	{press} Select   {open_skill_tree} Skills   {pause} Pause	<g:input_xbox_face_down> Select   <g:input_xbox_face_up> Skills   <g:input_xbox_start> Pause
+hud_upgrades	0	{press} Buy   {buy_amount} Amount   {open_skill_tree} Skills   {pause} Pause	<k:Space> Buy   <k:Q> Amount   <k:T> Skills   <k:Esc> Pause
+hud_upgrades	1	{press} Buy   {buy_amount} Amount   {open_skill_tree} Skills   {pause} Pause	<g:input_xbox_face_down> Buy   <g:input_xbox_face_left> Amount   <g:input_xbox_face_up> Skills   <g:input_xbox_start> Pause
+hud_upgrades	2	{press} Buy   {buy_amount} Amount   {open_skill_tree} Skills   {pause} Pause	<g:input_playstation_face_down> Buy   <g:input_playstation_face_left> Amount   <g:input_playstation_face_up> Skills   <g:input_playstation_start> Pause
+hud_upgrades	3	{press} Buy   {buy_amount} Amount   {open_skill_tree} Skills   {pause} Pause	<g:input_steam_deck_face_down> Buy   <g:input_steam_deck_face_left> Amount   <g:input_steam_deck_face_up> Skills   <g:input_steam_deck_start> Pause
+hud_upgrades	4	{press} Buy   {buy_amount} Amount   {open_skill_tree} Skills   {pause} Pause	<g:input_xbox_face_down> Buy   <g:input_xbox_face_left> Amount   <g:input_xbox_face_up> Skills   <g:input_xbox_start> Pause
+not_actions	0	{n} of {max}: {press}{press} {recentre} {unknown_action} {	{n} of {max}: <k:Space><k:Space>  {unknown_action} {
+not_actions	1	{n} of {max}: {press}{press} {recentre} {unknown_action} {	{n} of {max}: <g:input_xbox_face_down><g:input_xbox_face_down> <g:input_xbox_stick_r_click> {unknown_action} {
+not_actions	2	{n} of {max}: {press}{press} {recentre} {unknown_action} {	{n} of {max}: <g:input_playstation_face_down><g:input_playstation_face_down> <g:input_playstation_stick_r_click> {unknown_action} {
+not_actions	3	{n} of {max}: {press}{press} {recentre} {unknown_action} {	{n} of {max}: <g:input_steam_deck_face_down><g:input_steam_deck_face_down> <g:input_steam_deck_stick_r_click> {unknown_action} {
+not_actions	4	{n} of {max}: {press}{press} {recentre} {unknown_action} {	{n} of {max}: <g:input_xbox_face_down><g:input_xbox_face_down> <g:input_xbox_stick_r_click> {unknown_action} {
+title_hint	0	In game:  {tab_prev} {tab_next} menu tabs    {open_skill_tree} skill tree    {pause} pause	In game:  <k:A> <k:D> menu tabs    <k:T> skill tree    <k:Esc> pause
+title_hint	1	In game:  {tab_prev} {tab_next} menu tabs    {open_skill_tree} skill tree    {pause} pause	In game:  <g:input_xbox_shoulder_l> <g:input_xbox_shoulder_r> menu tabs    <g:input_xbox_face_up> skill tree    <g:input_xbox_start> pause
+title_hint	2	In game:  {tab_prev} {tab_next} menu tabs    {open_skill_tree} skill tree    {pause} pause	In game:  <g:input_playstation_shoulder_l> <g:input_playstation_shoulder_r> menu tabs    <g:input_playstation_face_up> skill tree    <g:input_playstation_start> pause
+title_hint	3	In game:  {tab_prev} {tab_next} menu tabs    {open_skill_tree} skill tree    {pause} pause	In game:  <g:input_steam_deck_shoulder_l> <g:input_steam_deck_shoulder_r> menu tabs    <g:input_steam_deck_face_up> skill tree    <g:input_steam_deck_start> pause
+title_hint	4	In game:  {tab_prev} {tab_next} menu tabs    {open_skill_tree} skill tree    {pause} pause	In game:  <g:input_xbox_shoulder_l> <g:input_xbox_shoulder_r> menu tabs    <g:input_xbox_face_up> skill tree    <g:input_xbox_start> pause
+tree_buy	0	{press} Buy	<k:Space> Buy
+tree_buy	1	{press} Buy	<g:input_xbox_face_down> Buy
+tree_buy	2	{press} Buy	<g:input_playstation_face_down> Buy
+tree_buy	3	{press} Buy	<g:input_steam_deck_face_down> Buy
+tree_buy	4	{press} Buy	<g:input_xbox_face_down> Buy
+tree_legend	0	{buy_amount} Next affordable   {zoom_out} {zoom_in} Zoom   {back} Close	<k:Q> Next affordable   <k:-> <k:=> Zoom   <k:Esc> Close
+tree_legend	1	{buy_amount} Next affordable   {zoom_out} {zoom_in} Zoom   {back} Close	<g:input_xbox_face_left> Next affordable   <g:input_xbox_trigger_l> <g:input_xbox_trigger_r> Zoom   <g:input_xbox_face_right> Close
+tree_legend	2	{buy_amount} Next affordable   {zoom_out} {zoom_in} Zoom   {back} Close	<g:input_playstation_face_left> Next affordable   <g:input_playstation_trigger_l> <g:input_playstation_trigger_r> Zoom   <g:input_playstation_face_right> Close
+tree_legend	3	{buy_amount} Next affordable   {zoom_out} {zoom_in} Zoom   {back} Close	<g:input_steam_deck_face_left> Next affordable   <g:input_steam_deck_trigger_l> <g:input_steam_deck_trigger_r> Zoom   <g:input_steam_deck_face_right> Close
+tree_legend	4	{buy_amount} Next affordable   {zoom_out} {zoom_in} Zoom   {back} Close	<g:input_xbox_face_left> Next affordable   <g:input_xbox_trigger_l> <g:input_xbox_trigger_r> Zoom   <g:input_xbox_face_right> Close
+tutorial_pounce	0	{pounce} to Pounce.	<g:input_keyboard_mouse_left> to Pounce.
+tutorial_pounce	1	{pounce} to Pounce.	<g:input_xbox_trigger_r> to Pounce.
+tutorial_pounce	2	{pounce} to Pounce.	<g:input_playstation_trigger_r> to Pounce.
+tutorial_pounce	3	{pounce} to Pounce.	<g:input_steam_deck_trigger_r> to Pounce.
+tutorial_pounce	4	{pounce} to Pounce.	<g:input_xbox_trigger_r> to Pounce.
+tutorial_steer	0	{steer_right}	
+tutorial_steer	1	{steer_right}	<g:input_xbox_stick_r>
+tutorial_steer	2	{steer_right}	<g:input_playstation_stick_r>
+tutorial_steer	3	{steer_right}	<g:input_steam_deck_stick_r>
+tutorial_steer	4	{steer_right}	<g:input_xbox_stick_r>

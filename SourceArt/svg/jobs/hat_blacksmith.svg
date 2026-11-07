@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<rect x="9.9" y="58.9" width="108.2" height="34.2" rx="13.1" fill="#FFF9E3" stroke="none"/>
+<rect x="26.9" y="31.9" width="74.2" height="44.2" rx="14.1" fill="#FFF9E3" stroke="none"/>
+<rect x="13.0" y="62.0" width="102.0" height="28.0" rx="10.0" fill="#FFF9E3" stroke="none"/>
+<rect x="30.0" y="35.0" width="68.0" height="38.0" rx="11.0" fill="#FFF9E3" stroke="none"/>
+<ellipse cx="44.0" cy="50.0" rx="18.0" ry="16.0" fill="#FFF9E3" stroke="none"/>
+<ellipse cx="84.0" cy="50.0" rx="18.0" ry="16.0" fill="#FFF9E3" stroke="none"/>
+<rect x="48.0" y="42.0" width="32.0" height="16.0" rx="7.0" fill="#FFF9E3" stroke="none"/>
+<rect x="14.9" y="63.9" width="98.2" height="24.2" rx="8.1" fill="#2A1A33" stroke="none"/>
+<rect x="31.9" y="36.9" width="64.2" height="34.2" rx="9.1" fill="#2A1A33" stroke="none"/>
+<rect x="18.0" y="67.0" width="92.0" height="18.0" rx="5.0" fill="#9E6A3C" stroke="none"/>
+<rect x="35.0" y="40.0" width="58.0" height="28.0" rx="6.0" fill="#F4A968" stroke="none"/>
+<ellipse cx="44.0" cy="50.0" rx="13.0" ry="11.0" fill="#9BA2AD" stroke="#2A1A33"/>
+<ellipse cx="84.0" cy="50.0" rx="13.0" ry="11.0" fill="#9BA2AD" stroke="#2A1A33"/>
+<rect x="53.0" y="47.0" width="22.0" height="6.0" rx="2.0" fill="#6B7485" stroke="#2A1A33"/>
+</g>
+</svg>

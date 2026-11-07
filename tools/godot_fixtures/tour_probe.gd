@@ -73,6 +73,12 @@ func _run() -> void:
 	await _capture("ceremony")
 	await _settle(2.0)
 	await _capture("tree_spend")
+	# The Unicorn bought (phase 6 slice 6a): the ceremony mid-fiesta, 1.6 s in; then it runs out.
+	GameState.stardust = maxf(GameState.stardust, 100000.0)
+	tree._on_node_pressed("unlock_unicorn")
+	await _settle(1.6)
+	await _capture("unicorn")
+	await _settle(3.0)
 	tree._on_close_pressed()
 	await _settle(0.3)
 	tree._on_close_pressed()

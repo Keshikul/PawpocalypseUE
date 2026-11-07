@@ -22,6 +22,7 @@
 #include "Internationalization/Culture.h"
 #include "Internationalization/Internationalization.h"
 #include "Misc/AutomationTest.h"
+#include "UI/PawWidgets.h"
 #include "PcCheats.h"
 #include "PcData.h"
 #include "PcEconomy.h"
@@ -35,6 +36,7 @@
 #include "UI/PawRootLayout.h"
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
+#include "UI/PawUiKit.h"
 #include "UI/PawVictoryScreen.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 
@@ -71,8 +73,8 @@ namespace
 			{
 				return false;
 			}
-			Root = CreateWidget<UPawRootLayout>(GI, UPawRootLayout::StaticClass());
-			Hud = CreateWidget<UPawHudScreen>(GI, UPawHudScreen::StaticClass());
+			Root = CreateWidget<UPawRootLayout>(GI, PawUi::Resolve<UPawRootLayout>());
+			Hud = CreateWidget<UPawHudScreen>(GI, PawUi::Resolve<UPawHudScreen>());
 			if (!T.TestNotNull(TEXT("root"), Root) || !T.TestNotNull(TEXT("HUD"), Hud))
 			{
 				return false;
@@ -195,10 +197,10 @@ bool FPawVictoryEndingTest::RunTest(const FString& Parameters)
 		// The game theme (F21, designer 2026-11-03): the theme's button, ink text, on the paper WindowPanel.
 		TestTrue(TEXT("OK wears the game theme's button"), V->GetOkButton()->HasThemeLook());
 		TestTrue(TEXT("ink text"), V->GetHeadline()->GetColorAndOpacity().GetSpecifiedColor().Equals(PawTokens::UI_TEXT));
+		// The theme's WindowPanel: ui_window.svg's nine-patch (phase 6 slice 5a; Pawpocalypse.UI.Chrome checks every brush).
 		const FSlateBrush& Plate = V->GetPanel()->Background;
-		TestTrue(TEXT("on the paper window"), Plate.TintColor.GetSpecifiedColor().Equals(PawTokens::UI_PANEL));
-		TestTrue(TEXT("framed in ink"), Plate.OutlineSettings.Color.GetSpecifiedColor().Equals(PawTokens::UI_PANEL_FRAME)
-			&& Plate.OutlineSettings.Width > 0.0f);
+		TestTrue(TEXT("on the window plate"), Plate.DrawAs == ESlateBrushDrawType::Box && Plate.GetResourceObject() != nullptr
+			&& Plate.GetResourceObject() == PawUi::Chrome(PawUi::EPawChrome::Window).GetResourceObject());
 		TestEqual(TEXT("OK is wired to itself (a one-button screen)"), V->GetWired().Num(), 1);
 		TestEqual(TEXT("the dim eats every click"), V->GetDim()->GetVisibility(), ESlateVisibility::Visible);
 		// The field stays held while the screen is up.

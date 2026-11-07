@@ -4,9 +4,11 @@
 #include "Internationalization/StringTable.h"
 #include "Internationalization/StringTableCore.h"
 #include "Internationalization/StringTableRegistry.h"
+#include "GeneralProjectSettings.h"
 #include "Misc/Paths.h"
 #include "PcFormat.h"
 #include "PcHud.h"
+#include "PcTitle.h"
 #include "PcTreeText.h"
 
 namespace PawText
@@ -62,16 +64,9 @@ namespace PawText
 		return FText::FromStringTable(TableData, FString::Printf(TEXT("%s_%s_%s"), Prefix, UTF8_TO_TCHAR(Id.c_str()), Field));
 	}
 
-	FFormatNamedArguments PromptArgs()
+	FText Verbatim(const FString& Built)
 	{
-		FFormatNamedArguments Args;
-		Args.Add(TEXT("press"), Ui(TEXT("PROMPT_press")));
-		Args.Add(TEXT("buy_amount"), Ui(TEXT("PROMPT_buy_amount")));
-		Args.Add(TEXT("zoom_in"), Ui(TEXT("PROMPT_zoom_in")));
-		Args.Add(TEXT("zoom_out"), Ui(TEXT("PROMPT_zoom_out")));
-		Args.Add(TEXT("back"), Ui(TEXT("PROMPT_back")));
-		Args.Add(TEXT("pounce"), Ui(TEXT("PROMPT_pounce")));
-		return Args;
+		return FText::AsCultureInvariant(Built);
 	}
 
 	FText TreeLabel(const std::string& Id)
@@ -81,7 +76,7 @@ namespace PawText
 
 	FText TreeBlurb(const std::string& Id)
 	{
-		return FText::Format(FText::FromStringTable(TableTree, FString::Printf(TEXT("TREE_%s_blurb"), UTF8_TO_TCHAR(Id.c_str()))), PromptArgs());
+		return FText::FromStringTable(TableTree, FString::Printf(TEXT("TREE_%s_blurb"), UTF8_TO_TCHAR(Id.c_str())));
 	}
 
 	FText TreeEffect(const std::vector<Pc::PcTreePhrase>& Parts)
@@ -126,6 +121,58 @@ namespace PawText
 	FText Fixed(double Value, int32 Decimals)
 	{
 		return FText::AsCultureInvariant(FString(UTF8_TO_TCHAR(Pc::FixedLikeGodot(Value, FMath::Max(0, Decimals)).c_str())));
+	}
+
+	FText SlotClock(double Seconds)
+	{
+		const Pc::PcClock C = Pc::SlotClock(Seconds);
+		FFormatNamedArguments Args;
+		switch (C.Form)
+		{
+		case Pc::PcClockForm::HoursMinutes:
+			Args.Add(TEXT("h"), Count(C.H));
+			Args.Add(TEXT("m"), TwoDigits(C.M));
+			return Ui(TEXT("TITLE_clock_hm"), Args);
+		case Pc::PcClockForm::MinutesSeconds:
+			Args.Add(TEXT("m"), Count(C.M));
+			Args.Add(TEXT("s"), TwoDigits(C.S));
+			return Ui(TEXT("TITLE_clock_ms"), Args);
+		default:
+			Args.Add(TEXT("s"), Count(C.S));
+			return Ui(TEXT("TITLE_clock_s"), Args);
+		}
+	}
+
+	FText Mice(int64 Kills)
+	{
+		const Pc::PcKills K = Pc::KillsText(Kills);
+		FFormatNamedArguments Args;
+		Args.Add(TEXT("n"), FText::AsCultureInvariant(FString(UTF8_TO_TCHAR(K.Number.c_str()))));
+		return Ui(K.Form == Pc::PcKillsForm::Millions ? TEXT("TITLE_mice_m")
+			: K.Form == Pc::PcKillsForm::Thousands ? TEXT("TITLE_mice_k") : TEXT("TITLE_mice"), Args);
+	}
+
+	FText When(double Unix, double Now)
+	{
+		const Pc::PcWhen W = Pc::WhenSaved(Unix, Now);
+		FFormatNamedArguments Args;
+		Args.Add(TEXT("n"), Count(W.N));
+		switch (W.Form)
+		{
+		case Pc::PcWhenForm::Unknown: return Ui(TEXT("TITLE_when_unknown"));
+		case Pc::PcWhenForm::JustNow: return Ui(TEXT("TITLE_when_now"));
+		case Pc::PcWhenForm::Minutes: return Ui(TEXT("TITLE_when_min"), Args);
+		case Pc::PcWhenForm::Hours: return Ui(TEXT("TITLE_when_hr"), Args);
+		case Pc::PcWhenForm::Days: return Ui(TEXT("TITLE_when_days"), Args);
+		default:
+			return FText::AsCultureInvariant(FString::Printf(TEXT("%04lld-%02lld-%02lld"), static_cast<long long>(W.Year),
+				static_cast<long long>(W.Month), static_cast<long long>(W.Day)));
+		}
+	}
+
+	FText Version()
+	{
+		return FText::AsCultureInvariant(TEXT("v") + GetDefault<UGeneralProjectSettings>()->ProjectVersion);
 	}
 
 	FText Duration(double Seconds)

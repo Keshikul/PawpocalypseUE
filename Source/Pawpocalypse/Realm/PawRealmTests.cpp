@@ -27,6 +27,11 @@
 #include "Engine/World.h"
 #include "HAL/PlatformTime.h"
 #include "Materials/MaterialInterface.h"
+#include "Realm/PawFieldLook.h"
+#include "Render/PawSpriteAtlas.h"
+#include "Audio/PawAudioSubsystem.h"
+#include "Engine/Texture2D.h"
+#include "PcBackdrop.h"
 #include "Math/RandomStream.h"
 #include "Misc/AutomationTest.h"
 #include "PcCheats.h"
@@ -38,6 +43,7 @@
 #include "Realm/PawRealmSubsystem.h"
 #include "Realm/PawRealmView.h"
 #include "Render/PawSpriteRenderer.h"
+#include "Save/PawSettingsSubsystem.h"
 
 #include <cstring>
 
@@ -405,6 +411,28 @@ bool FPawRealmViewTest::RunTest(const FString& Parameters)
 			AddError(FString::Printf(TEXT("missing %s (py tools/create_field_materials.py)"), MaterialPaths[I]));
 		}
 	}
+	UMaterialInterface* SpriteMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Pawpocalypse/Materials/M_Sprite.M_Sprite"));
+	UMaterialInterface* SpriteSoft = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Pawpocalypse/Materials/M_SpriteSoft.M_SpriteSoft"));
+	UPawSpriteAtlas* Atlas = LoadObject<UPawSpriteAtlas>(nullptr, TEXT("/Game/Pawpocalypse/Art/Field/DA_FieldAtlas.DA_FieldAtlas"));
+	UMaterialInterface* FloorMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Pawpocalypse/Materials/M_Floor.M_Floor"));
+	UMaterialInterface* FillMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Pawpocalypse/Materials/M_BackdropFill.M_BackdropFill"));
+	TArray<TObjectPtr<UTexture2D>> Floors;
+	for (int32 N = 1; N <= 12; ++N)
+	{
+		Floors.Add(LoadObject<UTexture2D>(nullptr, *FString::Printf(TEXT("/Game/Pawpocalypse/Art/Backdrops/T_backdrop_tier_%d.T_backdrop_tier_%d"), N, N)));
+		if (!Floors.Last())
+		{
+			AddError(FString::Printf(TEXT("missing T_backdrop_tier_%d (py tools/import_art.py --run floors)"), N));
+		}
+	}
+	if (!FloorMaterial || !FillMaterial)
+	{
+		AddError(TEXT("missing M_Floor or M_BackdropFill (py tools/create_field_materials.py)"));
+	}
+	if (!SpriteMaterial || !SpriteSoft || !Atlas)
+	{
+		AddError(TEXT("missing a sprite material or DA_FieldAtlas (py tools/create_field_materials.py; py tools/import_art.py --run atlas)"));
+	}
 	if (!Quad || HasAnyErrors())
 	{
 		return false;
@@ -430,6 +458,12 @@ bool FPawRealmViewTest::RunTest(const FString& Parameters)
 		View->SoftMaterial = Materials[1];
 		View->DiscMaterial = Materials[2];
 		View->RingMaterial = Materials[3];
+		View->SpriteMaterial = SpriteMaterial;
+		View->SpriteSoftMaterial = SpriteSoft;
+		View->FieldAtlas = Atlas;
+		View->FloorMaterial = FloorMaterial;
+		View->BackdropFillMaterial = FillMaterial;
+		View->FloorTextures = Floors;
 		View->FinishSpawning(FTransform::Identity);
 		View->InitView();
 
@@ -486,15 +520,89 @@ bool FPawRealmViewTest::RunTest(const FString& Parameters)
 			F.LiveCount(), F.AwakeKittens(), MeanMs, WorstMs, View->LastDrawMs());
 		TestTrue(FString::Printf(TEXT("advance + draw at 320 mice: mean %.3f ms < %.0f ms"), MeanMs, FrameBudgetMs), MeanMs < FrameBudgetMs);
 
-		// What is drawn is what is live: every mouse, kitten, add, the boss and the cat, each with its shadow.
+		// What is drawn is what is live: every mouse, kitten, add, the boss and the cat; a shadow under each that stands (the
+		// boss and its adds have none: boss.tscn, boss_add.gd).
 		UPawSpriteRenderer* R = View->GetRenderer();
 		const int32 Bodies = static_cast<int32>(F.LiveCount() + F.AwakeKittens() + static_cast<int64_t>(F.Adds.size())) + (F.bBossUp ? 1 : 0) + 1;
 		TestEqual(TEXT("one body per live thing"), R->DrawnCount(EPawLayer::Bodies), Bodies);
-		TestEqual(TEXT("one shadow per body"), R->DrawnCount(EPawLayer::Shadows), Bodies);
+		TestEqual(TEXT("one shadow per mouse, kitten and the cat"), R->DrawnCount(EPawLayer::Shadows),
+			static_cast<int32>(F.LiveCount() + F.AwakeKittens()) + 1);
+		// Every body wears its own art, and Godot's draw order holds: the mice (z 0) under the kittens (z 1) under the cat (z 2).
+		double MiceTop = -1.0, KittenLow = 1e9, KittenTop = -1.0, CatOrder = -1.0;
+		int32 Artless = 0;
+		for (const FPawSprite& S : R->LastSprites(EPawLayer::Bodies))
+		{
+			Artless += S.Cell == INDEX_NONE ? 1 : 0;
+			const FString Id = Atlas->Cells.IsValidIndex(S.Cell) ? Atlas->Cell(S.Cell).Id : FString();
+			if (Id.StartsWith(TEXT("enemy_")))
+			{
+				MiceTop = FMath::Max(MiceTop, S.Order);
+			}
+			else if (Id == TEXT("kitten_basic"))
+			{
+				KittenLow = FMath::Min(KittenLow, S.Order);
+				KittenTop = FMath::Max(KittenTop, S.Order);
+				TestEqual(TEXT("a kitten is 96 px (Kitten.SPRITE_TARGET_PX)"), S.Width, PawLook::KittenPx);
+			}
+			else if (Id.StartsWith(TEXT("player_cat_stage_")))
+			{
+				CatOrder = S.Order;
+			}
+		}
+		TestEqual(TEXT("every body has its atlas art"), Artless, 0);
+		TestTrue(TEXT("mice drawn"), MiceTop >= 0.0);
+		TestTrue(TEXT("the cat drawn in its stage's art"), CatOrder >= 0.0);
+		TestTrue(TEXT("the kittens over every mouse"), F.AwakeKittens() == 0 || KittenLow > MiceTop);
+		TestTrue(TEXT("the cat over every kitten and mouse"), CatOrder > KittenTop && CatOrder > MiceTop);
+		for (const FPawSprite& S : R->LastSprites(EPawLayer::Shadows))
+		{
+			TestEqual(TEXT("a shadow is the ground shadow"), Atlas->Cells.IsValidIndex(S.Cell) ? Atlas->Cell(S.Cell).Id : FString(),
+				FString(TEXT("ground_shadow")));
+		}
 		TestEqual(TEXT("one floor"), R->DrawnCount(EPawLayer::Floor), 1);
+		// The biome's music (TierController._ready -> AudioManager.play_music(tier_data.id)), through the realm's frame.
+		if (const UPawAudioSubsystem* Audio = GI->GetSubsystem<UPawAudioSubsystem>())
+		{
+			TestEqual(TEXT("the biome's music plays"), Audio->CurrentTrack(), Realm->CurrentTierId());
+		}
 		TestTrue(TEXT("the pool holds at least what is drawn"), R->PoolSize(EPawLayer::Bodies) >= Bodies);
 		TestTrue(TEXT("the paw struck and killed"), Strikes > 0 && Kills > 0);
 		TestTrue(TEXT("every strike and kill made its effect"), Spawned >= Strikes + Kills);
+
+		// Settings > Video > Visual effects off: the same hunt spawns none (vfx_burst.gd honours the effect budget).
+		if (UPawSettingsSubsystem* Settings = GI->GetSubsystem<UPawSettingsSubsystem>())
+		{
+			Settings->SetEffectsEnabled(false);
+			const int64 OffBefore = View->EffectsSpawned();
+			int32 OffKills = 0;
+			for (int32 Frame = 0; Frame < 120; ++Frame)
+			{
+				double TX = F.CatX, TY = F.CatY, Best = 1e30;
+				for (const int32 S : F.Live)
+				{
+					const double Dist = FMath::Square(F.X[S] - F.CatX) + FMath::Square(F.Y[S] - F.CatY);
+					if (Dist < Best)
+					{
+						Best = Dist;
+						TX = F.X[S];
+						TY = F.Y[S];
+					}
+				}
+				Realm->SetCat(TX, TY);
+				View->RunFrame(FPawRealmSim::Step);
+				for (const Pc::PcFieldEvent& E : Realm->GetSim().FrameEvents)
+				{
+					OffKills += E.Kind == Pc::PcFieldEventKind::Killed ? 1 : 0;
+				}
+			}
+			TestTrue(TEXT("effects off: the hunt still kills"), OffKills > 0);
+			TestEqual(TEXT("effects off: no burst"), View->EffectsSpawned(), OffBefore);
+			Settings->SetEffectsEnabled(true);
+		}
+		else
+		{
+			AddError(TEXT("no settings subsystem"));
+		}
 
 		// Travel with the redraw: the pool stays (parked, never removed), the next frame draws the empty field.
 		const int32 Pool = R->PoolSize(EPawLayer::Bodies);
@@ -507,7 +615,37 @@ bool FPawRealmViewTest::RunTest(const FString& Parameters)
 			WorstTravel = FMath::Max(WorstTravel, (FPlatformTime::Seconds() - T0) * 1000.0);
 		}
 		TestTrue(FString::Printf(TEXT("travel with the redraw: worst %.3f ms < %.0f ms"), WorstTravel, TravelBudgetMs), WorstTravel < TravelBudgetMs);
-		TestEqual(TEXT("the pool is never shrunk"), R->PoolSize(EPawLayer::Bodies), Pool);
+		// The backdrop's props share the sprite components, and each biome has its own count: the pool may grow, never shrink.
+		TestTrue(TEXT("the pool is never shrunk"), R->PoolSize(EPawLayer::Bodies) >= Pool);
+		// Every biome travelled to wore its own backdrop: the floor, the props PcBackdrop laid out, each with its art.
+		for (int32 I = 0; I < static_cast<int32>(D.Tiers.size()); ++I)
+		{
+			Realm->Travel(I);
+			View->RunFrame(0.0);
+			const FString Tier = UTF8_TO_TCHAR(D.Tiers[static_cast<size_t>(I)].Id.c_str());
+			const Pc::PcBackdropLayout& B = View->GetBackdrop();
+			TestEqual(FString::Printf(TEXT("%s: the layout is this biome's"), *Tier), FString(UTF8_TO_TCHAR(B.Id.c_str())), Tier);
+			TestTrue(FString::Printf(TEXT("%s: its floor texture"), *Tier),
+				R->GetFloorTexture() && R->GetFloorTexture()->GetName() == TEXT("T_backdrop_") + Tier);
+			TestEqual(FString::Printf(TEXT("%s: every prop drawn"), *Tier), R->DrawnCount(EPawLayer::Props), static_cast<int32>(B.Props.size()));
+			TestTrue(FString::Printf(TEXT("%s: props laid out"), *Tier), B.Props.size() > 4);
+			int32 PropsArtless = 0;
+			for (const FPawSprite& S : R->LastSprites(EPawLayer::Props))
+			{
+				PropsArtless += Atlas->Cells.IsValidIndex(S.Cell) ? 0 : 1;
+			}
+			TestEqual(FString::Printf(TEXT("%s: every prop has its art"), *Tier), PropsArtless, 0);
+			int32 Want = 0;
+			for (const Pc::PcBackdropBlob& Blob : B.Blobs)
+			{
+				Want += static_cast<int32>(Blob.Xs.size()) * (Blob.bPuddle ? 3 : 1);
+			}
+			TestEqual(FString::Printf(TEXT("%s: the patches and puddles meshed"), *Tier), R->BackdropFillTriangles(), Want);
+		}
+		const int32 Builds = View->BackdropBuilds();
+		View->RunFrame(0.0);
+		View->RunFrame(0.0);
+		TestEqual(TEXT("an unchanged biome is not laid out again"), View->BackdropBuilds(), Builds);
 		TestEqual(TEXT("an empty field draws the cat and its kittens only"), R->DrawnCount(EPawLayer::Bodies),
 			static_cast<int32>(F.AwakeKittens()) + 1);
 		UE_LOG(LogPaw, Display, TEXT("PAW_VIEW_TRAVEL worst %.3f ms"), WorstTravel);

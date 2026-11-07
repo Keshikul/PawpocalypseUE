@@ -1,6 +1,9 @@
 #include "Save/PawSaveStorage.h"
 
 #include "HAL/FileManager.h"
+#include "Misc/App.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Misc/ScopeLock.h"
@@ -45,6 +48,31 @@ bool FPawPlatformSaveStorage::Delete(const FString& Name)
 }
 
 // --- a folder ------------------------------------------------------------------------------------------------------------
+
+TSharedPtr<IPawSaveStorage> PawStorageForThisRun(FString& OutWhy)
+{
+	const TCHAR* Cmd = FCommandLine::Get();
+	FString Folder;
+	if (FParse::Param(Cmd, TEXT("NoSave")))
+	{
+		OutWhy = TEXT("off (-NoSave)");
+		return nullptr;
+	}
+	if (FParse::Value(Cmd, TEXT("PawSaveDir="), Folder) && !Folder.IsEmpty())
+	{
+		TSharedPtr<IPawSaveStorage> S = MakeShared<FPawFolderSaveStorage>(Folder);
+		OutWhy = S->Describe();
+		return S;
+	}
+	if (GIsAutomationTesting || FApp::IsUnattended())
+	{
+		OutWhy = TEXT("off (an automated run with no -PawSaveDir)");
+		return nullptr;
+	}
+	TSharedPtr<IPawSaveStorage> S = MakeShared<FPawPlatformSaveStorage>();
+	OutWhy = S->Describe();
+	return S;
+}
 
 FPawFolderSaveStorage::FPawFolderSaveStorage(const FString& InFolder)
 	: Folder(FPaths::ConvertRelativePathToFull(InFolder))

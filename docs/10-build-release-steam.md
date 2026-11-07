@@ -19,7 +19,13 @@
   **listed in `MapsToCook`**: `DirectoriesToAlwaysCook` did NOT cook the maps under it (UE 5.8.3, 2026-11-01: only the
   `GameDefaultMap` L_Title was cooked; the packaged L_Realm failed "does not exist on disk or in the loader"). Check a package
   with `UnrealPak <Pawpocalypse-Windows.utoc> -List`.
-  String tables and hardware cursors staged as UFS `[KB U/19 §1]`.
+  String tables and hardware cursors staged as UFS `[KB U/19 §1]` (as built: `Pawpocalypse/Localization` and `Pawpocalypse/UI/Cursors`,
+  the paw cursors' loose PNGs; check the cursor in the first packaged build of phase 5).
+- **Phase 6 content, not yet packaged** (the last package is phase 4's): the field atlas (3 BC7 pages), the 12 floors, 53
+  sounds (28.9 MB of OGG; the music looping SoundWaves), the generated materials and the procedural meshes (the
+  ProceduralMeshComponent plugin is now enabled for the game target). All under `/Game/Pawpocalypse` and referenced by the
+  realm view, `DA_FieldAtlas`, `DA_AudioBank` or loaded by path from there (`UPawGarden`, `UPawAudioSubsystem`); the next
+  package must prove they cook (the bench fails if the sprites did not) and measure the size.
 - `DefaultScalability.ini`: scalability cvars only (anything else stops the cook) `[KB U/12 §2]`.
 
 ## 2. Packaging script (`tools/package.ps1`)
@@ -27,7 +33,10 @@
 **Not written yet** (phase 8). Until then the phase gates package by hand (no version bump, no listing; the archive is
 `build/package`, git-ignored), then run `py tools/packaged_bench.py`:
 `RunUAT.bat BuildCookRun -project=<abs uproject> -noP4 -platform=Win64 -clientconfig=Development -build -cook -stage -pak
--archive -archivedirectory=<abs>/build/package -nodebuginfo -utf8output -unattended` (~1 min warm on the dev PC).
+-archive -archivedirectory=<abs>/build/package -nodebuginfo -utf8output -unattended` (~1 min warm on the dev PC). The
+game target is what a package compiles: everyday `check_all` builds it too (gate `UBT game build`, since (41)), because
+editor-only API in game-module code compiles in the editor and fails only here. Zip the archive WITHOUT
+`Pawpocalypse/Saved` (the bench's and the tour's shots and logs land there when they run on the package).
 
 UAT `BuildCookRun` wrapper `[KB U/19 §2]`:
 - `-Config Development|Shipping`, clean archive dir, no prereqs in the Steam depot (Steam installs the VC++ redist via its own

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<rect x="28.9" y="59.4" width="52.9" height="65.6" rx="8.3" fill="#2A1A33" stroke="none"/>
+<rect x="31.8" y="62.3" width="47.2" height="59.9" rx="5.4" fill="#6A5A8A" stroke="none"/>
+<rect x="38.1" y="69.5" width="34.5" height="45.4" rx="3.6" fill="#9689A7" stroke="none"/>
+<rect x="48.0" y="24.9" width="51.0" height="61.9" rx="8.3" fill="#2A1A33" stroke="none"/>
+<rect x="50.8" y="27.7" width="45.4" height="56.3" rx="5.4" fill="#9A86C4" stroke="none"/>
+<rect x="57.2" y="35.0" width="32.7" height="41.8" rx="3.6" fill="#BCAED2" stroke="none"/>
+<rect x="67.5" y="12.7" width="12.0" height="24.7" rx="4.6" fill="#2A1A33" stroke="none"/>
+<polygon points="59.4,20.1 73.5,3.0 87.7,20.1" fill="#2A1A33" stroke="none"/>
+<rect x="70.4" y="15.5" width="6.4" height="19.1" rx="1.8" fill="#8596C3" stroke="none"/>
+<polygon points="63.4,18.7 73.5,7.2 83.7,18.7" fill="#8596C3" stroke="none"/>
+</g>
+</svg>

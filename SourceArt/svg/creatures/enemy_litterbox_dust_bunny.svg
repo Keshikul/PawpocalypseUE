@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="62.6" cy="87.5" rx="45.8" ry="34.7" fill="#2A1A33" stroke="none"/>
+<ellipse cx="29.4" cy="73.7" rx="26.4" ry="25.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="98.6" cy="73.7" rx="26.4" ry="25.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="46.0" cy="48.8" rx="22.3" ry="20.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="84.7" cy="46.0" rx="23.7" ry="22.3" fill="#2A1A33" stroke="none"/>
+<ellipse cx="62.6" cy="104.1" rx="29.2" ry="20.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="62.6" cy="65.4" rx="40.3" ry="40.3" fill="#2A1A33" stroke="none"/>
+<ellipse cx="62.6" cy="87.5" rx="41.5" ry="30.4" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="29.4" cy="73.7" rx="22.1" ry="20.7" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="98.6" cy="73.7" rx="22.1" ry="20.7" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="46.0" cy="48.8" rx="18.0" ry="16.6" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="84.7" cy="46.0" rx="19.4" ry="18.0" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="62.6" cy="104.1" rx="24.9" ry="16.6" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="62.6" cy="65.4" rx="36.0" ry="36.0" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="62.6" cy="90.3" rx="27.7" ry="16.6" fill="#FAF5E6" stroke="none"/>
+<ellipse cx="47.4" cy="63.2" rx="12.4" ry="12.4" fill="#F6F6F6" stroke="#2A1A33"/>
+<ellipse cx="47.4" cy="64.0" rx="3.0" ry="3.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="51.1" cy="58.7" rx="1.9" ry="1.9" fill="#F6F6F6" stroke="none"/>
+<ellipse cx="77.8" cy="63.2" rx="16.2" ry="16.2" fill="#F6F6F6" stroke="#2A1A33"/>
+<ellipse cx="77.8" cy="64.2" rx="3.9" ry="3.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="82.7" cy="57.4" rx="2.4" ry="2.4" fill="#F6F6F6" stroke="none"/>
+<ellipse cx="62.6" cy="85.2" rx="4.4" ry="3.5" fill="#877B80" stroke="none"/>
+<polyline points="54.3,89.3 55.1,89.8 55.8,90.2 56.6,90.6 57.3,91.0 58.1,91.3 58.8,91.5 59.6,91.7 60.4,91.9 61.1,92.0 61.9,92.1 62.6,92.1 63.4,92.1 64.1,92.0 64.9,91.9 65.6,91.7 66.4,91.5 67.1,91.3 67.9,91.0 68.7,90.6 69.4,90.2 70.2,89.8 70.9,89.3" fill="none" stroke="#2A1A33" stroke-width="2.2"/>
+</g>
+</svg>

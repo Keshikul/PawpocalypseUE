@@ -55,11 +55,11 @@ public:
 private:
 	void Apply(const FAlphas& A);
 
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> Flash;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Headline;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Payout;
 	double Elapsed = 0.0;
 	bool bPlaying = false;

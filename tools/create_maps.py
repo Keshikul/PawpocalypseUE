@@ -1,7 +1,7 @@
 """Creates the game's two maps (docs/03 §4) as empty levels: no lights, no sky, nothing 3D.
 
-L_Title holds the title screen, L_Realm the game. L_Realm also gets its one APawRealmView (docs/03 §3), with the quad and
-the field materials (tools/create_field_materials.py, run first) set on the instance so the cook follows them: placed when
+L_Title holds the title screen, L_Realm the game. L_Realm also gets its one APawRealmView (docs/03 §3), with the quad,
+the field materials (tools/create_field_materials.py, run first) and the field atlas (tools/import_art.py) set on the instance so the cook follows them: placed when
 missing, and only unset references are filled; nothing else in the map is touched.
 Only creates missing maps: new_level on an existing path keeps the old file while reporting success (KB U/17 §2),
 and a builder never overwrites a map a human may have edited.
@@ -34,6 +34,17 @@ VIEW_REFS = {
     "soft_material": "/Game/Pawpocalypse/Materials/M_FieldSoft.M_FieldSoft",
     "disc_material": "/Game/Pawpocalypse/Materials/M_FieldDisc.M_FieldDisc",
     "ring_material": "/Game/Pawpocalypse/Materials/M_FieldRing.M_FieldRing",
+    # phase 6: the atlas sprites (tools/create_field_materials.py, then tools/import_art.py --run atlas)
+    "sprite_material": "/Game/Pawpocalypse/Materials/M_Sprite.M_Sprite",
+    "sprite_soft_material": "/Game/Pawpocalypse/Materials/M_SpriteSoft.M_SpriteSoft",
+    "field_atlas": "/Game/Pawpocalypse/Art/Field/DA_FieldAtlas.DA_FieldAtlas",
+    # phase 6 slice 2: the backdrop (tools/create_field_materials.py; tools/import_art.py --run floors)
+    "floor_material": "/Game/Pawpocalypse/Materials/M_Floor.M_Floor",
+    "backdrop_fill_material": "/Game/Pawpocalypse/Materials/M_BackdropFill.M_BackdropFill",
+}
+# Lists of references: set when empty, in this order.
+VIEW_LISTS = {
+    "floor_textures": ["/Game/Pawpocalypse/Art/Backdrops/T_backdrop_tier_%d.T_backdrop_tier_%d" % (n, n) for n in range(1, 13)],
 }
 
 
@@ -59,6 +70,14 @@ def configure_realm():
                 unreal.log_error("create_maps: FAILED, %s is missing (py: tools/create_field_materials.py)" % path)
                 return False
             view.set_editor_property(name, asset)
+            changed = True
+    for name, paths in VIEW_LISTS.items():
+        if len(view.get_editor_property(name)) == 0:
+            assets = [unreal.EditorAssetLibrary.load_asset(p) for p in paths]
+            if any(a is None for a in assets):
+                unreal.log_error("create_maps: FAILED, a %s asset is missing (py tools/import_art.py --run floors)" % name)
+                return False
+            view.set_editor_property(name, assets)
             changed = True
     if changed and not levels.save_current_level():
         unreal.log_error("create_maps: FAILED to save " + REALM)

@@ -222,6 +222,7 @@ namespace
 		P.Hand = List(V.at(Pre + "hand"));
 		P.PromisedCards = List(V.at(Pre + "promised"));
 		P.PrototypeCard = V.at(Pre + "prototype");
+		P.bReawakenInProgress = V.at(Pre + "reawaken_in_progress") == "1";
 		return L;
 	}
 
@@ -277,6 +278,7 @@ namespace
 		CHECK(JoinList(P.Hand) == V.at(Pre + "hand"));
 		CHECK(JoinList(P.PromisedCards) == V.at(Pre + "promised"));
 		CHECK(P.PrototypeCard == V.at(Pre + "prototype"));
+		CHECK(Flag(P.bReawakenInProgress) == V.at(Pre + "reawaken_in_progress"));
 	}
 
 	Pc::PcSaveState ReadSave(const Row& V, const std::string& Pre)
@@ -325,6 +327,11 @@ namespace
 		S.Promised = List(V.at(Pre + "promised"));
 		S.PrototypeCard = V.at(Pre + "prototype");
 		S.CardsTakenThisRun = Int(V.at(Pre + "cards_taken"));
+		S.DeepestBiomeIndex = Int(V.at(Pre + "deepest"));
+		S.PendingSecondHelping = Hex(V.at(Pre + "pending_second"));
+		S.KillsThisCycle = Int(V.at(Pre + "kills_this_cycle"));
+		S.KillsSinceTithe = Int(V.at(Pre + "kills_since_tithe"));
+		S.bReawakenInProgress = V.at(Pre + "reawaken_in_progress") == "1";
 		return S;
 	}
 
@@ -386,6 +393,11 @@ namespace
 		CHECK(JoinList(S.Promised) == V.at(Pre + "promised"));
 		CHECK(S.PrototypeCard == V.at(Pre + "prototype"));
 		CHECK(S.CardsTakenThisRun == Int(V.at(Pre + "cards_taken")));
+		CHECK(S.DeepestBiomeIndex == Int(V.at(Pre + "deepest")));
+		CHECK(WrittenByGodot(S.PendingSecondHelping, D("pending_second")));
+		CHECK(S.KillsThisCycle == Int(V.at(Pre + "kills_this_cycle")));
+		CHECK(S.KillsSinceTithe == Int(V.at(Pre + "kills_since_tithe")));
+		CHECK(Flag(S.bReawakenInProgress) == V.at(Pre + "reawaken_in_progress"));
 	}
 
 	struct SaveResult
@@ -403,6 +415,12 @@ namespace
 		int RunCardsOld = 0;      // a save from before them: memory's kept
 		int HandsReoffered = 0;   // a restored hand, up again
 		int CardDropped = 0;      // a card id the deck no longer has, dropped
+		// F26-F33 (2026-11-04), current-version loads only:
+		int NonFinite = 0;        // a number that is not finite, read as 0
+		int DeepestClamped = 0;   // a deepest biome out of range
+		int CounterClamped = 0;   // a negative Body Count / Levy count / deferred Stardust
+		int LevelClamped = 0;     // a shop level below 0 or a branch level outside 0..max
+		int ResumeFlag = 0;       // a save made mid-Reawaken
 	};
 
 	SaveResult RunSaveFixture(const std::string& Path)
@@ -448,6 +466,7 @@ namespace
 			const std::string File = Pc::WriteSaveFile(S, "test");
 			REQUIRE_MESSAGE(Pc::ReadSaveFile(File, Back, &Why) == Pc::PcSaveReadError::None, Why);
 			CHECK(Pc::WriteSaveFile(Back, "test") == File); // exactly what it was handed: every field, every bit
+			CheckSave(Back, V, "sv_"); // and what it reads back is Godot's save (a field the file drops shows here)
 			++R.FileRoundTrips;
 
 			// load_game() of save L over state B.
@@ -467,6 +486,25 @@ namespace
 					L.SkillBranchLevels.at("unlock_unicorn") > 0) ? 1 : 0;
 				R.JobRefused += (!L.CurrentJob.empty() && !L.JobsHeld.count(L.CurrentJob)) ? 1 : 0;
 				R.RunJobSeeded += (L.RunJob.empty() && !L.CurrentJob.empty()) ? 1 : 0;
+				for (const double X : {L.Catnip, L.Stardust, L.LifetimeCatnipEver, L.StardustGrantedEver, L.PendingSecondHelping,
+						L.CatchesPoints, L.PlaySecondsThisCycle})
+				{
+					R.NonFinite += std::isfinite(X) ? 0 : 1;
+				}
+				R.DeepestClamped += (L.DeepestBiomeIndex < 0 || L.DeepestBiomeIndex >= static_cast<int64_t>(D.Tiers.size())) ? 1 : 0;
+				R.CounterClamped += (L.KillsThisCycle < 0 || L.KillsSinceTithe < 0 || L.PendingSecondHelping < 0.0) ? 1 : 0;
+				bool bOut = false;
+				for (const auto& [Id, Lv] : L.UpgradeLevels)
+				{
+					bOut = bOut || (Lv < 0 && D.FindUpgrade(Id));
+				}
+				for (const auto& [Id, Lv] : L.SkillBranchLevels)
+				{
+					const Pc::PcSkillBranch* Br = D.FindBranch(Id);
+					bOut = bOut || (Br && (Lv < 0 || Lv > Pc::BranchMaxLevel(*Br)));
+				}
+				R.LevelClamped += bOut ? 1 : 0;
+				R.ResumeFlag += L.bReawakenInProgress ? 1 : 0;
 			}
 			R.EarnedOnLoad += Res.NewlyEarned.empty() ? 0 : 1;
 			CheckState(B.P, Res.Extras, V, "a_");
@@ -510,6 +548,63 @@ TEST_CASE("Save: save_game() and load_game() match the real Godot SaveManager, f
 	CHECK(R.RunCardsOld > 50);
 	CHECK(R.HandsReoffered > 100);
 	CHECK(R.CardDropped > 20);
+	MESSAGE("F26-F33: non-finite numbers " << R.NonFinite << ", deepest clamped " << R.DeepestClamped << ", counters clamped "
+		<< R.CounterClamped << ", levels clamped " << R.LevelClamped << ", mid-Reawaken saves " << R.ResumeFlag);
+	CHECK(R.NonFinite > 50);
+	CHECK(R.DeepestClamped > 50);
+	CHECK(R.CounterClamped > 50);
+	CHECK(R.LevelClamped > 50);
+	CHECK(R.ResumeFlag > 100);
+}
+
+TEST_CASE("Save: a damaged save loads safely and a new game forgets a Reawaken in progress (F26-F33)")
+{
+	const Pc::PcGameData& D = Game();
+	Pc::PcProgress P;
+	Pc::NewGame(D, P);
+	const Pc::PcSkillBranch& Low = *D.FindBranch("claws");
+	const Pc::PcSkillBranch& High = *D.FindBranch("unlock_aura");
+	Pc::PcSaveState S;
+	S.bUnicornSplit = true;
+	S.Catnip = std::nan("");
+	S.Stardust = std::numeric_limits<double>::infinity();
+	S.LifetimeCatnipEver = -std::numeric_limits<double>::infinity();
+	S.UpgradeLevels = {{"paw_damage", -5}};
+	S.SkillBranchLevels = {{Low.Id, -3}, {High.Id, Pc::BranchMaxLevel(High) + 50}};
+	S.DeepestBiomeIndex = 999;
+	S.PendingSecondHelping = std::nan("");
+	S.KillsThisCycle = -4;
+	S.KillsSinceTithe = -9;
+	S.bReawakenInProgress = true;
+	Pc::ApplySave(D, P, S, Pc::PcSlotExtras());
+	CHECK(P.Catnip == 0.0);
+	CHECK(P.Stardust == 0.0);
+	CHECK(P.LifetimeCatnipEver == 0.0);
+	CHECK(P.PendingSecondHelping == 0.0);
+	CHECK(Pc::UpgradeLevel(P, "paw_damage") == 0);
+	CHECK(Pc::BranchLevel(P, Low.Id) == 0);
+	CHECK(Pc::BranchLevel(P, High.Id) == Pc::BranchMaxLevel(High));
+	CHECK(P.DeepestBiomeIndex == static_cast<int64_t>(D.Tiers.size()) - 1);
+	CHECK(P.KillsThisCycle == 0);
+	CHECK(P.KillsSinceTithe == 0);
+	CHECK(P.bReawakenInProgress);
+	// In range, they come back as saved.
+	S = Pc::PcSaveState();
+	S.bUnicornSplit = true;
+	S.DeepestBiomeIndex = 3;
+	S.PendingSecondHelping = 123.5;
+	S.KillsThisCycle = 77;
+	S.KillsSinceTithe = 42;
+	Pc::ApplySave(D, P, S, Pc::PcSlotExtras());
+	CHECK(P.DeepestBiomeIndex == 3);
+	CHECK(P.PendingSecondHelping == 123.5);
+	CHECK(P.KillsThisCycle == 77);
+	CHECK(P.KillsSinceTithe == 42);
+	CHECK_FALSE(P.bReawakenInProgress);
+	// A new game starts with no Reawaken in progress.
+	P.bReawakenInProgress = true;
+	Pc::NewGame(D, P);
+	CHECK_FALSE(P.bReawakenInProgress);
 }
 
 TEST_CASE("Save: the long suite runs all 3,000 save rows" * doctest::test_suite("long") * doctest::skip())
@@ -639,6 +734,54 @@ TEST_CASE("Save: the JSON reader takes what JSON allows and refuses the rest")
 		Refused += 1;
 	}
 	CHECK(Refused == 16);
+}
+
+TEST_CASE("Save: a number past a double's range reads as every JSON reader reads it, never as 0")
+{
+	Pc::PcJsonValue V;
+	std::string E;
+	const std::pair<const char*, double> Cases[] = {
+		{"1e400", HUGE_VAL}, {"-1e400", -HUGE_VAL}, {"1E+400", HUGE_VAL}, {"123456.789e305", HUGE_VAL},
+		{"0.000001e315", HUGE_VAL}, {"1e99999999999999999999", HUGE_VAL}, {"1e-400", 0.0}, {"-1e-400", -0.0},
+		{"0.00012e-400", 0.0}, {"123e-500", 0.0}, {"1e-99999999999999999999", 0.0}};
+	for (const auto& [Text, Want] : Cases)
+	{
+		CAPTURE(Text);
+		REQUIRE(Pc::ParseJson(Text, V, E));
+		CHECK(V.Type == Pc::PcJsonValue::Kind::Double);
+		CHECK(V.Double == Want);
+		CHECK(std::signbit(V.Double) == std::signbit(Want));
+	}
+	// The save: Catnip written past the range is an infinity, as "inf" is.
+	REQUIRE(Pc::ParseJson("{\"catnip\": 1e400}", V, E));
+	double Catnip = 0.0;
+	REQUIRE(Pc::JsonNumber(*V.Find("catnip"), Catnip));
+	CHECK(std::isinf(Catnip));
+	// In range is untouched.
+	REQUIRE(Pc::ParseJson("1.7976931348623157e308", V, E));
+	CHECK(V.Double == 1.7976931348623157e308);
+	REQUIRE(Pc::ParseJson("5e-324", V, E));
+	CHECK(V.Double > 0.0);
+}
+
+TEST_CASE("Save: a repeated key keeps its first value, and 100,000 keys read in linear time")
+{
+	Pc::PcJsonValue V;
+	std::string E;
+	REQUIRE(Pc::ParseJson("{\"a\": 1, \"b\": 2, \"a\": 3}", V, E));
+	REQUIRE(V.Object.size() == 2);
+	CHECK(V.Find("a")->Int == 1);
+	CHECK(V.Find("b")->Int == 2);
+	// The scan per key was 5e9 string compares here; a set makes it a blink. Half are repeats.
+	std::string Big = "{";
+	for (int I = 0; I < 100000; ++I)
+	{
+		Big += (I ? ",\"k" : "\"k") + std::to_string(I % 50000) + "\": " + std::to_string(I);
+	}
+	Big += "}";
+	REQUIRE(Pc::ParseJson(Big, V, E));
+	CHECK(V.Object.size() == 50000);
+	CHECK(V.Find("k49999")->Int == 49999);
 }
 
 TEST_CASE("Save: the v6 tree migration and the Unicorn split, case by case")

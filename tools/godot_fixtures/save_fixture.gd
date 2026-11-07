@@ -61,7 +61,7 @@ const STATE_COLS := ["upgrades", "branches", "cards", "banished", "catches_level
 	"wave_index", "kills_this_wave", "catnip_cycle", "catnip_ever", "lifetime_kills", "kills_since_tithe",
 	"kills_this_cycle", "waves_here", "cards_taken", "infestation", "pending_second", "play_cycle", "play_total",
 	"final_seconds", "interest_elapsed", "earned", "claimed", "auto_travel", "auto_pick", "tutorial", "rerolls", "banishes",
-	"fixation", "hand", "promised", "prototype"]
+	"fixation", "hand", "promised", "prototype", "reawaken_in_progress"]
 
 
 func state() -> PackedStringArray:
@@ -80,14 +80,15 @@ func state() -> PackedStringArray:
 		flag(SettingsManager.auto_travel), flag(SettingsManager.auto_pick_card), held(G.tutorial_done),
 		str(CardManager.rerolls), str(CardManager.banishes), str(CardManager.fixation_hands),
 		";".join(CardManager.run_save_ids()["hand"]), ";".join(CardManager.run_save_ids()["promised"]),
-		CardManager.run_save_ids()["prototype"]])
+		CardManager.run_save_ids()["prototype"], flag(G.reawaken_in_progress)])
 
 
 const SAVE_COLS := ["version", "catnip", "stardust", "reawaken_count", "upgrades", "branches", "final", "catnip_ever",
 	"catnip_cycle", "granted", "bosses", "lifetime_kills", "earned", "claimed", "stamped", "play_cycle", "play_total",
 	"final_seconds", "auto_travel", "auto_pick", "kills_by_biome", "bait_spent", "cleared", "jobs_held", "current_job",
 	"run_job", "run_job_chosen", "run_job_second", "unicorn_split", "tutorial", "run_cards_saved", "cards", "banished", "catches_level",
-	"catches_points", "rerolls", "extra_choices", "banishes", "fixation", "hand", "promised", "prototype", "cards_taken"]
+	"catches_points", "rerolls", "extra_choices", "banishes", "fixation", "hand", "promised", "prototype", "cards_taken",
+	"deepest", "pending_second", "kills_this_cycle", "kills_since_tithe", "reawaken_in_progress"]
 
 
 # The save's levels are printed WHOLE (pairs, zeros kept): which ids a save names decides what a load overwrites.
@@ -101,7 +102,8 @@ func save_cols(d: PawpocalypseSaveData) -> PackedStringArray:
 		held(d.jobs_held), d.current_job, d.run_job, flag(d.run_job_chosen), d.run_job_second, flag(d.unicorn_split), held(d.tutorial_done),
 		flag(d.run_cards_saved), pairs(d.cards_owned), held(d.cards_banished), str(d.catches_level), h(d.catches_points),
 		str(d.rerolls), str(d.extra_choices), str(d.banishes), str(d.fixation_hands), ";".join(d.hand),
-		";".join(d.promised), d.prototype_card, str(d.cards_taken_this_run)])
+		";".join(d.promised), d.prototype_card, str(d.cards_taken_this_run), str(d.deepest_biome_index),
+		h(d.pending_second_helping), str(d.kills_this_cycle), str(d.kills_since_tithe), flag(d.reawaken_in_progress)])
 
 
 func amount() -> float:
@@ -245,6 +247,7 @@ func randomise_live() -> void:
 	SettingsManager.set_auto_travel(rng.randf() < 0.5)
 	SettingsManager.set_auto_pick_card(rng.randf() < 0.5)
 	G.tutorial_done = subset(TUTORIAL_STEPS, 0.4)
+	G.reawaken_in_progress = rng.randf() < 0.3
 
 
 func random_cards(n: int) -> Array[CardData]:
@@ -351,6 +354,26 @@ func random_save() -> PawpocalypseSaveData:
 	var roll2 := rng.randf()
 	d.prototype_card = hand[0] if not hand.is_empty() and roll2 < 0.5 else (CardManager.deck[0].id if roll2 < 0.6 else "")
 	d.cards_taken_this_run = rng.randi_range(0, 20)
+	# Where the run stands (F26-F29, designer 2026-11-04), out of range now and then: the load clamps.
+	var r3 := rng.randf()
+	d.deepest_biome_index = (rng.randi_range(0, tiers.size() - 1) if r3 < 0.8
+		else (rng.randi_range(-3, -1) if r3 < 0.9 else rng.randi_range(tiers.size(), 40)))
+	d.pending_second_helping = amount() if rng.randf() < 0.9 else -1.0 - amount()
+	d.kills_this_cycle = rng.randi_range(0, 900000) if rng.randf() < 0.9 else rng.randi_range(-50, -1)
+	d.kills_since_tithe = rng.randi_range(0, 500) if rng.randf() < 0.9 else rng.randi_range(-50, -1)
+	d.reawaken_in_progress = rng.randf() < 0.3
+	# F32: a level out of range; the load clamps it (0..max for a branch, >= 0 for a shop line).
+	if rng.randf() < 0.15 and not ups.is_empty():
+		ups[pick(ups.keys())] = rng.randi_range(-9, -1)
+	if rng.randf() < 0.15:
+		var bid: String = pick(SkillTreeManager.levels.keys())
+		var top := SkillTreeManager.get_branch(bid).max_level()
+		br[bid] = rng.randi_range(-9, -1) if rng.randf() < 0.5 else top + rng.randi_range(1, 20)
+	# F33: a number that is not finite; the load reads it as 0.
+	for field in ["catnip", "stardust", "lifetime_catnip_ever", "stardust_granted_ever", "pending_second_helping",
+			"catches_points", "play_seconds_this_cycle"]:
+		if rng.randf() < 0.04:
+			d.set(field, [NAN, INF, -INF][rng.randi_range(0, 2)])
 	return d
 
 

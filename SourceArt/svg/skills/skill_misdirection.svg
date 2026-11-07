@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<rect x="56.8" y="3.0" width="14.5" height="31.3" rx="5.0" fill="#2A1A33" stroke="none"/>
+<polygon points="46.3,25.4 64.0,46.7 81.7,25.4" fill="#2A1A33" stroke="none"/>
+<rect x="59.8" y="6.1" width="8.4" height="25.1" rx="2.0" fill="#9A6FC0" stroke="none"/>
+<polygon points="50.6,27.0 64.0,42.1 77.4,27.0" fill="#9A6FC0" stroke="none"/>
+<rect x="56.8" y="93.7" width="14.5" height="31.3" rx="5.0" fill="#2A1A33" stroke="none"/>
+<polygon points="46.3,102.6 64.0,81.3 81.7,102.6" fill="#2A1A33" stroke="none"/>
+<rect x="59.8" y="96.8" width="8.4" height="25.1" rx="2.0" fill="#9A6FC0" stroke="none"/>
+<polygon points="50.6,101.0 64.0,85.9 77.4,101.0" fill="#9A6FC0" stroke="none"/>
+<polygon points="24.3,42.2 24.3,85.8 60.7,64.0" fill="#2A1A33" stroke="none"/>
+<polygon points="26.5,46.2 26.5,81.8 56.1,64.0" fill="#9A6FC0" stroke="none"/>
+<polygon points="103.7,42.2 103.7,85.8 67.3,64.0" fill="#2A1A33" stroke="none"/>
+<polygon points="101.5,46.2 101.5,81.8 71.9,64.0" fill="#9A6FC0" stroke="none"/>
+</g>
+</svg>

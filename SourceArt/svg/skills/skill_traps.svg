@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polyline points="21.6,7.1 12.2,106.0" fill="none" stroke="#A5B0CD" stroke-width="3.5"/>
+<polyline points="7.5,14.2 120.5,4.8" fill="none" stroke="#A5B0CD" stroke-width="3.5"/>
+<polyline points="64.0,7.1 54.6,106.0" fill="none" stroke="#A5B0CD" stroke-width="3.5"/>
+<polyline points="7.5,56.6 120.5,47.2" fill="none" stroke="#A5B0CD" stroke-width="3.5"/>
+<polyline points="106.4,7.1 97.0,106.0" fill="none" stroke="#A5B0CD" stroke-width="3.5"/>
+<polyline points="7.5,99.0 120.5,89.6" fill="none" stroke="#A5B0CD" stroke-width="3.5"/>
+<rect x="6.2" y="4.6" width="115.6" height="23.8" rx="10.7" fill="#2A1A33" stroke="none"/>
+<rect x="9.8" y="8.3" width="108.3" height="16.5" rx="7.1" fill="#9E6535" stroke="none"/>
+<rect x="6.2" y="101.2" width="115.6" height="23.8" rx="10.7" fill="#2A1A33" stroke="none"/>
+<rect x="9.8" y="104.9" width="108.3" height="16.5" rx="7.1" fill="#9E6535" stroke="none"/>
+<polygon points="12.8,20.0 28.7,59.7 44.6,20.0" fill="#2A1A33" stroke="none"/>
+<polygon points="16.9,23.6 28.7,54.2 40.4,23.6" fill="#9E6535" stroke="none"/>
+<polygon points="12.8,109.6 28.7,69.9 44.6,109.6" fill="#2A1A33" stroke="none"/>
+<polygon points="16.9,106.0 28.7,75.4 40.4,106.0" fill="#9E6535" stroke="none"/>
+<polygon points="36.3,20.0 52.2,59.7 68.1,20.0" fill="#2A1A33" stroke="none"/>
+<polygon points="40.4,23.6 52.2,54.2 64.0,23.6" fill="#9E6535" stroke="none"/>
+<polygon points="36.3,109.6 52.2,69.9 68.1,109.6" fill="#2A1A33" stroke="none"/>
+<polygon points="40.4,106.0 52.2,75.4 64.0,106.0" fill="#9E6535" stroke="none"/>
+<polygon points="59.9,20.0 75.8,59.7 91.7,20.0" fill="#2A1A33" stroke="none"/>
+<polygon points="64.0,23.6 75.8,54.2 87.6,23.6" fill="#9E6535" stroke="none"/>
+<polygon points="59.9,109.6 75.8,69.9 91.7,109.6" fill="#2A1A33" stroke="none"/>
+<polygon points="64.0,106.0 75.8,75.4 87.6,106.0" fill="#9E6535" stroke="none"/>
+<polygon points="83.4,20.0 99.3,59.7 115.2,20.0" fill="#2A1A33" stroke="none"/>
+<polygon points="87.6,23.6 99.3,54.2 111.1,23.6" fill="#9E6535" stroke="none"/>
+<polygon points="83.4,109.6 99.3,69.9 115.2,109.6" fill="#2A1A33" stroke="none"/>
+<polygon points="87.6,106.0 99.3,75.4 111.1,106.0" fill="#9E6535" stroke="none"/>
+</g>
+</svg>

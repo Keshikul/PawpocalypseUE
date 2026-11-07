@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="35.2" cy="64.3" rx="13.9" ry="13.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="31.7" cy="51.0" rx="13.9" ry="13.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="34.0" cy="37.5" rx="13.9" ry="13.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="41.6" cy="26.0" rx="13.9" ry="13.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="53.3" cy="18.8" rx="13.9" ry="13.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="66.9" cy="16.9" rx="13.9" ry="13.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="80.1" cy="20.9" rx="13.9" ry="13.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="90.4" cy="29.9" rx="13.9" ry="13.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="96.2" cy="42.4" rx="13.9" ry="13.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="96.3" cy="56.1" rx="13.9" ry="13.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="90.7" cy="68.7" rx="13.9" ry="13.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="35.2" cy="64.3" rx="10.0" ry="10.0" fill="#F2C65B" stroke="none"/>
+<ellipse cx="31.7" cy="51.0" rx="10.0" ry="10.0" fill="#F2C65B" stroke="none"/>
+<ellipse cx="34.0" cy="37.5" rx="10.0" ry="10.0" fill="#F2C65B" stroke="none"/>
+<ellipse cx="41.6" cy="26.0" rx="10.0" ry="10.0" fill="#F2C65B" stroke="none"/>
+<ellipse cx="53.3" cy="18.8" rx="10.0" ry="10.0" fill="#F2C65B" stroke="none"/>
+<ellipse cx="66.9" cy="16.9" rx="10.0" ry="10.0" fill="#F2C65B" stroke="none"/>
+<ellipse cx="80.1" cy="20.9" rx="10.0" ry="10.0" fill="#F2C65B" stroke="none"/>
+<ellipse cx="90.4" cy="29.9" rx="10.0" ry="10.0" fill="#F2C65B" stroke="none"/>
+<ellipse cx="96.2" cy="42.4" rx="10.0" ry="10.0" fill="#F2C65B" stroke="none"/>
+<ellipse cx="96.3" cy="56.1" rx="10.0" ry="10.0" fill="#F2C65B" stroke="none"/>
+<ellipse cx="90.7" cy="68.7" rx="10.0" ry="10.0" fill="#F2C65B" stroke="none"/>
+<rect x="41.6" y="84.6" width="45.5" height="40.4" rx="8.9" fill="#2A1A33" stroke="none"/>
+<rect x="45.5" y="88.4" width="37.7" height="32.7" rx="5.0" fill="#C9B98F" stroke="none"/>
+<ellipse cx="64.3" cy="82.2" rx="13.9" ry="13.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.3" cy="82.2" rx="10.0" ry="10.0" fill="#F2C65B" stroke="none"/>
+<polyline points="49.2,104.8 79.4,104.8" fill="none" stroke="#998973" stroke-width="3.0"/>
+</g>
+</svg>

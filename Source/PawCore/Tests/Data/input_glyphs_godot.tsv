@@ -1,0 +1,165 @@
+# Godot 4.7.1 InputGlyphs ground truth (scripts/systems/input_glyphs.gd, the real project.godot [input]), generated 2026-10-28
+# by tools/godot_fixtures/input_glyphs_fixture.gd. Family: 0 keyboard, 1 Xbox, 2 PlayStation, 3 Steam Deck,
+# 4 generic. kind: none (no binding on that device), glyph (an image), keycap (a key drawn around its label),
+# blank (a binding with no picture: shown as nothing).
+action	family	kind	stem	exists	label
+back	0	keycap		0	Esc
+back	1	glyph	input_xbox_face_right	1	
+back	2	glyph	input_playstation_face_right	1	
+back	3	glyph	input_steam_deck_face_right	1	
+back	4	glyph	input_xbox_face_right	1	
+buy_amount	0	keycap		0	Q
+buy_amount	1	glyph	input_xbox_face_left	1	
+buy_amount	2	glyph	input_playstation_face_left	1	
+buy_amount	3	glyph	input_steam_deck_face_left	1	
+buy_amount	4	glyph	input_xbox_face_left	1	
+menu_down	0	keycap		0	S
+menu_down	1	glyph	input_xbox_dpad_down	1	
+menu_down	2	glyph	input_playstation_dpad_down	1	
+menu_down	3	glyph	input_steam_deck_dpad_down	1	
+menu_down	4	glyph	input_xbox_dpad_down	1	
+menu_up	0	keycap		0	W
+menu_up	1	glyph	input_xbox_dpad_up	1	
+menu_up	2	glyph	input_playstation_dpad_up	1	
+menu_up	3	glyph	input_steam_deck_dpad_up	1	
+menu_up	4	glyph	input_xbox_dpad_up	1	
+open_skill_tree	0	keycap		0	T
+open_skill_tree	1	glyph	input_xbox_face_up	1	
+open_skill_tree	2	glyph	input_playstation_face_up	1	
+open_skill_tree	3	glyph	input_steam_deck_face_up	1	
+open_skill_tree	4	glyph	input_xbox_face_up	1	
+open_upgrades	0	keycap		0	U
+open_upgrades	1	none		0	
+open_upgrades	2	none		0	
+open_upgrades	3	none		0	
+open_upgrades	4	none		0	
+pause	0	keycap		0	Esc
+pause	1	glyph	input_xbox_start	1	
+pause	2	glyph	input_playstation_start	1	
+pause	3	glyph	input_steam_deck_start	1	
+pause	4	glyph	input_xbox_start	1	
+pounce	0	glyph	input_keyboard_mouse_left	1	
+pounce	1	glyph	input_xbox_trigger_r	1	
+pounce	2	glyph	input_playstation_trigger_r	1	
+pounce	3	glyph	input_steam_deck_trigger_r	1	
+pounce	4	glyph	input_xbox_trigger_r	1	
+press	0	keycap		0	Space
+press	1	glyph	input_xbox_face_down	1	
+press	2	glyph	input_playstation_face_down	1	
+press	3	glyph	input_steam_deck_face_down	1	
+press	4	glyph	input_xbox_face_down	1	
+recentre	0	none		0	
+recentre	1	glyph	input_xbox_stick_r_click	1	
+recentre	2	glyph	input_playstation_stick_r_click	1	
+recentre	3	glyph	input_steam_deck_stick_r_click	1	
+recentre	4	glyph	input_xbox_stick_r_click	1	
+section_next	0	keycap		0	PageDown
+section_next	1	glyph	input_xbox_shoulder_r	1	
+section_next	2	glyph	input_playstation_shoulder_r	1	
+section_next	3	glyph	input_steam_deck_shoulder_r	1	
+section_next	4	glyph	input_xbox_shoulder_r	1	
+section_prev	0	keycap		0	PageUp
+section_prev	1	glyph	input_xbox_shoulder_l	1	
+section_prev	2	glyph	input_playstation_shoulder_l	1	
+section_prev	3	glyph	input_steam_deck_shoulder_l	1	
+section_prev	4	glyph	input_xbox_shoulder_l	1	
+steer_down	0	none		0	
+steer_down	1	glyph	input_xbox_stick_r	1	
+steer_down	2	glyph	input_playstation_stick_r	1	
+steer_down	3	glyph	input_steam_deck_stick_r	1	
+steer_down	4	glyph	input_xbox_stick_r	1	
+steer_left	0	none		0	
+steer_left	1	glyph	input_xbox_stick_r	1	
+steer_left	2	glyph	input_playstation_stick_r	1	
+steer_left	3	glyph	input_steam_deck_stick_r	1	
+steer_left	4	glyph	input_xbox_stick_r	1	
+steer_right	0	none		0	
+steer_right	1	glyph	input_xbox_stick_r	1	
+steer_right	2	glyph	input_playstation_stick_r	1	
+steer_right	3	glyph	input_steam_deck_stick_r	1	
+steer_right	4	glyph	input_xbox_stick_r	1	
+steer_up	0	none		0	
+steer_up	1	glyph	input_xbox_stick_r	1	
+steer_up	2	glyph	input_playstation_stick_r	1	
+steer_up	3	glyph	input_steam_deck_stick_r	1	
+steer_up	4	glyph	input_xbox_stick_r	1	
+tab_1	0	keycap		0	1
+tab_1	1	none		0	
+tab_1	2	none		0	
+tab_1	3	none		0	
+tab_1	4	none		0	
+tab_2	0	keycap		0	2
+tab_2	1	none		0	
+tab_2	2	none		0	
+tab_2	3	none		0	
+tab_2	4	none		0	
+tab_3	0	keycap		0	3
+tab_3	1	none		0	
+tab_3	2	none		0	
+tab_3	3	none		0	
+tab_3	4	none		0	
+tab_4	0	keycap		0	4
+tab_4	1	none		0	
+tab_4	2	none		0	
+tab_4	3	none		0	
+tab_4	4	none		0	
+tab_5	0	keycap		0	5
+tab_5	1	none		0	
+tab_5	2	none		0	
+tab_5	3	none		0	
+tab_5	4	none		0	
+tab_6	0	keycap		0	6
+tab_6	1	none		0	
+tab_6	2	none		0	
+tab_6	3	none		0	
+tab_6	4	none		0	
+tab_next	0	keycap		0	D
+tab_next	1	glyph	input_xbox_shoulder_r	1	
+tab_next	2	glyph	input_playstation_shoulder_r	1	
+tab_next	3	glyph	input_steam_deck_shoulder_r	1	
+tab_next	4	glyph	input_xbox_shoulder_r	1	
+tab_prev	0	keycap		0	A
+tab_prev	1	glyph	input_xbox_shoulder_l	1	
+tab_prev	2	glyph	input_playstation_shoulder_l	1	
+tab_prev	3	glyph	input_steam_deck_shoulder_l	1	
+tab_prev	4	glyph	input_xbox_shoulder_l	1	
+ui_accept	0	keycap		0	Enter
+ui_accept	1	glyph	input_xbox_face_down	1	
+ui_accept	2	glyph	input_playstation_face_down	1	
+ui_accept	3	glyph	input_steam_deck_face_down	1	
+ui_accept	4	glyph	input_xbox_face_down	1	
+ui_cancel	0	keycap		0	Esc
+ui_cancel	1	glyph	input_xbox_face_right	1	
+ui_cancel	2	glyph	input_playstation_face_right	1	
+ui_cancel	3	glyph	input_steam_deck_face_right	1	
+ui_cancel	4	glyph	input_xbox_face_right	1	
+ui_down	0	glyph	input_keyboard_arrow_down	1	
+ui_down	1	glyph	input_xbox_dpad_down	1	
+ui_down	2	glyph	input_playstation_dpad_down	1	
+ui_down	3	glyph	input_steam_deck_dpad_down	1	
+ui_down	4	glyph	input_xbox_dpad_down	1	
+ui_left	0	glyph	input_keyboard_arrow_left	1	
+ui_left	1	glyph	input_xbox_dpad_left	1	
+ui_left	2	glyph	input_playstation_dpad_left	1	
+ui_left	3	glyph	input_steam_deck_dpad_left	1	
+ui_left	4	glyph	input_xbox_dpad_left	1	
+ui_right	0	glyph	input_keyboard_arrow_right	1	
+ui_right	1	glyph	input_xbox_dpad_right	1	
+ui_right	2	glyph	input_playstation_dpad_right	1	
+ui_right	3	glyph	input_steam_deck_dpad_right	1	
+ui_right	4	glyph	input_xbox_dpad_right	1	
+ui_up	0	glyph	input_keyboard_arrow_up	1	
+ui_up	1	glyph	input_xbox_dpad_up	1	
+ui_up	2	glyph	input_playstation_dpad_up	1	
+ui_up	3	glyph	input_steam_deck_dpad_up	1	
+ui_up	4	glyph	input_xbox_dpad_up	1	
+zoom_in	0	keycap		0	=
+zoom_in	1	glyph	input_xbox_trigger_r	1	
+zoom_in	2	glyph	input_playstation_trigger_r	1	
+zoom_in	3	glyph	input_steam_deck_trigger_r	1	
+zoom_in	4	glyph	input_xbox_trigger_r	1	
+zoom_out	0	keycap		0	-
+zoom_out	1	glyph	input_xbox_trigger_l	1	
+zoom_out	2	glyph	input_playstation_trigger_l	1	
+zoom_out	3	glyph	input_steam_deck_trigger_l	1	
+zoom_out	4	glyph	input_xbox_trigger_l	1	

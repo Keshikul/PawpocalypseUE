@@ -8,7 +8,10 @@ Reawaken with three jobs held: the ceremony at its hold, the spend step, the job
   Unreal  the editor build with -game and the paw.* tour steps (Dev/PawShot.cpp)    -> build/tour/ue/<shot>.png
 Then each pair side by side (Godot left)                                            -> build/tour/compare/<shot>.png
 
-    py tools/godot_tour.py [--skip-godot] [--skip-ue]
+    py tools/godot_tour.py [--skip-godot] [--skip-ue] [--set screens|biomes]
+
+--set biomes (phase 6 slice 2): each of the 12 biomes after travelling there, the cat parked at (1250, 540): the backdrop
+compared (the mice differ: each game rolls its own). Godot: tools/godot_fixtures/biome_probe.gd; Unreal: paw.Travel.
 
 Both runs open a window on the desktop for a minute or two. The Godot repo is never written; the editor must be closed (UBT
 first after a C++ change).
@@ -25,8 +28,9 @@ sys.path.insert(0, str(ROOT / "tools"))
 import make_godot_fixtures as mgf  # noqa: E402
 
 OUT = ROOT / "build" / "tour"
+BIOME_SHOTS = ["biome_%d" % n for n in range(1, 13)] + ["title"]
 SHOTS = ["tab_upgrades", "tab_reawaken", "tab_realms", "tab_catches", "tab_awards", "tab_jobs", "tree_browse", "card_pick",
-         "ceremony", "tree_spend", "job_picker", "victory"]
+         "ceremony", "tree_spend", "unicorn", "job_picker", "victory"]
 EDITOR = r"C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe"
 UPROJECT = ROOT / "Pawpocalypse.uproject"
 # The Unreal tour: each step waits 30 frames after the one before (paw.Wait changes that once); frames are capped at 60
@@ -36,14 +40,15 @@ UE_STEPS = (["t.MaxFPS 60", "paw.Cheat.Catnip 1000"]
             + ["paw.Tab 1", "paw.Tree", "paw.Wait 90", "paw.Shot tour_tree_browse", "paw.Leave",
                "paw.Hand", "paw.Wait 60", "paw.Shot tour_card_pick", "paw.Take", "paw.Wait 30",
                "paw.Reawaken jobs", "paw.Wait 30", "paw.Shot tour_ceremony", "paw.Wait 120", "paw.Shot tour_tree_spend",
+               "paw.Cheat.Stardust 100000", "paw.Buy unlock_unicorn", "paw.Wait 96", "paw.Shot tour_unicorn", "paw.Wait 180",
                "paw.Leave", "paw.Wait 60", "paw.Shot tour_job_picker",
                "paw.Victory 4200", "paw.Wait 60", "paw.Shot tour_victory quit"])
 
 
-def godot_side(exe):
+def godot_side(exe, probe="tour_probe.gd"):
     project = mgf.WORK / "project"
     mgf.copy_project(Path("C:/Games/pawpocalypse"), project, True)
-    shutil.copy2(mgf.SCRIPTS / "tour_probe.gd", project / "tour_probe.gd")
+    shutil.copy2(mgf.SCRIPTS / probe, project / "tour_probe.gd")
     (project / "tour_probe.tscn").write_text('[gd_scene load_steps=2 format=3]\n\n[ext_resource type="Script" '
                                              'path="res://tour_probe.gd" id="1"]\n\n[node name="TourProbe" type="Node"]\n'
                                              'script = ExtResource("1")\n', encoding="utf-8")
@@ -68,27 +73,39 @@ def godot_side(exe):
     shutil.rmtree(sandbox, ignore_errors=True)
 
 
-def ue_side():
+# The biome set: a moment for the shaders (a first run compiles them: the floor shows black until they land), then each biome.
+UE_BIOME_STEPS = (["t.MaxFPS 60", "paw.Cheat.UnlockTiers", "paw.Cat 1250 540", "paw.Wait 300"]
+                  + sum([["paw.Travel %d" % n, "paw.Wait 90", "paw.Shot tour_biome_%d" % n] for n in range(1, 13)], [])
+                  + ["paw.Wait 5", "paw.Shot tour_end quit"])
+
+
+UE_TITLE_STEPS = ["t.MaxFPS 60", "paw.Wait 180", "paw.Shot tour_title quit"]
+
+
+def ue_side(shots_list=None, steps=None, level="/Game/Pawpocalypse/Maps/L_Realm"):
+    shots_list = shots_list or SHOTS
+    steps = steps or UE_STEPS
     shots = ROOT / "Saved" / "PawShots"
-    for s in SHOTS:
+    for s in shots_list:
         (shots / ("tour_%s.png" % s)).unlink(missing_ok=True)
-    cmd = [EDITOR, str(UPROJECT), "/Game/Pawpocalypse/Maps/L_Realm", "-game", "-windowed", "-ResX=1920", "-ResY=1080",
-           "-unattended", "-NoSave", "-nosplash", "-nosound", "-SCCProvider=None", "-ExecCmds=" + ",".join(UE_STEPS), "-log=PawTour.log"]
+    cmd = [EDITOR, str(UPROJECT), level, "-game", "-windowed", "-ResX=1920", "-ResY=1080",
+           "-unattended", "-NoSave", "-nosplash", "-nosound", "-SCCProvider=None", "-ExecCmds=" + ",".join(steps), "-log=PawTour.log"]
     subprocess.run(cmd, timeout=900)
     dest = OUT / "ue"
     dest.mkdir(parents=True, exist_ok=True)
-    for s in SHOTS:
+    for s in shots_list:
         src = shots / ("tour_%s.png" % s)
         if src.exists():
             shutil.copy2(src, dest / ("%s.png" % s))
 
 
-def compare():
+def compare(shots_list=None):
     from PIL import Image, ImageDraw
+    shots_list = shots_list or SHOTS
     dest = OUT / "compare"
     dest.mkdir(parents=True, exist_ok=True)
     missing = []
-    for s in SHOTS:
+    for s in shots_list:
         g, u = OUT / "godot" / ("%s.png" % s), OUT / "ue" / ("%s.png" % s)
         if not (g.exists() and u.exists()):
             missing.append(s)
@@ -102,7 +119,7 @@ def compare():
         d.text((8, 4), "Godot  %s" % s, fill=(0, 0, 0))
         d.text((968, 4), "Unreal  %s" % s, fill=(0, 0, 0))
         sheet.save(dest / ("%s.png" % s))
-    print("compare: %d pairs in %s%s" % (len(SHOTS) - len(missing), dest, ("; missing " + ", ".join(missing)) if missing else ""))
+    print("compare: %d pairs in %s%s" % (len(shots_list) - len(missing), dest, ("; missing " + ", ".join(missing)) if missing else ""))
 
 
 def main():
@@ -110,16 +127,21 @@ def main():
     ap.add_argument("--godot-exe", default="C:/Program Files/Godot/Godot.exe")
     ap.add_argument("--skip-godot", action="store_true")
     ap.add_argument("--skip-ue", action="store_true")
+    ap.add_argument("--set", choices=["screens", "biomes"], default="screens")
     args = ap.parse_args()
+    biomes = args.set == "biomes"
+    shots_list = BIOME_SHOTS if biomes else SHOTS
     OUT.mkdir(parents=True, exist_ok=True)
     before = mgf.godot_status(Path("C:/Games/pawpocalypse"))
     if not args.skip_godot:
-        godot_side(args.godot_exe)
+        godot_side(args.godot_exe, "biome_probe.gd" if biomes else "tour_probe.gd")
     if mgf.godot_status(Path("C:/Games/pawpocalypse")) != before:
         raise SystemExit("the Godot repo changed during the tour")
     if not args.skip_ue:
-        ue_side()
-    compare()
+        ue_side(shots_list, UE_BIOME_STEPS if biomes else UE_STEPS)
+        if biomes:
+            ue_side(["title"], UE_TITLE_STEPS, "/Game/Pawpocalypse/Maps/L_Title")
+    compare(shots_list)
 
 
 if __name__ == "__main__":

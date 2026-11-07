@@ -11,6 +11,13 @@ namespace Pc
 {
 	namespace
 	{
+		// The last boss, the one that ends the run. The validator refuses data without bosses, but a rule must not read
+		// past an empty list to find that out.
+		bool IsFinalBossRealm(const PcGameData& D, const std::string& TierId)
+		{
+			return !D.Code.BossRealms.empty() && TierId == D.Code.BossRealms.back();
+		}
+
 		// GameState.BRANCH_GATED_UPGRADES: shop lines that only exist once their branch is bought. "Not purchased" means
 		// NOT SHOWN (designer, 2026-08-18): a row the player cannot act on is noise in a list they are meant to scan.
 		const char* GatingBranch(const std::string& UpgradeId)
@@ -63,7 +70,7 @@ namespace Pc
 		P.BossesDefeated.insert(TierId);
 		P.BossesClearedThisCycle.insert(TierId);
 		// Stop the clock the moment the last boss dies; only the FIRST clear is recorded (a rematch is not a faster run).
-		if (TierId == D.Code.BossRealms.back() && IsZeroApprox(P.FinalBossSeconds))
+		if (IsFinalBossRealm(D, TierId) && IsZeroApprox(P.FinalBossSeconds))
 		{
 			P.FinalBossSeconds = P.TotalPlaySeconds;
 		}
@@ -77,7 +84,7 @@ namespace Pc
 		AddCurrency(D, P, RewardCatnip);
 		const PcBossMark Out = MarkBossDefeated(D, P, TierId);
 		// The game's one "the run is complete" flag: the ending's step on the evolution ladder.
-		if (TierId == D.Code.BossRealms.back())
+		if (IsFinalBossRealm(D, TierId))
 		{
 			P.bFinalBossDefeated = true;
 		}
@@ -86,7 +93,7 @@ namespace Pc
 
 	bool RaisesVictory(const PcGameData& D, const std::string& TierId, const PcBossMark& Mark)
 	{
-		return Mark.bDefeated && !D.Code.BossRealms.empty() && TierId == D.Code.BossRealms.back();
+		return Mark.bDefeated && IsFinalBossRealm(D, TierId);
 	}
 
 	bool IsUnicornOwned(const PcProgress& P)
@@ -545,6 +552,7 @@ namespace Pc
 		P.CardsTakenThisRun = 0;
 		P.InfestationBonus = 0.0;
 		P.PendingSecondHelping = 0.0;
+		P.bReawakenInProgress = false;
 		P.RealtimeInterestElapsed = 0.0;
 		P.PlayerStillSeconds = 0.0;
 		P.LunchSeconds = 0.0;

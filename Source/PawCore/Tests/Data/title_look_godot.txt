@@ -1,0 +1,117 @@
+# Godot 4.7.1 title screen as drawn (the real main_menu.tscn, headless), generated 2026-10-28 by
+# tools/godot_fixtures/title_fixture.gd. Colours are Godot Color() values (sRGB floats).
+Background.rect=[P: (0.0, 0.0), S: (1920.0, 1920.0)]
+Background.panel=StyleBoxFlat bg=(0.969, 0.949, 0.863, 1.0) border=(0.8, 0.8, 0.8, 1.0) w=0 radius=0 margins=-1.0,-1.0,-1.0,-1.0
+Title.rect=[P: (460.0, 90.0), S: (1000.0, 116.0)]
+Title.font_size=76
+Title.font_color=(0.102, 0.102, 0.102, 1.0)
+Title.outline_size=0
+VersionLabel.rect=[P: (1660.0, 1876.0), S: (240.0, 27.0)]
+VersionLabel.font_size=17
+VersionLabel.font_color=(0.561, 0.514, 0.435, 1.0)
+VersionLabel.outline_size=0
+Panel.rect=[P: (730.0, 850.0), S: (460.0, 440.0)]
+Panel.panel=StyleBoxFlat bg=(1.0, 0.976, 0.89, 1.0) border=(0.102, 0.102, 0.102, 1.0) w=3 radius=10 margins=28.0,24.0,28.0,24.0
+Panel/Body/Menu/ContinueButton.rect=[P: (758.0, 874.0), S: (404.0, 48.0)]
+Panel/Body/Menu/ContinueButton.font_size=22
+Panel/Body/Menu/ContinueButton.font_color=(0.102, 0.102, 0.102, 1.0)
+Panel/Body/Menu/ContinueButton.outline_size=0
+Panel/Body/Menu/ContinueButton.normal=StyleBoxTexture texture=res://assets/art/ui/ui_button_normal.svg margins=16.0,6.0,16.0,6.0
+Panel/Body/Menu/ContinueButton.font_disabled_color=(0.78, 0.757, 0.671, 1.0)
+Panel/Body/Menu/NewGameButton.rect=[P: (758.0, 930.0), S: (404.0, 40.0)]
+Panel/Body/Menu/NewGameButton.font_size=16
+Panel/Body/Menu/NewGameButton.font_color=(0.102, 0.102, 0.102, 1.0)
+Panel/Body/Menu/NewGameButton.outline_size=0
+Panel/Body/Menu/NewGameButton.normal=StyleBoxTexture texture=res://assets/art/ui/ui_button_normal.svg margins=16.0,6.0,16.0,6.0
+Panel/Body/Menu/NewGameButton.font_disabled_color=(0.78, 0.757, 0.671, 1.0)
+Panel/Body/StatusLabel.rect=[P: (758.0, 1222.0), S: (404.0, 27.0)]
+Panel/Body/StatusLabel.font_size=17
+Panel/Body/StatusLabel.font_color=(0.561, 0.514, 0.435, 1.0)
+Panel/Body/StatusLabel.outline_size=0
+SlotPanel/Scrim.rect=[P: (0.0, 0.0), S: (1920.0, 1920.0)]
+SlotPanel/Scrim.color=(0.145, 0.114, 0.2, 0.88)
+SlotPanel/Body/Title.rect=[P: (120.0, 670.0), S: (308.0, 61.0)]
+SlotPanel/Body/Title.font_size=40
+SlotPanel/Body/Title.font_color=(0.102, 0.102, 0.102, 1.0)
+SlotPanel/Body/Title.outline_size=0
+SlotPanel/Body/BackButton.rect=[P: (120.0, 670.0), S: (69.0, 52.0)]
+SlotPanel/Body/BackButton.font_size=16
+SlotPanel/Body/BackButton.font_color=(0.102, 0.102, 0.102, 1.0)
+SlotPanel/Body/BackButton.outline_size=0
+SlotPanel/Body/BackButton.normal=StyleBoxTexture texture=res://assets/art/ui/ui_button_normal.svg margins=16.0,6.0,16.0,6.0
+SlotPanel/Body/BackButton.font_disabled_color=(0.78, 0.757, 0.671, 1.0)
+ConfirmPanel/Scrim.rect=[P: (0.0, 0.0), S: (1920.0, 1920.0)]
+ConfirmPanel/Scrim.color=(0.145, 0.114, 0.2, 0.8)
+ConfirmPanel/Window.rect=[P: (680.0, 840.0), S: (560.0, 240.0)]
+ConfirmPanel/Window.panel=StyleBoxFlat bg=(1.0, 0.976, 0.89, 1.0) border=(0.102, 0.102, 0.102, 1.0) w=3 radius=10 margins=28.0,24.0,28.0,24.0
+ConfirmPanel/Window/Body/Prompt.rect=[P: (680.0, 840.0), S: (1.0, 87.0)]
+ConfirmPanel/Window/Body/Prompt.font_size=17
+ConfirmPanel/Window/Body/Prompt.font_color=(0.102, 0.102, 0.102, 1.0)
+ConfirmPanel/Window/Body/Prompt.outline_size=0
+ConfirmPanel/Window/Body/Row/YesButton.rect=[P: (680.0, 840.0), S: (120.0, 40.0)]
+ConfirmPanel/Window/Body/Row/YesButton.font_size=16
+ConfirmPanel/Window/Body/Row/YesButton.font_color=(0.102, 0.102, 0.102, 1.0)
+ConfirmPanel/Window/Body/Row/YesButton.outline_size=0
+ConfirmPanel/Window/Body/Row/YesButton.normal=StyleBoxTexture texture=res://assets/art/ui/ui_button_normal.svg margins=16.0,6.0,16.0,6.0
+ConfirmPanel/Window/Body/Row/YesButton.font_disabled_color=(0.78, 0.757, 0.671, 1.0)
+CreditsPanel/Window.rect=[P: (580.0, 700.0), S: (760.0, 520.0)]
+CreditsPanel/Window.panel=StyleBoxFlat bg=(1.0, 0.976, 0.89, 1.0) border=(0.102, 0.102, 0.102, 1.0) w=3 radius=10 margins=28.0,24.0,28.0,24.0
+CreditsPanel/Window/Body/Title.rect=[P: (580.0, 700.0), S: (127.0, 49.0)]
+CreditsPanel/Window/Body/Title.font_size=32
+CreditsPanel/Window/Body/Title.font_color=(0.102, 0.102, 0.102, 1.0)
+CreditsPanel/Window/Body/Title.outline_size=0
+CreditsPanel/Window/Body/Scroll/Text.rect=[P: (580.0, 700.0), S: (1.0, 87.0)]
+CreditsPanel/Window/Body/Scroll/Text.font_size=17
+CreditsPanel/Window/Body/Scroll/Text.font_color=(0.102, 0.102, 0.102, 1.0)
+CreditsPanel/Window/Body/Scroll/Text.outline_size=0
+LeaderboardPanel/Window.rect=[P: (580.0, 740.0), S: (760.0, 440.0)]
+LeaderboardPanel/Window.panel=StyleBoxFlat bg=(1.0, 0.976, 0.89, 1.0) border=(0.102, 0.102, 0.102, 1.0) w=3 radius=10 margins=28.0,24.0,28.0,24.0
+LeaderboardPanel/Window/Body/Title.rect=[P: (580.0, 740.0), S: (250.0, 49.0)]
+LeaderboardPanel/Window/Body/Title.font_size=32
+LeaderboardPanel/Window/Body/Title.font_color=(0.102, 0.102, 0.102, 1.0)
+LeaderboardPanel/Window/Body/Title.outline_size=0
+slot0.card.rect=[P: (120.0, 670.0), S: (280.0, 360.0)]
+slot0.card.font_size=16
+slot0.card.font_color=(0.102, 0.102, 0.102, 1.0)
+slot0.card.outline_size=0
+slot0.card.normal=StyleBoxTexture texture=res://assets/art/ui/ui_button_normal.svg margins=16.0,6.0,16.0,6.0
+slot0.card.font_disabled_color=(0.78, 0.757, 0.671, 1.0)
+slot0.info.rect=[P: (134.0, 684.0), S: (252.0, 288.0)]
+slot0.info.font_size=17
+slot0.info.font_color=(0.102, 0.102, 0.102, 1.0)
+slot0.info.outline_size=0
+slot0.delete.rect=[P: (134.0, 986.0), S: (252.0, 37.0)]
+slot0.delete.font_size=16
+slot0.delete.font_color=(0.102, 0.102, 0.102, 1.0)
+slot0.delete.outline_size=0
+slot0.delete.normal=StyleBoxTexture texture=res://assets/art/ui/ui_button_normal.svg margins=16.0,6.0,16.0,6.0
+slot0.delete.font_disabled_color=(0.78, 0.757, 0.671, 1.0)
+slot0.number.rect=[P: (120.0, 670.0), S: (138.0, 80.0)]
+slot0.number.font_size=52
+slot0.number.font_color=(0.102, 0.102, 0.102, 1.0)
+slot0.number.outline_size=0
+hint.text=In game:  [bgcolor=#eee2ac][color=#1a1a1a][b] A [/b][/color][/bgcolor] [bgcolor=#eee2ac][color=#1a1a1a][b] D [/b][/color][/bgcolor] menu tabs    [bgcolor=#eee2ac][color=#1a1a1a][b] T [/b][/color][/bgcolor] skill tree    [bgcolor=#eee2ac][color=#1a1a1a][b] Esc [/b][/color][/bgcolor] pause
+hint.rect=[P: (460.0, 1860.0), S: (1000.0, 34.0)]
+cluster.rect=[P: (205.0, 1840.0), S: (188.0, 56.0)]
+cluster.BugButton.rect=[P: (205.0, 1840.0), S: (56.0, 56.0)]
+cluster.BugButton.font_size=16
+cluster.BugButton.font_color=(0.102, 0.102, 0.102, 1.0)
+cluster.BugButton.outline_size=0
+cluster.BugButton.normal=StyleBoxFlat bg=(1.0, 0.9765, 0.8902, 1.0) border=(0.102, 0.102, 0.102, 1.0) w=3 radius=10 margins=7.0,7.0,7.0,7.0
+cluster.BugButton.font_disabled_color=(0.78, 0.757, 0.671, 1.0)
+cluster.DiscordButton.rect=[P: (271.0, 1840.0), S: (56.0, 56.0)]
+cluster.DiscordButton.font_size=16
+cluster.DiscordButton.font_color=(0.102, 0.102, 0.102, 1.0)
+cluster.DiscordButton.outline_size=0
+cluster.DiscordButton.normal=StyleBoxFlat bg=(1.0, 0.9765, 0.8902, 1.0) border=(0.102, 0.102, 0.102, 1.0) w=3 radius=10 margins=7.0,7.0,7.0,7.0
+cluster.DiscordButton.font_disabled_color=(0.78, 0.757, 0.671, 1.0)
+cluster.LanguageButton.rect=[P: (337.0, 1840.0), S: (56.0, 56.0)]
+cluster.LanguageButton.font_size=16
+cluster.LanguageButton.font_color=(0.102, 0.102, 0.102, 1.0)
+cluster.LanguageButton.outline_size=0
+cluster.LanguageButton.normal=StyleBoxFlat bg=(1.0, 0.9765, 0.8902, 1.0) border=(0.102, 0.102, 0.102, 1.0) w=3 radius=10 margins=7.0,7.0,7.0,7.0
+cluster.LanguageButton.font_disabled_color=(0.78, 0.757, 0.671, 1.0)
+boba.rect=[P: (24.0, 1713.0), S: (167.0, 183.0)]
+boba.panel=StyleBoxFlat bg=(1.0, 0.9765, 0.8902, 1.0) border=(0.102, 0.102, 0.102, 1.0) w=3 radius=12 margins=8.0,8.0,8.0,8.0
+version.text=v0.0.2
+credits.text=created by keshi

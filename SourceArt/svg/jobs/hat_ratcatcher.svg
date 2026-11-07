@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="64.0" cy="94.5" rx="61.0" ry="21.0" fill="#FFF9E3" stroke="none"/>
+<ellipse cx="64.0" cy="58.3" rx="36.3" ry="32.5" fill="#FFF9E3" stroke="none"/>
+<ellipse cx="64.0" cy="94.5" rx="58.0" ry="18.1" fill="#FFF9E3" stroke="none"/>
+<ellipse cx="64.0" cy="58.3" rx="33.3" ry="29.5" fill="#FFF9E3" stroke="none"/>
+<rect x="31.6" y="66.4" width="64.7" height="18.1" rx="7.6" fill="#FFF9E3" stroke="none"/>
+<ellipse cx="96.4" cy="46.9" rx="14.4" ry="22.9" fill="#FFF9E3" stroke="none"/>
+<ellipse cx="104.0" cy="33.5" rx="12.5" ry="18.2" fill="#FFF9E3" stroke="none"/>
+<ellipse cx="96.4" cy="46.9" rx="11.4" ry="20.0" fill="#FFF9E3" stroke="none"/>
+<ellipse cx="104.0" cy="33.5" rx="9.5" ry="15.2" fill="#FFF9E3" stroke="none"/>
+<ellipse cx="64.0" cy="94.5" rx="56.2" ry="16.3" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="58.3" rx="31.5" ry="27.7" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="94.5" rx="53.3" ry="13.3" fill="#6E4A3A" stroke="none"/>
+<ellipse cx="64.0" cy="58.3" rx="28.5" ry="24.7" fill="#6E4A3A" stroke="none"/>
+<rect x="36.4" y="71.1" width="55.2" height="8.6" rx="2.9" fill="#4E3226" stroke="none"/>
+<ellipse cx="96.4" cy="46.9" rx="9.6" ry="18.2" fill="#2A1A33" stroke="none"/>
+<ellipse cx="104.0" cy="33.5" rx="7.7" ry="13.4" fill="#2A1A33" stroke="none"/>
+<ellipse cx="96.4" cy="46.9" rx="6.7" ry="15.2" fill="#D6564E" stroke="none"/>
+<ellipse cx="104.0" cy="33.5" rx="4.8" ry="10.5" fill="#D6564E" stroke="none"/>
+</g>
+</svg>

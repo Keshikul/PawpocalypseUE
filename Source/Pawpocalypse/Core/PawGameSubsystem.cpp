@@ -35,6 +35,7 @@ void UPawGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UPawGameSubsystem::NewGame()
 {
+	MarkProgressReplaced();
 	if (bDataReady)
 	{
 		Pc::NewGame(*GameData, *Model);

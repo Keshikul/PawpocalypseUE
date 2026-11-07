@@ -436,6 +436,9 @@ TEST_CASE("Field: Execute finishes a mouse below its line, never through a shiel
 	R.In.CatY = 450.0;
 	R.Steps(40);
 	CHECK_FALSE(R.Alive(T));
+	// The strike that crossed the line says so (Execute's red shards and burst, phase 6).
+	CHECK(std::any_of(R.F.Events.begin(), R.F.Events.end(), [T](const Pc::PcFieldEvent& E)
+		{ return E.Kind == Pc::PcFieldEventKind::Strike && E.Slot == T && (E.Flags & Pc::FieldFlag::Threshold) != 0; }));
 	// The same mouse shielded: the line does not reach it.
 	const int32_t U = Pc::SpawnEnemyAt(R.F, D, R.P, "park_goose", 800.0, 450.0, 1.0, 0.0);
 	R.F.Hp[U] = R.F.MaxHp[U] * Line * 0.99;

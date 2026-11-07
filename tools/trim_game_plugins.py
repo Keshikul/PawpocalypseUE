@@ -25,7 +25,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPROJECT = os.path.join(ROOT, "Pawpocalypse.uproject")
 
 # Always enabled for every target.
-GAME_PLUGINS = ["CommonUI", "EnhancedInput", "PythonScriptPlugin"]
+# ProceduralMeshComponent: the backdrop's patches and puddles (phase 6 slice 2, UPawBackdropMesh).
+GAME_PLUGINS = ["CommonUI", "EnhancedInput", "PythonScriptPlugin", "ProceduralMeshComponent"]
 # Enabled, editor only (in addition to the restricted engine defaults below).
 EDITOR_PLUGINS = ["EditorScriptingUtilities", "ModelingToolsEditorMode"]
 
@@ -38,7 +39,7 @@ EngineCameras ExampleDeviceProfileSelector FacialAnimation GameplayCameras Geome
 GoogleCloudMessaging GooglePAD IKRig ImgMedia Interchange InterchangeAssets InterchangeAxfAssets
 IOSDeviceProfileSelector LauncherChunkInstaller LocationServicesBPLibrary LowLevelNetTrace MediaCompositing MediaPlate
 MetaHumanSDK MobilePatchingUtils MsQuic MutableAssetUserData NFORDenoise NiagaraSimCaching NNEDenoiser
-OnlineSubsystemGooglePlay OnlineSubsystemIOS OodleNetwork PCG ProceduralMeshComponent ResonanceAudio RigVM
+OnlineSubsystemGooglePlay OnlineSubsystemIOS OodleNetwork PCG ResonanceAudio RigVM
 TcpMessaging TweeningUtils UdpMessaging UObjectPlugin VariantManagerContent WebMMoviePlayer WindowsMoviePlayer WmfMedia
 """.split()
 

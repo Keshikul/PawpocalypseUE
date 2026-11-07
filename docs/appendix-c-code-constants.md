@@ -5,7 +5,7 @@
 > presentation numbers (sizes, colours, timings of effects) into the C++ class that owns them, with the Godot reason as the
 > comment. `Palette.*` colours come from the generated token header instead.
 
-576 constants.
+580 constants.
 
 | file:line | name | value | reason (Godot comment) |
 |---|---|---|---|
@@ -18,20 +18,20 @@
 | `scripts/autoload/card_manager.gd:79` | `BASE_HAND_SIZE` | `3` |  |
 | `scripts/autoload/game_state.gd:97` | `EVOLUTION_STAGE_COUNT` | `7` | Stage 1 is the baseline; each of the five bosses grants one, and the ending grants the seventh.  Spelled out rather than derived as `BOSS_REALMS.size() + 1` ... |
 | `scripts/autoload/game_state.gd:230` | `MAX_WAVE` | `64` | A ceiling on the wave index. Nothing should reach it - the deepest measured run tops out around 35 - but HP rises 1.35 a wave and an unbounded index would ov... |
-| `scripts/autoload/game_state.gd:981` | `CROWD_THRESHOLD` | `40` | Swarm Logic: damage multiplier while the arena is crowded. |
-| `scripts/autoload/game_state.gd:995` | `LAST_STAND_THRESHOLD` | `5` | Last Stand: damage multiplier while the arena is nearly empty.  THE MIRROR OF SWARM LOGIC, and owning both is deliberately not a permanent buff - there is a ... |
-| `scripts/autoload/game_state.gd:1144` | `REALTIME_INTEREST_PERIOD_SEC` | `60.0` | Compound Interest: share of banked Catnip paid per minute of real time. |
-| `scripts/autoload/game_state.gd:1214` | `LUNCH_FULL_SECONDS` | `10.0` | Long Lunch: Catnip owed for the stillness banked so far, as a multiple of a single reward. Capped, for the same reason Carry is: an uncapped bank pays for wa... |
-| `scripts/autoload/game_state.gd:1225` | `LEVY_EVERY` | `100` | Levy: kills between payouts, and the multiple of a reward each one pays. |
-| `scripts/autoload/game_state.gd:1233` | `INFESTATION_DECAY_PER_SEC` | `0.35` | Infestation: spawn rate added per kill, and how fast that decays. |
-| `scripts/autoload/game_state.gd:1234` | `INFESTATION_CEILING` | `2.0` |  |
-| `scripts/autoload/game_state.gd:1275` | `CARRY_FULL_SECONDS` | `3.0` | Carry: the aura radius bonus currently earned by holding still.  Capped at CARRY_FULL_SECONDS because an uncapped version rewards leaving the game alone, whi... |
-| `scripts/autoload/game_state.gd:1296` | `FENCE_MAX_KILLS` | `100` | Fence: the Catnip multiplier earned by kills already made this wave.  The kill count is capped rather than the multiplier, so the wording on the node ("per k... |
-| `scripts/autoload/game_state.gd:1443` | `MOUNTED_STAGE` | `4` | THE MOUNT FOLLOWS THE UNICORN NODE (designer, 2026-09-14: "when the unicorn is awakened it should stay awakened. So the player should have the unicorn ... mo... |
-| `scripts/autoload/game_state.gd:1717` | `CURRENCY_EPSILON` | `1e-6` | Hard bound on any bulk purchase, xMax included.  The loop below terminates on its own for every upgrade the game actually ships — it stops the moment a level... |
-| `scripts/autoload/game_state.gd:1719` | `BULK_MAX_STEPS` | `500` |  |
-| `scripts/autoload/game_state.gd:1888` | `MAX_GOLDEN_CHANCE` | `0.35` | Added to a biome's authored Golden Mouse chance, not multiplied — a biome with no goldens at all should stay that way, and a multiplier on 0.0 is 0.0 either ... |
-| `scripts/autoload/game_state.gd:2534` | `DEBUG_UNCAPPED_STEP` | `25` | Sets every upgrade to the highest level that respects its own cap (or an arbitrary high level for uncapped lines), for fast late-game testing. Levels added p... |
+| `scripts/autoload/game_state.gd:989` | `CROWD_THRESHOLD` | `40` | Swarm Logic: damage multiplier while the arena is crowded. |
+| `scripts/autoload/game_state.gd:1003` | `LAST_STAND_THRESHOLD` | `5` | Last Stand: damage multiplier while the arena is nearly empty.  THE MIRROR OF SWARM LOGIC, and owning both is deliberately not a permanent buff - there is a ... |
+| `scripts/autoload/game_state.gd:1152` | `REALTIME_INTEREST_PERIOD_SEC` | `60.0` | Compound Interest: share of banked Catnip paid per minute of real time. |
+| `scripts/autoload/game_state.gd:1222` | `LUNCH_FULL_SECONDS` | `10.0` | Long Lunch: Catnip owed for the stillness banked so far, as a multiple of a single reward. Capped, for the same reason Carry is: an uncapped bank pays for wa... |
+| `scripts/autoload/game_state.gd:1233` | `LEVY_EVERY` | `100` | Levy: kills between payouts, and the multiple of a reward each one pays. |
+| `scripts/autoload/game_state.gd:1241` | `INFESTATION_DECAY_PER_SEC` | `0.35` | Infestation: spawn rate added per kill, and how fast that decays. |
+| `scripts/autoload/game_state.gd:1242` | `INFESTATION_CEILING` | `2.0` |  |
+| `scripts/autoload/game_state.gd:1283` | `CARRY_FULL_SECONDS` | `3.0` | Carry: the aura radius bonus currently earned by holding still.  Capped at CARRY_FULL_SECONDS because an uncapped version rewards leaving the game alone, whi... |
+| `scripts/autoload/game_state.gd:1304` | `FENCE_MAX_KILLS` | `100` | Fence: the Catnip multiplier earned by kills already made this wave.  The kill count is capped rather than the multiplier, so the wording on the node ("per k... |
+| `scripts/autoload/game_state.gd:1451` | `MOUNTED_STAGE` | `4` | THE MOUNT FOLLOWS THE UNICORN NODE (designer, 2026-09-14: "when the unicorn is awakened it should stay awakened. So the player should have the unicorn ... mo... |
+| `scripts/autoload/game_state.gd:1725` | `CURRENCY_EPSILON` | `1e-6` | Hard bound on any bulk purchase, xMax included.  The loop below terminates on its own for every upgrade the game actually ships — it stops the moment a level... |
+| `scripts/autoload/game_state.gd:1727` | `BULK_MAX_STEPS` | `500` |  |
+| `scripts/autoload/game_state.gd:1896` | `MAX_GOLDEN_CHANCE` | `0.35` | Added to a biome's authored Golden Mouse chance, not multiplied — a biome with no goldens at all should stay that way, and a multiplier on 0.0 is 0.0 either ... |
+| `scripts/autoload/game_state.gd:2545` | `DEBUG_UNCAPPED_STEP` | `25` | Sets every upgrade to the highest level that respects its own cap (or an arbitrary high level for uncapped lines), for fast late-game testing. Levels added p... |
 | `scripts/autoload/input_device.gd:48` | `AXIS_CLAIM` | `0.5` | A stick or trigger has to pass this to count as the player choosing the pad. Resting drift sits well under it; the Input Map's own dead zones are the same 0.5. |
 | `scripts/autoload/input_device.gd:52` | `MOUSE_CLAIM_PX` | `6.0` | Mouse motion has to add up to this many pixels, within MOUSE_QUIET_SEC of the last motion, to take the cat back from the stick. A desk bump is a few pixels o... |
 | `scripts/autoload/input_device.gd:53` | `MOUSE_QUIET_SEC` | `0.25` |  |
@@ -127,6 +127,10 @@
 | `scripts/data/pawpocalypse_save_data.gd:220` | `banishes` | `0` |  |
 | `scripts/data/pawpocalypse_save_data.gd:221` | `fixation_hands` | `0` |  |
 | `scripts/data/pawpocalypse_save_data.gd:225` | `cards_taken_this_run` | `0` |  |
+| `scripts/data/pawpocalypse_save_data.gd:237` | `deepest_biome_index` | `0` | --- Where the run stands (designer, 2026-11-04; port findings F26-F29) ------ A restart used to forget all of these. deepest_biome_index drives every line's ... |
+| `scripts/data/pawpocalypse_save_data.gd:238` | `pending_second_helping` | `0.0` |  |
+| `scripts/data/pawpocalypse_save_data.gd:239` | `kills_this_cycle` | `0` |  |
+| `scripts/data/pawpocalypse_save_data.gd:240` | `kills_since_tithe` | `0` |  |
 | `scripts/data/reawaken_constants_data.gd:42` | `reawaken_min_stardust` | `25.0` | Stardust the FIRST Reawaken must be worth before it is offered. Sets when a new player meets the meta layer at all, so it is a pacing dial, not a safety one:... |
 | `scripts/data/reawaken_constants_data.gd:66` | `reawaken_min_gain_fraction` | `6.0` | Every LATER Reawaken must grow `stardust_granted_ever` by at least this fraction before it is offered. 0.5 = "+50% on everything you have earned". Scale-free... |
 | `scripts/data/reawaken_constants_data.gd:68` | `reawaken_stardust_coefficient` | `0.5` |  |
@@ -272,11 +276,11 @@
 | `scripts/systems/hud.gd:295` | `BOSS_BIOME_CLEARED_COLOR` | `Palette.STARDUST` |  |
 | `scripts/systems/hud.gd:345` | `HUD_REFRESH_HZ` | `15.0` | Panel refreshes are COALESCED, not driven one-per-signal.  `currency_changed` and `kill_count_changed` each fire once per mouse killed. On a maxed save that ... |
 | `scripts/systems/hud.gd:414` | `EDGE_MARGIN` | `20.0` |  |
-| `scripts/systems/hud.gd:729` | `POUNCE_GAUGE_MARGIN` | `18.0` |  |
-| `scripts/systems/hud.gd:1808` | `STAGE_BANNER_HOLD` | `2.2` | Evolution happens three times in a whole game, so the stage number is news exactly three times. It used to hold a permanent row in an opaque corner panel for... |
-| `scripts/systems/hud.gd:1809` | `STAGE_BANNER_FADE` | `1.1` |  |
-| `scripts/systems/hud.gd:1813` | `WELCOME_BANNER_HOLD` | `4.5` | The welcome-back line holds longer: it carries a number the player is meant to read and be pleased about, where the stage banner mostly carries a name they a... |
-| `scripts/systems/hud.gd:1996` | `FPS_REFRESH_SEC` | `0.5` | Once a second, not once a frame. An FPS counter that updates every frame is unreadable — the digits change faster than they can be focused on — and it also m... |
+| `scripts/systems/hud.gd:732` | `POUNCE_GAUGE_MARGIN` | `18.0` |  |
+| `scripts/systems/hud.gd:1813` | `STAGE_BANNER_HOLD` | `2.2` | Evolution happens three times in a whole game, so the stage number is news exactly three times. It used to hold a permanent row in an opaque corner panel for... |
+| `scripts/systems/hud.gd:1814` | `STAGE_BANNER_FADE` | `1.1` |  |
+| `scripts/systems/hud.gd:1818` | `WELCOME_BANNER_HOLD` | `4.5` | The welcome-back line holds longer: it carries a number the player is meant to read and be pleased about, where the stage banner mostly carries a name they a... |
+| `scripts/systems/hud.gd:2001` | `FPS_REFRESH_SEC` | `0.5` | Once a second, not once a frame. An FPS counter that updates every frame is unreadable — the digits change faster than they can be focused on — and it also m... |
 | `scripts/systems/kitten.gd:47` | `SPRITE_TARGET_PX` | `96.0` | On-screen size the art is fitted to, the same pattern Player and Enemy use. A hardcoded `scale` in the scene silently halves the kitten the moment the source... |
 | `scripts/systems/kitten.gd:57` | `GOLDEN_TINT` | `Color(1.30, 1.06, 0.40)` | The gold the GOLDEN_KITTEN card paints its chosen kitten (designer, 2026-08-20).  A modulate rather than separate art, for the same reason the whoosh is draw... |
 | `scripts/systems/kitten.gd:65` | `HALO_COLOUR` | `Color(0.62, 0.84, 1.0)` | A cold white-blue, chosen to be the thing gold is NOT — the two marks have to be told apart in peripheral vision, at 96px, against eight biome palettes. |

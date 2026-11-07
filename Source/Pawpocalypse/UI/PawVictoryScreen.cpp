@@ -16,6 +16,7 @@
 #include "UI/PawTokens.h"
 #include "UI/PawUiConstants.h"
 #include "UI/PawUiKit.h"
+#include "UI/PawWidgets.h"
 
 const FName UPawVictoryScreen::PauseHolder(TEXT("victory"));
 
@@ -24,9 +25,9 @@ namespace
 	using namespace PawUi;
 
 	// A label of the box: the box's full width, centred text (horizontal_alignment = CENTER).
-	UTextBlock* BoxLabel(UWidgetTree* T, UVerticalBox* Box, double Px, bool bFirst)
+	UTextBlock* BoxLabel(UWidgetTree* T, UVerticalBox* Box, double Px, bool bFirst, FName Name)
 	{
-		UTextBlock* Text = MakeText(T, Px, PawTokens::UI_TEXT); // the theme's Label: ink (F21)
+		UTextBlock* Text = MakeText(T, Px, PawTokens::UI_TEXT, false, Name); // the theme's Label: ink (F21)
 		Text->SetJustification(ETextJustify::Center);
 		UVerticalBoxSlot* S = Box->AddChildToVerticalBox(Text);
 		S->SetHorizontalAlignment(HAlign_Fill);
@@ -37,15 +38,15 @@ namespace
 
 bool UPawVictoryScreen::Initialize()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree)
+	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree && PawUi::BuildsInCode(this))
 	{
 		WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"), RF_Transient);
 		UWidgetTree* T = WidgetTree;
-		UOverlay* Root = T->ConstructWidget<UOverlay>();
+		UOverlay* Root = T->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("Root"));
 		WidgetTree->RootWidget = Root;
 
 		// The dim: MOUSE_FILTER_STOP on purpose, nothing behind the ending may be clicked while it is up.
-		Dim = T->ConstructWidget<UBorder>();
+		Dim = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Dim"));
 		Dim->SetBrush(Rounded(PawTokens::VICTORY_DIM, PawTokens::VICTORY_DIM, 0.0f, 0.0f));
 		Dim->SetVisibility(ESlateVisibility::Visible);
 		UOverlaySlot* DimSlot = Root->AddChildToOverlay(Dim);
@@ -60,7 +61,7 @@ bool UPawVictoryScreen::Initialize()
 		UOverlaySlot* SizeSlot = Root->AddChildToOverlay(Size);
 		SizeSlot->SetHorizontalAlignment(HAlign_Center);
 		SizeSlot->SetVerticalAlignment(VAlign_Center);
-		Panel = T->ConstructWidget<UBorder>();
+		Panel = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Panel"));
 		Panel->SetBrush(WindowBrush());
 		Panel->SetPadding(WindowPadding());
 		Panel->SetVisibility(ESlateVisibility::Visible); // the plate stops clicks too
@@ -69,24 +70,36 @@ bool UPawVictoryScreen::Initialize()
 		Box->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		Panel->SetContent(Box);
 
-		Headline = BoxLabel(T, Box, VictoryHeadlinePx, true);
+		Headline = BoxLabel(T, Box, VictoryHeadlinePx, true, TEXT("Headline"));
 		Headline->SetText(PawText::Ui(TEXT("VICTORY_headline")));
-		Flavour = BoxLabel(T, Box, LabelPx, false);
+		Flavour = BoxLabel(T, Box, LabelPx, false, TEXT("Flavour"));
 		// AUTOWRAP_WORD_SMART at the column's width, the panel's less its margins (a fixed wrap width: KB U/09 §3).
 		Flavour->SetAutoWrapText(false);
 		Flavour->SetWrapTextAt(static_cast<float>(VictoryPanelWidth - 2.0 * WindowPadX));
 		Flavour->SetText(PawText::Ui(TEXT("VICTORY_flavour")));
-		Time = BoxLabel(T, Box, VictoryTimePx, false);
+		Time = BoxLabel(T, Box, VictoryTimePx, false, TEXT("Time"));
 
-		Ok = T->ConstructWidget<UPawButton>(UPawButton::StaticClass());
+		Ok = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("Ok"));
 		Ok->SetMinDimensions(static_cast<int32>(VictoryOkWidth), static_cast<int32>(VictoryOkHeight));
 		Ok->SetLabel(PawText::Ui(TEXT("VICTORY_ok")));
-		Ok->OnClicked().AddWeakLambda(this, [this]() { Dismiss(); });
 		UVerticalBoxSlot* OkSlot = Box->AddChildToVerticalBox(Ok);
 		OkSlot->SetHorizontalAlignment(HAlign_Center); // SIZE_SHRINK_CENTER
 		OkSlot->SetPadding(FMargin(0.0f, static_cast<float>(VictorySeparation), 0.0f, 0.0f));
 	}
-	return Super::Initialize();
+	const bool bOk = Super::Initialize();
+	if (bOk && PawUi::ShouldWire(this))
+	{
+		OnLayoutReady();
+	}
+	return bOk;
+}
+
+void UPawVictoryScreen::OnLayoutReady()
+{
+	if (Ok)
+	{
+		Ok->OnClicked().AddWeakLambda(this, [this]() { Dismiss(); });
+	}
 }
 
 UPawRealmSubsystem* UPawVictoryScreen::Realm() const

@@ -42,7 +42,13 @@ public:
 	// and tutorial too: main_menu.gd _on_slot_chosen switches both automations off for a new game).
 	void NewGame();
 
+	// Bumped whenever the progress is REPLACED rather than played forward (a new game, a load): an observer of the progress
+	// (the audio's) re-reads it then instead of hearing a load as a thousand purchases.
+	int64 ProgressEpoch() const { return Epoch; }
+	void MarkProgressReplaced() { ++Epoch; }
+
 private:
+	int64 Epoch = 0;
 	TUniquePtr<Pc::PcGameData> GameData;
 	TUniquePtr<Pc::PcProgress> Model;
 	Pc::PcSlotExtras SlotState;

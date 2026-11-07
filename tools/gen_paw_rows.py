@@ -22,7 +22,8 @@ DATA = os.path.join(ROOT, "Data")
 OUT = os.path.join(ROOT, "Source", "Pawpocalypse", "Data", "PawDataRows.h")
 ASSET_DIR = "/Game/Pawpocalypse/Data"
 # Source, not data: the reviewed list tools/export_code_constants.py reads.
-NOT_TABLES = {"CodeConstantsMap.csv"}
+NOT_TABLES = {"CodeConstantsMap.csv", "InputMap.csv", "AudioEvents.csv", "AudioMusic.csv"}  # InputMap: Enhanced Input
+# assets; Audio*: the audio bank (tools/import_audio.py), not tables
 
 
 def struct_name(csv_name: str) -> str:

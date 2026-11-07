@@ -4,9 +4,10 @@
 // apply around it, and the file the port writes it as. Proven against the REAL save_manager.gd (fixture `save`).
 //
 // WHAT A SAVE CARRIES IS WHAT GODOT'S CARRIES, nothing more (Godot is the spec until parity). Since 2026-11-03 (F24) that
-// includes the run's cards, Catches level and XP and a hand on screen. Not in it, as in Godot: the live biome and its wave
-// counters, the per-run kill counters; a load leaves those as they were in
-// memory (the title screen resets a NEW game first).
+// includes the run's cards, Catches level and XP and a hand on screen; since 2026-11-04 (F26-F29) the deepest biome,
+// Second Helping's deferred Stardust, Body Count's and Levy's counts and a Reawaken in progress. Not in it, as in Godot:
+// the live biome and its wave counters, Reputation, Infestation (run-scoped on purpose); a load leaves those as they were
+// in memory (the title screen resets a NEW game first).
 
 #include "PcCore.h"
 
@@ -72,6 +73,12 @@ namespace Pc
 		std::vector<std::string> Promised;                     // promised [card ids]: Blueprint's cards for the next hand
 		std::string PrototypeCard;                             // prototype_card
 		int64_t CardsTakenThisRun = 0;                         // cards_taken_this_run (Grudge Ledger)
+		// Where the run stands (designer 2026-11-04, F26-F29; Godot first). Defaults = what a restart used to give.
+		int64_t DeepestBiomeIndex = 0;                         // deepest_biome_index (the per-floor caps; clamped on load)
+		double PendingSecondHelping = 0.0;                     // pending_second_helping (>= 0 on load)
+		int64_t KillsThisCycle = 0;                            // kills_this_cycle (Body Count; >= 0 on load)
+		int64_t KillsSinceTithe = 0;                           // kills_since_tithe (Levy; >= 0 on load)
+		bool bReawakenInProgress = false;                      // reawaken_in_progress (resume at the spend step)
 	};
 
 	// What the slot carries that PcProgress does not hold: SettingsManager's per-slot pair and GameState.tutorial_done.
@@ -102,7 +109,8 @@ namespace Pc
 	};
 	// load_game() once the file has been read: GameState / SkillTreeManager / AchievementManager / SettingsManager in
 	// Godot's order (the achievement re-scan runs before the jobs and the per-biome maps are restored, as there). Fields a
-	// save does not carry keep their value in P. Current = the slot extras in memory before the load.
+	// save does not carry keep their value in P. Current = the slot extras in memory before the load. Every number that
+	// is not finite reads as 0 first (F33), and saved levels are clamped: a branch to 0..max, a shop line to >= 0 (F32).
 	PAWCORE_API PcLoadResult ApplySave(const PcGameData& D, PcProgress& P, const PcSaveState& S, const PcSlotExtras& Current);
 
 	// _migrate_branch_levels(): the v6 tree shape (splits, merges, Reflex retired to an unlock), clamped to what each branch

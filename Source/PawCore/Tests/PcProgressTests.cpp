@@ -526,6 +526,19 @@ TEST_CASE("Progress rules from the Godot comments")
 		CHECK_FALSE(Q.bFinalBossDefeated);
 	}
 
+	// Data with no bosses (refused by the validator) must not read past the empty list: nothing is the final boss.
+	{
+		Pc::PcGameData NoBosses = D;
+		NoBosses.Code.BossRealms.clear();
+		Pc::PcProgress P;
+		P.TotalPlaySeconds = 100.0;
+		const Pc::PcBossMark M = Pc::RecordBossDefeat(NoBosses, P, Final, 0.0);
+		CHECK(M.bNew);
+		CHECK_FALSE(P.bFinalBossDefeated);
+		CHECK(P.FinalBossSeconds == 0.0);
+		CHECK_FALSE(Pc::RaisesVictory(NoBosses, Final, M));
+	}
+
 	// A refused summon keeps the bait AND the Catnip (all-or-nothing): one Catnip short.
 	for (const Pc::PcTier& T : D.Tiers)
 	{

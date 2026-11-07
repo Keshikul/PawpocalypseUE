@@ -20,13 +20,17 @@
 #include "CommonActivatableWidget.h"
 #include "CommonButtonBase.h"
 #include "PcTreeLayout.h"
+#include "UI/PawJuice.h"
 
 #include "PawSkillTreeScreen.generated.h"
 
 class UBorder;
 class UCanvasPanel;
 class UPawButton;
+class UPawPromptText;
 class UPawRealmSubsystem;
+class UPawTreeSky;
+class UPawUnicornCeremony;
 class UPawGameSubsystem;
 class USizeBox;
 class UTextBlock;
@@ -89,6 +93,9 @@ public:
 	bool IsShining() const { return bShine; }
 
 	FString BranchId;
+	// The branch's picture (its icon_path), 56 px in the middle of the node (phase 6 slice 5b).
+	void SetIconPath(const FString& Path);
+	FString GetIconName() const;
 
 	// _frame(): the three states as one series, READY lerped a third of the way from LOCKED to OWNED.
 	static void FrameColours(Pc::PcTreeNodeState State, const FLinearColor& Trunk, FLinearColor& OutFill, FLinearColor& OutEdge);
@@ -97,10 +104,13 @@ protected:
 	virtual void NativeTick(const FGeometry& Geometry, float DeltaSeconds) override;
 
 private:
-	UPROPERTY()
+	void OnNodeReady();
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> Frame;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> CounterText;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> Icon;
 	Pc::PcTreeNodeState State = Pc::PcTreeNodeState::Locked;
 	bool bShine = false;
 	double ShineClock = 0.0;
@@ -139,9 +149,15 @@ public:
 	void FitAndCentre();
 	double GetZoom() const { return Zoom; }
 	FVector2D GetPan() const { return Pan; }
+	FVector2D GetSteer() const { return Stick; }   // the steer stick as the pan reads it (Godot: +Y down)
+	double GetZoomHeld() const { return ZoomHeld; } // zoom_in's strength less zoom_out's (keys 1, triggers by strength)
 	// The tooltip for a node, as the player reads it (shown docked or beside the node; hidden with an empty id).
 	void ShowTip(const FString& Id, bool bDocked);
 	FString GetTipBranch() const { return TipBranch; }
+
+	// The tree's motion (UiJuice, phase 6 slice 5c): NativeTick steps it; the tests read and drive it.
+	FPawJuice& GetJuice() { return Juice; }
+	UBorder* GetWarningPlate() const { return WarningPlate; }
 
 	// What the tests read (and only read).
 	UPawTreeNode* GetNode(const FString& Id) const;
@@ -153,9 +169,16 @@ public:
 	UPawButton* GetCloseButton() const { return CloseButton; }
 	FText GetWarningText() const;
 	bool IsWarningShown() const;
+	// The tooltip's lines as shown (PawGlyphs::Neutral: a prompt is <g:stem> or <k:label>).
 	TArray<FText> GetTipLines() const;
+	FString GetLegend() const;
 	FText GetTipTitle() const;
 	const UPawTreeLinks* GetLinks() const { return LinksLayer; }
+	UPawTreeSky* GetSky() const { return TreeSky; } // skill_tree_sky.gd (phase 6 slice 5d)
+	// The Unicorn's arrival (unicorn_ceremony.gd, phase 6 slice 6a): played by buying the Unicorn; while it plays the tree
+	// buys nothing and hands it every key (ceremony_playing()).
+	UPawUnicornCeremony* GetUnicorn() const { return Unicorn; }
+	bool IsCeremonyPlaying() const;
 	static FString LastSelected();
 
 protected:
@@ -173,6 +196,7 @@ protected:
 private:
 	void BuildCanvas();
 	void BuildChrome(class UOverlay* Root);
+	void OnLayoutReady();
 	void WriteNavigation();
 	void ApplyTransform();
 	void StyleClose();
@@ -184,8 +208,12 @@ private:
 	UPawGameSubsystem* Game() const;
 	bool CanTakeFocus() const;
 
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UCanvasPanel> Canvas;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UPawTreeSky> TreeSky;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UPawUnicornCeremony> Unicorn;
 	UPROPERTY()
 	TObjectPtr<UPawTreeLinks> LinksLayer;
 	UPROPERTY()
@@ -194,26 +222,27 @@ private:
 	TMap<FString, TObjectPtr<UBorder>> Halos;
 	UPROPERTY()
 	TMap<FString, TObjectPtr<UTextBlock>> Captions;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> StardustText;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> CloseButton;
 	UPROPERTY()
 	TObjectPtr<class UOverlaySlot> CloseSlot;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> WarningPlate;
-	UPROPERTY()
+	FPawJuice Juice; // hover pops, the READY nodes' lean, the purchase punch, the leaving plate's pop-in (skill_tree_ui.gd)
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> WarningText;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> TipPanel;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> TipTitle;
 	UPROPERTY()
-	TArray<TObjectPtr<UTextBlock>> TipLines;
+	TArray<TObjectPtr<UPawPromptText>> TipLines;
 	UPROPERTY()
 	TObjectPtr<class UCanvasPanelSlot> TipSlot;
-	UPROPERTY()
-	TObjectPtr<UTextBlock> Legend;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UPawPromptText> LegendPrompts;
 
 	Pc::PcTreeLayout Layout;
 	TArray<FString> Order; // branch order, as FString
@@ -229,8 +258,13 @@ private:
 	double HaloClock = 0.0;
 	double RefreshClock = 0.0;
 	// The pad: the right stick pans, the triggers zoom (held), the follow glides.
-	FVector2D Stick = FVector2D::ZeroVector;
-	double ZoomHeld = 0.0; // +1 RT / =, -1 LT / -
+	FVector2D Stick = FVector2D::ZeroVector;   // the pan: Player.steer_input(), +Y down
+	TMap<FKey, float> SteerAxes;               // the steer axes' last values, for Input.get_vector
+	double ZoomHeld = 0.0;      // get_action_strength("zoom_in") - get_action_strength("zoom_out")
+	bool bZoomInKey = false;    // a zoom_in key held (= ): strength 1
+	bool bZoomOutKey = false;   // a zoom_out key held (- )
+	TMap<FKey, float> ZoomAxes; // the triggers' last values: their strength past the dead zone
+	void RefreshZoom();
 	bool bFollowing = false;
 	FVector2D FollowFrom = FVector2D::ZeroVector, FollowTo = FVector2D::ZeroVector;
 	double FollowT = 0.0;

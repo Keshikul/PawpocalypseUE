@@ -69,6 +69,7 @@ namespace
 		bool bMeasuring = false, bShot = false, bDone = false;
 		int32 QuitIn = -1;
 		int64 MinLive = MAX_int64, DrawMismatches = 0, ShadowMismatches = 0, FloorMismatches = 0;
+		int64 HeldFrames = 0; // measured frames the field was held (a screen up): a held field measures nothing
 		TArray<double> FrameMs, GameMs, RenderMs, GpuMs, DrawCalls, StepsMs, DrawMs;
 		FTSTicker::FDelegateHandle Handle;
 
@@ -111,6 +112,10 @@ namespace
 				View->bSampleInput = false; // the bench drives the cat
 				P.UpgradeLevels["kitten_count"] = 20;
 				P.UpgradeLevels["paw_damage"] = 30;
+				// Level-ups deal card hands, and a hand on screen holds the field (the card pick, phase 3): Auto-Card takes
+				// each at once, as a player with the node and the switch on has it, so the field never stops.
+				P.BranchLevels["auto_card"] = FMath::Max<int64>(P.BranchLevels["auto_card"], 1);
+				Realm->SetAutoPick(true);
 				Realm->OnProgressChanged(true);
 				UE_LOG(LogPaw, Display, TEXT("PAW_BENCH started: %s, %.0f s after the field fills"), *GRHIAdapterName, Seconds);
 			}
@@ -151,12 +156,14 @@ namespace
 			StepsMs.Add(Realm->GetSim().LastStepsMs);
 			DrawMs.Add(View->LastDrawMs());
 			MinLive = FMath::Min<int64>(MinLive, F.LiveCount());
+			HeldFrames += Realm->IsPaused() ? 1 : 0;
 
 			// What is drawn is what is live (the view drew this frame's field before this ticker ran).
 			const UPawSpriteRenderer* R = View->GetRenderer();
 			const int32 Bodies = static_cast<int32>(F.LiveCount() + F.AwakeKittens() + static_cast<int64>(F.Adds.size())) + (F.bBossUp ? 1 : 0) + 1;
 			DrawMismatches += R && R->DrawnCount(EPawLayer::Bodies) == Bodies ? 0 : 1;
-			ShadowMismatches += R && R->DrawnCount(EPawLayer::Shadows) == Bodies ? 0 : 1;
+			// A shadow under each that stands: not the boss, not its adds (boss.tscn, boss_add.gd).
+			ShadowMismatches += R && R->DrawnCount(EPawLayer::Shadows) == static_cast<int32>(F.LiveCount() + F.AwakeKittens()) + 1 ? 0 : 1;
 			FloorMismatches += R && R->DrawnCount(EPawLayer::Floor) == 1 ? 0 : 1;
 
 			Measured += DeltaSeconds;
@@ -192,10 +199,18 @@ namespace
 			{
 				Fail.Add(TEXT("a field material or the quad did not cook"));
 			}
+			if (!View.GetRenderer() || !View.GetRenderer()->HasSprites())
+			{
+				Fail.Add(TEXT("the field atlas or a sprite material did not cook: the creatures were not drawn"));
+			}
 			const double GameP99 = Percentile(GameMs, 0.99);
 			if (GameP99 >= GameThreadBudgetMs)
 			{
 				Fail.Add(FString::Printf(TEXT("game thread p99 %.3f ms >= %.1f ms"), GameP99, GameThreadBudgetMs));
+			}
+			if (HeldFrames * 100 > static_cast<int64>(GameMs.Num()))
+			{
+				Fail.Add(FString::Printf(TEXT("the field was held on %lld of %d frames (a screen up): nothing was measured"), HeldFrames, GameMs.Num()));
 			}
 			if (Mean(DrawCalls) >= DrawCallBudget)
 			{
@@ -207,7 +222,7 @@ namespace
 				return FString::Printf(TEXT("%-10s avg %8.3f  p99 %8.3f  max %8.3f"), Name, Mean(V), Percentile(V, 0.99), Percentile(V, 1.0));
 			};
 			TArray<FString> Out;
-			Out.Add(FString::Printf(TEXT("viewport=%dx%d frames=%d adapter=%s mice(min)=%lld kittens=%lld"), Size.X, Size.Y, FrameMs.Num(), *GRHIAdapterName, MinLive, F.AwakeKittens()));
+			Out.Add(FString::Printf(TEXT("viewport=%dx%d frames=%d adapter=%s mice(min)=%lld kittens=%lld held=%lld"), Size.X, Size.Y, FrameMs.Num(), *GRHIAdapterName, MinLive, F.AwakeKittens(), HeldFrames));
 			Out.Add(Line(TEXT("frame_ms"), FrameMs));
 			Out.Add(Line(TEXT("game_ms"), GameMs));
 			Out.Add(Line(TEXT("render_ms"), RenderMs));

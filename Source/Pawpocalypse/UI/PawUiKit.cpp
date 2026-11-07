@@ -4,6 +4,13 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Components/Widget.h"
+#include "Engine/Texture2D.h"
+#include "Framework/Application/SlateApplication.h"
+#include "PcRainbow.h"
+#include "Render/PawFxCanvas.h"
+#include "Rendering/DrawElements.h"
+#include "Rendering/SlateRenderer.h"
+#include "Styling/CoreStyle.h"
 #include "UI/PawTokens.h"
 #include "UI/PawUiConstants.h"
 
@@ -35,9 +42,78 @@ namespace PawUi
 		return B;
 	}
 
+	namespace
+	{
+		// pawpocalypse_theme.tres (the SBT_* StyleBoxTextures) and the SVGs' sizes, 2026-11-06.
+		const FPawChromeSpec ChromeTable[] = {
+			{ TEXT("ui_button_normal"), 256, 64, 16, 16, 16, 16 },
+			{ TEXT("ui_button_hover"), 256, 64, 16, 16, 16, 16 },
+			{ TEXT("ui_button_pressed"), 256, 64, 16, 16, 16, 16 },
+			{ TEXT("ui_button_disabled"), 256, 64, 16, 16, 16, 16 },
+			{ TEXT("ui_panel"), 128, 128, 20, 20, 20, 20 },
+			{ TEXT("ui_window"), 256, 256, 48, 48, 48, 48 },
+			{ TEXT("ui_bar_track"), 64, 16, 8, 4, 8, 4 },
+			{ TEXT("ui_bar_fill"), 64, 16, 8, 4, 8, 4 },
+			{ TEXT("ui_separator"), 64, 8, 8, 2, 8, 2 },
+		};
+		static_assert(UE_ARRAY_COUNT(ChromeTable) == static_cast<int32>(EPawChrome::Count), "one row per EPawChrome");
+
+		const TCHAR* const ChromeDir = TEXT("/Game/Pawpocalypse/Art/UI/Chrome");
+	}
+
+	const FPawChromeSpec& ChromeSpec(EPawChrome Which)
+	{
+		return ChromeTable[FMath::Clamp(static_cast<int32>(Which), 0, static_cast<int32>(EPawChrome::Count) - 1)];
+	}
+
+	FString ChromeTexturePath(EPawChrome Which)
+	{
+		const FString Name = FString(TEXT("T_")) + ChromeSpec(Which).Name;
+		return FString(ChromeDir) / Name + TEXT(".") + Name;
+	}
+
+	FSlateBrush Chrome(EPawChrome Which)
+	{
+		const FPawChromeSpec& S = ChromeSpec(Which);
+		FSlateBrush B;
+		B.DrawAs = ESlateBrushDrawType::Box;
+		B.Tiling = ESlateBrushTileType::NoTile;
+		B.TintColor = FSlateColor(FLinearColor::White);
+		B.ImageSize = FVector2D(S.Width, S.Height);
+		B.Margin = FMargin(static_cast<float>(S.Left) / S.Width, static_cast<float>(S.Top) / S.Height,
+			static_cast<float>(S.Right) / S.Width, static_cast<float>(S.Bottom) / S.Height);
+		B.SetResourceObject(LoadObject<UTexture2D>(nullptr, *ChromeTexturePath(Which), nullptr, LOAD_NoWarn | LOAD_Quiet));
+		return B;
+	}
+
+	FSlateBrush FocusRing()
+	{
+		return Rounded(FLinearColor::Transparent, PawTokens::UI_FOCUS, 3.0f, 12.0f);
+	}
+
 	FSlateBrush WindowBrush()
 	{
-		return Rounded(PawTokens::UI_PANEL, PawTokens::UI_PANEL_FRAME, static_cast<float>(WindowFrame), static_cast<float>(WindowRadius));
+		return Chrome(EPawChrome::Window);
+	}
+
+	FLinearColor FromHsv(double H, double S, double V)
+	{
+		// core/math/color.cpp Color::set_hsv.
+		H = FMath::Fmod(H * 6.0, 6.0);
+		const double I = FMath::FloorToDouble(H);
+		const double F = H - I;
+		const double P = V * (1.0 - S);
+		const double Q = V * (1.0 - S * F);
+		const double T = V * (1.0 - S * (1.0 - F));
+		switch (static_cast<int32>(I))
+		{
+		case 0: return PawTokens::SrgbF(V, T, P);
+		case 1: return PawTokens::SrgbF(Q, V, P);
+		case 2: return PawTokens::SrgbF(P, V, T);
+		case 3: return PawTokens::SrgbF(P, Q, V);
+		case 4: return PawTokens::SrgbF(T, P, V);
+		default: return PawTokens::SrgbF(V, P, Q);
+		}
 	}
 
 	FMargin WindowPadding()
@@ -45,9 +121,9 @@ namespace PawUi
 		return FMargin(static_cast<float>(WindowPadX), static_cast<float>(WindowPadY));
 	}
 
-	UTextBlock* MakeText(UWidgetTree* Tree, double GodotPx, const FLinearColor& Colour, bool bOverField)
+	UTextBlock* MakeText(UWidgetTree* Tree, double GodotPx, const FLinearColor& Colour, bool bOverField, FName Name)
 	{
-		UTextBlock* T = Tree->ConstructWidget<UTextBlock>();
+		UTextBlock* T = Tree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), Name);
 		FSlateFontInfo Font = T->GetFont();
 		Font.Size = FontPt(GodotPx);
 		if (bOverField)
@@ -70,17 +146,79 @@ namespace PawUi
 	}
 
 	UProgressBar* MakeBar(UWidgetTree* Tree, const FLinearColor& Track, const FLinearColor& Fill, const FLinearColor& Frame,
-		float FrameWidth, float Radius)
+		float FrameWidth, float Radius, FName Name)
 	{
-		UProgressBar* Bar = Tree->ConstructWidget<UProgressBar>();
+		UProgressBar* Bar = Tree->ConstructWidget<UProgressBar>(UProgressBar::StaticClass(), Name);
 		FProgressBarStyle Style = Bar->GetWidgetStyle();
 		Style.BackgroundImage = Rounded(Track, Frame, FrameWidth, Radius);
 		Style.FillImage = Rounded(Fill, Fill, 0.0f, Radius);
 		Style.MarqueeImage = NoBrush();
 		Bar->SetWidgetStyle(Style);
 		Bar->SetFillColorAndOpacity(FLinearColor::White);
+		// Godot draws the fill StyleBox at the fill's width, both caps kept; UMG's default (Mask) cuts it off square.
+		Bar->SetBarFillStyle(EProgressBarFillStyle::Scale);
 		Bar->SetPercent(0.0f);
 		Bar->SetVisibility(ESlateVisibility::HitTestInvisible);
+		return Bar;
+	}
+
+	double SetBarValue(UProgressBar* Bar, double Value, double Step, double FillMinWidth)
+	{
+		const double Kept = Pc::GodotRangeValue(Value, 0.0, 1.0, Step);
+		if (!Bar)
+		{
+			return Kept;
+		}
+		// ProgressBar::_notification(DRAW): p = round(ratio * (width - m)); drawn p + m wide when p > 0.
+		const double W = Bar->GetCachedGeometry().GetLocalSize().X;
+		double Percent = Kept;
+		if (W > 0.0)
+		{
+			const double P = FMath::RoundHalfFromZero(Kept * (W - FillMinWidth));
+			Percent = P > 0.0 ? FMath::Min((P + FillMinWidth) / W, 1.0) : 0.0;
+		}
+		Bar->SetPercent(static_cast<float>(Percent));
+		return Kept;
+	}
+
+	double ThemeFillMinWidth()
+	{
+		const FPawChromeSpec& S = ChromeSpec(EPawChrome::BarFill);
+		return static_cast<double>(S.Left + S.Right);
+	}
+
+	void PaintCanvas(const FPawFxCanvas& Canvas, FSlateWindowElementList& Out, int32 Layer, const FSlateRenderTransform& Transform)
+	{
+		if (Canvas.IsEmpty())
+		{
+			return;
+		}
+		TArray<FSlateVertex> Verts;
+		Verts.Reserve(Canvas.Verts.Num());
+		const FVector2f Uv(0.5f, 0.5f);
+		for (int32 I = 0; I < Canvas.Verts.Num(); ++I)
+		{
+			const FVector& P = Canvas.Verts[I];
+			Verts.Add(FSlateVertex::Make<ESlateVertexRounding::Disabled>(Transform, FVector2f(P.X, P.Y), Uv, Canvas.Colors[I]));
+		}
+		TArray<SlateIndex> Indices;
+		Indices.Reserve(Canvas.Indices.Num());
+		for (const int32 I : Canvas.Indices)
+		{
+			Indices.Add(static_cast<SlateIndex>(I));
+		}
+		const FSlateResourceHandle White =
+			FSlateApplication::Get().GetRenderer()->GetResourceHandle(*FCoreStyle::Get().GetBrush("WhiteBrush"));
+		FSlateDrawElement::MakeCustomVerts(Out, Layer, White, Verts, Indices, nullptr, 0, 0);
+	}
+
+	UProgressBar* MakeThemeBar(UWidgetTree* Tree, FName Name)
+	{
+		UProgressBar* Bar = MakeBar(Tree, PawTokens::UI_SLOT, PawTokens::GOLD, PawTokens::INK, 0.0f, 0.0f, Name);
+		FProgressBarStyle Style = Bar->GetWidgetStyle();
+		Style.BackgroundImage = Chrome(EPawChrome::BarTrack);
+		Style.FillImage = Chrome(EPawChrome::BarFill);
+		Bar->SetWidgetStyle(Style);
 		return Bar;
 	}
 

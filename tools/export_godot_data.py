@@ -8,7 +8,7 @@ by a headless editor script, read directly by pawsim and the C++ sim library).
     py tools/export_godot_data.py --godot C:/Games/pawpocalypse --out Data
     py tools/export_godot_data.py --godot C:/Games/pawpocalypse --out Data --catalogue docs/appendix-a-content-catalogue.md
 
-It also writes Data/CodeConstants.csv (tools/export_code_constants.py: the gameplay constants living in Godot CODE, chosen
+It also writes Data/InputMap.csv (tools/export_input_map.py: Godot's input map, one row per event) and Data/CodeConstants.csv (tools/export_code_constants.py: the gameplay constants living in Godot CODE, chosen
 by the reviewed Data/CodeConstantsMap.csv, which is source and never exported).
 
 Standard library only. Conventions (docs/07-data-pipeline.md):
@@ -31,6 +31,8 @@ from collections import defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from export_code_constants import export as export_code_constants  # noqa: E402
+from export_input_map import export as export_input_map  # noqa: E402
+from export_audio import export_tables as export_audio_tables  # noqa: E402
 
 RE_EXT = re.compile(r'\[ext_resource type="(\w+)"[^\]]*path="([^"]+)"[^\]]*id="([^"]+)"\]')
 RE_HEADER = re.compile(r'\[gd_resource type="Resource" script_class="(\w+)"')
@@ -253,6 +255,13 @@ def main() -> int:
 
     # The gameplay constants that live in Godot CODE, from the reviewed Data/CodeConstantsMap.csv (docs/06 §5).
     if export_code_constants(args.godot, args.out, *([args.code_map] if args.code_map else [])) != 0:
+        return 1
+    # The input map (project.godot [input]): one row per event, for the Enhanced Input assets (docs/05 §3).
+    if export_input_map(args.godot, args.out) != 0:
+        return 1
+    # The sound table (audio_manager.gd: EVENTS, the sounds each plays, FALLBACK_MUSIC; docs/07 §6). The files themselves:
+    # py tools/export_audio.py (into SourceAudio/).
+    if export_audio_tables(args.godot, args.out) != 0:
         return 1
 
     if args.catalogue:

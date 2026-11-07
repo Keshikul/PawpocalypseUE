@@ -18,6 +18,12 @@ public:
 	virtual FString Describe() const = 0;
 };
 
+// Which storage this run reads and writes, for everything kept between runs (the slots, the settings; docs/09 §1 rule 4):
+// -NoSave: none; -PawSaveDir=<folder>: that folder; an automated run (automation, -unattended) without it: none, so the
+// designer's own files stay byte-identical; otherwise the platform's save system. Null: nothing is read or written.
+// OutWhy says which, for the log.
+PAWPOCALYPSE_API TSharedPtr<IPawSaveStorage> PawStorageForThisRun(FString& OutWhy);
+
 // The shipping backend: the platform's save system (ISaveGameSystem through IPlatformFeaturesModule), so a console port
 // swaps the backend at no cost (KB P/01). On Windows it is files under Saved/SaveGames.
 class PAWPOCALYPSE_API FPawPlatformSaveStorage : public IPawSaveStorage

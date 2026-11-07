@@ -23,6 +23,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
+#include "UI/PawWidgets.h"
 #include "PcCards.h"
 #include "PcData.h"
 #include "PcProgress.h"
@@ -73,8 +74,8 @@ namespace
 			{
 				return false;
 			}
-			Root = CreateWidget<UPawRootLayout>(GI, UPawRootLayout::StaticClass());
-			Hud = CreateWidget<UPawHudScreen>(GI, UPawHudScreen::StaticClass());
+			Root = CreateWidget<UPawRootLayout>(GI, PawUi::Resolve<UPawRootLayout>());
+			Hud = CreateWidget<UPawHudScreen>(GI, PawUi::Resolve<UPawHudScreen>());
 			if (!T.TestNotNull(TEXT("the root layout"), Root) || !T.TestNotNull(TEXT("the HUD"), Hud))
 			{
 				return false;
@@ -269,6 +270,9 @@ bool FPawPickLookTest::RunTest(const FString& Parameters)
 	UPawCardFace* Bounty = Pick->GetCard(0);
 	UPawCardFace* Close = Pick->GetCard(1);
 	UPawCardFace* Spite = Pick->GetCard(2);
+	// Phase 6 slice 5b: each card's picture (its icon_path; catches_pick_ui.gd _card_art).
+	TestEqual(TEXT("Bounty's picture"), Bounty->GetArtName(), FString(TEXT("T_card_bounty")));
+	TestEqual(TEXT("Close Quarters' picture"), Close->GetArtName(), FString(TEXT("T_card_close_quarters")));
 	TestEqual(TEXT("the name"), S(Bounty->GetNameText()), FString(TEXT("Bounty")));
 	TestEqual(TEXT("a held card: the level taking it gives"), S(Bounty->GetRankText()), FString(TEXT("LEVEL 2 of 3")));
 	TestEqual(TEXT("muted"), Bounty->GetRankColour(), PawTokens::UI_TEXT_MUTED);

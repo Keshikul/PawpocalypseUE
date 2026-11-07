@@ -93,6 +93,13 @@ TEST_CASE("HUD: the shop's rows, multipliers and order")
 	CHECK_FALSE(Row.bEnabled);
 	P.Catnip = Cost;
 	CHECK(Pc::ShopRow(D, P, "paw_damage", 1).bEnabled);
+	// F30 (2026-11-04): inside the purchase's epsilon the row is lit, and the purchase agrees.
+	P.Catnip = Cost - D.Code.CurrencyEpsilon * 0.5;
+	CHECK(Pc::ShopRow(D, P, "paw_damage", 1).bEnabled);
+	{
+		Pc::PcProgress Q = P;
+		CHECK(Pc::PurchaseUpgrade(D, Q, "paw_damage"));
+	}
 
 	// Hidden while its branch is unbought; shown once it is.
 	P.BranchLevels["unlock_aura"] = 0;

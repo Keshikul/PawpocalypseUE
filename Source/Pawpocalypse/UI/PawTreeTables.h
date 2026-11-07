@@ -112,7 +112,7 @@ namespace PawTree
 
 	// The tooltip's colours (_on_node_hovered's bbcode, two of them not in the palette): the blurb, "Fully bought.", the
 	// Next line, why it cannot be bought, and "You have n.".
-	inline const FLinearColor TipBlurb = PawTokens::Srgb(0x1A, 0x1A, 0x1A);
+	inline const FLinearColor TipBlurb = PawTokens::Srgb(0x2A, 0x1A, 0x33);
 	inline const FLinearColor TipFully = PawTokens::Srgb(0x70, 0x95, 0x4F);
 	inline const FLinearColor TipNext = PawTokens::Srgb(0xB8, 0x86, 0x0B);
 	inline const FLinearColor TipReason = PawTokens::Srgb(0x8F, 0x83, 0x6F);

@@ -1,0 +1,3003 @@
+# Godot 4.7.1 InputDevice.family_from_info ground truth, generated 2026-10-28 by
+# tools/godot_fixtures/input_device_fixture.gd. Family: 0 keyboard, 1 Xbox, 2 PlayStation, 3 Steam Deck, 4 generic.
+vendor	product	name	raw_name	on_deck	family
+11720	4607	PS4 Controller	DualSense Wireless Controller	1	2
+11720	746	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+51211	54482	Steam Deck Controller	8BitDo Pro 2	1	3
+1118	746	Generic USB Joystick	Generic USB Joystick	1	1
+1356	3302	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	1	2
+0	4613	PS4 Controller	DualSense Wireless Controller	0	2
+1356	46488		XINPUT CONTROLLER	1	2
+1356	746	XInput Controller	Steam Deck Controller	0	2
+20630	4607	Generic USB Joystick	DualSense Wireless Controller	0	2
+11720	63370	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	2
+11720	746		PLAYSTATION(R)3 CONTROLLER	0	2
+1356	746	8BitDo Pro 2	STEAM DECK CONTROLLER	0	2
+1118	4607	Steam Deck Controller	Wireless Controller	0	1
+61524	4613	Steam Deck Controller	DualSense Wireless Controller	1	2
+36503	48203		XINPUT CONTROLLER	1	1
+1356	4613	Xbox Wireless Controller	Generic USB Joystick	0	2
+0	4613	PS4 Controller	PLAYSTATION(R)3 Controller	0	2
+1118	3302		DUALSENSE WIRELESS CONTROLLER	0	1
+3157	4607	PS4 Controller	Steam Deck Controller	1	2
+1356	1	PLAYSTATION(R)3 Controller		0	2
+1356	4613	Wireless Controller		0	2
+11720	4613	Xbox Wireless Controller	Generic USB Joystick	1	1
+47978	4613	8BitDo Pro 2	PLAYSTATION(R)3 CONTROLLER	0	2
+0	746	PLAYSTATION(R)3 Controller		1	2
+10462	777	8BitDo Pro 2	DualSense Wireless Controller	0	2
+24669	58686	Generic USB Joystick	PLAYSTATION(R)3 Controller	1	2
+0	4613		Generic USB Joystick	0	4
+15055	53734	Xbox Wireless Controller	8BitDo Pro 2	1	1
+10462	746	Generic USB Joystick	STEAM DECK CONTROLLER	0	3
+1356	28483	8BitDo Pro 2	Xbox Wireless Controller	1	2
+11720	746	Xbox Wireless Controller		1	1
+10462	746	Wireless Controller	DualSense Wireless Controller	0	2
+11720	3302		PLAYSTATION(R)3 CONTROLLER	0	2
+0	4607	Generic USB Joystick	XBOX WIRELESS CONTROLLER	1	1
+40657	3302	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+11720	4613	PLAYSTATION(R)3 Controller	PS4 Controller	0	2
+0	4613	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+28004	25285	8BitDo Pro 2		1	4
+10462	58670	Steam Deck Controller	PS4 CONTROLLER	0	2
+11720	1	Generic USB Joystick	8BITDO PRO 2	0	4
+1118	4613	Generic USB Joystick	8BitDo Pro 2	0	1
+1356	4607	DualSense Wireless Controller	PS4 CONTROLLER	0	2
+1118	1	Generic USB Joystick		1	1
+11720	4607	Xbox Wireless Controller	DualSense Wireless Controller	0	2
+37341	47738	PLAYSTATION(R)3 Controller	PS4 CONTROLLER	0	2
+56784	4607		XInput Controller	1	1
+47111	3302	XInput Controller	8BITDO PRO 2	1	1
+46565	1	Wireless Controller	DualSense Wireless Controller	0	2
+30313	15403	XInput Controller	XInput Controller	0	1
+3943	3302	Generic USB Joystick		1	4
+0	53522	Generic USB Joystick	8BitDo Pro 2	0	4
+0	4613	8BitDo Pro 2	Xbox Wireless Controller	0	1
+1118	3302	Generic USB Joystick	Steam Deck Controller	0	1
+11720	48010	8BitDo Pro 2	PS4 Controller	0	2
+11720	3302	Xbox Wireless Controller	Generic USB Joystick	1	1
+1118	13258	8BitDo Pro 2	PS4 Controller	0	1
+14572	3302	Steam Deck Controller		0	3
+18378	4607	Generic USB Joystick	Wireless Controller	1	2
+0	57415	DualSense Wireless Controller	Wireless Controller	0	2
+11720	1		XInput Controller	1	1
+1356	19310	PS4 Controller	XInput Controller	0	2
+10462	1	Steam Deck Controller	PS4 CONTROLLER	1	2
+1356	746	Wireless Controller		1	2
+11720	4607	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	2
+1356	4607	Steam Deck Controller	PLAYSTATION(R)3 Controller	1	2
+1356	63021	Steam Deck Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1356	1	8BitDo Pro 2	PS4 Controller	1	2
+0	4607	Wireless Controller	PS4 CONTROLLER	0	2
+10462	15898	Xbox Wireless Controller	DualSense Wireless Controller	1	2
+0	1		XInput Controller	1	1
+10462	1		Xbox Wireless Controller	0	1
+16009	1015	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+1118	746	XInput Controller	8BitDo Pro 2	1	1
+10462	746	Wireless Controller	PS4 Controller	0	2
+1118	1	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	1
+0	22748	Generic USB Joystick	STEAM DECK CONTROLLER	0	3
+11720	1	8BitDo Pro 2	8BitDo Pro 2	0	4
+1356	3302		PLAYSTATION(R)3 Controller	0	2
+11720	1	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	1	2
+10462	61689	Xbox Wireless Controller	GENERIC USB JOYSTICK	0	1
+11720	1		PS4 CONTROLLER	0	2
+19933	1066	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	2
+0	9158	Generic USB Joystick		0	4
+11720	1	Xbox Wireless Controller	XInput Controller	0	1
+46954	3302		8BitDo Pro 2	1	4
+1118	3302	Generic USB Joystick	8BitDo Pro 2	1	1
+1118	1	Wireless Controller	DualSense Wireless Controller	0	1
+1356	746	8BitDo Pro 2	Steam Deck Controller	1	2
+1356	3302	DualSense Wireless Controller	8BitDo Pro 2	0	2
+1118	3302	8BitDo Pro 2	PLAYSTATION(R)3 CONTROLLER	1	1
+0	1	PLAYSTATION(R)3 Controller		1	2
+1356	4613	XInput Controller	8BitDo Pro 2	1	2
+1118	746	8BitDo Pro 2	Xbox Wireless Controller	0	1
+22559	4613	Steam Deck Controller	PLAYSTATION(R)3 CONTROLLER	1	2
+11720	1	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+11720	4613	PS4 Controller	PS4 Controller	0	2
+11720	4613	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+37179	3302	8BitDo Pro 2	Steam Deck Controller	1	3
+52406	6769	Generic USB Joystick	Steam Deck Controller	0	3
+0	746	8BitDo Pro 2	PS4 Controller	1	2
+0	4607	Xbox Wireless Controller	8BitDo Pro 2	1	1
+1356	4613		PLAYSTATION(R)3 Controller	0	2
+62531	21857	DualSense Wireless Controller	STEAM DECK CONTROLLER	0	2
+1356	49947		XBOX WIRELESS CONTROLLER	0	2
+1356	1	Xbox Wireless Controller	WIRELESS CONTROLLER	1	2
+11720	3302	Generic USB Joystick	DualSense Wireless Controller	0	2
+1356	1	Generic USB Joystick	XInput Controller	1	2
+11720	57720		8BITDO PRO 2	0	4
+0	46640	8BitDo Pro 2	XINPUT CONTROLLER	0	1
+1356	746	Steam Deck Controller	Generic USB Joystick	0	2
+10462	1	Steam Deck Controller	XInput Controller	0	1
+10462	4613	DualSense Wireless Controller	PS4 CONTROLLER	0	3
+43080	4613	Wireless Controller	XInput Controller	1	1
+0	4613	Wireless Controller	XBOX WIRELESS CONTROLLER	1	1
+11720	746		STEAM DECK CONTROLLER	1	3
+0	746		PS4 CONTROLLER	0	2
+11720	1		8BitDo Pro 2	0	4
+25824	4607	8BitDo Pro 2	8BitDo Pro 2	0	4
+11720	1		Generic USB Joystick	0	4
+1356	23634	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+10462	1	Steam Deck Controller	PS4 Controller	0	2
+10462	2954	PS4 Controller	XINPUT CONTROLLER	1	2
+45119	3302	DualSense Wireless Controller	Generic USB Joystick	1	2
+36013	3302	Steam Deck Controller		0	3
+21927	1	Generic USB Joystick	Wireless Controller	1	2
+1118	4607	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	1
+1356	3302		DUALSENSE WIRELESS CONTROLLER	1	2
+1356	20568		8BitDo Pro 2	0	2
+1202	746	Wireless Controller	Wireless Controller	0	2
+11720	4607	8BitDo Pro 2	PS4 CONTROLLER	0	2
+11720	3302	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1118	3302	XInput Controller		0	1
+11781	746	8BitDo Pro 2	Wireless Controller	1	2
+10462	3302	PLAYSTATION(R)3 Controller	XBOX WIRELESS CONTROLLER	1	2
+10462	3302	Steam Deck Controller	Xbox Wireless Controller	1	1
+1118	4613		Xbox Wireless Controller	0	1
+7199	4607	Steam Deck Controller	8BitDo Pro 2	1	3
+1118	4613	PS4 Controller	GENERIC USB JOYSTICK	0	1
+4775	1	PS4 Controller	PS4 CONTROLLER	0	2
+716	3302	PS4 Controller	STEAM DECK CONTROLLER	0	2
+1356	746			0	2
+1118	746	Wireless Controller	Xbox Wireless Controller	0	1
+1118	3302	XInput Controller	Generic USB Joystick	0	1
+10462	3302	XInput Controller	8BitDo Pro 2	0	1
+22001	4613	Generic USB Joystick		0	4
+1118	4607	PS4 Controller	XBOX WIRELESS CONTROLLER	0	1
+1118	4607	PLAYSTATION(R)3 Controller	PS4 Controller	0	1
+1118	4607	Steam Deck Controller	Xbox Wireless Controller	0	1
+1118	4607	XInput Controller	Steam Deck Controller	1	1
+1356	4607	Wireless Controller	PS4 Controller	1	2
+1356	4613	Generic USB Joystick	Wireless Controller	0	2
+1118	3302	PLAYSTATION(R)3 Controller	GENERIC USB JOYSTICK	0	1
+11720	63359	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+11720	4613	PS4 Controller	XINPUT CONTROLLER	0	2
+10462	1	PS4 Controller	Wireless Controller	0	2
+1118	746		Generic USB Joystick	0	1
+1118	4613	Xbox Wireless Controller	PLAYSTATION(R)3 CONTROLLER	1	1
+11720	1	PS4 Controller	DualSense Wireless Controller	1	2
+1118	746	PS4 Controller	GENERIC USB JOYSTICK	0	1
+1118	3302	Steam Deck Controller	XINPUT CONTROLLER	0	1
+46485	1	XInput Controller	PS4 Controller	1	2
+59218	38048	PLAYSTATION(R)3 Controller	WIRELESS CONTROLLER	0	2
+11720	1	Wireless Controller	PS4 Controller	0	2
+10462	3302		DualSense Wireless Controller	0	2
+1118	2297	Steam Deck Controller	PLAYSTATION(R)3 CONTROLLER	1	1
+11720	4607		STEAM DECK CONTROLLER	0	3
+11720	4607	PS4 Controller		0	2
+1356	4607	Xbox Wireless Controller	PS4 Controller	1	2
+41893	746	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+10462	746	PS4 Controller	PLAYSTATION(R)3 Controller	0	2
+11720	4607	Generic USB Joystick	Wireless Controller	0	2
+11720	3302	Xbox Wireless Controller	DualSense Wireless Controller	1	2
+10462	4607	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	4
+10409	3302	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	2
+1118	746	XInput Controller	STEAM DECK CONTROLLER	0	1
+55950	3302		Steam Deck Controller	0	3
+11720	1	DualSense Wireless Controller	PS4 CONTROLLER	0	2
+0	4607	PS4 Controller	Xbox Wireless Controller	0	2
+1356	4613	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	1	2
+53610	1	XInput Controller	Steam Deck Controller	1	1
+10462	3302	Steam Deck Controller	Xbox Wireless Controller	0	1
+0	4607	XInput Controller	8BitDo Pro 2	0	1
+1356	4607	8BitDo Pro 2	PS4 CONTROLLER	0	2
+1356	4613	DualSense Wireless Controller	Generic USB Joystick	0	2
+1356	4607	Wireless Controller		0	2
+0	3302	PLAYSTATION(R)3 Controller	PS4 CONTROLLER	1	2
+0	10263	PLAYSTATION(R)3 Controller	PS4 Controller	0	2
+1118	3302	PLAYSTATION(R)3 Controller	PS4 Controller	0	1
+10462	3302	PS4 Controller	PLAYSTATION(R)3 Controller	0	2
+1118	3302	Steam Deck Controller	Wireless Controller	0	1
+1356	3302	Generic USB Joystick		0	2
+41480	4607	Xbox Wireless Controller	GENERIC USB JOYSTICK	0	1
+0	4607	8BitDo Pro 2	DualSense Wireless Controller	0	2
+10462	3302	Generic USB Joystick	PS4 Controller	0	2
+11720	746	Generic USB Joystick	XInput Controller	0	1
+16571	3302	Generic USB Joystick	WIRELESS CONTROLLER	0	2
+10462	1772	Xbox Wireless Controller		0	1
+11720	746	Xbox Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+1356	3302	Wireless Controller	PS4 Controller	1	2
+1118	1	XInput Controller	DualSense Wireless Controller	0	1
+0	1	XInput Controller		0	1
+1356	3302	Steam Deck Controller	XInput Controller	0	2
+47538	3302	PS4 Controller	8BitDo Pro 2	0	2
+11720	1	XInput Controller		0	1
+8041	1	8BitDo Pro 2	DualSense Wireless Controller	0	2
+8008	4613	XInput Controller	PS4 CONTROLLER	1	2
+43526	746	Xbox Wireless Controller	DualSense Wireless Controller	0	2
+1356	3302	Xbox Wireless Controller	GENERIC USB JOYSTICK	1	2
+0	3302	Generic USB Joystick	DualSense Wireless Controller	0	2
+35513	4613	PLAYSTATION(R)3 Controller	XInput Controller	0	2
+1118	45264	Xbox Wireless Controller	Wireless Controller	0	1
+10462	1	Xbox Wireless Controller	Steam Deck Controller	0	1
+1118	5476	PS4 Controller	XInput Controller	1	1
+12408	49976	Wireless Controller		0	2
+10157	4613	DualSense Wireless Controller	XINPUT CONTROLLER	0	2
+10462	3302	PS4 Controller	XInput Controller	1	2
+10462	4613	DualSense Wireless Controller	8BITDO PRO 2	0	3
+1118	746	PS4 Controller	XINPUT CONTROLLER	1	1
+0	4613	DualSense Wireless Controller	Steam Deck Controller	0	2
+10462	4613	Xbox Wireless Controller	PS4 Controller	0	3
+11720	1	Steam Deck Controller	WIRELESS CONTROLLER	0	3
+1356	4613	PS4 Controller	GENERIC USB JOYSTICK	0	2
+28260	22978	Generic USB Joystick	WIRELESS CONTROLLER	0	2
+1356	3302	8BitDo Pro 2	8BITDO PRO 2	0	2
+11720	3302		Xbox Wireless Controller	0	1
+1356	746		8BitDo Pro 2	0	2
+5338	746	Wireless Controller	Steam Deck Controller	1	3
+42349	4613		8BitDo Pro 2	0	4
+1118	4607		8BitDo Pro 2	0	1
+24607	3302	Generic USB Joystick	Wireless Controller	0	2
+1118	746	8BitDo Pro 2	DualSense Wireless Controller	0	1
+0	1	Generic USB Joystick	8BitDo Pro 2	1	4
+11755	746	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	2
+11720	3302	DualSense Wireless Controller	GENERIC USB JOYSTICK	0	2
+10462	3302	8BitDo Pro 2	PS4 CONTROLLER	1	2
+11720	3302	8BitDo Pro 2	Generic USB Joystick	0	4
+1118	53255	XInput Controller	PS4 Controller	0	1
+18595	55387	Steam Deck Controller	PLAYSTATION(R)3 Controller	1	2
+11720	4613	Generic USB Joystick	DualSense Wireless Controller	0	2
+1118	746		PS4 Controller	1	1
+11720	4607	Generic USB Joystick	XBOX WIRELESS CONTROLLER	0	1
+10907	3302	Wireless Controller	Steam Deck Controller	0	3
+60756	4607	Generic USB Joystick	PS4 Controller	0	2
+1118	746	Xbox Wireless Controller	XInput Controller	0	1
+0	51242	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	2
+1356	746	PLAYSTATION(R)3 Controller	PS4 Controller	0	2
+25705	4613	Generic USB Joystick	Xbox Wireless Controller	0	1
+1356	4607	PLAYSTATION(R)3 Controller		1	2
+1356	4607	Generic USB Joystick		1	2
+1118	60299	Wireless Controller		1	1
+0	3302	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	2
+11720	59699	8BitDo Pro 2	PS4 CONTROLLER	0	2
+11720	746	Steam Deck Controller	PS4 CONTROLLER	0	2
+1118	4607	PLAYSTATION(R)3 Controller	XInput Controller	0	1
+10462	4607	PS4 Controller	PLAYSTATION(R)3 Controller	0	4
+10462	3302	PLAYSTATION(R)3 Controller	XInput Controller	0	2
+40589	4607	Steam Deck Controller	8BitDo Pro 2	0	3
+61485	4613	PS4 Controller	STEAM DECK CONTROLLER	0	2
+1118	4613	Xbox Wireless Controller		1	1
+10462	746			1	4
+8602	4607	Steam Deck Controller	Steam Deck Controller	1	3
+11720	746	Generic USB Joystick	DualSense Wireless Controller	1	2
+1356	17015	Xbox Wireless Controller	Wireless Controller	0	2
+1118	746	Wireless Controller	DualSense Wireless Controller	0	1
+1356	4607	Generic USB Joystick	WIRELESS CONTROLLER	0	2
+10462	4607	Wireless Controller	XInput Controller	0	4
+0	2150	Xbox Wireless Controller	Xbox Wireless Controller	1	1
+0	4613	Generic USB Joystick	Xbox Wireless Controller	1	1
+0	4613	8BitDo Pro 2	Generic USB Joystick	1	4
+0	1	PLAYSTATION(R)3 Controller	PS4 Controller	0	2
+10462	4607	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	4
+11720	746		PS4 Controller	0	2
+1356	4607	Steam Deck Controller	PS4 Controller	0	2
+1356	3302	XInput Controller	GENERIC USB JOYSTICK	0	2
+1118	3302	Generic USB Joystick	Generic USB Joystick	0	1
+0	18668	XInput Controller	Generic USB Joystick	0	1
+11720	4613		Steam Deck Controller	1	3
+1356	3302	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+18465	4607		8BitDo Pro 2	1	4
+1118	3302	Xbox Wireless Controller	PS4 Controller	1	1
+54627	4613	Wireless Controller	PS4 Controller	0	2
+0	4613	Xbox Wireless Controller	Xbox Wireless Controller	1	1
+11720	4607	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+11720	4607	Generic USB Joystick	Generic USB Joystick	0	4
+11015	37703	Steam Deck Controller	PS4 Controller	1	2
+11720	1	Generic USB Joystick	XBOX WIRELESS CONTROLLER	0	1
+11720	4613	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	2
+0	8873	Xbox Wireless Controller		1	1
+1118	4607	PLAYSTATION(R)3 Controller	DUALSENSE WIRELESS CONTROLLER	0	1
+54636	32899	Xbox Wireless Controller	PS4 Controller	0	2
+22132	4607	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	1	2
+11720	746	Xbox Wireless Controller	8BitDo Pro 2	0	1
+11720	3302	PLAYSTATION(R)3 Controller		0	2
+1356	3302	PS4 Controller	PS4 Controller	0	2
+0	5825	Xbox Wireless Controller	XINPUT CONTROLLER	0	1
+1356	1	Generic USB Joystick	Wireless Controller	0	2
+1118	1	XInput Controller		0	1
+0	56664	XInput Controller	Steam Deck Controller	1	1
+14809	746	8BitDo Pro 2	XInput Controller	0	1
+1356	3302	PLAYSTATION(R)3 Controller	XBOX WIRELESS CONTROLLER	1	2
+1118	4607	XInput Controller	DualSense Wireless Controller	0	1
+1118	746		WIRELESS CONTROLLER	0	1
+14857	3302	DualSense Wireless Controller		0	2
+1356	1	Generic USB Joystick	XINPUT CONTROLLER	1	2
+1356	4613	XInput Controller	XInput Controller	0	2
+0	20989		DUALSENSE WIRELESS CONTROLLER	0	2
+8773	4607	Generic USB Joystick	Wireless Controller	0	2
+11720	4607	Xbox Wireless Controller	XBOX WIRELESS CONTROLLER	0	1
+1356	9280	Xbox Wireless Controller	Xbox Wireless Controller	0	2
+10462	4613	8BitDo Pro 2	Steam Deck Controller	0	3
+28549	4613		Generic USB Joystick	1	4
+0	1	Steam Deck Controller	XInput Controller	1	1
+11720	4607	PS4 Controller	Xbox Wireless Controller	0	2
+1118	3302	8BitDo Pro 2	PS4 CONTROLLER	0	1
+0	34631	Generic USB Joystick	XBOX WIRELESS CONTROLLER	1	1
+0	1	8BitDo Pro 2	Xbox Wireless Controller	0	1
+0	4613		PS4 Controller	1	2
+1356	4607		WIRELESS CONTROLLER	0	2
+10462	4045	PLAYSTATION(R)3 Controller	PS4 Controller	1	2
+11720	4613	DualSense Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+11720	21462	Xbox Wireless Controller	GENERIC USB JOYSTICK	0	1
+11720	43272	8BitDo Pro 2	PLAYSTATION(R)3 Controller	0	2
+1118	1	PS4 Controller		0	1
+10462	1519	8BitDo Pro 2	DualSense Wireless Controller	0	2
+11720	746	PS4 Controller		0	2
+11720	46112		XBOX WIRELESS CONTROLLER	0	1
+11720	4613		Xbox Wireless Controller	1	1
+1356	3302	8BitDo Pro 2		0	2
+47353	746	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	2
+11720	3302	Xbox Wireless Controller	8BitDo Pro 2	1	1
+16937	3302	Wireless Controller	8BitDo Pro 2	0	2
+10462	27594	8BitDo Pro 2	Xbox Wireless Controller	0	1
+1356	4613	8BitDo Pro 2		0	2
+10462	4607	PS4 Controller	Xbox Wireless Controller	1	3
+9431	3302	XInput Controller	8BitDo Pro 2	0	1
+48399	746	XInput Controller	STEAM DECK CONTROLLER	0	1
+0	4607			0	4
+1356	1	8BitDo Pro 2	XInput Controller	0	2
+1118	5425	Steam Deck Controller	PS4 Controller	0	1
+54935	3302	8BitDo Pro 2	GENERIC USB JOYSTICK	0	4
+1118	3302	XInput Controller		1	1
+10462	1	PS4 Controller	STEAM DECK CONTROLLER	0	2
+1118	1	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	1
+17255	3302	Steam Deck Controller	Generic USB Joystick	1	3
+11720	4613	PS4 Controller	8BitDo Pro 2	1	2
+1118	3302	DualSense Wireless Controller	GENERIC USB JOYSTICK	0	1
+11720	33489	8BitDo Pro 2	PS4 CONTROLLER	0	2
+11720	4613		8BitDo Pro 2	1	4
+10462	21656	XInput Controller	8BITDO PRO 2	0	1
+11720	4569	Generic USB Joystick	PS4 CONTROLLER	1	2
+10462	746	DualSense Wireless Controller	Generic USB Joystick	0	2
+45954	746	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+1356	58559	PS4 Controller	Xbox Wireless Controller	1	2
+11720	1		Wireless Controller	0	2
+11720	1	Generic USB Joystick		0	4
+1356	746	PLAYSTATION(R)3 Controller	8BITDO PRO 2	1	2
+10462	45029	XInput Controller	XBOX WIRELESS CONTROLLER	0	1
+1118	4607		Xbox Wireless Controller	1	1
+1118	3302	XInput Controller	PLAYSTATION(R)3 Controller	0	1
+1356	4607	PS4 Controller	XInput Controller	0	2
+11720	4613	PS4 Controller	XInput Controller	1	2
+10462	1	Steam Deck Controller	8BitDo Pro 2	1	3
+20000	28407		DualSense Wireless Controller	0	2
+11720	1	DualSense Wireless Controller	Steam Deck Controller	0	2
+1356	1	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	2
+27661	4607	8BitDo Pro 2	Generic USB Joystick	0	4
+61947	4613	Wireless Controller		0	2
+10462	25626	Xbox Wireless Controller	Xbox Wireless Controller	1	1
+0	3302	Steam Deck Controller		0	3
+10462	4607	DualSense Wireless Controller	DualSense Wireless Controller	0	4
+1356	4607	Steam Deck Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+10462	38056	Wireless Controller	PS4 Controller	0	2
+1356	746	Generic USB Joystick	STEAM DECK CONTROLLER	0	2
+0	4613	PLAYSTATION(R)3 Controller	PS4 Controller	0	2
+1118	4607	Xbox Wireless Controller	8BitDo Pro 2	0	1
+41054	1	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+31249	47205	DualSense Wireless Controller	Wireless Controller	0	2
+11720	4613	Generic USB Joystick		1	4
+1356	4607	Wireless Controller		0	2
+1356	4613	PS4 Controller	PLAYSTATION(R)3 Controller	0	2
+59443	4607	8BitDo Pro 2	Wireless Controller	0	2
+1356	746	DualSense Wireless Controller	DualSense Wireless Controller	1	2
+7387	11206	Generic USB Joystick	Steam Deck Controller	0	3
+10462	4613	Steam Deck Controller	DualSense Wireless Controller	0	3
+0	4613	Steam Deck Controller	GENERIC USB JOYSTICK	0	3
+1356	4607	XInput Controller		0	2
+0	3302	DualSense Wireless Controller	8BITDO PRO 2	0	2
+10462	3302	Wireless Controller	WIRELESS CONTROLLER	0	2
+10462	60738	XInput Controller	Steam Deck Controller	1	1
+10462	4607	DualSense Wireless Controller	XINPUT CONTROLLER	1	3
+11720	47932	DualSense Wireless Controller		0	2
+0	4607			0	4
+1356	55093	PS4 Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+10462	17808	8BitDo Pro 2	Steam Deck Controller	1	3
+10462	746	PLAYSTATION(R)3 Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+11720	1	Steam Deck Controller	Wireless Controller	0	3
+1118	4607	DualSense Wireless Controller		0	1
+0	4607	Generic USB Joystick	PLAYSTATION(R)3 Controller	1	2
+48251	3302	Xbox Wireless Controller	XInput Controller	0	1
+10462	746	Steam Deck Controller	PS4 Controller	0	2
+0	9551	PLAYSTATION(R)3 Controller		1	2
+0	4607	8BitDo Pro 2		0	4
+1118	1	PS4 Controller	XINPUT CONTROLLER	0	1
+11720	746	Steam Deck Controller	8BITDO PRO 2	0	3
+1118	746	Steam Deck Controller	DualSense Wireless Controller	1	1
+1118	746	Generic USB Joystick	Generic USB Joystick	1	1
+1356	746	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	2
+1356	3302	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+1118	4607		DUALSENSE WIRELESS CONTROLLER	0	1
+10462	1	PS4 Controller	WIRELESS CONTROLLER	1	2
+10462	1	8BitDo Pro 2	PLAYSTATION(R)3 Controller	0	2
+40786	1	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1118	40794	8BitDo Pro 2	8BITDO PRO 2	0	1
+0	4613	PS4 Controller	Wireless Controller	1	2
+10462	3302	Wireless Controller	Xbox Wireless Controller	0	1
+34647	746	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+10462	746	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1356	60938	Generic USB Joystick	Generic USB Joystick	0	2
+0	9976	DualSense Wireless Controller	PS4 Controller	0	2
+1118	4613	Generic USB Joystick	Wireless Controller	0	1
+60431	4613	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+1356	746		Steam Deck Controller	0	2
+0	39279	Generic USB Joystick	Wireless Controller	0	2
+1356	3302	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+1118	1		8BitDo Pro 2	0	1
+10462	4613	8BitDo Pro 2		0	3
+11720	3302	Generic USB Joystick	Generic USB Joystick	0	4
+1118	14907	Wireless Controller	8BitDo Pro 2	0	1
+11720	1	Wireless Controller	WIRELESS CONTROLLER	0	2
+1118	4607	8BitDo Pro 2	Generic USB Joystick	0	1
+1118	4607	Generic USB Joystick	PS4 Controller	1	1
+1118	746	Wireless Controller	Xbox Wireless Controller	1	1
+0	1	PS4 Controller	Xbox Wireless Controller	0	2
+1118	1	8BitDo Pro 2	Wireless Controller	1	1
+1356	746		PS4 CONTROLLER	1	2
+1356	3302	Xbox Wireless Controller	STEAM DECK CONTROLLER	0	2
+0	746	Wireless Controller	XInput Controller	1	1
+23737	3302	Generic USB Joystick	8BitDo Pro 2	0	4
+1118	4613	8BitDo Pro 2	Wireless Controller	0	1
+1118	3302	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	1
+1356	18715	Xbox Wireless Controller	XInput Controller	0	2
+1356	63102		STEAM DECK CONTROLLER	1	2
+1118	3431	Wireless Controller	PLAYSTATION(R)3 Controller	0	1
+1118	5467	PS4 Controller	XINPUT CONTROLLER	0	1
+11720	746	Generic USB Joystick	Wireless Controller	0	2
+10462	1	DualSense Wireless Controller	PS4 Controller	1	2
+11720	63756	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+11720	4607	Wireless Controller	XInput Controller	0	1
+1118	4607	PLAYSTATION(R)3 Controller	STEAM DECK CONTROLLER	1	1
+0	4607	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+10462	1	Wireless Controller	XBOX WIRELESS CONTROLLER	0	1
+1356	4607	PS4 Controller	XInput Controller	0	2
+1118	4613	DualSense Wireless Controller		1	1
+40720	1	XInput Controller		0	1
+0	3302	Xbox Wireless Controller	XBOX WIRELESS CONTROLLER	0	1
+32550	1	Generic USB Joystick	XINPUT CONTROLLER	1	1
+10462	746	Generic USB Joystick	PS4 Controller	0	2
+0	3302	Steam Deck Controller	8BitDo Pro 2	0	3
+36804	48080	XInput Controller	GENERIC USB JOYSTICK	1	1
+10462	1		Xbox Wireless Controller	1	1
+10462	1	XInput Controller		0	1
+21554	4607	8BitDo Pro 2	GENERIC USB JOYSTICK	0	4
+10462	3302	8BitDo Pro 2	Wireless Controller	1	2
+0	4607	Steam Deck Controller	XInput Controller	1	1
+10462	746	XInput Controller		1	1
+1356	26017	DualSense Wireless Controller	XBOX WIRELESS CONTROLLER	0	2
+1356	4613	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+62271	1	Wireless Controller	8BitDo Pro 2	1	2
+15016	24487	Xbox Wireless Controller	DualSense Wireless Controller	1	2
+1118	4613	PS4 Controller	GENERIC USB JOYSTICK	1	1
+5317	54490	PS4 Controller	DualSense Wireless Controller	0	2
+1356	44426	PS4 Controller	XBOX WIRELESS CONTROLLER	0	2
+0	4607		Generic USB Joystick	0	4
+0	31646	Wireless Controller	PS4 Controller	0	2
+37889	3302	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	2
+10462	3302	Generic USB Joystick	Xbox Wireless Controller	0	1
+26911	3302	Xbox Wireless Controller	XINPUT CONTROLLER	0	1
+10462	53102	PS4 Controller	8BitDo Pro 2	0	2
+10462	4607	Steam Deck Controller	8BitDo Pro 2	0	4
+0	1	PLAYSTATION(R)3 Controller	XInput Controller	0	2
+1356	746	XInput Controller	WIRELESS CONTROLLER	1	2
+0	4613	DualSense Wireless Controller		1	2
+1356	3302	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+1356	746	8BitDo Pro 2	Steam Deck Controller	0	2
+11720	746	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	2
+0	746	8BitDo Pro 2	PLAYSTATION(R)3 CONTROLLER	1	2
+11720	4607	PS4 Controller	PS4 Controller	0	2
+49390	24630	8BitDo Pro 2		1	4
+0	1	PS4 Controller	Wireless Controller	0	2
+0	4607	Steam Deck Controller	DualSense Wireless Controller	0	2
+1356	1	Generic USB Joystick	STEAM DECK CONTROLLER	1	2
+11720	746	PS4 Controller	DualSense Wireless Controller	0	2
+0	1	Wireless Controller	WIRELESS CONTROLLER	1	2
+1356	746	Xbox Wireless Controller	Wireless Controller	1	2
+11720	746	8BitDo Pro 2	PS4 CONTROLLER	1	2
+1118	1	8BitDo Pro 2	Steam Deck Controller	0	1
+10462	3302	8BitDo Pro 2	STEAM DECK CONTROLLER	0	3
+1356	3302	8BitDo Pro 2	Xbox Wireless Controller	0	2
+0	4607		Steam Deck Controller	0	3
+0	4607	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+3770	3302	XInput Controller	DualSense Wireless Controller	0	2
+0	4607	Steam Deck Controller		0	3
+11720	3302	PS4 Controller	XInput Controller	0	2
+0	3302	Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+1356	4088	PS4 Controller	DualSense Wireless Controller	1	2
+0	1		Steam Deck Controller	0	3
+1356	3302	8BitDo Pro 2	Xbox Wireless Controller	0	2
+1356	4613		PLAYSTATION(R)3 CONTROLLER	0	2
+0	1		Wireless Controller	1	2
+50907	28165	Generic USB Joystick	PLAYSTATION(R)3 CONTROLLER	1	2
+12003	3302	Xbox Wireless Controller		0	1
+1356	4613	8BitDo Pro 2	XINPUT CONTROLLER	1	2
+63107	1	PS4 Controller	XINPUT CONTROLLER	1	2
+11720	3302	DualSense Wireless Controller	XBOX WIRELESS CONTROLLER	0	2
+10462	63231			0	4
+11720	3302	PS4 Controller	Xbox Wireless Controller	1	2
+11720	9139	Generic USB Joystick	8BITDO PRO 2	0	4
+10462	4613	Generic USB Joystick	8BitDo Pro 2	0	3
+24680	4613	Xbox Wireless Controller		0	1
+0	59280	Xbox Wireless Controller	Steam Deck Controller	0	1
+0	4613			0	4
+1356	746	Generic USB Joystick	GENERIC USB JOYSTICK	1	2
+1356	1	DualSense Wireless Controller	8BITDO PRO 2	0	2
+34177	31003	PLAYSTATION(R)3 Controller	Wireless Controller	1	2
+1118	4607	Steam Deck Controller		0	1
+11720	4607	8BitDo Pro 2	PS4 Controller	1	2
+1356	13140	Generic USB Joystick	XBOX WIRELESS CONTROLLER	1	2
+10462	4607	Generic USB Joystick	Steam Deck Controller	1	3
+10462	61357	XInput Controller	PS4 Controller	1	2
+1356	4607	Wireless Controller	XInput Controller	1	2
+10462	3302	Xbox Wireless Controller	Generic USB Joystick	1	1
+59317	746	Xbox Wireless Controller	Wireless Controller	0	1
+1356	37041	Generic USB Joystick		0	2
+1118	3302	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	1
+1118	4607	Steam Deck Controller		0	1
+0	4613	Generic USB Joystick	XInput Controller	0	1
+0	40030	8BitDo Pro 2	PLAYSTATION(R)3 Controller	0	2
+1356	746	Steam Deck Controller	XInput Controller	0	2
+0	3302	PS4 Controller	PS4 Controller	1	2
+1356	746		DualSense Wireless Controller	1	2
+1118	4607	Xbox Wireless Controller	XInput Controller	0	1
+1356	1	PLAYSTATION(R)3 Controller		0	2
+11720	4607	PS4 Controller	GENERIC USB JOYSTICK	0	2
+1118	746	Generic USB Joystick	DUALSENSE WIRELESS CONTROLLER	0	1
+1118	4607	PS4 Controller	XInput Controller	0	1
+1118	4613	Xbox Wireless Controller	Xbox Wireless Controller	0	1
+1118	4613	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	1
+11720	1	8BitDo Pro 2		0	4
+41846	3302	Generic USB Joystick	PLAYSTATION(R)3 Controller	0	2
+10462	4613	Xbox Wireless Controller	DualSense Wireless Controller	0	3
+10462	29737		8BitDo Pro 2	1	4
+1118	4744	DualSense Wireless Controller	GENERIC USB JOYSTICK	1	1
+59786	4613	Wireless Controller		0	2
+1118	746	PS4 Controller	DualSense Wireless Controller	0	1
+11720	49834	Xbox Wireless Controller	8BitDo Pro 2	1	1
+11720	746	8BitDo Pro 2	8BitDo Pro 2	0	4
+1356	4607	Steam Deck Controller		0	2
+10462	28711	Wireless Controller	XInput Controller	1	1
+1356	4607	PS4 Controller	STEAM DECK CONTROLLER	0	2
+11720	4607	Xbox Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+0	3302	XInput Controller	Generic USB Joystick	0	1
+11720	4607	XInput Controller	GENERIC USB JOYSTICK	0	1
+11720	4607	Generic USB Joystick	PLAYSTATION(R)3 Controller	1	2
+1118	3302	XInput Controller	Xbox Wireless Controller	0	1
+0	4613	XInput Controller	Generic USB Joystick	0	1
+11720	4607	XInput Controller	Xbox Wireless Controller	0	1
+11720	4607		XInput Controller	0	1
+1356	1	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1356	746	Steam Deck Controller	Steam Deck Controller	0	2
+10462	39139	DualSense Wireless Controller	8BitDo Pro 2	0	2
+52146	4613	Generic USB Joystick	8BITDO PRO 2	0	4
+56122	1	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1356	1	PS4 Controller	PS4 Controller	0	2
+1118	746	PS4 Controller	DualSense Wireless Controller	0	1
+0	31655	DualSense Wireless Controller	Steam Deck Controller	0	2
+0	4613	8BitDo Pro 2	WIRELESS CONTROLLER	0	2
+0	1	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	2
+1118	36796	XInput Controller	Wireless Controller	0	1
+1356	4613	Steam Deck Controller	PLAYSTATION(R)3 Controller	1	2
+0	1	DualSense Wireless Controller	GENERIC USB JOYSTICK	1	2
+1118	4607	PS4 Controller	8BitDo Pro 2	0	1
+11720	746	XInput Controller	PS4 Controller	0	2
+11720	746		PS4 Controller	1	2
+10462	746	XInput Controller	8BitDo Pro 2	0	1
+0	20862	Wireless Controller	DualSense Wireless Controller	1	2
+1356	3302	Generic USB Joystick	DualSense Wireless Controller	0	2
+11720	1	PS4 Controller	XInput Controller	0	2
+10462	1	PS4 Controller	8BitDo Pro 2	0	2
+1118	746	Steam Deck Controller	8BitDo Pro 2	0	1
+33402	61823		Wireless Controller	0	2
+10462	746	8BitDo Pro 2	8BitDo Pro 2	0	4
+1356	4607	XInput Controller	XInput Controller	0	2
+1118	4613	Generic USB Joystick	STEAM DECK CONTROLLER	0	1
+1118	4613	DualSense Wireless Controller	XInput Controller	0	1
+1356	4607	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+10462	23299	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	1	2
+1118	4613		Xbox Wireless Controller	1	1
+11720	746	Wireless Controller	DualSense Wireless Controller	1	2
+0	4607	8BitDo Pro 2	WIRELESS CONTROLLER	1	2
+1356	32303	Wireless Controller	Steam Deck Controller	0	2
+0	4613	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+10462	4607	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	4
+53173	746	Xbox Wireless Controller	Steam Deck Controller	0	1
+10462	4613	Steam Deck Controller		0	3
+0	4613	8BitDo Pro 2	Xbox Wireless Controller	1	1
+10462	3302	Generic USB Joystick	PS4 Controller	0	2
+28615	4613	PS4 Controller	PS4 Controller	0	2
+1356	3302		Generic USB Joystick	0	2
+1356	4613		Steam Deck Controller	0	2
+0	746	XInput Controller	PS4 Controller	0	2
+11720	3302		Generic USB Joystick	0	4
+10462	1	PLAYSTATION(R)3 Controller	STEAM DECK CONTROLLER	1	2
+10462	3302	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+11720	1		PS4 Controller	0	2
+0	746	PS4 Controller	Steam Deck Controller	0	2
+1356	746		PS4 Controller	0	2
+1118	4613	Xbox Wireless Controller	8BITDO PRO 2	0	1
+9350	3302	DualSense Wireless Controller	XINPUT CONTROLLER	0	2
+10462	31884	Wireless Controller	PS4 CONTROLLER	1	2
+0	3302	XInput Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+11720	1	XInput Controller	Generic USB Joystick	0	1
+1118	746	DualSense Wireless Controller	Xbox Wireless Controller	0	1
+1356	746	Xbox Wireless Controller	PS4 Controller	1	2
+10462	3302	Generic USB Joystick	GENERIC USB JOYSTICK	0	4
+10462	4607	Generic USB Joystick	PS4 CONTROLLER	0	4
+25574	4607	Generic USB Joystick		1	4
+21643	746	XInput Controller	PS4 Controller	0	2
+11720	4607	Wireless Controller		0	2
+11720	3302			1	4
+1118	4607	DualSense Wireless Controller	STEAM DECK CONTROLLER	1	1
+1118	746	Xbox Wireless Controller	XInput Controller	0	1
+1118	746	Steam Deck Controller	Steam Deck Controller	0	1
+1118	746	XInput Controller		1	1
+1356	4613		WIRELESS CONTROLLER	1	2
+26653	32462	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+40925	3361		PLAYSTATION(R)3 Controller	1	2
+1118	3302		PLAYSTATION(R)3 CONTROLLER	1	1
+7666	746		DualSense Wireless Controller	0	2
+58684	1	Xbox Wireless Controller	Generic USB Joystick	0	1
+1118	746	Steam Deck Controller	DualSense Wireless Controller	1	1
+10462	746		Generic USB Joystick	0	4
+41689	746	Wireless Controller	PLAYSTATION(R)3 CONTROLLER	1	2
+1118	1	XInput Controller	PS4 Controller	1	1
+1118	23444	8BitDo Pro 2	PS4 CONTROLLER	1	1
+10462	746		XInput Controller	1	1
+1356	1	8BitDo Pro 2	WIRELESS CONTROLLER	0	2
+1356	4613	PS4 Controller	Generic USB Joystick	0	2
+1356	645	Steam Deck Controller	Generic USB Joystick	1	2
+14800	1		8BitDo Pro 2	1	4
+1118	3302	Generic USB Joystick	Wireless Controller	0	1
+0	4613	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	2
+11720	4613	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	2
+1118	1	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	1
+28924	1	Steam Deck Controller	XINPUT CONTROLLER	1	1
+1356	3302	Wireless Controller	XINPUT CONTROLLER	0	2
+11720	4613	PS4 Controller	DualSense Wireless Controller	0	2
+1118	3302	Steam Deck Controller	Generic USB Joystick	0	1
+0	1	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+10462	4613		STEAM DECK CONTROLLER	0	3
+39839	25138	Steam Deck Controller	Steam Deck Controller	0	3
+1118	3302	XInput Controller	DualSense Wireless Controller	0	1
+58339	1	PS4 Controller	Xbox Wireless Controller	0	2
+10462	7507		Steam Deck Controller	0	3
+1118	3302	DualSense Wireless Controller	Generic USB Joystick	1	1
+11720	37252	Steam Deck Controller	PLAYSTATION(R)3 Controller	1	2
+26083	746	XInput Controller	WIRELESS CONTROLLER	0	1
+11720	4607	Generic USB Joystick	PLAYSTATION(R)3 CONTROLLER	0	2
+11720	4607	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	2
+0	7119		XBOX WIRELESS CONTROLLER	0	1
+11720	1		XInput Controller	1	1
+1356	746	PS4 Controller	WIRELESS CONTROLLER	0	2
+0	746	Generic USB Joystick		0	4
+1118	1	XInput Controller	GENERIC USB JOYSTICK	0	1
+0	1	Steam Deck Controller	PS4 CONTROLLER	0	2
+10462	6233		Xbox Wireless Controller	1	1
+10462	1	Wireless Controller	Generic USB Joystick	0	2
+11720	4607	8BitDo Pro 2	XInput Controller	0	1
+11720	3302	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+10462	3302	XInput Controller	Wireless Controller	0	1
+40733	4613	PLAYSTATION(R)3 Controller	STEAM DECK CONTROLLER	0	2
+0	4607	Generic USB Joystick	DualSense Wireless Controller	0	2
+11720	1	8BitDo Pro 2	Xbox Wireless Controller	0	1
+1356	1	Steam Deck Controller	Steam Deck Controller	0	2
+56896	4607	Xbox Wireless Controller		1	1
+41770	3553	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	1	2
+11720	3302	Xbox Wireless Controller	Steam Deck Controller	0	1
+27219	1	PS4 Controller	DualSense Wireless Controller	0	2
+10462	61839	PS4 Controller	XInput Controller	0	2
+1118	4607	Steam Deck Controller	PS4 CONTROLLER	1	1
+1356	4607	DualSense Wireless Controller	8BITDO PRO 2	0	2
+10462	746	Steam Deck Controller		0	3
+10462	10540	Steam Deck Controller	Steam Deck Controller	0	3
+11720	57440	PS4 Controller	Xbox Wireless Controller	0	2
+10462	746	Wireless Controller		0	2
+10462	4607	XInput Controller	WIRELESS CONTROLLER	0	4
+10462	4607	8BitDo Pro 2	WIRELESS CONTROLLER	0	4
+11720	1781	DualSense Wireless Controller	XINPUT CONTROLLER	0	2
+10462	43258	Steam Deck Controller		0	3
+0	24323	PS4 Controller	Steam Deck Controller	0	2
+10462	746	PS4 Controller	Steam Deck Controller	0	2
+10462	3302	PLAYSTATION(R)3 Controller		1	2
+43908	1	Xbox Wireless Controller	DualSense Wireless Controller	1	2
+21392	4613	Wireless Controller		0	2
+1118	3302	Wireless Controller	Steam Deck Controller	0	1
+11720	11995	8BitDo Pro 2	WIRELESS CONTROLLER	1	2
+10462	3302	8BitDo Pro 2	PS4 Controller	0	2
+11720	38946	Steam Deck Controller	Wireless Controller	0	3
+59541	4613	XInput Controller		0	1
+1356	4607	PS4 Controller	PS4 CONTROLLER	0	2
+30842	3302	Steam Deck Controller	PLAYSTATION(R)3 Controller	1	2
+1118	1	PS4 Controller	PS4 Controller	1	1
+11720	4607	Generic USB Joystick	STEAM DECK CONTROLLER	1	3
+1356	746	Wireless Controller	PS4 Controller	0	2
+11720	4613	Generic USB Joystick		0	4
+11720	4613	Xbox Wireless Controller	DualSense Wireless Controller	0	2
+10462	58415	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	2
+1356	23190	8BitDo Pro 2	8BITDO PRO 2	1	2
+32837	4613	Wireless Controller	Generic USB Joystick	0	2
+10462	3302	Generic USB Joystick	XInput Controller	0	1
+1356	746	XInput Controller	DualSense Wireless Controller	0	2
+1118	4613	XInput Controller	PLAYSTATION(R)3 CONTROLLER	0	1
+1118	4607	Xbox Wireless Controller	Generic USB Joystick	1	1
+1356	1	XInput Controller	Wireless Controller	1	2
+46997	1	Steam Deck Controller	Wireless Controller	1	3
+11720	1	Generic USB Joystick	XInput Controller	0	1
+0	4613	PS4 Controller	Steam Deck Controller	0	2
+59767	4607	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+0	746	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	1	2
+11720	4613	PS4 Controller	Generic USB Joystick	1	2
+0	1	Wireless Controller	Steam Deck Controller	1	3
+1118	4613	8BitDo Pro 2	DualSense Wireless Controller	0	1
+1118	3302	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	1
+1118	4613	XInput Controller	Steam Deck Controller	0	1
+1356	4613	Generic USB Joystick		0	2
+52146	4613		PLAYSTATION(R)3 CONTROLLER	1	2
+6315	22939	PLAYSTATION(R)3 Controller	XInput Controller	1	2
+29468	4607	Xbox Wireless Controller	Steam Deck Controller	0	1
+10462	1	Generic USB Joystick	DualSense Wireless Controller	1	2
+0	17181	Steam Deck Controller	Generic USB Joystick	0	3
+10462	2038	Xbox Wireless Controller	Steam Deck Controller	0	1
+11720	4613	Steam Deck Controller	XINPUT CONTROLLER	0	1
+10462	4607	Xbox Wireless Controller	PS4 Controller	0	4
+10462	1	Wireless Controller	Generic USB Joystick	1	2
+1356	4613	Steam Deck Controller	PS4 Controller	0	2
+11720	746		STEAM DECK CONTROLLER	1	3
+48349	746	Generic USB Joystick	Xbox Wireless Controller	0	1
+0	4607	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+11720	60671	Generic USB Joystick		0	4
+1118	4613	Generic USB Joystick	XInput Controller	0	1
+0	4613	DualSense Wireless Controller		0	2
+1118	4613	DualSense Wireless Controller	Steam Deck Controller	0	1
+1118	4613	PS4 Controller		0	1
+43620	3302		XInput Controller	0	1
+11720	4607	Generic USB Joystick	PLAYSTATION(R)3 CONTROLLER	0	2
+10462	4164	8BitDo Pro 2	DualSense Wireless Controller	0	2
+0	21831	Wireless Controller	Generic USB Joystick	1	2
+10462	3302	DualSense Wireless Controller	Generic USB Joystick	0	2
+0	1	Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1356	1	XInput Controller	XINPUT CONTROLLER	0	2
+9143	746	8BitDo Pro 2	DualSense Wireless Controller	1	2
+11720	746	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	2
+11720	4613	Xbox Wireless Controller	PS4 CONTROLLER	0	2
+1356	4613	DualSense Wireless Controller		0	2
+1356	3302	Wireless Controller	GENERIC USB JOYSTICK	0	2
+1118	4613	PS4 Controller	WIRELESS CONTROLLER	1	1
+0	4607	Wireless Controller	PS4 CONTROLLER	1	2
+55594	47181	PS4 Controller		1	2
+1118	746	PS4 Controller		1	1
+10462	34943	PLAYSTATION(R)3 Controller	XInput Controller	0	2
+1118	4613	Wireless Controller	Generic USB Joystick	0	1
+22181	27298	XInput Controller	STEAM DECK CONTROLLER	0	1
+11720	746	Generic USB Joystick	8BitDo Pro 2	1	4
+34798	4613	PS4 Controller	WIRELESS CONTROLLER	0	2
+41031	746	8BitDo Pro 2	XInput Controller	0	1
+11720	15455		Xbox Wireless Controller	0	1
+11720	746	XInput Controller	Xbox Wireless Controller	0	1
+0	1	PS4 Controller	Wireless Controller	1	2
+1118	1	8BitDo Pro 2	DUALSENSE WIRELESS CONTROLLER	1	1
+11720	746	DualSense Wireless Controller	STEAM DECK CONTROLLER	0	2
+1356	3302	DualSense Wireless Controller	Generic USB Joystick	1	2
+10462	3302	Wireless Controller	PS4 Controller	0	2
+0	1	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	2
+0	4607	Steam Deck Controller	WIRELESS CONTROLLER	0	3
+40891	746	Generic USB Joystick	Xbox Wireless Controller	0	1
+0	1	DualSense Wireless Controller	Wireless Controller	0	2
+1118	4607	Generic USB Joystick	PLAYSTATION(R)3 CONTROLLER	0	1
+1118	4613	PLAYSTATION(R)3 Controller	Steam Deck Controller	1	1
+60853	59589	DualSense Wireless Controller	Steam Deck Controller	1	2
+1118	3302	Steam Deck Controller	Generic USB Joystick	0	1
+11720	1	Steam Deck Controller	Wireless Controller	1	3
+44411	3302	8BitDo Pro 2	Steam Deck Controller	0	3
+1118	4613	DualSense Wireless Controller	XINPUT CONTROLLER	0	1
+1356	4607	XInput Controller	Xbox Wireless Controller	0	2
+42655	3302	Wireless Controller	PLAYSTATION(R)3 CONTROLLER	1	2
+0	4607	Xbox Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+11720	30385	XInput Controller		1	1
+12741	4607	PLAYSTATION(R)3 Controller	XInput Controller	1	2
+35970	4607	Xbox Wireless Controller	Xbox Wireless Controller	0	1
+11720	746	Generic USB Joystick	DualSense Wireless Controller	1	2
+1118	1		XInput Controller	0	1
+1356	4607	DualSense Wireless Controller	8BitDo Pro 2	0	2
+1118	26057	Xbox Wireless Controller	8BitDo Pro 2	1	1
+0	55157	Wireless Controller	PS4 CONTROLLER	1	2
+10462	3302	Steam Deck Controller	Wireless Controller	0	3
+4239	4613	Xbox Wireless Controller		1	1
+1356	4607	Steam Deck Controller	DualSense Wireless Controller	1	2
+0	4613	DualSense Wireless Controller	Wireless Controller	0	2
+1356	746		WIRELESS CONTROLLER	0	2
+1356	59362	Xbox Wireless Controller	XInput Controller	0	2
+0	4607	Wireless Controller	Steam Deck Controller	0	3
+1356	1	XInput Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1356	51669	Generic USB Joystick	WIRELESS CONTROLLER	1	2
+11720	4607	Generic USB Joystick	Wireless Controller	0	2
+1356	46637		XInput Controller	1	2
+11280	4613	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+0	1	PS4 Controller		1	2
+11720	746		XInput Controller	1	1
+1118	746	Generic USB Joystick	Steam Deck Controller	0	1
+11720	4613	Steam Deck Controller	Generic USB Joystick	0	3
+1118	3302		STEAM DECK CONTROLLER	0	1
+1356	37592	PS4 Controller	Xbox Wireless Controller	1	2
+1356	4613		PS4 CONTROLLER	0	2
+10462	34754	PLAYSTATION(R)3 Controller	GENERIC USB JOYSTICK	0	2
+11720	4607	Wireless Controller		0	2
+1118	746	PS4 Controller	STEAM DECK CONTROLLER	1	1
+8857	4613	Steam Deck Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+1118	1	PLAYSTATION(R)3 Controller	XBOX WIRELESS CONTROLLER	1	1
+10462	746	DualSense Wireless Controller	8BitDo Pro 2	1	2
+11720	746	Wireless Controller	PS4 Controller	0	2
+1118	57518	8BitDo Pro 2	Steam Deck Controller	1	1
+31815	52631	Generic USB Joystick	Xbox Wireless Controller	0	1
+3236	746	Generic USB Joystick	Steam Deck Controller	0	3
+1356	39198	PS4 Controller		0	2
+33224	1	PS4 Controller		1	2
+11720	4607	Xbox Wireless Controller	XINPUT CONTROLLER	0	1
+1356	4613	8BitDo Pro 2	8BitDo Pro 2	0	2
+10462	746	8BitDo Pro 2	XBOX WIRELESS CONTROLLER	0	1
+9122	1	8BitDo Pro 2	XBOX WIRELESS CONTROLLER	1	1
+10462	746	Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+0	4613	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	2
+27288	1	8BitDo Pro 2	Wireless Controller	1	2
+63628	51847		Generic USB Joystick	1	4
+17328	746	Wireless Controller	DualSense Wireless Controller	0	2
+1118	17402		PS4 Controller	0	1
+10462	3302	8BitDo Pro 2	XINPUT CONTROLLER	1	1
+10462	4607	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	4
+31303	32805	Steam Deck Controller	PS4 CONTROLLER	1	2
+20586	4607	DualSense Wireless Controller	DualSense Wireless Controller	1	2
+11720	1	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+10462	4613	8BitDo Pro 2	XInput Controller	0	3
+1118	1	Wireless Controller		0	1
+1118	746	Xbox Wireless Controller	Wireless Controller	1	1
+1118	3302	PS4 Controller	PLAYSTATION(R)3 CONTROLLER	0	1
+0	746	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+11720	2878	Steam Deck Controller	XInput Controller	0	1
+1356	4607	Steam Deck Controller	DualSense Wireless Controller	0	2
+1356	4613	XInput Controller	8BitDo Pro 2	1	2
+1356	7784	8BitDo Pro 2	8BitDo Pro 2	0	2
+1118	1	DualSense Wireless Controller	Generic USB Joystick	0	1
+0	1	Steam Deck Controller	GENERIC USB JOYSTICK	0	3
+10462	4613		Generic USB Joystick	1	3
+1118	4613	PLAYSTATION(R)3 Controller	PS4 CONTROLLER	1	1
+48945	3302	Wireless Controller	Steam Deck Controller	0	3
+0	4613	Steam Deck Controller	XINPUT CONTROLLER	0	1
+1356	4607	8BitDo Pro 2	Xbox Wireless Controller	1	2
+10462	1	Wireless Controller	DualSense Wireless Controller	0	2
+0	746	8BitDo Pro 2	Generic USB Joystick	0	4
+52245	3302	DualSense Wireless Controller	PS4 CONTROLLER	1	2
+1356	36190	PS4 Controller	Xbox Wireless Controller	0	2
+33781	1		8BitDo Pro 2	0	4
+0	4607	Wireless Controller	Generic USB Joystick	0	2
+11720	4607	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+60264	4613	PS4 Controller	Generic USB Joystick	0	2
+1118	627	Generic USB Joystick	8BitDo Pro 2	1	1
+1118	746	PLAYSTATION(R)3 Controller	DUALSENSE WIRELESS CONTROLLER	0	1
+0	746			0	4
+15274	4613	Xbox Wireless Controller	Xbox Wireless Controller	1	1
+1118	55460	Generic USB Joystick	XInput Controller	0	1
+1118	1	8BitDo Pro 2	Wireless Controller	1	1
+1118	4613	Wireless Controller	DualSense Wireless Controller	1	1
+1118	746	8BitDo Pro 2	Steam Deck Controller	0	1
+59484	58418	Steam Deck Controller	GENERIC USB JOYSTICK	1	3
+10462	4607	Generic USB Joystick	Wireless Controller	0	4
+10462	3302	8BitDo Pro 2	8BITDO PRO 2	0	4
+11720	4613		8BitDo Pro 2	1	4
+11720	3302	Generic USB Joystick	XInput Controller	0	1
+58273	14976	DualSense Wireless Controller	Steam Deck Controller	0	2
+11720	54600	Xbox Wireless Controller	Generic USB Joystick	0	1
+11720	4607	Wireless Controller	XInput Controller	0	1
+11720	38547	XInput Controller	Xbox Wireless Controller	1	1
+1356	4607	PS4 Controller	8BitDo Pro 2	0	2
+5998	35716	PS4 Controller	XBOX WIRELESS CONTROLLER	1	2
+11720	26182		8BITDO PRO 2	0	4
+10462	65019	Generic USB Joystick	Generic USB Joystick	0	4
+1118	4607	DualSense Wireless Controller	8BITDO PRO 2	0	1
+0	4613	Steam Deck Controller	Generic USB Joystick	1	3
+9605	746	Generic USB Joystick	8BitDo Pro 2	0	4
+10462	1	PLAYSTATION(R)3 Controller		1	2
+1118	52932	Xbox Wireless Controller	8BitDo Pro 2	0	1
+1118	3302	8BitDo Pro 2	DUALSENSE WIRELESS CONTROLLER	0	1
+1118	1	PLAYSTATION(R)3 Controller	PS4 Controller	0	1
+1356	4613		DualSense Wireless Controller	0	2
+1356	746	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+1356	3302	PS4 Controller	PLAYSTATION(R)3 Controller	0	2
+11720	746	PLAYSTATION(R)3 Controller	STEAM DECK CONTROLLER	0	2
+10462	746	XInput Controller	XINPUT CONTROLLER	1	1
+3858	4613	Steam Deck Controller	STEAM DECK CONTROLLER	1	3
+0	1	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+55611	1	Generic USB Joystick	GENERIC USB JOYSTICK	0	4
+1356	4607	PS4 Controller	PLAYSTATION(R)3 Controller	1	2
+0	4613	Generic USB Joystick	WIRELESS CONTROLLER	1	2
+1356	3302	Steam Deck Controller		0	2
+1356	30477	DualSense Wireless Controller	PS4 Controller	0	2
+11720	4613	Steam Deck Controller	DualSense Wireless Controller	0	2
+0	3302		8BITDO PRO 2	0	4
+1118	746	8BitDo Pro 2	XInput Controller	0	1
+11720	4613	8BitDo Pro 2	Steam Deck Controller	1	3
+1356	4607	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+1356	27373	Steam Deck Controller	Xbox Wireless Controller	1	2
+10462	57287	Xbox Wireless Controller	XINPUT CONTROLLER	0	1
+10462	746	Steam Deck Controller	DualSense Wireless Controller	0	2
+1356	746	PS4 Controller	PLAYSTATION(R)3 Controller	1	2
+11720	746	Generic USB Joystick	XInput Controller	0	1
+26888	4613	PS4 Controller	Xbox Wireless Controller	1	2
+1118	1	DualSense Wireless Controller	PS4 CONTROLLER	1	1
+0	3302		XInput Controller	0	1
+10462	41756	Wireless Controller		0	2
+41738	35324	Wireless Controller	Xbox Wireless Controller	0	1
+1356	4613	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1118	1	Xbox Wireless Controller	8BitDo Pro 2	1	1
+1118	746	DualSense Wireless Controller	Wireless Controller	1	1
+0	5864	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+10462	746	Generic USB Joystick	Wireless Controller	0	2
+0	1	PS4 Controller	8BITDO PRO 2	0	2
+1118	4613	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	1
+21598	28994	PLAYSTATION(R)3 Controller	PS4 Controller	1	2
+10462	746	PLAYSTATION(R)3 Controller		0	2
+1356	4613	Steam Deck Controller	XInput Controller	0	2
+1118	1	PLAYSTATION(R)3 Controller		0	1
+1356	1309	DualSense Wireless Controller	Generic USB Joystick	1	2
+6853	3302	XInput Controller	Generic USB Joystick	0	1
+44617	26599	Generic USB Joystick	DUALSENSE WIRELESS CONTROLLER	0	2
+1118	3302	Steam Deck Controller	Steam Deck Controller	1	1
+1356	746	Generic USB Joystick	PLAYSTATION(R)3 Controller	0	2
+1356	4607	8BitDo Pro 2	PS4 CONTROLLER	0	2
+0	4607	Wireless Controller	XBOX WIRELESS CONTROLLER	0	1
+11720	746	Steam Deck Controller	XBOX WIRELESS CONTROLLER	0	1
+1118	4607	XInput Controller	PS4 Controller	0	1
+4849	4607	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+1118	746	DualSense Wireless Controller	8BITDO PRO 2	0	1
+0	1	DualSense Wireless Controller	WIRELESS CONTROLLER	0	2
+10462	56373	Xbox Wireless Controller	8BitDo Pro 2	0	1
+1118	4613	Generic USB Joystick	WIRELESS CONTROLLER	0	1
+61824	6787	PLAYSTATION(R)3 Controller		0	2
+10462	4607	PS4 Controller	Wireless Controller	0	4
+10462	1	8BitDo Pro 2	8BitDo Pro 2	0	4
+59122	4613	Xbox Wireless Controller	Wireless Controller	0	1
+0	24707	Xbox Wireless Controller	DualSense Wireless Controller	0	2
+1118	1	PS4 Controller		0	1
+1118	1	PLAYSTATION(R)3 Controller	XBOX WIRELESS CONTROLLER	0	1
+22981	3302	PS4 Controller	Xbox Wireless Controller	1	2
+10462	4607		GENERIC USB JOYSTICK	0	4
+10462	4607	8BitDo Pro 2	8BitDo Pro 2	0	4
+0	1	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+0	49353	PLAYSTATION(R)3 Controller	XInput Controller	0	2
+22491	3302	8BitDo Pro 2	Xbox Wireless Controller	0	1
+1356	3302		8BitDo Pro 2	0	2
+10462	1	XInput Controller	8BitDo Pro 2	1	1
+11720	4613	XInput Controller	XBOX WIRELESS CONTROLLER	0	1
+11720	746	Xbox Wireless Controller	8BitDo Pro 2	0	1
+11720	4613	Generic USB Joystick		0	4
+11720	746	PLAYSTATION(R)3 Controller	GENERIC USB JOYSTICK	0	2
+48955	1	PS4 Controller		1	2
+10462	3302	PS4 Controller		1	2
+10462	4613	Xbox Wireless Controller	WIRELESS CONTROLLER	0	3
+1356	746	PS4 Controller		1	2
+11720	3302	Generic USB Joystick	WIRELESS CONTROLLER	0	2
+10462	3302	PLAYSTATION(R)3 Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+18351	746		PLAYSTATION(R)3 CONTROLLER	1	2
+10462	4131		GENERIC USB JOYSTICK	0	4
+1202	4607	PS4 Controller	8BITDO PRO 2	0	2
+1356	746	8BitDo Pro 2	PS4 Controller	1	2
+0	3302	PS4 Controller	GENERIC USB JOYSTICK	1	2
+1356	4613	PS4 Controller	XInput Controller	1	2
+1118	746	PS4 Controller	Generic USB Joystick	1	1
+1118	63384		XInput Controller	0	1
+1118	1	Wireless Controller	DualSense Wireless Controller	0	1
+1356	4607	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	2
+1356	1	Generic USB Joystick	Generic USB Joystick	1	2
+37316	4613	PS4 Controller	Xbox Wireless Controller	1	2
+0	1	8BitDo Pro 2	Steam Deck Controller	1	3
+0	15358	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+10462	4607	DualSense Wireless Controller	Xbox Wireless Controller	1	3
+10462	1	Xbox Wireless Controller	Wireless Controller	0	1
+1118	4607		PS4 Controller	1	1
+34141	4607	XInput Controller	8BITDO PRO 2	0	1
+9758	3302	PLAYSTATION(R)3 Controller	Generic USB Joystick	1	2
+0	47738	Wireless Controller	PS4 Controller	1	2
+1118	37441	DualSense Wireless Controller	PS4 Controller	0	1
+1356	1		8BitDo Pro 2	1	2
+12657	4607	8BitDo Pro 2	PLAYSTATION(R)3 Controller	0	2
+11720	4613	Steam Deck Controller	8BitDo Pro 2	0	3
+1118	746	XInput Controller	PS4 CONTROLLER	0	1
+11720	41402	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+10462	4613		Xbox Wireless Controller	0	3
+10462	3302		Wireless Controller	0	2
+1118	27348	DualSense Wireless Controller	XInput Controller	0	1
+1118	746		Wireless Controller	1	1
+1356	4607	Steam Deck Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+1118	1	PS4 Controller	8BITDO PRO 2	0	1
+65530	4613	PS4 Controller		1	2
+49834	1	PS4 Controller	DualSense Wireless Controller	0	2
+0	50096	Xbox Wireless Controller	Steam Deck Controller	1	1
+11720	746	PS4 Controller	PS4 Controller	0	2
+30002	3302	Xbox Wireless Controller	8BITDO PRO 2	0	1
+32582	1	XInput Controller	8BitDo Pro 2	0	1
+1356	3302	Xbox Wireless Controller	XInput Controller	0	2
+1118	13598	DualSense Wireless Controller	Wireless Controller	0	1
+51724	3302	Steam Deck Controller	PLAYSTATION(R)3 Controller	1	2
+10462	45359	PS4 Controller	XInput Controller	1	2
+1118	33189	Generic USB Joystick	8BITDO PRO 2	1	1
+0	62072	Wireless Controller	DualSense Wireless Controller	1	2
+1356	4607	PS4 Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+11720	1	Generic USB Joystick	Wireless Controller	1	2
+11720	746	8BitDo Pro 2	STEAM DECK CONTROLLER	1	3
+0	1	Steam Deck Controller	GENERIC USB JOYSTICK	0	3
+10462	3302	Steam Deck Controller	8BITDO PRO 2	0	3
+1356	50684	PS4 Controller	Generic USB Joystick	0	2
+0	746	8BitDo Pro 2	XBOX WIRELESS CONTROLLER	0	1
+831	22405	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+10462	1	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	1	2
+1356	4613	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+11720	18881	PLAYSTATION(R)3 Controller	Generic USB Joystick	1	2
+10462	746	Generic USB Joystick	XInput Controller	0	1
+11720	4607	XInput Controller	XINPUT CONTROLLER	0	1
+10462	58664	8BitDo Pro 2	XBOX WIRELESS CONTROLLER	1	1
+19648	4607		PS4 CONTROLLER	0	2
+1118	4613	8BitDo Pro 2	DualSense Wireless Controller	0	1
+1356	1	8BitDo Pro 2	Xbox Wireless Controller	0	2
+22093	746		Generic USB Joystick	1	4
+1118	1	8BitDo Pro 2	Steam Deck Controller	1	1
+1356	4613	Wireless Controller	Xbox Wireless Controller	1	2
+50636	3302	8BitDo Pro 2	DUALSENSE WIRELESS CONTROLLER	0	2
+1356	746	Xbox Wireless Controller	8BitDo Pro 2	0	2
+1356	3302	DualSense Wireless Controller	Wireless Controller	0	2
+1356	4607	PS4 Controller	Xbox Wireless Controller	0	2
+10462	1	Xbox Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1356	36701	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	1	2
+1118	4613	PLAYSTATION(R)3 Controller	PS4 Controller	0	1
+24239	41701	XInput Controller	Xbox Wireless Controller	0	1
+0	4607	Steam Deck Controller	8BitDo Pro 2	0	3
+1118	4613	Wireless Controller		0	1
+11720	34307	Steam Deck Controller	PLAYSTATION(R)3 Controller	1	2
+1356	4607	Xbox Wireless Controller	STEAM DECK CONTROLLER	1	2
+0	45290	Xbox Wireless Controller	Xbox Wireless Controller	0	1
+11720	4613			0	4
+31936	3302	DualSense Wireless Controller	PS4 Controller	1	2
+10462	3302	Steam Deck Controller	Xbox Wireless Controller	0	1
+42850	18883	XInput Controller	Xbox Wireless Controller	1	1
+10462	4607	XInput Controller	Wireless Controller	0	4
+11720	55306	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1118	4613	Generic USB Joystick	Wireless Controller	0	1
+0	4613	8BitDo Pro 2	XINPUT CONTROLLER	0	1
+1118	4607	XInput Controller	GENERIC USB JOYSTICK	1	1
+1356	4613	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+16983	1	XInput Controller	XINPUT CONTROLLER	1	1
+0	19510			0	4
+10462	3302	8BitDo Pro 2	WIRELESS CONTROLLER	0	2
+1356	4613	PLAYSTATION(R)3 Controller		0	2
+10462	47868		PS4 Controller	0	2
+10462	50879	PS4 Controller	Wireless Controller	1	2
+1356	1	8BitDo Pro 2	PLAYSTATION(R)3 Controller	0	2
+11720	3302	Steam Deck Controller	PS4 CONTROLLER	0	2
+1356	53358	XInput Controller		0	2
+40179	3302	Steam Deck Controller		1	3
+10462	2019		Steam Deck Controller	0	3
+52096	3302	XInput Controller	XInput Controller	1	1
+1118	1	PLAYSTATION(R)3 Controller	Wireless Controller	0	1
+1356	29833	XInput Controller	PS4 Controller	0	2
+1356	4607	DualSense Wireless Controller	XInput Controller	1	2
+1356	1	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	1	2
+11720	56842	Xbox Wireless Controller	Xbox Wireless Controller	0	1
+0	4607	Xbox Wireless Controller	Steam Deck Controller	1	1
+1356	4607	Steam Deck Controller	PLAYSTATION(R)3 Controller	1	2
+11720	3302	Steam Deck Controller		0	3
+10462	1	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+1118	1	Wireless Controller	XInput Controller	0	1
+1356	1	Steam Deck Controller	Wireless Controller	1	2
+1356	746	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+46096	3302	Generic USB Joystick	STEAM DECK CONTROLLER	0	3
+0	3302	8BitDo Pro 2		0	4
+1356	4613	Steam Deck Controller	Steam Deck Controller	0	2
+0	4607	Xbox Wireless Controller	Generic USB Joystick	1	1
+11826	4607	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	2
+11720	3302	Wireless Controller	Steam Deck Controller	0	3
+10462	1	DualSense Wireless Controller	XInput Controller	0	2
+10462	4613		DUALSENSE WIRELESS CONTROLLER	0	3
+11720	1	Generic USB Joystick	DualSense Wireless Controller	1	2
+0	1	XInput Controller	Steam Deck Controller	1	1
+1356	1	XInput Controller		0	2
+0	746	8BitDo Pro 2	STEAM DECK CONTROLLER	0	3
+11720	4607	DualSense Wireless Controller	XBOX WIRELESS CONTROLLER	1	2
+10462	50624	Wireless Controller		0	2
+44502	4613	Steam Deck Controller	Generic USB Joystick	1	3
+0	4607	PLAYSTATION(R)3 Controller	Wireless Controller	1	2
+1356	1	PLAYSTATION(R)3 Controller	8BitDo Pro 2	1	2
+10462	4607	DualSense Wireless Controller	8BitDo Pro 2	1	3
+11720	32589	PLAYSTATION(R)3 Controller	XInput Controller	0	2
+10015	746	PS4 Controller	XInput Controller	1	2
+1356	3302	Steam Deck Controller		0	2
+1118	4613	8BitDo Pro 2	8BitDo Pro 2	0	1
+10462	4613		Wireless Controller	0	3
+10462	746	Generic USB Joystick	Steam Deck Controller	0	3
+10462	49645	8BitDo Pro 2	XINPUT CONTROLLER	0	1
+1356	746	Steam Deck Controller	PS4 CONTROLLER	0	2
+0	13587	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	2
+22371	4613	Steam Deck Controller	Steam Deck Controller	0	3
+11720	4613	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	2
+1356	746	Generic USB Joystick	PS4 Controller	1	2
+11720	746	PS4 Controller	STEAM DECK CONTROLLER	0	2
+0	4613	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+7193	4607		8BITDO PRO 2	1	4
+1356	4613	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	2
+27948	746	PLAYSTATION(R)3 Controller		1	2
+9684	3302	Xbox Wireless Controller	Generic USB Joystick	0	1
+10462	14947	PS4 Controller	STEAM DECK CONTROLLER	0	2
+20224	4607	Xbox Wireless Controller	Wireless Controller	0	1
+0	4607	Generic USB Joystick	DUALSENSE WIRELESS CONTROLLER	1	2
+11720	1	Steam Deck Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+10462	746	Wireless Controller	GENERIC USB JOYSTICK	0	2
+0	49940	8BitDo Pro 2	8BitDo Pro 2	0	4
+1118	3302	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	1
+11720	3302	XInput Controller	Wireless Controller	0	1
+11720	746	Generic USB Joystick	PS4 Controller	1	2
+10462	47781	XInput Controller	8BITDO PRO 2	0	1
+11720	746		STEAM DECK CONTROLLER	0	3
+1356	746	8BitDo Pro 2	PLAYSTATION(R)3 CONTROLLER	0	2
+11720	4613	Wireless Controller	8BITDO PRO 2	1	2
+11720	3302	Steam Deck Controller	8BITDO PRO 2	1	3
+55444	4613	Xbox Wireless Controller	8BitDo Pro 2	0	1
+1118	3302	PLAYSTATION(R)3 Controller	DUALSENSE WIRELESS CONTROLLER	1	1
+1118	746	DualSense Wireless Controller	PS4 CONTROLLER	0	1
+1356	42479	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	1	2
+1118	2426	Generic USB Joystick	8BitDo Pro 2	0	1
+10462	1	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+49489	3302	PS4 Controller		0	2
+1118	1	8BitDo Pro 2	STEAM DECK CONTROLLER	0	1
+1118	746	PS4 Controller	8BitDo Pro 2	0	1
+1118	3302	Generic USB Joystick	Steam Deck Controller	0	1
+6592	3302	PS4 Controller	PLAYSTATION(R)3 Controller	0	2
+1356	4607	Generic USB Joystick		0	2
+10462	746	Generic USB Joystick	8BitDo Pro 2	0	4
+0	746	PS4 Controller	Steam Deck Controller	0	2
+10462	4607	PS4 Controller	DualSense Wireless Controller	0	4
+10462	746	Xbox Wireless Controller	DualSense Wireless Controller	1	2
+1118	38049	PS4 Controller	Generic USB Joystick	0	1
+10462	3302	Xbox Wireless Controller	PS4 Controller	1	2
+4136	746	PS4 Controller	PLAYSTATION(R)3 Controller	0	2
+0	1	DualSense Wireless Controller	8BITDO PRO 2	1	2
+1118	47825	8BitDo Pro 2	DualSense Wireless Controller	0	1
+1118	19934	Steam Deck Controller	PS4 Controller	0	1
+11720	4613	Generic USB Joystick	Wireless Controller	0	2
+1356	746	DualSense Wireless Controller	Wireless Controller	1	2
+1356	59253	XInput Controller	8BitDo Pro 2	0	2
+10462	4607	8BitDo Pro 2	PLAYSTATION(R)3 Controller	0	4
+28392	5309	Wireless Controller		0	2
+0	746	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	2
+10462	3302	Wireless Controller	DualSense Wireless Controller	0	2
+1118	4607	Generic USB Joystick	Xbox Wireless Controller	0	1
+1118	4613	Xbox Wireless Controller	Steam Deck Controller	0	1
+1356	746	Wireless Controller	DualSense Wireless Controller	0	2
+1356	35760	Steam Deck Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+47994	3302	DualSense Wireless Controller	Generic USB Joystick	0	2
+11720	746	8BitDo Pro 2	XInput Controller	1	1
+10462	19384	XInput Controller	XInput Controller	0	1
+1118	4613	PS4 Controller	XInput Controller	1	1
+0	4607	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+1356	4607	PS4 Controller	PLAYSTATION(R)3 Controller	1	2
+1356	3302	8BitDo Pro 2	XBOX WIRELESS CONTROLLER	1	2
+17801	746	XInput Controller	8BITDO PRO 2	0	1
+10462	4607	XInput Controller	Generic USB Joystick	0	4
+1356	57433	Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+0	3302	8BitDo Pro 2	Wireless Controller	0	2
+34394	33350	PLAYSTATION(R)3 Controller		0	2
+33881	3302	Wireless Controller	WIRELESS CONTROLLER	0	2
+17755	3302	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	2
+10462	3302	Generic USB Joystick	Steam Deck Controller	0	3
+10462	4613	XInput Controller	Wireless Controller	0	3
+10462	3302	PS4 Controller	Generic USB Joystick	1	2
+0	33387	XInput Controller	XBOX WIRELESS CONTROLLER	0	1
+1118	13066	XInput Controller		0	1
+11720	1	Generic USB Joystick	Wireless Controller	1	2
+17480	4607		8BitDo Pro 2	0	4
+10462	52215	PLAYSTATION(R)3 Controller		0	2
+0	746	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+11720	4613	PS4 Controller	DualSense Wireless Controller	0	2
+1118	22343	XInput Controller	DualSense Wireless Controller	1	1
+0	4613	8BitDo Pro 2	PS4 Controller	1	2
+11720	64427		DualSense Wireless Controller	0	2
+0	3302		8BITDO PRO 2	0	4
+6460	746	PS4 Controller	8BitDo Pro 2	0	2
+1356	4613	Wireless Controller	Xbox Wireless Controller	1	2
+0	61770	DualSense Wireless Controller		0	2
+1118	1	DualSense Wireless Controller	XINPUT CONTROLLER	0	1
+1118	3302	Steam Deck Controller	Steam Deck Controller	0	1
+1118	3302	Steam Deck Controller	XInput Controller	0	1
+4918	3302	PLAYSTATION(R)3 Controller	XBOX WIRELESS CONTROLLER	1	2
+10462	3302			0	4
+11720	4613	8BitDo Pro 2	XINPUT CONTROLLER	0	1
+1118	1	Generic USB Joystick	PS4 CONTROLLER	0	1
+1356	1	Steam Deck Controller	Xbox Wireless Controller	0	2
+5484	54501	Generic USB Joystick	PS4 Controller	1	2
+10462	1	8BitDo Pro 2	Xbox Wireless Controller	1	1
+1356	4607	PLAYSTATION(R)3 Controller	PS4 CONTROLLER	0	2
+11720	4613	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+55426	4607	Generic USB Joystick	Steam Deck Controller	1	3
+1118	3302	8BitDo Pro 2	8BITDO PRO 2	0	1
+57246	15230	Wireless Controller		0	2
+10462	13841	8BitDo Pro 2	PS4 CONTROLLER	0	2
+1118	746	Generic USB Joystick	8BITDO PRO 2	0	1
+0	1	Generic USB Joystick		0	4
+10462	3302	Wireless Controller	DualSense Wireless Controller	0	2
+1356	1	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	2
+0	25593	8BitDo Pro 2	Steam Deck Controller	0	3
+1356	1	XInput Controller	XInput Controller	0	2
+64515	3302	Generic USB Joystick	PS4 CONTROLLER	1	2
+1356	35359	PLAYSTATION(R)3 Controller	GENERIC USB JOYSTICK	1	2
+1118	3302	Steam Deck Controller	DualSense Wireless Controller	1	1
+1118	1	DualSense Wireless Controller	STEAM DECK CONTROLLER	0	1
+45259	4607		Steam Deck Controller	0	3
+0	4607	PS4 Controller		0	2
+0	1		Wireless Controller	0	2
+1356	63042	PS4 Controller	Generic USB Joystick	0	2
+0	3302	8BitDo Pro 2	DUALSENSE WIRELESS CONTROLLER	0	2
+1356	1	Wireless Controller	DualSense Wireless Controller	1	2
+1356	4607	PLAYSTATION(R)3 Controller	8BitDo Pro 2	1	2
+20392	4607	8BitDo Pro 2	GENERIC USB JOYSTICK	0	4
+1118	3302	Generic USB Joystick	Generic USB Joystick	0	1
+1118	4607	Wireless Controller	PS4 Controller	0	1
+1118	3302	8BitDo Pro 2	XInput Controller	0	1
+0	1	PS4 Controller	8BitDo Pro 2	0	2
+11720	4613	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1356	4613	Xbox Wireless Controller	Generic USB Joystick	0	2
+11720	1	XInput Controller	Wireless Controller	1	1
+48260	4613	8BitDo Pro 2	8BitDo Pro 2	0	4
+11720	4613	Xbox Wireless Controller	8BitDo Pro 2	0	1
+0	4613	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	2
+12812	746	Wireless Controller	8BitDo Pro 2	0	2
+34982	746	PLAYSTATION(R)3 Controller		0	2
+1118	3302	PS4 Controller	Wireless Controller	1	1
+38306	1	PLAYSTATION(R)3 Controller	WIRELESS CONTROLLER	0	2
+10462	3302	DualSense Wireless Controller	Wireless Controller	1	2
+10462	746	XInput Controller	PS4 Controller	0	2
+10462	4607	Steam Deck Controller	PS4 Controller	0	4
+3891	4607	Xbox Wireless Controller	Wireless Controller	1	1
+8514	3302	XInput Controller	8BITDO PRO 2	0	1
+40528	4613	PLAYSTATION(R)3 Controller	WIRELESS CONTROLLER	0	2
+1118	746	XInput Controller	PLAYSTATION(R)3 Controller	1	1
+1356	746	PLAYSTATION(R)3 Controller	8BITDO PRO 2	0	2
+0	4613	Steam Deck Controller	Steam Deck Controller	0	3
+1118	3302	Generic USB Joystick	PLAYSTATION(R)3 Controller	0	1
+1356	4607		PS4 Controller	0	2
+10462	4613	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	3
+40013	10227	XInput Controller	Generic USB Joystick	0	1
+1118	3302	Xbox Wireless Controller	PS4 CONTROLLER	0	1
+10462	4607	PS4 Controller	DualSense Wireless Controller	0	4
+1356	4607	8BitDo Pro 2		0	2
+1356	746	XInput Controller	XINPUT CONTROLLER	1	2
+11720	4613	Wireless Controller	Steam Deck Controller	1	3
+10462	50608	Generic USB Joystick	Xbox Wireless Controller	0	1
+53712	746		PS4 Controller	0	2
+45947	42353	PLAYSTATION(R)3 Controller	GENERIC USB JOYSTICK	1	2
+10462	4613	Xbox Wireless Controller	Generic USB Joystick	0	3
+1356	3302		GENERIC USB JOYSTICK	0	2
+11720	746	Wireless Controller	Steam Deck Controller	1	3
+1356	4613	Generic USB Joystick	Steam Deck Controller	1	2
+1356	3302	Xbox Wireless Controller	Steam Deck Controller	0	2
+57202	53985	DualSense Wireless Controller	GENERIC USB JOYSTICK	0	2
+10462	746	PS4 Controller	Generic USB Joystick	1	2
+27155	3302	Wireless Controller	DualSense Wireless Controller	1	2
+30505	4607	PS4 Controller	Xbox Wireless Controller	0	2
+0	1			0	4
+10462	1	8BitDo Pro 2	DualSense Wireless Controller	0	2
+0	3302		PLAYSTATION(R)3 CONTROLLER	0	2
+1118	4613	8BitDo Pro 2	DualSense Wireless Controller	0	1
+10462	3302	Steam Deck Controller	GENERIC USB JOYSTICK	0	3
+63599	746	Steam Deck Controller		1	3
+37147	4607			0	4
+1118	19969		PLAYSTATION(R)3 Controller	0	1
+27434	1	DualSense Wireless Controller	XInput Controller	0	2
+1356	1	PS4 Controller	Xbox Wireless Controller	0	2
+10462	4613		XInput Controller	0	3
+1356	53985	8BitDo Pro 2	Xbox Wireless Controller	0	2
+11720	3302	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+10462	4607	Xbox Wireless Controller	Xbox Wireless Controller	1	3
+0	746	Generic USB Joystick	GENERIC USB JOYSTICK	0	4
+11720	4613		8BitDo Pro 2	0	4
+1118	3302	Steam Deck Controller	WIRELESS CONTROLLER	0	1
+0	4613		XInput Controller	0	1
+0	3302	Steam Deck Controller	Steam Deck Controller	0	3
+10462	3302		Generic USB Joystick	1	4
+10462	4607	PS4 Controller	XBOX WIRELESS CONTROLLER	0	4
+1356	1		PS4 Controller	1	2
+54603	4607	XInput Controller	Steam Deck Controller	1	1
+0	4607	Generic USB Joystick	Steam Deck Controller	0	3
+10462	3302	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	2
+10462	10100		Xbox Wireless Controller	1	1
+10462	64640	Wireless Controller	PS4 Controller	0	2
+3229	52964	XInput Controller	GENERIC USB JOYSTICK	1	1
+10462	53260	Steam Deck Controller	XInput Controller	0	1
+10640	1	8BitDo Pro 2		1	4
+1118	746	Xbox Wireless Controller	XInput Controller	1	1
+4408	4607		Steam Deck Controller	0	3
+10462	4607	Generic USB Joystick		0	4
+11720	3302	DualSense Wireless Controller	WIRELESS CONTROLLER	1	2
+10462	3302	Wireless Controller	Xbox Wireless Controller	1	1
+0	4607	Wireless Controller	Xbox Wireless Controller	1	1
+11720	4613		8BitDo Pro 2	0	4
+58686	56644		Steam Deck Controller	0	3
+1118	4613	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	1
+10462	4607		Xbox Wireless Controller	0	4
+0	746	DualSense Wireless Controller	PS4 Controller	0	2
+64573	3302	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+10462	33577	PLAYSTATION(R)3 Controller		1	2
+7067	4613	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+1356	746	8BitDo Pro 2	Wireless Controller	1	2
+10462	1	Xbox Wireless Controller		1	1
+11720	4607	8BitDo Pro 2	Steam Deck Controller	0	3
+0	746	PLAYSTATION(R)3 Controller	8BitDo Pro 2	1	2
+33780	1	XInput Controller	XBOX WIRELESS CONTROLLER	1	1
+47177	3302	Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+0	49120	XInput Controller	Wireless Controller	0	1
+11720	4613	8BitDo Pro 2	Xbox Wireless Controller	0	1
+10462	1	XInput Controller	Generic USB Joystick	0	1
+1118	3302	8BitDo Pro 2	Generic USB Joystick	0	1
+1356	746	Xbox Wireless Controller	Steam Deck Controller	0	2
+0	28990	Steam Deck Controller	Wireless Controller	0	3
+38516	746	PS4 Controller		0	2
+11720	1	XInput Controller	Xbox Wireless Controller	0	1
+1356	4613	DualSense Wireless Controller	Generic USB Joystick	1	2
+11720	4607	Xbox Wireless Controller	WIRELESS CONTROLLER	0	1
+11720	1	Steam Deck Controller	PS4 Controller	1	2
+10462	4613		PLAYSTATION(R)3 Controller	0	3
+10462	3302	8BitDo Pro 2	Wireless Controller	0	2
+28437	3302	DualSense Wireless Controller	XINPUT CONTROLLER	0	2
+1118	4613	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	1
+34965	36517	PS4 Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+0	4613	DualSense Wireless Controller	XInput Controller	1	2
+11720	4613	Wireless Controller	PS4 Controller	0	2
+627	25065	DualSense Wireless Controller	XInput Controller	1	2
+1356	4607	Xbox Wireless Controller		0	2
+1356	18553	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	1	2
+10462	3302	Generic USB Joystick	DualSense Wireless Controller	1	2
+1118	5762	Xbox Wireless Controller	8BITDO PRO 2	0	1
+0	43125		PS4 CONTROLLER	1	2
+1356	1	Generic USB Joystick	8BitDo Pro 2	1	2
+10462	4607	8BitDo Pro 2	STEAM DECK CONTROLLER	0	4
+1118	4613	PLAYSTATION(R)3 Controller	STEAM DECK CONTROLLER	0	1
+10462	1	PS4 Controller	XINPUT CONTROLLER	1	2
+2486	7904	XInput Controller	Steam Deck Controller	0	1
+47782	4607	DualSense Wireless Controller	Generic USB Joystick	1	2
+11720	24846	Xbox Wireless Controller		0	1
+1356	746	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+10462	4613	Steam Deck Controller	8BITDO PRO 2	0	3
+11720	3302	XInput Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+0	41900	Wireless Controller	8BitDo Pro 2	0	2
+28023	746	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+4124	4607	PS4 Controller	PLAYSTATION(R)3 Controller	1	2
+0	746	Wireless Controller	PS4 Controller	0	2
+64478	3302	PLAYSTATION(R)3 Controller		1	2
+10462	1	8BitDo Pro 2	Steam Deck Controller	1	3
+0	4607	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+11720	3302	DualSense Wireless Controller		0	2
+10462	32115	Wireless Controller	Xbox Wireless Controller	0	1
+11720	49	PLAYSTATION(R)3 Controller	XINPUT CONTROLLER	0	2
+1118	746	Wireless Controller		0	1
+11720	4613	8BitDo Pro 2	Generic USB Joystick	1	4
+11720	16880	Wireless Controller	XINPUT CONTROLLER	1	1
+10462	746	Generic USB Joystick	PS4 Controller	1	2
+10462	4607	Wireless Controller	WIRELESS CONTROLLER	0	4
+1118	4613	Generic USB Joystick	8BitDo Pro 2	0	1
+1356	746	DualSense Wireless Controller		0	2
+1118	4613	Steam Deck Controller	PS4 Controller	0	1
+1356	1	Steam Deck Controller	XBOX WIRELESS CONTROLLER	1	2
+3983	4613	8BitDo Pro 2	Generic USB Joystick	0	4
+10462	4613	Wireless Controller	Steam Deck Controller	1	3
+11720	746	XInput Controller	8BitDo Pro 2	0	1
+27601	746		PLAYSTATION(R)3 Controller	0	2
+1356	1050	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+11720	1	Wireless Controller	GENERIC USB JOYSTICK	0	2
+4353	746	XInput Controller	STEAM DECK CONTROLLER	0	1
+37822	3302	8BitDo Pro 2		0	4
+1356	3302	XInput Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+1356	746	Xbox Wireless Controller	Steam Deck Controller	0	2
+1118	1	PS4 Controller	PS4 Controller	1	1
+6949	3302	PS4 Controller		0	2
+1118	746	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 CONTROLLER	0	1
+0	746	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+1118	43192		DualSense Wireless Controller	0	1
+11720	3302	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+1356	746	XInput Controller	8BitDo Pro 2	0	2
+10462	4613	PS4 Controller	PLAYSTATION(R)3 CONTROLLER	0	3
+11720	40530	Generic USB Joystick		0	4
+1118	746		8BITDO PRO 2	1	1
+11720	4607	Generic USB Joystick	8BitDo Pro 2	0	4
+0	3302	DualSense Wireless Controller	8BITDO PRO 2	1	2
+1356	6389	Generic USB Joystick	Xbox Wireless Controller	0	2
+1118	2284	PS4 Controller	Steam Deck Controller	0	1
+1356	746	XInput Controller	Xbox Wireless Controller	0	2
+1118	4613	DualSense Wireless Controller	DualSense Wireless Controller	1	1
+11720	4613		8BitDo Pro 2	0	4
+1356	3302	Wireless Controller	Generic USB Joystick	0	2
+11720	4613	DualSense Wireless Controller	8BITDO PRO 2	0	2
+8183	746	Wireless Controller	Xbox Wireless Controller	0	1
+1118	4613	Generic USB Joystick	8BitDo Pro 2	1	1
+11720	746		DualSense Wireless Controller	0	2
+50270	4607	Wireless Controller	XInput Controller	0	1
+11720	4613	Xbox Wireless Controller	XBOX WIRELESS CONTROLLER	0	1
+0	746	8BitDo Pro 2		0	4
+11720	41354	PS4 Controller	Steam Deck Controller	0	2
+869	4613	XInput Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+10462	1	Generic USB Joystick	Steam Deck Controller	1	3
+11720	4607	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+1356	3302	Wireless Controller	8BITDO PRO 2	0	2
+1356	4607	8BitDo Pro 2	DUALSENSE WIRELESS CONTROLLER	0	2
+1118	4607	Wireless Controller		0	1
+10462	4613	PS4 Controller	PS4 Controller	0	3
+1118	4613	8BitDo Pro 2	PS4 Controller	0	1
+0	4607	Xbox Wireless Controller	STEAM DECK CONTROLLER	0	1
+1356	1	PLAYSTATION(R)3 Controller	PS4 Controller	0	2
+1356	3302	PS4 Controller	Xbox Wireless Controller	0	2
+57974	4607	Xbox Wireless Controller	Xbox Wireless Controller	1	1
+1356	1	DualSense Wireless Controller	Steam Deck Controller	1	2
+0	51626	Generic USB Joystick	8BitDo Pro 2	1	4
+10462	4613	Generic USB Joystick	Wireless Controller	0	3
+1118	746	Generic USB Joystick	XINPUT CONTROLLER	0	1
+1118	50384	XInput Controller	XBOX WIRELESS CONTROLLER	0	1
+10462	3302	Wireless Controller	PS4 Controller	1	2
+26160	1	Xbox Wireless Controller	Steam Deck Controller	1	1
+1118	4613	PS4 Controller	Generic USB Joystick	0	1
+1356	22219	Xbox Wireless Controller	Generic USB Joystick	0	2
+0	46811	Xbox Wireless Controller		1	1
+0	27179	PS4 Controller	XBOX WIRELESS CONTROLLER	0	2
+1356	4607	PS4 Controller	Steam Deck Controller	0	2
+1118	3302	DualSense Wireless Controller	Steam Deck Controller	1	1
+11720	35142	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+10462	3302	Wireless Controller	PS4 CONTROLLER	0	2
+15795	4607	Steam Deck Controller	GENERIC USB JOYSTICK	0	3
+11720	4613		STEAM DECK CONTROLLER	0	3
+10462	3302	XInput Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+10462	42939	8BitDo Pro 2		0	4
+11720	746	Steam Deck Controller	XINPUT CONTROLLER	0	1
+0	4613	Steam Deck Controller	PS4 CONTROLLER	0	2
+10462	3302	PLAYSTATION(R)3 Controller		0	2
+10462	4613	PS4 Controller	Xbox Wireless Controller	1	3
+1356	64411	Xbox Wireless Controller	DualSense Wireless Controller	1	2
+1356	62014	PS4 Controller	Wireless Controller	0	2
+1356	60974	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+17114	3302	PS4 Controller	XBOX WIRELESS CONTROLLER	0	2
+10462	3302		Xbox Wireless Controller	1	1
+0	47401	Steam Deck Controller	8BitDo Pro 2	0	3
+11720	746	DualSense Wireless Controller	8BitDo Pro 2	1	2
+10462	1	DualSense Wireless Controller		0	2
+53950	3302	DualSense Wireless Controller	PS4 Controller	0	2
+1118	3302	PS4 Controller	PLAYSTATION(R)3 Controller	0	1
+46248	4607	Steam Deck Controller	PS4 Controller	0	2
+20501	746	DualSense Wireless Controller	PS4 Controller	0	2
+10462	1	PS4 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1356	746		XBOX WIRELESS CONTROLLER	1	2
+10462	30643	DualSense Wireless Controller	Generic USB Joystick	1	2
+1356	4613		Xbox Wireless Controller	0	2
+1118	4613	XInput Controller	PS4 Controller	0	1
+0	4613	XInput Controller	DualSense Wireless Controller	0	2
+1118	3302	PS4 Controller	PS4 CONTROLLER	0	1
+0	4607	PS4 Controller	Steam Deck Controller	0	2
+1118	4607	Wireless Controller	Wireless Controller	0	1
+17106	1	8BitDo Pro 2	XBOX WIRELESS CONTROLLER	0	1
+1356	59197	PS4 Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+11720	1422	PS4 Controller	XBOX WIRELESS CONTROLLER	1	2
+10462	4607	8BitDo Pro 2	8BITDO PRO 2	0	4
+0	12827		8BitDo Pro 2	1	4
+0	63234	PS4 Controller	8BITDO PRO 2	0	2
+58631	4613	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+0	746	PLAYSTATION(R)3 Controller	XInput Controller	0	2
+1356	4607	DualSense Wireless Controller	PS4 Controller	0	2
+43322	3302	Wireless Controller	8BitDo Pro 2	0	2
+0	40351		PS4 Controller	1	2
+1118	4613	PS4 Controller	DualSense Wireless Controller	0	1
+1118	31469	8BitDo Pro 2	XInput Controller	0	1
+29514	17861	8BitDo Pro 2	XINPUT CONTROLLER	1	1
+10462	746	Wireless Controller	DualSense Wireless Controller	0	2
+1118	4607	Xbox Wireless Controller	Wireless Controller	0	1
+1356	3302	Steam Deck Controller	8BitDo Pro 2	0	2
+4147	4607	Steam Deck Controller	PS4 Controller	0	2
+61661	746		XInput Controller	0	1
+0	1	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	2
+1118	3302	Xbox Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	1
+0	746	DualSense Wireless Controller	Generic USB Joystick	0	2
+1118	1			0	1
+1356	1	Generic USB Joystick	GENERIC USB JOYSTICK	0	2
+1118	1	Steam Deck Controller		1	1
+10462	1	Xbox Wireless Controller	8BITDO PRO 2	0	1
+11720	4613	Xbox Wireless Controller	8BitDo Pro 2	0	1
+11720	746	PS4 Controller	Steam Deck Controller	1	2
+1356	38490	XInput Controller	Xbox Wireless Controller	0	2
+1118	746	Xbox Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	1
+11720	746	Wireless Controller	Generic USB Joystick	0	2
+11720	3302	Xbox Wireless Controller	Generic USB Joystick	0	1
+11720	746	PS4 Controller	Generic USB Joystick	0	2
+34796	3302	PS4 Controller	PS4 Controller	0	2
+1118	4607	Generic USB Joystick	PS4 CONTROLLER	1	1
+1118	1	Steam Deck Controller	8BitDo Pro 2	0	1
+1118	3302	8BitDo Pro 2	Wireless Controller	1	1
+1118	4607		Generic USB Joystick	0	1
+1356	4613	PLAYSTATION(R)3 Controller	8BitDo Pro 2	1	2
+0	30868	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	2
+1356	1	PLAYSTATION(R)3 Controller	Wireless Controller	1	2
+10462	4613	Steam Deck Controller		0	3
+0	746	XInput Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+0	4607	Wireless Controller	Xbox Wireless Controller	1	1
+1356	1	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+11720	4607	XInput Controller	DualSense Wireless Controller	0	2
+11720	4613	Generic USB Joystick	Wireless Controller	0	2
+11720	746	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 CONTROLLER	1	2
+0	44114		XBOX WIRELESS CONTROLLER	1	1
+1356	5145		PS4 Controller	1	2
+1356	4613	XInput Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+21423	746	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+10462	6015		GENERIC USB JOYSTICK	0	4
+48449	746	Wireless Controller	PS4 Controller	0	2
+10462	15476	Steam Deck Controller	Steam Deck Controller	0	3
+1118	32939	8BitDo Pro 2		1	1
+34131	4613	Xbox Wireless Controller	Wireless Controller	0	1
+1118	4607	Xbox Wireless Controller	PS4 Controller	1	1
+10462	746	Generic USB Joystick	8BITDO PRO 2	0	4
+10462	64125	PS4 Controller	Generic USB Joystick	0	2
+18809	746		Wireless Controller	1	2
+46995	3302	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	2
+10462	1	Wireless Controller	DualSense Wireless Controller	1	2
+1118	4607	Xbox Wireless Controller	Generic USB Joystick	0	1
+1356	746	8BitDo Pro 2	WIRELESS CONTROLLER	1	2
+1356	746	PS4 Controller		0	2
+11720	62750	8BitDo Pro 2	STEAM DECK CONTROLLER	1	3
+57026	4613	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+1356	4613	XInput Controller	XInput Controller	0	2
+1356	3302	Generic USB Joystick	XInput Controller	0	2
+1118	6760	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	1
+17911	746	Xbox Wireless Controller	8BitDo Pro 2	0	1
+37747	1	8BitDo Pro 2	PLAYSTATION(R)3 CONTROLLER	0	2
+0	1	Generic USB Joystick	PS4 CONTROLLER	0	2
+0	35449	Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+0	4613	Steam Deck Controller	XInput Controller	0	1
+1356	3302	PS4 Controller	XInput Controller	1	2
+11720	4613	Xbox Wireless Controller	DualSense Wireless Controller	1	2
+1118	1	Generic USB Joystick	DualSense Wireless Controller	0	1
+1118	4613	PLAYSTATION(R)3 Controller	XInput Controller	0	1
+0	45088	Wireless Controller	Steam Deck Controller	1	3
+10462	45232	PS4 Controller	Wireless Controller	0	2
+17713	4613	Steam Deck Controller	8BitDo Pro 2	0	3
+1356	746		Steam Deck Controller	0	2
+10462	4607	Xbox Wireless Controller		0	4
+1118	3302		Steam Deck Controller	0	1
+0	4607	XInput Controller	XBOX WIRELESS CONTROLLER	0	1
+10462	1	PS4 Controller		0	2
+3983	4607	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+12261	4613	Steam Deck Controller	8BITDO PRO 2	0	3
+1356	1	PS4 Controller	Xbox Wireless Controller	0	2
+1118	4613	Steam Deck Controller	8BitDo Pro 2	0	1
+10462	4613	Wireless Controller	XInput Controller	0	3
+1118	746	Xbox Wireless Controller	Wireless Controller	1	1
+10462	3302	Xbox Wireless Controller	Steam Deck Controller	0	1
+1356	3302	Wireless Controller	Steam Deck Controller	1	2
+10462	746	8BitDo Pro 2	XInput Controller	0	1
+1118	1	Steam Deck Controller	DualSense Wireless Controller	1	1
+0	34992	XInput Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+32927	746		WIRELESS CONTROLLER	0	2
+1356	746	XInput Controller		1	2
+10462	1	Generic USB Joystick	STEAM DECK CONTROLLER	0	3
+1118	4613	XInput Controller	8BitDo Pro 2	0	1
+0	14803	XInput Controller	8BitDo Pro 2	1	1
+55739	1	DualSense Wireless Controller		0	2
+10462	1	Xbox Wireless Controller	PS4 Controller	1	2
+10462	4613	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	1	3
+1454	746	PS4 Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+0	746	Generic USB Joystick	PS4 CONTROLLER	0	2
+0	746	XInput Controller	WIRELESS CONTROLLER	0	1
+11720	746	Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+43869	3302	Wireless Controller	WIRELESS CONTROLLER	0	2
+10462	54041	Wireless Controller	PS4 Controller	0	2
+0	3302	Wireless Controller	Wireless Controller	1	2
+1118	4613	XInput Controller	DualSense Wireless Controller	0	1
+1356	1	Xbox Wireless Controller	PLAYSTATION(R)3 CONTROLLER	1	2
+36570	4613	PS4 Controller	XBOX WIRELESS CONTROLLER	0	2
+11720	4613		8BitDo Pro 2	0	4
+0	3302	PS4 Controller		0	2
+1356	746	Xbox Wireless Controller	Generic USB Joystick	0	2
+0	4613	PLAYSTATION(R)3 Controller	Wireless Controller	1	2
+1356	3302	XInput Controller	Steam Deck Controller	1	2
+23594	26197	8BitDo Pro 2	XInput Controller	0	1
+1118	60544	PS4 Controller	8BitDo Pro 2	1	1
+10462	3302	PS4 Controller	8BitDo Pro 2	0	2
+22195	746	Wireless Controller	STEAM DECK CONTROLLER	1	3
+16501	4607	Xbox Wireless Controller	XBOX WIRELESS CONTROLLER	0	1
+23366	1	Steam Deck Controller		0	3
+1356	4607		Generic USB Joystick	1	2
+1356	746	DualSense Wireless Controller	Wireless Controller	1	2
+11720	3302	8BitDo Pro 2	8BitDo Pro 2	0	4
+1118	4607	8BitDo Pro 2	Wireless Controller	1	1
+24417	4613	Steam Deck Controller	GENERIC USB JOYSTICK	1	3
+11720	4613	XInput Controller	PS4 Controller	0	2
+11720	4607	8BitDo Pro 2	XBOX WIRELESS CONTROLLER	1	1
+1356	49116	PLAYSTATION(R)3 Controller		0	2
+26294	746	PS4 Controller	Xbox Wireless Controller	1	2
+1118	746	XInput Controller	Steam Deck Controller	1	1
+20064	4613	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+31070	1	PS4 Controller	STEAM DECK CONTROLLER	0	2
+11720	3302	Xbox Wireless Controller	Xbox Wireless Controller	1	1
+1118	3302	8BitDo Pro 2	8BITDO PRO 2	0	1
+1118	746	DualSense Wireless Controller	8BitDo Pro 2	0	1
+1118	3302	PS4 Controller	Xbox Wireless Controller	1	1
+1118	1	DualSense Wireless Controller	STEAM DECK CONTROLLER	0	1
+1356	4607	PS4 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+10462	4613		Xbox Wireless Controller	1	3
+1356	52939	DualSense Wireless Controller		0	2
+0	32873	8BitDo Pro 2	PLAYSTATION(R)3 CONTROLLER	0	2
+10462	3579	Wireless Controller	DualSense Wireless Controller	0	2
+59387	4607	XInput Controller	PS4 Controller	0	2
+10462	43960	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+1118	1	PS4 Controller	Xbox Wireless Controller	0	1
+1356	1	Xbox Wireless Controller	XBOX WIRELESS CONTROLLER	0	2
+1356	3302	Steam Deck Controller	Wireless Controller	1	2
+1356	3302		Generic USB Joystick	0	2
+0	46284	Generic USB Joystick	DUALSENSE WIRELESS CONTROLLER	0	2
+47466	3302	XInput Controller		0	1
+10462	1	Xbox Wireless Controller	WIRELESS CONTROLLER	0	1
+1356	746	XInput Controller	DualSense Wireless Controller	0	2
+12100	56769	DualSense Wireless Controller	Generic USB Joystick	0	2
+1118	4607	XInput Controller	Generic USB Joystick	1	1
+1356	59887	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+1356	746	Xbox Wireless Controller	8BitDo Pro 2	0	2
+31965	3302	XInput Controller	PS4 CONTROLLER	0	2
+1118	746	PS4 Controller	XInput Controller	0	1
+0	416		PLAYSTATION(R)3 Controller	0	2
+11720	4607		GENERIC USB JOYSTICK	1	4
+1356	1	Wireless Controller	Generic USB Joystick	0	2
+35267	1	Xbox Wireless Controller	DualSense Wireless Controller	0	2
+10100	4613	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+17328	746	PLAYSTATION(R)3 Controller	GENERIC USB JOYSTICK	1	2
+11720	3302	XInput Controller	Wireless Controller	1	1
+11720	1	Steam Deck Controller	8BITDO PRO 2	0	3
+0	37985	PLAYSTATION(R)3 Controller	8BITDO PRO 2	1	2
+21678	4613	PS4 Controller		1	2
+40266	4607	XInput Controller	XInput Controller	0	1
+1118	4607	Generic USB Joystick	PLAYSTATION(R)3 Controller	0	1
+1356	3302	DualSense Wireless Controller		1	2
+0	4613	Wireless Controller	Steam Deck Controller	1	3
+0	746	Steam Deck Controller	Wireless Controller	0	3
+10462	1	Xbox Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+10462	3302	Steam Deck Controller		0	3
+49682	44247	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	1	2
+10462	4613	PS4 Controller	Xbox Wireless Controller	0	3
+10462	4613	DualSense Wireless Controller		0	3
+0	4607	Generic USB Joystick	Generic USB Joystick	0	4
+0	746	DualSense Wireless Controller	PS4 Controller	1	2
+61648	3302	Steam Deck Controller	Steam Deck Controller	0	3
+36143	4607		Wireless Controller	0	2
+11720	4613		WIRELESS CONTROLLER	0	2
+23702	25574	DualSense Wireless Controller	XInput Controller	0	2
+0	16391	Steam Deck Controller	GENERIC USB JOYSTICK	0	3
+1356	746	XInput Controller	Xbox Wireless Controller	0	2
+58657	3302	XInput Controller	XBOX WIRELESS CONTROLLER	0	1
+1118	45180	XInput Controller	DualSense Wireless Controller	0	1
+4265	4613		Generic USB Joystick	1	4
+0	4613	PS4 Controller	Generic USB Joystick	0	2
+10462	3302	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+10462	746	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	2
+10462	4613	Steam Deck Controller	DualSense Wireless Controller	0	3
+20941	746	PLAYSTATION(R)3 Controller	PS4 Controller	1	2
+0	4613	Xbox Wireless Controller	Generic USB Joystick	0	1
+10462	4607	XInput Controller	PLAYSTATION(R)3 Controller	0	4
+11720	3302	8BitDo Pro 2		0	4
+61412	40800	Xbox Wireless Controller	Generic USB Joystick	0	1
+1356	56923	PLAYSTATION(R)3 Controller	8BitDo Pro 2	1	2
+11720	4613	XInput Controller	PLAYSTATION(R)3 CONTROLLER	1	2
+1356	4613	8BitDo Pro 2	Generic USB Joystick	0	2
+10462	746	Wireless Controller	GENERIC USB JOYSTICK	0	2
+10462	4607	8BitDo Pro 2	Wireless Controller	0	4
+1356	746		WIRELESS CONTROLLER	0	2
+1356	3302	PS4 Controller	XInput Controller	0	2
+10462	4607	8BitDo Pro 2	Xbox Wireless Controller	0	4
+11720	4607		8BitDo Pro 2	0	4
+1118	4613	DualSense Wireless Controller		0	1
+11720	48079	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+1356	4613	Generic USB Joystick	Wireless Controller	1	2
+10462	1		Generic USB Joystick	0	4
+0	746	Generic USB Joystick	GENERIC USB JOYSTICK	0	4
+11720	3302	Xbox Wireless Controller	Generic USB Joystick	0	1
+39173	4607	Steam Deck Controller	Wireless Controller	0	3
+10462	3302	8BitDo Pro 2	GENERIC USB JOYSTICK	0	4
+11720	4613	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+10462	4607	PS4 Controller	Xbox Wireless Controller	1	3
+10462	20205		DualSense Wireless Controller	1	2
+32063	1	DualSense Wireless Controller	Steam Deck Controller	1	2
+1356	746	PS4 Controller	XINPUT CONTROLLER	1	2
+11720	746	Xbox Wireless Controller	8BitDo Pro 2	0	1
+11720	4607	PS4 Controller	PS4 CONTROLLER	0	2
+1356	4613	Xbox Wireless Controller	8BitDo Pro 2	0	2
+0	1	DualSense Wireless Controller	Generic USB Joystick	0	2
+1356	1		PS4 Controller	0	2
+10462	49141	Wireless Controller	DualSense Wireless Controller	0	2
+1356	1	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	2
+10462	62513	Generic USB Joystick	XInput Controller	1	1
+45169	33753		Xbox Wireless Controller	0	1
+10462	3302	XInput Controller	PLAYSTATION(R)3 Controller	1	2
+1356	1	Generic USB Joystick	DUALSENSE WIRELESS CONTROLLER	0	2
+1356	53784	Generic USB Joystick	8BITDO PRO 2	0	2
+52259	4607	8BitDo Pro 2	Generic USB Joystick	0	4
+1356	3302	Generic USB Joystick	GENERIC USB JOYSTICK	1	2
+55996	4613	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+15389	2231	Steam Deck Controller	DualSense Wireless Controller	0	2
+62680	1	DualSense Wireless Controller	STEAM DECK CONTROLLER	0	2
+63585	746	Wireless Controller	Generic USB Joystick	0	2
+1356	3302	DualSense Wireless Controller	WIRELESS CONTROLLER	0	2
+11720	3302	DualSense Wireless Controller	XInput Controller	0	2
+1118	3302	Steam Deck Controller	8BitDo Pro 2	1	1
+1356	3302	Wireless Controller	8BITDO PRO 2	0	2
+11720	54870	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+1118	4613	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	1	1
+10462	4613		Steam Deck Controller	0	3
+17868	3302	Generic USB Joystick	8BitDo Pro 2	0	4
+11720	1	Steam Deck Controller	Steam Deck Controller	0	3
+10462	3302	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	1	2
+0	4613	PLAYSTATION(R)3 Controller	Generic USB Joystick	1	2
+1356	4607	Xbox Wireless Controller	PLAYSTATION(R)3 CONTROLLER	1	2
+1356	4613		PS4 CONTROLLER	0	2
+1356	4613	Xbox Wireless Controller	Steam Deck Controller	0	2
+1356	746		STEAM DECK CONTROLLER	1	2
+11720	746	PLAYSTATION(R)3 Controller	8BitDo Pro 2	1	2
+1356	746	8BitDo Pro 2		0	2
+11720	4607	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+10462	4607	Generic USB Joystick	PLAYSTATION(R)3 CONTROLLER	0	4
+11720	1	Xbox Wireless Controller	DualSense Wireless Controller	0	2
+1118	3302	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	1
+1118	39324		Xbox Wireless Controller	1	1
+0	3302	Generic USB Joystick	Wireless Controller	0	2
+1118	3302	8BitDo Pro 2	Wireless Controller	0	1
+1356	4613	Xbox Wireless Controller	Xbox Wireless Controller	0	2
+11720	57804	Steam Deck Controller	Xbox Wireless Controller	1	1
+11720	3302	8BitDo Pro 2	GENERIC USB JOYSTICK	1	4
+0	19910	Steam Deck Controller	XInput Controller	0	1
+10671	3302	PLAYSTATION(R)3 Controller	XInput Controller	0	2
+1118	4613	Steam Deck Controller	Generic USB Joystick	0	1
+10462	3302	Wireless Controller	STEAM DECK CONTROLLER	1	3
+11720	19046	Xbox Wireless Controller	Steam Deck Controller	0	1
+11720	3302	Steam Deck Controller		1	3
+11720	746	8BitDo Pro 2	Wireless Controller	0	2
+33418	3302	XInput Controller		0	1
+11720	16206	Generic USB Joystick	Generic USB Joystick	1	4
+1356	4613	PS4 Controller		1	2
+35603	4607	8BitDo Pro 2	Generic USB Joystick	0	4
+12147	1	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+0	45146	PLAYSTATION(R)3 Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+29176	9810	Generic USB Joystick	XInput Controller	0	1
+11720	1		Steam Deck Controller	0	3
+0	63045	8BitDo Pro 2	DualSense Wireless Controller	0	2
+0	746	Generic USB Joystick	PLAYSTATION(R)3 CONTROLLER	1	2
+27672	54187	Generic USB Joystick		1	4
+34221	3302	Steam Deck Controller	Wireless Controller	0	3
+64681	3302	PS4 Controller	Steam Deck Controller	0	2
+1118	4613	Generic USB Joystick	Generic USB Joystick	1	1
+1356	4607	DualSense Wireless Controller	XInput Controller	1	2
+1118	49112		DUALSENSE WIRELESS CONTROLLER	0	1
+6330	5188	PS4 Controller	WIRELESS CONTROLLER	0	2
+0	1	PLAYSTATION(R)3 Controller	8BITDO PRO 2	0	2
+11720	3302	Xbox Wireless Controller	WIRELESS CONTROLLER	0	1
+11720	11737		Xbox Wireless Controller	1	1
+13997	3302	8BitDo Pro 2	DUALSENSE WIRELESS CONTROLLER	1	2
+10462	599	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	2
+11720	4607	Steam Deck Controller		0	3
+1118	4607	Wireless Controller	Generic USB Joystick	0	1
+1118	4613	8BitDo Pro 2	8BitDo Pro 2	0	1
+20995	3302		Generic USB Joystick	0	4
+11720	3302	8BitDo Pro 2	XInput Controller	1	1
+11720	4613	PS4 Controller	Generic USB Joystick	0	2
+0	4607	Generic USB Joystick	Generic USB Joystick	0	4
+1356	36341	Xbox Wireless Controller	XInput Controller	0	2
+0	746	DualSense Wireless Controller		0	2
+10462	4613	Generic USB Joystick	Steam Deck Controller	0	3
+0	24716		8BitDo Pro 2	0	4
+63888	5610	8BitDo Pro 2	XBOX WIRELESS CONTROLLER	0	1
+11720	1	8BitDo Pro 2	DualSense Wireless Controller	1	2
+35052	4613	Steam Deck Controller	XINPUT CONTROLLER	0	1
+0	4607	Generic USB Joystick		0	4
+10462	1	Steam Deck Controller	STEAM DECK CONTROLLER	0	3
+11720	1		XINPUT CONTROLLER	0	1
+1118	1	Steam Deck Controller		1	1
+0	43435	XInput Controller	XBOX WIRELESS CONTROLLER	0	1
+11720	3302	Generic USB Joystick	Generic USB Joystick	0	4
+11720	4613	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+0	4607	Wireless Controller	Wireless Controller	1	2
+10462	1	DualSense Wireless Controller	STEAM DECK CONTROLLER	0	2
+44951	4607	Generic USB Joystick	Wireless Controller	1	2
+63740	22468	8BitDo Pro 2	PS4 Controller	0	2
+0	1	8BitDo Pro 2	Xbox Wireless Controller	0	1
+10462	1	Steam Deck Controller		0	3
+10462	27048	Generic USB Joystick	Wireless Controller	0	2
+1356	4613	Generic USB Joystick	XInput Controller	0	2
+12533	3302	DualSense Wireless Controller	XInput Controller	0	2
+1118	4607		8BitDo Pro 2	0	1
+1118	4607	Steam Deck Controller	Wireless Controller	0	1
+4237	746	Wireless Controller	8BITDO PRO 2	0	2
+10462	3302	PS4 Controller	Xbox Wireless Controller	1	2
+53545	746	PLAYSTATION(R)3 Controller	XInput Controller	0	2
+1356	746	DualSense Wireless Controller	Steam Deck Controller	0	2
+11720	4613	DualSense Wireless Controller	XInput Controller	0	2
+11720	1	Xbox Wireless Controller	Xbox Wireless Controller	0	1
+39543	4613	8BitDo Pro 2	WIRELESS CONTROLLER	0	2
+11720	4607	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+1356	746	Steam Deck Controller	Steam Deck Controller	0	2
+56866	746	DualSense Wireless Controller	GENERIC USB JOYSTICK	0	2
+11720	23944	XInput Controller	DualSense Wireless Controller	0	2
+11720	1	Generic USB Joystick	PS4 Controller	0	2
+11720	4613	PLAYSTATION(R)3 Controller	Steam Deck Controller	1	2
+10462	15926	Wireless Controller	Generic USB Joystick	0	2
+1118	4613		Xbox Wireless Controller	0	1
+11720	4607	Wireless Controller	Xbox Wireless Controller	0	1
+11720	3302	Wireless Controller		0	2
+11720	746	8BitDo Pro 2	Wireless Controller	1	2
+49969	4607	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+11720	1	Xbox Wireless Controller		0	1
+1356	4613	Steam Deck Controller	XBOX WIRELESS CONTROLLER	0	2
+11720	21098	XInput Controller	GENERIC USB JOYSTICK	0	1
+1118	3302	DualSense Wireless Controller	Steam Deck Controller	0	1
+1356	1	Wireless Controller	GENERIC USB JOYSTICK	0	2
+11720	37550	DualSense Wireless Controller	XInput Controller	1	2
+18545	50393	DualSense Wireless Controller	WIRELESS CONTROLLER	0	2
+11720	13333	PS4 Controller	Wireless Controller	0	2
+11720	1	Generic USB Joystick		0	4
+0	3302	Steam Deck Controller	Steam Deck Controller	0	3
+11720	4607	PLAYSTATION(R)3 Controller		0	2
+11720	4607	DualSense Wireless Controller	XInput Controller	0	2
+48902	4613	XInput Controller	STEAM DECK CONTROLLER	1	1
+1118	23061	8BitDo Pro 2	Steam Deck Controller	0	1
+10462	746	8BitDo Pro 2	Steam Deck Controller	0	3
+1356	38472	XInput Controller	8BITDO PRO 2	0	2
+1118	4607		Steam Deck Controller	0	1
+0	3302	Generic USB Joystick	8BITDO PRO 2	0	4
+0	746	8BitDo Pro 2	DualSense Wireless Controller	0	2
+10462	35124	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+1118	4613	Steam Deck Controller		0	1
+0	16388	Generic USB Joystick	PLAYSTATION(R)3 CONTROLLER	0	2
+21517	4607	Generic USB Joystick	WIRELESS CONTROLLER	0	2
+1356	4607	Xbox Wireless Controller	8BitDo Pro 2	0	2
+24389	4613			0	4
+11720	4607	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+0	4607		XBOX WIRELESS CONTROLLER	0	1
+11720	4607	Steam Deck Controller	Wireless Controller	1	3
+1356	3302		XINPUT CONTROLLER	0	2
+1356	746	DualSense Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1356	64976	8BitDo Pro 2	Wireless Controller	1	2
+0	4607	Generic USB Joystick	DualSense Wireless Controller	0	2
+10462	47497	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	1	2
+1118	746	Generic USB Joystick		0	1
+1118	3302	8BitDo Pro 2	PS4 CONTROLLER	0	1
+5228	746	PS4 Controller		0	2
+1118	746	Generic USB Joystick	PLAYSTATION(R)3 Controller	0	1
+0	3302	Wireless Controller	Wireless Controller	0	2
+1356	4607			0	2
+10462	746	XInput Controller	STEAM DECK CONTROLLER	0	1
+1356	31936	Steam Deck Controller	PS4 Controller	0	2
+1356	22659	8BitDo Pro 2	8BitDo Pro 2	0	2
+1118	4613	PS4 Controller	DUALSENSE WIRELESS CONTROLLER	0	1
+10462	746	Xbox Wireless Controller	WIRELESS CONTROLLER	1	1
+1118	746	DualSense Wireless Controller		1	1
+11720	746	Wireless Controller	STEAM DECK CONTROLLER	0	3
+0	4607	Steam Deck Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1356	3302	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	2
+1356	4607	Xbox Wireless Controller	DualSense Wireless Controller	0	2
+25512	3302		XInput Controller	1	1
+0	746	8BitDo Pro 2	DUALSENSE WIRELESS CONTROLLER	0	2
+0	3302	PLAYSTATION(R)3 Controller	STEAM DECK CONTROLLER	0	2
+0	4613		XINPUT CONTROLLER	0	1
+11720	1	XInput Controller	8BitDo Pro 2	0	1
+1118	4613	8BitDo Pro 2	GENERIC USB JOYSTICK	0	1
+0	746	Steam Deck Controller	Xbox Wireless Controller	0	1
+24040	4613	Steam Deck Controller	GENERIC USB JOYSTICK	0	3
+7168	1	Steam Deck Controller	Steam Deck Controller	0	3
+1356	4607	XInput Controller	PS4 CONTROLLER	1	2
+11444	1	Generic USB Joystick	XInput Controller	0	1
+0	52941	Generic USB Joystick	PS4 CONTROLLER	0	2
+0	4607	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+10462	3302	PS4 Controller	XInput Controller	0	2
+0	4607	PS4 Controller	Xbox Wireless Controller	0	2
+1356	746	Wireless Controller	Steam Deck Controller	0	2
+63349	746	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+1118	3302	PLAYSTATION(R)3 Controller	GENERIC USB JOYSTICK	0	1
+0	8027	8BitDo Pro 2	STEAM DECK CONTROLLER	0	3
+0	1	8BitDo Pro 2	Xbox Wireless Controller	0	1
+7989	4613	XInput Controller	DualSense Wireless Controller	0	2
+12665	746	Wireless Controller	8BITDO PRO 2	0	2
+1356	746	PS4 Controller	DualSense Wireless Controller	0	2
+0	3302	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	1	2
+1356	3302	Generic USB Joystick	PLAYSTATION(R)3 CONTROLLER	1	2
+1356	1	Generic USB Joystick	XInput Controller	0	2
+1118	1	PLAYSTATION(R)3 Controller	PS4 Controller	1	1
+1118	746	Steam Deck Controller	XINPUT CONTROLLER	0	1
+11720	746	Steam Deck Controller	XBOX WIRELESS CONTROLLER	1	1
+1118	3302	PLAYSTATION(R)3 Controller	STEAM DECK CONTROLLER	0	1
+0	746	8BitDo Pro 2	Generic USB Joystick	0	4
+11720	4613	Xbox Wireless Controller	Wireless Controller	0	1
+46950	3302	PLAYSTATION(R)3 Controller	STEAM DECK CONTROLLER	0	2
+1118	3302	DualSense Wireless Controller	WIRELESS CONTROLLER	0	1
+6949	1	Generic USB Joystick	Xbox Wireless Controller	0	1
+60512	4613	PS4 Controller	8BitDo Pro 2	0	2
+11720	3302	8BitDo Pro 2	GENERIC USB JOYSTICK	1	4
+8443	4613	Steam Deck Controller		0	3
+0	3302			0	4
+1356	746	PS4 Controller		0	2
+10462	45538	Steam Deck Controller	Xbox Wireless Controller	0	1
+1118	1	Steam Deck Controller	8BITDO PRO 2	1	1
+1356	4607	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	2
+14795	4607	Xbox Wireless Controller	Steam Deck Controller	0	1
+0	3302	Generic USB Joystick		0	4
+1356	4607	Xbox Wireless Controller	WIRELESS CONTROLLER	0	2
+10462	4607	Xbox Wireless Controller	DualSense Wireless Controller	0	4
+1356	4613	DualSense Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+0	41642	Generic USB Joystick	PS4 CONTROLLER	0	2
+1356	39585	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+0	1		XInput Controller	1	1
+1118	1	DualSense Wireless Controller	Steam Deck Controller	0	1
+11720	4607	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+1118	14535		PS4 Controller	0	1
+1356	38411	PS4 Controller	WIRELESS CONTROLLER	1	2
+0	3302		PLAYSTATION(R)3 Controller	0	2
+51384	1	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+1118	57129	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	1
+0	31260	Generic USB Joystick	PLAYSTATION(R)3 Controller	0	2
+11720	1		Steam Deck Controller	0	3
+1356	746	Wireless Controller		0	2
+11720	746	Wireless Controller	DualSense Wireless Controller	1	2
+1118	4613	XInput Controller	Wireless Controller	0	1
+11720	746	Xbox Wireless Controller	GENERIC USB JOYSTICK	0	1
+51412	746	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+10462	3302	Steam Deck Controller	8BITDO PRO 2	0	3
+0	45378	Steam Deck Controller	PS4 Controller	1	2
+1356	746	Xbox Wireless Controller		0	2
+1118	46316	Generic USB Joystick		0	1
+22507	4607	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+1118	61856	Steam Deck Controller	Wireless Controller	1	1
+1356	1		DualSense Wireless Controller	0	2
+11720	3302	PS4 Controller	Wireless Controller	0	2
+61972	4607	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	1	2
+45126	34022	Generic USB Joystick	XBOX WIRELESS CONTROLLER	0	1
+1118	1	PS4 Controller	PLAYSTATION(R)3 CONTROLLER	0	1
+0	4613	Xbox Wireless Controller		0	1
+55890	746	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+58640	3302	XInput Controller	Xbox Wireless Controller	0	1
+0	4607	XInput Controller	DualSense Wireless Controller	0	2
+1356	3302		PS4 Controller	0	2
+10462	4607	Steam Deck Controller	WIRELESS CONTROLLER	1	3
+10462	4613	Wireless Controller	Generic USB Joystick	0	3
+11720	746	Xbox Wireless Controller	8BitDo Pro 2	1	1
+10462	4607	Generic USB Joystick	8BitDo Pro 2	1	3
+1118	23659	Generic USB Joystick	PS4 Controller	0	1
+22473	1	DualSense Wireless Controller		0	2
+1118	746		Wireless Controller	0	1
+1118	3302	PS4 Controller		1	1
+1356	4607	XInput Controller	PS4 CONTROLLER	1	2
+1356	1	Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1118	4607	Steam Deck Controller	Wireless Controller	0	1
+0	4613	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+1118	32398	8BitDo Pro 2	8BitDo Pro 2	0	1
+1356	4607	8BitDo Pro 2	XBOX WIRELESS CONTROLLER	0	2
+11720	3302	Generic USB Joystick		0	4
+1118	746	DualSense Wireless Controller	Generic USB Joystick	0	1
+58552	746	Xbox Wireless Controller	XBOX WIRELESS CONTROLLER	0	1
+11720	1	Generic USB Joystick	Steam Deck Controller	0	3
+11720	3302	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+49361	1	Wireless Controller	Generic USB Joystick	1	2
+1356	4613	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	2
+10462	746	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+0	4613	8BitDo Pro 2	GENERIC USB JOYSTICK	0	4
+0	3302	DualSense Wireless Controller	Wireless Controller	0	2
+11720	4613		DualSense Wireless Controller	0	2
+11720	45561	Steam Deck Controller	Wireless Controller	1	3
+5597	3302	Steam Deck Controller	Steam Deck Controller	1	3
+10462	4613	Wireless Controller	Steam Deck Controller	0	3
+0	746		STEAM DECK CONTROLLER	0	3
+11720	4613	PS4 Controller	Generic USB Joystick	0	2
+1356	746	Xbox Wireless Controller	PS4 CONTROLLER	0	2
+10462	57675	Xbox Wireless Controller	DualSense Wireless Controller	0	2
+10462	60982	Xbox Wireless Controller	XInput Controller	1	1
+40298	5863	DualSense Wireless Controller	8BitDo Pro 2	0	2
+1356	1	Wireless Controller	PS4 Controller	0	2
+11720	4613	DualSense Wireless Controller	WIRELESS CONTROLLER	1	2
+10462	63879	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+0	746		Steam Deck Controller	1	3
+11720	3302	Generic USB Joystick	Generic USB Joystick	0	4
+1356	6085	DualSense Wireless Controller	Steam Deck Controller	1	2
+0	1	PS4 Controller	Steam Deck Controller	1	2
+10462	4607	PLAYSTATION(R)3 Controller	XINPUT CONTROLLER	0	4
+37141	4607	Wireless Controller		0	2
+0	746	PLAYSTATION(R)3 Controller	PS4 Controller	0	2
+42296	746	Generic USB Joystick	Wireless Controller	0	2
+1118	41765	XInput Controller	Xbox Wireless Controller	0	1
+1356	3302	Generic USB Joystick	XINPUT CONTROLLER	0	2
+0	4879	PS4 Controller	Steam Deck Controller	0	2
+1356	3302	XInput Controller	XINPUT CONTROLLER	1	2
+1118	4607	Generic USB Joystick		1	1
+11720	1		8BITDO PRO 2	0	4
+1356	746	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	2
+41813	37879		PS4 Controller	1	2
+0	746	Steam Deck Controller	PLAYSTATION(R)3 CONTROLLER	1	2
+0	4613	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+1118	3302	Wireless Controller	PS4 CONTROLLER	0	1
+1356	1	Steam Deck Controller	STEAM DECK CONTROLLER	0	2
+43838	1	PLAYSTATION(R)3 Controller	8BITDO PRO 2	1	2
+15693	55169	PLAYSTATION(R)3 Controller		0	2
+11720	35872	8BitDo Pro 2	XInput Controller	1	1
+1118	3302	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	1
+1118	3302	8BitDo Pro 2	8BitDo Pro 2	0	1
+10462	10300		Wireless Controller	0	2
+1356	4607	Steam Deck Controller	Steam Deck Controller	0	2
+1356	4607	PS4 Controller		0	2
+11720	1	XInput Controller	PLAYSTATION(R)3 Controller	1	2
+1356	4607	PS4 Controller	8BitDo Pro 2	0	2
+1118	4607	Wireless Controller	PS4 Controller	1	1
+10462	28503	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+0	4607	XInput Controller	8BitDo Pro 2	0	1
+1118	4607	XInput Controller	PLAYSTATION(R)3 Controller	0	1
+10462	3302	Generic USB Joystick	Xbox Wireless Controller	1	1
+63959	4607	PS4 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+11720	3302	Steam Deck Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+1356	4607	Generic USB Joystick	8BitDo Pro 2	0	2
+0	4607	PS4 Controller	XBOX WIRELESS CONTROLLER	0	2
+0	1	Steam Deck Controller	Wireless Controller	1	3
+0	746	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+1356	1	8BitDo Pro 2		0	2
+1118	1	XInput Controller		1	1
+11720	1	XInput Controller	XINPUT CONTROLLER	1	1
+1356	1	Generic USB Joystick	Wireless Controller	0	2
+17054	746	Xbox Wireless Controller	PS4 Controller	1	2
+1118	4607	Xbox Wireless Controller	XInput Controller	0	1
+11720	5130	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+65368	4607		Xbox Wireless Controller	1	1
+0	4607	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+1118	4613	Generic USB Joystick		1	1
+37827	1	8BitDo Pro 2	DualSense Wireless Controller	0	2
+10462	4607	Xbox Wireless Controller	WIRELESS CONTROLLER	0	4
+1356	746		Generic USB Joystick	0	2
+46037	746	Generic USB Joystick	DualSense Wireless Controller	0	2
+61041	746	Xbox Wireless Controller	Xbox Wireless Controller	1	1
+19295	3302	DualSense Wireless Controller		0	2
+1356	3302	XInput Controller	XInput Controller	1	2
+1118	746	Steam Deck Controller		1	1
+1356	3302	PS4 Controller	Xbox Wireless Controller	1	2
+1118	65204		PS4 Controller	0	1
+1356	4607	Xbox Wireless Controller	Steam Deck Controller	0	2
+1118	1	8BitDo Pro 2	PS4 CONTROLLER	1	1
+1356	3302	PS4 Controller	PS4 CONTROLLER	0	2
+41025	3302	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+1118	1	Xbox Wireless Controller	Wireless Controller	0	1
+1118	1	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	1
+56908	4607	XInput Controller	STEAM DECK CONTROLLER	0	1
+27402	3302	PS4 Controller	Xbox Wireless Controller	0	2
+49816	4607	PS4 Controller		0	2
+10462	3302	8BitDo Pro 2		1	4
+1118	1	PLAYSTATION(R)3 Controller	PS4 Controller	0	1
+0	51375	PS4 Controller	STEAM DECK CONTROLLER	0	2
+11720	3302		XBOX WIRELESS CONTROLLER	0	1
+1118	1	Steam Deck Controller	Wireless Controller	0	1
+10462	746	DualSense Wireless Controller	WIRELESS CONTROLLER	0	2
+1118	1	Xbox Wireless Controller	STEAM DECK CONTROLLER	0	1
+4799	3302	XInput Controller	Steam Deck Controller	0	1
+1118	746		XInput Controller	1	1
+11720	746	PLAYSTATION(R)3 Controller	8BITDO PRO 2	1	2
+10462	3302	DualSense Wireless Controller	GENERIC USB JOYSTICK	1	2
+1356	746	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+11720	3302	DualSense Wireless Controller	Wireless Controller	0	2
+1118	62213	PLAYSTATION(R)3 Controller	GENERIC USB JOYSTICK	0	1
+1118	1	XInput Controller		0	1
+46113	1	XInput Controller	Steam Deck Controller	1	1
+10462	746	XInput Controller	XInput Controller	1	1
+0	746	PLAYSTATION(R)3 Controller	Wireless Controller	1	2
+11720	3302	XInput Controller		0	1
+49763	40212	Xbox Wireless Controller	XINPUT CONTROLLER	0	1
+10462	24972	Xbox Wireless Controller	Wireless Controller	1	1
+1356	3302	XInput Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+1356	42134	Steam Deck Controller	XINPUT CONTROLLER	1	2
+0	3302	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	2
+10462	4613		DUALSENSE WIRELESS CONTROLLER	0	3
+63080	16796	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1356	4613		STEAM DECK CONTROLLER	0	2
+47519	746	PLAYSTATION(R)3 Controller	STEAM DECK CONTROLLER	0	2
+1356	64711	Generic USB Joystick	PLAYSTATION(R)3 Controller	0	2
+0	4613	DualSense Wireless Controller	8BitDo Pro 2	1	2
+1356	1	Xbox Wireless Controller	PS4 Controller	0	2
+1118	746		PLAYSTATION(R)3 Controller	0	1
+1118	4613	8BitDo Pro 2	8BitDo Pro 2	0	1
+11720	4607	Generic USB Joystick	XINPUT CONTROLLER	1	1
+34171	39381		PS4 Controller	0	2
+11720	4607	Wireless Controller	8BitDo Pro 2	0	2
+11720	64214		Wireless Controller	0	2
+10462	3302	Generic USB Joystick	Wireless Controller	1	2
+10462	746	Steam Deck Controller	Steam Deck Controller	0	3
+11720	4613	8BitDo Pro 2	DualSense Wireless Controller	0	2
+10245	4613	XInput Controller	Steam Deck Controller	1	1
+1356	4613	Generic USB Joystick	DualSense Wireless Controller	0	2
+48492	4607	Steam Deck Controller	Steam Deck Controller	1	3
+10462	1	8BitDo Pro 2	XINPUT CONTROLLER	1	1
+11720	15925		Generic USB Joystick	1	4
+11720	4613	Xbox Wireless Controller	PS4 Controller	0	2
+34324	1	PS4 Controller	Wireless Controller	0	2
+11720	4607	PS4 Controller	DualSense Wireless Controller	1	2
+12115	4607	PLAYSTATION(R)3 Controller		0	2
+10462	746	8BitDo Pro 2	PLAYSTATION(R)3 Controller	0	2
+0	3302	8BitDo Pro 2	Wireless Controller	1	2
+1356	4607	DualSense Wireless Controller	Steam Deck Controller	0	2
+1356	3302	Generic USB Joystick	Xbox Wireless Controller	0	2
+1356	746	Steam Deck Controller	XInput Controller	1	2
+1356	746	PS4 Controller	STEAM DECK CONTROLLER	1	2
+53911	9891	Xbox Wireless Controller	GENERIC USB JOYSTICK	1	1
+1118	42894	PS4 Controller	WIRELESS CONTROLLER	0	1
+55977	57071	DualSense Wireless Controller	Generic USB Joystick	0	2
+10517	4613	XInput Controller	DualSense Wireless Controller	0	2
+29938	1		STEAM DECK CONTROLLER	0	3
+11720	746	PLAYSTATION(R)3 Controller	GENERIC USB JOYSTICK	1	2
+48028	19512	XInput Controller	DualSense Wireless Controller	0	2
+1118	3302	PS4 Controller	PLAYSTATION(R)3 CONTROLLER	1	1
+1118	746	DualSense Wireless Controller	8BitDo Pro 2	0	1
+1356	3302		XInput Controller	1	2
+1118	40966	Steam Deck Controller	XInput Controller	0	1
+10462	4613	Steam Deck Controller	Steam Deck Controller	0	3
+11720	55808	PLAYSTATION(R)3 Controller	PS4 Controller	0	2
+15915	12316	8BitDo Pro 2	Wireless Controller	0	2
+5456	746	DualSense Wireless Controller	PS4 Controller	0	2
+11720	4613	DualSense Wireless Controller	Steam Deck Controller	0	2
+10462	33499	Generic USB Joystick	Wireless Controller	1	2
+7904	1	XInput Controller	Xbox Wireless Controller	0	1
+1356	746	Steam Deck Controller	Xbox Wireless Controller	1	2
+1356	4607	Steam Deck Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1356	4613	PLAYSTATION(R)3 Controller	PS4 CONTROLLER	1	2
+10462	746	8BitDo Pro 2	Generic USB Joystick	0	4
+1118	746	PS4 Controller	GENERIC USB JOYSTICK	1	1
+0	746	PS4 Controller	GENERIC USB JOYSTICK	1	2
+54853	3332		Xbox Wireless Controller	0	1
+1356	1		XInput Controller	1	2
+1118	746	XInput Controller	8BITDO PRO 2	0	1
+1078	3302	Steam Deck Controller	PS4 Controller	0	2
+11720	4607	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+0	4607	PS4 Controller	STEAM DECK CONTROLLER	0	2
+11720	4613	Steam Deck Controller	WIRELESS CONTROLLER	1	3
+10462	746	PS4 Controller	Steam Deck Controller	0	2
+31363	61349	8BitDo Pro 2	Generic USB Joystick	0	4
+2695	50999	DualSense Wireless Controller		0	2
+0	3302	XInput Controller	DualSense Wireless Controller	1	2
+5073	50650	PS4 Controller	Wireless Controller	0	2
+13503	1	DualSense Wireless Controller	8BITDO PRO 2	1	2
+1118	1	Wireless Controller	PS4 CONTROLLER	0	1
+1356	746			1	2
+11720	4607		8BitDo Pro 2	1	4
+10462	1	PS4 Controller	Steam Deck Controller	0	2
+1118	4837	Xbox Wireless Controller	8BitDo Pro 2	0	1
+11720	746	Steam Deck Controller	8BitDo Pro 2	0	3
+41283	4607	Steam Deck Controller	XInput Controller	0	1
+11720	746	XInput Controller	DualSense Wireless Controller	1	2
+11720	4607	8BitDo Pro 2	Steam Deck Controller	1	3
+1356	746	Xbox Wireless Controller	XBOX WIRELESS CONTROLLER	1	2
+1118	33333	DualSense Wireless Controller	8BitDo Pro 2	1	1
+1356	4613	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+0	4613	8BitDo Pro 2	Generic USB Joystick	0	4
+1118	13513	Generic USB Joystick	PLAYSTATION(R)3 Controller	0	1
+0	3302	DualSense Wireless Controller	Wireless Controller	1	2
+10462	1	PS4 Controller	DualSense Wireless Controller	0	2
+0	4607	XInput Controller	Wireless Controller	0	1
+52707	1	Steam Deck Controller	8BitDo Pro 2	1	3
+10462	4613	PS4 Controller	WIRELESS CONTROLLER	1	3
+47842	1	PLAYSTATION(R)3 Controller		0	2
+1356	3302	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+10462	3302	Steam Deck Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+20631	3302		DualSense Wireless Controller	0	2
+42797	3302	XInput Controller	Generic USB Joystick	0	1
+1118	746	Steam Deck Controller	PLAYSTATION(R)3 CONTROLLER	0	1
+10462	1		DualSense Wireless Controller	0	2
+1356	4613	DualSense Wireless Controller		0	2
+1118	1	DualSense Wireless Controller	Generic USB Joystick	1	1
+37647	4613	DualSense Wireless Controller	GENERIC USB JOYSTICK	0	2
+0	4306	Wireless Controller	WIRELESS CONTROLLER	0	2
+0	746	Wireless Controller	8BitDo Pro 2	0	2
+1118	1	8BitDo Pro 2	8BitDo Pro 2	0	1
+1356	746	Generic USB Joystick	PLAYSTATION(R)3 Controller	1	2
+11720	4613		PLAYSTATION(R)3 CONTROLLER	0	2
+10462	1	Wireless Controller	Generic USB Joystick	0	2
+10462	3302	DualSense Wireless Controller	Wireless Controller	0	2
+1356	3302	Xbox Wireless Controller	Wireless Controller	0	2
+0	35438	DualSense Wireless Controller	XInput Controller	0	2
+0	29824			1	4
+1356	746	PS4 Controller	XBOX WIRELESS CONTROLLER	0	2
+61722	746	PS4 Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+1356	1	DualSense Wireless Controller	GENERIC USB JOYSTICK	1	2
+0	1	Steam Deck Controller	PS4 Controller	1	2
+0	1	8BitDo Pro 2	DUALSENSE WIRELESS CONTROLLER	1	2
+0	4607	PS4 Controller	Xbox Wireless Controller	0	2
+0	4763	Generic USB Joystick	DualSense Wireless Controller	0	2
+63996	1	XInput Controller	STEAM DECK CONTROLLER	1	1
+11720	3302	PS4 Controller	8BitDo Pro 2	0	2
+11720	3302		Generic USB Joystick	0	4
+1118	4607	Generic USB Joystick	XBOX WIRELESS CONTROLLER	0	1
+0	4613	XInput Controller	PLAYSTATION(R)3 Controller	1	2
+11720	4607	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+1356	30770	Wireless Controller	Xbox Wireless Controller	0	2
+0	40575	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	2
+45498	746	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1356	4613	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+1356	4613	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+62717	3302	Generic USB Joystick	Wireless Controller	1	2
+37488	3302	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1118	4613	Xbox Wireless Controller		0	1
+0	3302	PS4 Controller	PLAYSTATION(R)3 Controller	1	2
+1356	3302	Xbox Wireless Controller		0	2
+39945	3302	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+11720	2579	Steam Deck Controller		1	3
+1356	1	8BitDo Pro 2		1	2
+11720	4607	PS4 Controller	8BitDo Pro 2	1	2
+1118	4607	DualSense Wireless Controller	XBOX WIRELESS CONTROLLER	0	1
+0	3302		DUALSENSE WIRELESS CONTROLLER	0	2
+11720	4613	Generic USB Joystick	XInput Controller	1	1
+0	3302	Generic USB Joystick	Xbox Wireless Controller	1	1
+57755	4607	8BitDo Pro 2		0	4
+11720	3302	DualSense Wireless Controller	PS4 CONTROLLER	0	2
+10462	4613	8BitDo Pro 2	WIRELESS CONTROLLER	1	3
+0	1	Steam Deck Controller	DualSense Wireless Controller	1	2
+11720	4607	DualSense Wireless Controller	Wireless Controller	0	2
+0	3302	PS4 Controller	DualSense Wireless Controller	0	2
+484	3302	8BitDo Pro 2	8BitDo Pro 2	0	4
+11720	14742	Wireless Controller	Steam Deck Controller	0	3
+10462	1	PLAYSTATION(R)3 Controller	PS4 Controller	1	2
+11720	4613	Wireless Controller	GENERIC USB JOYSTICK	0	2
+0	4607		Wireless Controller	0	2
+10462	746	PS4 Controller		0	2
+18671	8812	PS4 Controller	PS4 Controller	0	2
+10267	4607	Generic USB Joystick	Generic USB Joystick	1	4
+0	1	XInput Controller	Xbox Wireless Controller	1	1
+1356	4607	PS4 Controller	Steam Deck Controller	0	2
+1118	4613	Generic USB Joystick	PLAYSTATION(R)3 Controller	0	1
+63177	4613	XInput Controller	XBOX WIRELESS CONTROLLER	1	1
+11720	4613	PS4 Controller	PLAYSTATION(R)3 CONTROLLER	1	2
+10462	3302	XInput Controller	XInput Controller	0	1
+1356	4607	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+54364	746	XInput Controller	8BITDO PRO 2	0	1
+1356	4607	Wireless Controller	XInput Controller	1	2
+10462	10531	XInput Controller	DualSense Wireless Controller	0	2
+62299	4613	Xbox Wireless Controller	8BITDO PRO 2	0	1
+11720	746	XInput Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+11720	1	8BitDo Pro 2	XInput Controller	1	1
+1356	4613	DualSense Wireless Controller	Xbox Wireless Controller	1	2
+1118	4607		Wireless Controller	0	1
+1118	3302	8BitDo Pro 2	Xbox Wireless Controller	0	1
+11720	42448	Steam Deck Controller	DualSense Wireless Controller	0	2
+1356	3302	XInput Controller	XBOX WIRELESS CONTROLLER	0	2
+1356	1	DualSense Wireless Controller	XInput Controller	1	2
+0	3302	Generic USB Joystick	8BitDo Pro 2	0	4
+10462	54159	PLAYSTATION(R)3 Controller	XINPUT CONTROLLER	0	2
+11720	1	XInput Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1118	746	Xbox Wireless Controller	PS4 Controller	0	1
+22588	32225	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+0	3302	PLAYSTATION(R)3 Controller	XInput Controller	0	2
+0	62221	Steam Deck Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+11720	3302	Generic USB Joystick	Generic USB Joystick	0	4
+0	52907	PS4 Controller	DualSense Wireless Controller	0	2
+10462	4607	PS4 Controller	Xbox Wireless Controller	0	4
+11720	4613	PLAYSTATION(R)3 Controller		0	2
+11720	4613	Steam Deck Controller	PS4 Controller	1	2
+11720	21337	8BitDo Pro 2	XBOX WIRELESS CONTROLLER	1	1
+10462	3302	Generic USB Joystick	PS4 CONTROLLER	1	2
+1356	1	Steam Deck Controller	Generic USB Joystick	0	2
+10462	4607	XInput Controller	8BitDo Pro 2	0	4
+11720	746	Steam Deck Controller	XInput Controller	0	1
+10462	977	Steam Deck Controller	Wireless Controller	0	3
+1356	3302	Generic USB Joystick	XINPUT CONTROLLER	1	2
+20207	57155	Generic USB Joystick	Xbox Wireless Controller	0	1
+11720	746		Generic USB Joystick	0	4
+11720	1	Steam Deck Controller	WIRELESS CONTROLLER	0	3
+36614	4613	DualSense Wireless Controller	Steam Deck Controller	1	2
+1118	4613	Wireless Controller	8BitDo Pro 2	1	1
+11720	746		Wireless Controller	1	2
+11720	2914	XInput Controller	Xbox Wireless Controller	0	1
+11720	4613	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+1356	1	Xbox Wireless Controller	WIRELESS CONTROLLER	1	2
+0	3302	Xbox Wireless Controller	XBOX WIRELESS CONTROLLER	1	1
+0	4613	Steam Deck Controller	8BitDo Pro 2	0	3
+10462	4607	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	4
+10462	48550	Steam Deck Controller	PS4 Controller	0	2
+1118	3302	PS4 Controller	Wireless Controller	1	1
+1356	746	Xbox Wireless Controller	Generic USB Joystick	0	2
+28450	4607	Wireless Controller	8BitDo Pro 2	1	2
+1118	4607	PS4 Controller	WIRELESS CONTROLLER	0	1
+1118	28310	Xbox Wireless Controller	XINPUT CONTROLLER	0	1
+10462	746	DualSense Wireless Controller	PS4 CONTROLLER	0	2
+0	746	DualSense Wireless Controller	8BITDO PRO 2	1	2
+10462	4613		DUALSENSE WIRELESS CONTROLLER	1	3
+11720	746	Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+1118	746	PS4 Controller	Generic USB Joystick	0	1
+10462	4613	Steam Deck Controller	8BitDo Pro 2	0	3
+1118	746	DualSense Wireless Controller	Generic USB Joystick	0	1
+1356	1	Steam Deck Controller	PS4 Controller	0	2
+10462	3302	Generic USB Joystick	Xbox Wireless Controller	1	1
+1118	3302		GENERIC USB JOYSTICK	0	1
+0	3302	PS4 Controller	8BITDO PRO 2	0	2
+1356	26464	PLAYSTATION(R)3 Controller	WIRELESS CONTROLLER	0	2
+1118	1	Wireless Controller	GENERIC USB JOYSTICK	0	1
+11720	4613	Wireless Controller	Generic USB Joystick	0	2
+0	1	XInput Controller	DualSense Wireless Controller	1	2
+0	3302	XInput Controller		1	1
+10462	50766	PLAYSTATION(R)3 Controller	Generic USB Joystick	1	2
+10462	746	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	1	2
+1118	4607	PS4 Controller	8BitDo Pro 2	0	1
+1118	3302	8BitDo Pro 2	PLAYSTATION(R)3 CONTROLLER	0	1
+1118	4613	PS4 Controller	PS4 Controller	0	1
+1118	746	Wireless Controller	XINPUT CONTROLLER	0	1
+1118	24035	PS4 Controller	Wireless Controller	0	1
+57513	4607		Generic USB Joystick	1	4
+10462	2725	Steam Deck Controller	8BITDO PRO 2	1	3
+49248	746	DualSense Wireless Controller	Xbox Wireless Controller	1	2
+10462	1	8BitDo Pro 2	WIRELESS CONTROLLER	1	2
+10462	1	Steam Deck Controller	DualSense Wireless Controller	0	2
+1356	746	8BitDo Pro 2	Steam Deck Controller	1	2
+11720	4613	PS4 Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+322	4607	8BitDo Pro 2	Steam Deck Controller	0	3
+11720	17295	Steam Deck Controller	Wireless Controller	0	3
+1118	3302	PLAYSTATION(R)3 Controller	Wireless Controller	0	1
+1118	4607	XInput Controller	Xbox Wireless Controller	1	1
+48807	4613	PS4 Controller		0	2
+10462	746	Generic USB Joystick	XINPUT CONTROLLER	0	1
+1118	1	PS4 Controller	XBOX WIRELESS CONTROLLER	1	1
+10462	19184	8BitDo Pro 2	Generic USB Joystick	0	4
+10462	1	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+1118	4613	Wireless Controller	DualSense Wireless Controller	0	1
+0	4613	DualSense Wireless Controller	Wireless Controller	1	2
+37344	60054	Wireless Controller	XBOX WIRELESS CONTROLLER	0	1
+11720	1	Xbox Wireless Controller	Xbox Wireless Controller	0	1
+11720	4613	PS4 Controller	PS4 Controller	0	2
+1356	2665	Wireless Controller	XInput Controller	1	2
+10462	3302	PS4 Controller	Generic USB Joystick	1	2
+0	4613	PS4 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+10462	56914		PLAYSTATION(R)3 CONTROLLER	1	2
+10462	1	XInput Controller	Generic USB Joystick	0	1
+1118	4613			0	1
+0	4607	XInput Controller	XBOX WIRELESS CONTROLLER	1	1
+1118	4607	Wireless Controller	XInput Controller	0	1
+1118	4613	Steam Deck Controller	Generic USB Joystick	1	1
+0	4613	Xbox Wireless Controller	Generic USB Joystick	1	1
+24371	4607	Wireless Controller		0	2
+26245	4613	XInput Controller	Xbox Wireless Controller	0	1
+10462	3302	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+0	3302	PLAYSTATION(R)3 Controller	PS4 Controller	1	2
+10462	2917	Wireless Controller	XINPUT CONTROLLER	1	1
+1356	4613	PS4 Controller	DualSense Wireless Controller	0	2
+1356	1	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+1356	4607	Xbox Wireless Controller	Generic USB Joystick	0	2
+0	3302	Steam Deck Controller	XBOX WIRELESS CONTROLLER	0	1
+1356	746	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+1118	4613	Generic USB Joystick	XInput Controller	0	1
+0	4613	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	2
+0	36192	Generic USB Joystick	PLAYSTATION(R)3 Controller	1	2
+1356	1	Steam Deck Controller	Wireless Controller	0	2
+11720	3302	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	2
+56193	4607	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+1118	25686	Xbox Wireless Controller	XInput Controller	0	1
+0	4607	XInput Controller		0	1
+32081	746	Xbox Wireless Controller	Xbox Wireless Controller	0	1
+52572	4613	PLAYSTATION(R)3 Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+0	4613	DualSense Wireless Controller		0	2
+0	4613	Generic USB Joystick	8BITDO PRO 2	0	4
+1356	9710	Xbox Wireless Controller	DualSense Wireless Controller	1	2
+0	1	Xbox Wireless Controller	Wireless Controller	0	1
+17973	3302	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+11720	746	PS4 Controller	PS4 CONTROLLER	0	2
+0	4613	Wireless Controller		0	2
+61494	785	Xbox Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+0	59690	PLAYSTATION(R)3 Controller	8BITDO PRO 2	0	2
+0	4607		PS4 Controller	0	2
+0	4613	Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+1356	746	Steam Deck Controller	XBOX WIRELESS CONTROLLER	0	2
+1356	1	DualSense Wireless Controller	Xbox Wireless Controller	1	2
+10462	4613	Steam Deck Controller	Generic USB Joystick	0	3
+1356	4607			1	2
+1118	4607	8BitDo Pro 2	Wireless Controller	1	1
+1118	3302	Generic USB Joystick	PS4 Controller	1	1
+0	4613	Generic USB Joystick		0	4
+0	4613	PLAYSTATION(R)3 Controller	XBOX WIRELESS CONTROLLER	0	2
+0	4613	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	2
+10462	4607	8BitDo Pro 2	8BITDO PRO 2	0	4
+0	1	PLAYSTATION(R)3 Controller	XBOX WIRELESS CONTROLLER	0	2
+0	4607	XInput Controller	PLAYSTATION(R)3 Controller	1	2
+14690	1	Generic USB Joystick	DualSense Wireless Controller	0	2
+11720	3302	PLAYSTATION(R)3 Controller	XINPUT CONTROLLER	0	2
+1118	4613	PS4 Controller	Generic USB Joystick	1	1
+10462	11762	Generic USB Joystick	DUALSENSE WIRELESS CONTROLLER	0	2
+1118	4607	8BitDo Pro 2	XInput Controller	1	1
+0	1	PLAYSTATION(R)3 Controller	GENERIC USB JOYSTICK	0	2
+11720	9982	8BitDo Pro 2	WIRELESS CONTROLLER	0	2
+1118	746	Xbox Wireless Controller	STEAM DECK CONTROLLER	0	1
+1118	13248	XInput Controller	DualSense Wireless Controller	0	1
+11720	28912	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+1356	3302	PS4 Controller	Generic USB Joystick	0	2
+0	1	Xbox Wireless Controller	8BitDo Pro 2	1	1
+19490	4607	Wireless Controller	PS4 Controller	0	2
+11720	746		PLAYSTATION(R)3 CONTROLLER	0	2
+1118	4613	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	1
+10462	3302		Generic USB Joystick	1	4
+25460	3302	Xbox Wireless Controller	8BitDo Pro 2	1	1
+11720	15192			0	4
+10462	746	Wireless Controller	Steam Deck Controller	0	3
+0	4607		Steam Deck Controller	0	3
+1356	746	XInput Controller	XINPUT CONTROLLER	0	2
+0	4607	Wireless Controller		0	2
+0	33363	Steam Deck Controller	Xbox Wireless Controller	1	1
+1356	3302	PS4 Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+0	4607	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+11720	1	Wireless Controller	PS4 Controller	1	2
+21397	3302	PLAYSTATION(R)3 Controller	Wireless Controller	1	2
+10462	3302	DualSense Wireless Controller	WIRELESS CONTROLLER	1	2
+10462	4607	Xbox Wireless Controller	PLAYSTATION(R)3 CONTROLLER	1	3
+1356	1	Xbox Wireless Controller	XInput Controller	0	2
+11720	1			1	4
+10462	4613	Steam Deck Controller	8BITDO PRO 2	0	3
+11720	4607	8BitDo Pro 2	XINPUT CONTROLLER	1	1
+11720	3302		Steam Deck Controller	0	3
+10462	746	8BitDo Pro 2	8BITDO PRO 2	0	4
+10462	746	Steam Deck Controller	Generic USB Joystick	0	3
+0	746		8BitDo Pro 2	1	4
+1356	4607	8BitDo Pro 2	8BitDo Pro 2	0	2
+0	26272			0	4
+13418	26994	Generic USB Joystick	PS4 Controller	0	2
+11720	6380	8BitDo Pro 2	PS4 Controller	1	2
+1118	746		Xbox Wireless Controller	1	1
+1118	1	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	0	1
+64363	1316	Generic USB Joystick		0	4
+32624	746	PS4 Controller	Wireless Controller	1	2
+1356	746		PLAYSTATION(R)3 Controller	0	2
+1118	32130	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	1
+10462	4613	PS4 Controller	XBOX WIRELESS CONTROLLER	0	3
+11720	58990	XInput Controller	XBOX WIRELESS CONTROLLER	0	1
+64427	1	Steam Deck Controller	PS4 CONTROLLER	0	2
+10462	746	Wireless Controller	8BitDo Pro 2	0	2
+1118	3302	Wireless Controller	8BitDo Pro 2	0	1
+11720	746	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+16888	47840	DualSense Wireless Controller		1	2
+9708	58254	XInput Controller	Steam Deck Controller	0	1
+11720	4613	Generic USB Joystick	XInput Controller	0	1
+10639	746	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+1118	3302	PS4 Controller	PLAYSTATION(R)3 Controller	0	1
+1118	4607	8BitDo Pro 2	8BitDo Pro 2	0	1
+1118	4607	PLAYSTATION(R)3 Controller	Wireless Controller	0	1
+1356	4613	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	0	2
+0	3217		Xbox Wireless Controller	1	1
+22484	1	Generic USB Joystick	PLAYSTATION(R)3 Controller	1	2
+1356	3302	Steam Deck Controller	Wireless Controller	1	2
+15139	4607	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+1118	746	PLAYSTATION(R)3 Controller	XINPUT CONTROLLER	0	1
+1118	4607	XInput Controller	XInput Controller	0	1
+0	1	DualSense Wireless Controller	Wireless Controller	0	2
+0	4607	8BitDo Pro 2	PLAYSTATION(R)3 CONTROLLER	0	2
+48173	4613	8BitDo Pro 2	DualSense Wireless Controller	0	2
+1356	4613	DualSense Wireless Controller	8BitDo Pro 2	0	2
+10462	746	Wireless Controller	Wireless Controller	0	2
+11720	4613	Xbox Wireless Controller	GENERIC USB JOYSTICK	0	1
+11720	2932	Steam Deck Controller	8BitDo Pro 2	0	3
+0	746	Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1118	4613	DualSense Wireless Controller		1	1
+10462	746	Xbox Wireless Controller		0	1
+1356	746	Generic USB Joystick	STEAM DECK CONTROLLER	0	2
+0	746	Wireless Controller	Wireless Controller	0	2
+0	1	Wireless Controller		1	2
+1118	3302	Generic USB Joystick	DUALSENSE WIRELESS CONTROLLER	0	1
+12214	4613			0	4
+10462	47770	Wireless Controller	Generic USB Joystick	0	2
+21674	1		Wireless Controller	0	2
+1356	1	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+0	1	Generic USB Joystick	Xbox Wireless Controller	1	1
+23673	1	PS4 Controller		0	2
+1356	3302	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+0	4613	Wireless Controller	Generic USB Joystick	1	2
+1118	1	XInput Controller	8BitDo Pro 2	1	1
+1356	1	8BitDo Pro 2		0	2
+74	46195	Steam Deck Controller	Generic USB Joystick	0	3
+38631	4607	XInput Controller	8BITDO PRO 2	0	1
+42445	4607	8BitDo Pro 2	PLAYSTATION(R)3 Controller	0	2
+10462	4607	Generic USB Joystick		0	4
+0	38406	Steam Deck Controller	Generic USB Joystick	1	3
+1118	4607	Generic USB Joystick	XInput Controller	0	1
+10462	3302	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	2
+46522	746	Generic USB Joystick	Wireless Controller	0	2
+0	746	8BitDo Pro 2	Xbox Wireless Controller	1	1
+1356	3302		XINPUT CONTROLLER	0	2
+0	1	DualSense Wireless Controller		0	2
+10462	24978	Generic USB Joystick	PLAYSTATION(R)3 Controller	1	2
+1118	1	Wireless Controller		1	1
+0	13148	Xbox Wireless Controller	PLAYSTATION(R)3 CONTROLLER	1	2
+8610	4613	Generic USB Joystick	XBOX WIRELESS CONTROLLER	0	1
+1356	3302	Steam Deck Controller	8BITDO PRO 2	0	2
+12774	4613	PS4 Controller	XINPUT CONTROLLER	0	2
+1356	746	Generic USB Joystick	Xbox Wireless Controller	1	2
+64544	1	Xbox Wireless Controller	Steam Deck Controller	0	1
+33129	4607	Xbox Wireless Controller	Xbox Wireless Controller	1	1
+10462	4613		Xbox Wireless Controller	0	3
+1356	3302	Steam Deck Controller	Generic USB Joystick	0	2
+0	4607	8BitDo Pro 2	XBOX WIRELESS CONTROLLER	0	1
+1356	4607	PLAYSTATION(R)3 Controller	Wireless Controller	1	2
+0	7565	Wireless Controller	DualSense Wireless Controller	0	2
+0	1	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	2
+10462	4613	8BitDo Pro 2		0	3
+38207	1	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1118	3302	DualSense Wireless Controller	Generic USB Joystick	1	1
+37769	17528	Generic USB Joystick	XBOX WIRELESS CONTROLLER	1	1
+10462	4607	XInput Controller	XInput Controller	0	4
+1118	4607	Xbox Wireless Controller	8BITDO PRO 2	1	1
+57881	4607	XInput Controller	XINPUT CONTROLLER	1	1
+10462	4607	DualSense Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	4
+10462	746	Generic USB Joystick	XInput Controller	0	1
+1356	4613	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1356	65176	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+0	4607	DualSense Wireless Controller	Generic USB Joystick	1	2
+10462	4613	Xbox Wireless Controller	8BITDO PRO 2	0	3
+25751	746	XInput Controller	Steam Deck Controller	1	1
+1356	56272		Generic USB Joystick	0	2
+1118	48630	XInput Controller	XInput Controller	0	1
+10462	3302	Wireless Controller	Steam Deck Controller	0	3
+0	746	PS4 Controller	Generic USB Joystick	0	2
+33340	1	PS4 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+59451	4607	8BitDo Pro 2	PLAYSTATION(R)3 Controller	1	2
+0	1	Generic USB Joystick	Generic USB Joystick	0	4
+1356	746	Steam Deck Controller		0	2
+11720	746	Wireless Controller	XInput Controller	1	1
+1118	4613	Generic USB Joystick	XBOX WIRELESS CONTROLLER	0	1
+11720	3553	PLAYSTATION(R)3 Controller		0	2
+10462	4607	XInput Controller	XInput Controller	0	4
+30442	1	Generic USB Joystick	DualSense Wireless Controller	0	2
+10462	4607	Generic USB Joystick	Generic USB Joystick	0	4
+10462	6681	Xbox Wireless Controller	GENERIC USB JOYSTICK	0	1
+1118	746	8BitDo Pro 2	DualSense Wireless Controller	1	1
+10462	3302	8BitDo Pro 2	Steam Deck Controller	1	3
+0	1	XInput Controller	Steam Deck Controller	0	1
+1356	4607	XInput Controller	Generic USB Joystick	0	2
+11720	42599	PS4 Controller	Generic USB Joystick	1	2
+23617	746	PS4 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+10462	4613	8BitDo Pro 2	DUALSENSE WIRELESS CONTROLLER	0	3
+11720	3302	Generic USB Joystick	PS4 Controller	1	2
+45090	54621	PS4 Controller	STEAM DECK CONTROLLER	0	2
+10462	55816	Generic USB Joystick	PLAYSTATION(R)3 CONTROLLER	1	2
+1356	3302		XBOX WIRELESS CONTROLLER	0	2
+11720	3302	Generic USB Joystick	8BITDO PRO 2	1	4
+0	1	Xbox Wireless Controller	Wireless Controller	0	1
+10462	1	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+10462	1	PS4 Controller	WIRELESS CONTROLLER	1	2
+0	746	XInput Controller	Wireless Controller	0	1
+10462	4613	Wireless Controller	PS4 CONTROLLER	1	3
+10462	1	PLAYSTATION(R)3 Controller	Steam Deck Controller	1	2
+1356	746	Generic USB Joystick	Generic USB Joystick	0	2
+0	746	DualSense Wireless Controller	PS4 Controller	0	2
+0	4613	XInput Controller	DualSense Wireless Controller	0	2
+10462	12970	PS4 Controller	PS4 Controller	1	2
+11720	61388	PS4 Controller	PS4 Controller	0	2
+10462	3302		STEAM DECK CONTROLLER	0	3
+10462	4613	Xbox Wireless Controller	Steam Deck Controller	0	3
+51264	4607	PS4 Controller		0	2
+1356	4613	8BitDo Pro 2	8BitDo Pro 2	0	2
+10462	746		8BitDo Pro 2	0	4
+10462	3302	8BitDo Pro 2	Wireless Controller	0	2
+12191	4607	Steam Deck Controller	Steam Deck Controller	0	3
+1356	746	Wireless Controller	8BitDo Pro 2	0	2
+1118	4607		Xbox Wireless Controller	0	1
+1356	17395	PLAYSTATION(R)3 Controller	XINPUT CONTROLLER	0	2
+1356	3302	Xbox Wireless Controller	GENERIC USB JOYSTICK	1	2
+11720	3302	PS4 Controller	Steam Deck Controller	0	2
+1356	746	PS4 Controller		0	2
+19586	746	XInput Controller		0	1
+1118	3302	DualSense Wireless Controller		0	1
+1356	3302	Steam Deck Controller	Generic USB Joystick	0	2
+47130	746	Generic USB Joystick	PS4 Controller	1	2
+0	1		XINPUT CONTROLLER	1	1
+1118	48610	PLAYSTATION(R)3 Controller	XINPUT CONTROLLER	1	1
+11720	1	DualSense Wireless Controller	8BitDo Pro 2	0	2
+1356	4607	8BitDo Pro 2	PLAYSTATION(R)3 Controller	0	2
+1356	4613	PS4 Controller	PS4 Controller	0	2
+0	746	Xbox Wireless Controller		0	1
+11720	4613	Wireless Controller		0	2
+7459	1	XInput Controller	XBOX WIRELESS CONTROLLER	0	1
+1356	4613	Steam Deck Controller	Generic USB Joystick	0	2
+0	746		PS4 CONTROLLER	1	2
+11720	21811	PLAYSTATION(R)3 Controller	8BitDo Pro 2	1	2
+0	746	Xbox Wireless Controller	Steam Deck Controller	0	1
+1356	1	XInput Controller		1	2
+1356	3302	DualSense Wireless Controller	XInput Controller	1	2
+11720	1	8BitDo Pro 2	Wireless Controller	1	2
+1356	746	Wireless Controller	PS4 CONTROLLER	0	2
+1356	746	XInput Controller	PS4 Controller	0	2
+11720	1	8BitDo Pro 2	XBOX WIRELESS CONTROLLER	0	1
+0	4613	Xbox Wireless Controller	PS4 Controller	1	2
+25278	7180	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+3792	4613		Generic USB Joystick	1	4
+10462	3302	Wireless Controller		0	2
+0	4613	Generic USB Joystick	XINPUT CONTROLLER	0	1
+20450	4613	DualSense Wireless Controller	XInput Controller	0	2
+11720	57007	DualSense Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1118	746	DualSense Wireless Controller	Steam Deck Controller	1	1
+1118	3302	XInput Controller	XInput Controller	1	1
+0	3302	DualSense Wireless Controller	XInput Controller	1	2
+9765	1	PLAYSTATION(R)3 Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+11720	1	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+11720	1	Steam Deck Controller	WIRELESS CONTROLLER	0	3
+0	39843		Wireless Controller	1	2
+1118	3302	Wireless Controller	XInput Controller	0	1
+1118	1	Steam Deck Controller	PS4 Controller	0	1
+27746	3302	XInput Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+1356	1	8BitDo Pro 2	DualSense Wireless Controller	1	2
+46212	4607	PLAYSTATION(R)3 Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+1118	3302	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	1
+0	4613	Steam Deck Controller	PS4 Controller	0	2
+1118	746	PLAYSTATION(R)3 Controller	8BitDo Pro 2	1	1
+1356	4607	DualSense Wireless Controller	Generic USB Joystick	0	2
+41701	4613	Steam Deck Controller	PLAYSTATION(R)3 Controller	1	2
+10462	35530	Steam Deck Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+1118	4607			0	1
+1356	25083	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	2
+1356	33641	Xbox Wireless Controller	Steam Deck Controller	0	2
+1356	4613			0	2
+11720	1	Wireless Controller	XBOX WIRELESS CONTROLLER	0	1
+10462	3302		XINPUT CONTROLLER	0	1
+1118	4613	Wireless Controller		0	1
+10462	4613	Generic USB Joystick	Wireless Controller	0	3
+58759	6053	Wireless Controller	GENERIC USB JOYSTICK	0	2
+0	1	Wireless Controller	PS4 Controller	0	2
+53491	20101	Wireless Controller	Steam Deck Controller	0	3
+10462	1	DualSense Wireless Controller	DualSense Wireless Controller	1	2
+10462	1		8BitDo Pro 2	0	4
+1356	746	PS4 Controller	Wireless Controller	0	2
+1356	4613	8BitDo Pro 2		0	2
+11720	1	Generic USB Joystick		0	4
+11720	52656	Wireless Controller	XInput Controller	1	1
+0	1	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+11720	1	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+0	3302	Wireless Controller	XInput Controller	1	1
+1118	1	Xbox Wireless Controller	XInput Controller	0	1
+11720	4607	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+11720	4613	8BitDo Pro 2		0	4
+9166	4613	Generic USB Joystick	DUALSENSE WIRELESS CONTROLLER	0	2
+1118	50913	Steam Deck Controller		0	1
+45743	3302	Wireless Controller	Generic USB Joystick	0	2
+1356	1		XInput Controller	0	2
+53044	16361	PS4 Controller	Generic USB Joystick	1	2
+1356	4607	DualSense Wireless Controller	Generic USB Joystick	0	2
+0	746	8BitDo Pro 2	GENERIC USB JOYSTICK	1	4
+10462	1	Generic USB Joystick	PLAYSTATION(R)3 CONTROLLER	1	2
+38735	746	DualSense Wireless Controller		1	2
+11720	4613	PS4 Controller	Xbox Wireless Controller	0	2
+11720	4613	PS4 Controller	DualSense Wireless Controller	0	2
+11720	4607	DualSense Wireless Controller	8BitDo Pro 2	0	2
+10462	4613	Steam Deck Controller	XBOX WIRELESS CONTROLLER	0	3
+1118	746	Steam Deck Controller	XInput Controller	0	1
+0	4613	Generic USB Joystick	PS4 Controller	0	2
+1118	4607	Xbox Wireless Controller	XInput Controller	0	1
+11720	746	Wireless Controller	XInput Controller	0	1
+0	4613	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 Controller	0	2
+0	1	Generic USB Joystick		0	4
+10462	4613	Generic USB Joystick	XInput Controller	0	3
+1356	3302	PS4 Controller	DualSense Wireless Controller	0	2
+11720	1	DualSense Wireless Controller	8BitDo Pro 2	0	2
+13978	3302	XInput Controller	XINPUT CONTROLLER	1	1
+10462	746	DualSense Wireless Controller	Wireless Controller	0	2
+0	746	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	0	2
+1356	4607	PS4 Controller	PS4 CONTROLLER	1	2
+1356	4607	DualSense Wireless Controller	WIRELESS CONTROLLER	0	2
+751	46084	Wireless Controller	Steam Deck Controller	1	3
+1118	48432	Xbox Wireless Controller		0	1
+10462	3302	Steam Deck Controller	Steam Deck Controller	1	3
+11720	746	PS4 Controller	8BitDo Pro 2	0	2
+10462	3302	Steam Deck Controller	XInput Controller	1	1
+0	4613	DualSense Wireless Controller	Steam Deck Controller	0	2
+0	3302	PS4 Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+1356	33382	8BitDo Pro 2	PS4 CONTROLLER	1	2
+11720	1	PS4 Controller	8BITDO PRO 2	0	2
+29973	1		XINPUT CONTROLLER	0	1
+10462	1	Generic USB Joystick	Steam Deck Controller	0	3
+1356	3302	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+9928	31736	PS4 Controller	Generic USB Joystick	1	2
+10462	3302	XInput Controller	XINPUT CONTROLLER	0	1
+10462	4613	XInput Controller		1	3
+11720	4607	PLAYSTATION(R)3 Controller	DualSense Wireless Controller	1	2
+34177	3302	Generic USB Joystick	Xbox Wireless Controller	0	1
+10462	13175	DualSense Wireless Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+2207	3302	DualSense Wireless Controller	8BitDo Pro 2	1	2
+1356	746	DualSense Wireless Controller	8BitDo Pro 2	1	2
+0	4607	Generic USB Joystick	PS4 Controller	0	2
+10869	3302	PLAYSTATION(R)3 Controller	PS4 Controller	0	2
+1118	1	PS4 Controller		0	1
+1356	4613	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1118	4613	Wireless Controller	Xbox Wireless Controller	0	1
+1118	746	PLAYSTATION(R)3 Controller	XINPUT CONTROLLER	1	1
+1356	4607	XInput Controller	XInput Controller	0	2
+10462	28139	Steam Deck Controller	PLAYSTATION(R)3 CONTROLLER	1	2
+1118	1	PLAYSTATION(R)3 Controller	XBOX WIRELESS CONTROLLER	0	1
+0	1	Steam Deck Controller	PS4 Controller	0	2
+1118	31307	PS4 Controller		0	1
+11720	3302	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	2
+11720	3302	DualSense Wireless Controller	8BitDo Pro 2	1	2
+28325	746	Steam Deck Controller	XINPUT CONTROLLER	0	1
+0	746	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+1118	1	8BitDo Pro 2	Wireless Controller	0	1
+10462	3302		Steam Deck Controller	0	3
+0	4607	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+1356	23133	8BitDo Pro 2	Xbox Wireless Controller	0	2
+1356	4613	Steam Deck Controller	Xbox Wireless Controller	0	2
+11720	6964	Generic USB Joystick	PS4 CONTROLLER	0	2
+1356	4613	PS4 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+24775	4613	8BitDo Pro 2	PS4 CONTROLLER	0	2
+44871	4607	DualSense Wireless Controller	XINPUT CONTROLLER	0	2
+1356	22138	Generic USB Joystick	Wireless Controller	1	2
+1118	24567	Generic USB Joystick		0	1
+57766	1	8BitDo Pro 2	8BITDO PRO 2	1	4
+10462	3302	8BitDo Pro 2	Xbox Wireless Controller	0	1
+1118	746	Generic USB Joystick	PS4 Controller	1	1
+11720	1	Wireless Controller	DualSense Wireless Controller	1	2
+1356	4613	PLAYSTATION(R)3 Controller	XINPUT CONTROLLER	0	2
+0	30060	PLAYSTATION(R)3 Controller	8BitDo Pro 2	1	2
+11720	4607	DualSense Wireless Controller	Generic USB Joystick	1	2
+28282	3302	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1356	746	8BitDo Pro 2		0	2
+11720	3302	XInput Controller		1	1
+1118	3302	Generic USB Joystick	PS4 CONTROLLER	0	1
+1356	1	DualSense Wireless Controller	STEAM DECK CONTROLLER	0	2
+1356	4607	Steam Deck Controller	XINPUT CONTROLLER	0	2
+46756	4607	Steam Deck Controller	XBOX WIRELESS CONTROLLER	0	1
+1118	4607	PLAYSTATION(R)3 Controller		1	1
+1356	3302	Wireless Controller	8BitDo Pro 2	0	2
+11720	3302	Wireless Controller	DUALSENSE WIRELESS CONTROLLER	1	2
+1356	47259	8BitDo Pro 2	GENERIC USB JOYSTICK	0	2
+1118	1		WIRELESS CONTROLLER	0	1
+17788	1	Steam Deck Controller	8BitDo Pro 2	0	3
+25452	1		DualSense Wireless Controller	1	2
+10462	4613	8BitDo Pro 2	Xbox Wireless Controller	0	3
+1356	4607	8BitDo Pro 2	PLAYSTATION(R)3 Controller	1	2
+25514	3302	8BitDo Pro 2	DualSense Wireless Controller	1	2
+1356	4613	Wireless Controller	8BITDO PRO 2	1	2
+0	3302	Generic USB Joystick	8BitDo Pro 2	1	4
+16309	29221	DualSense Wireless Controller	Wireless Controller	0	2
+1118	4613	DualSense Wireless Controller	Xbox Wireless Controller	0	1
+1118	3302		8BitDo Pro 2	1	1
+0	4607	Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+1118	746	Generic USB Joystick	Steam Deck Controller	0	1
+8279	746	DualSense Wireless Controller	Steam Deck Controller	1	2
+1118	1	Generic USB Joystick	Xbox Wireless Controller	0	1
+11720	4613	DualSense Wireless Controller	Xbox Wireless Controller	0	2
+1356	746	PS4 Controller	DualSense Wireless Controller	0	2
+1356	4607	DualSense Wireless Controller	Generic USB Joystick	0	2
+0	4613	Generic USB Joystick	8BITDO PRO 2	0	4
+11720	746	Wireless Controller	Steam Deck Controller	1	3
+1118	4613	Xbox Wireless Controller	Generic USB Joystick	0	1
+11720	16257	DualSense Wireless Controller	Steam Deck Controller	0	2
+1118	4613	PS4 Controller	PS4 Controller	1	1
+10462	746	PS4 Controller	PLAYSTATION(R)3 Controller	0	2
+1356	3488	DualSense Wireless Controller	XINPUT CONTROLLER	0	2
+0	7628	XInput Controller	Steam Deck Controller	1	1
+11720	746	DualSense Wireless Controller	8BITDO PRO 2	0	2
+1356	4607		Generic USB Joystick	1	2
+1356	1	DualSense Wireless Controller		0	2
+1356	49561	XInput Controller	8BITDO PRO 2	0	2
+1118	3302	Wireless Controller	8BitDo Pro 2	0	1
+0	1	Generic USB Joystick	Wireless Controller	0	2
+1356	27817	Wireless Controller	Wireless Controller	1	2
+1118	746	8BitDo Pro 2	DualSense Wireless Controller	0	1
+1118	54131		XInput Controller	0	1
+10462	3302		DualSense Wireless Controller	0	2
+47386	1	Wireless Controller	Wireless Controller	0	2
+1356	746	8BitDo Pro 2	WIRELESS CONTROLLER	0	2
+10462	1	Wireless Controller	8BitDo Pro 2	0	2
+1356	4607	PLAYSTATION(R)3 Controller	8BITDO PRO 2	0	2
+1356	3302	Wireless Controller	8BitDo Pro 2	0	2
+11720	1	Xbox Wireless Controller	XInput Controller	0	1
+1118	4613	Wireless Controller	8BitDo Pro 2	0	1
+19363	746	Steam Deck Controller	WIRELESS CONTROLLER	0	3
+1356	4607	8BitDo Pro 2		0	2
+0	3302	Xbox Wireless Controller	XInput Controller	0	1
+43474	44314	Generic USB Joystick	PS4 Controller	0	2
+62744	3302	DualSense Wireless Controller	PS4 Controller	1	2
+17208	4607	Steam Deck Controller	Xbox Wireless Controller	1	1
+1118	4607	PLAYSTATION(R)3 Controller	Generic USB Joystick	0	1
+10462	4607		DUALSENSE WIRELESS CONTROLLER	0	4
+1356	4607	PS4 Controller	8BitDo Pro 2	0	2
+1118	4613	Generic USB Joystick	DualSense Wireless Controller	0	1
+1356	4607	Generic USB Joystick	XInput Controller	1	2
+10462	3302	8BitDo Pro 2	GENERIC USB JOYSTICK	0	4
+31268	746	XInput Controller	XInput Controller	0	1
+10462	17410	Steam Deck Controller	Generic USB Joystick	0	3
+1118	3302	Xbox Wireless Controller	Wireless Controller	0	1
+10462	4613	XInput Controller		1	3
+0	746		DUALSENSE WIRELESS CONTROLLER	1	2
+11720	46554	PS4 Controller	GENERIC USB JOYSTICK	0	2
+47032	746		Wireless Controller	0	2
+11720	4607	PS4 Controller	Xbox Wireless Controller	0	2
+1118	4607	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	1
+11720	3302		XINPUT CONTROLLER	0	1
+1118	1		8BITDO PRO 2	0	1
+11720	3302	Wireless Controller	8BitDo Pro 2	1	2
+1356	1	DualSense Wireless Controller	Steam Deck Controller	0	2
+43408	6553	Steam Deck Controller	8BitDo Pro 2	0	3
+1356	4613	8BitDo Pro 2	XINPUT CONTROLLER	0	2
+34743	4613	DualSense Wireless Controller	Wireless Controller	0	2
+10462	10903	PLAYSTATION(R)3 Controller	Wireless Controller	0	2
+30042	746	PS4 Controller	8BitDo Pro 2	0	2
+1356	1	Steam Deck Controller		0	2
+11720	4607	Steam Deck Controller	PLAYSTATION(R)3 Controller	0	2
+11720	58195	PS4 Controller	XInput Controller	1	2
+11720	42292	8BitDo Pro 2	PS4 CONTROLLER	0	2
+1356	61413	Wireless Controller	PS4 CONTROLLER	0	2
+10462	4613		XINPUT CONTROLLER	0	3
+1118	4613	Wireless Controller	XInput Controller	1	1
+0	58844	XInput Controller	XINPUT CONTROLLER	0	1
+10462	746		PS4 Controller	0	2
+1356	3302	8BitDo Pro 2		0	2
+1356	63558	Wireless Controller	Steam Deck Controller	1	2
+11720	1	Wireless Controller	XInput Controller	1	1
+1356	4607	DualSense Wireless Controller	PS4 Controller	0	2
+55544	4613	Steam Deck Controller	Wireless Controller	0	3
+1118	1	PS4 Controller	DUALSENSE WIRELESS CONTROLLER	0	1
+28190	3302	Steam Deck Controller	Generic USB Joystick	0	3
+0	4607	PLAYSTATION(R)3 Controller	Xbox Wireless Controller	1	2
+1356	3302		PLAYSTATION(R)3 Controller	0	2
+14320	1	Generic USB Joystick	WIRELESS CONTROLLER	0	2
+0	4607	XInput Controller	Generic USB Joystick	0	1
+10462	3302	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+11720	4613			1	4
+11720	3302	XInput Controller	8BitDo Pro 2	1	1
+10462	4607	Generic USB Joystick	Steam Deck Controller	0	4
+1356	4613		8BitDo Pro 2	1	2
+28682	3302		Wireless Controller	0	2
+1118	4607	Generic USB Joystick	PLAYSTATION(R)3 Controller	0	1
+10462	4613	Steam Deck Controller		0	3
+1356	746	XInput Controller	Steam Deck Controller	1	2
+1356	4613	DualSense Wireless Controller	8BITDO PRO 2	1	2
+1356	4607	Generic USB Joystick	8BitDo Pro 2	0	2
+0	4607	Steam Deck Controller	PLAYSTATION(R)3 Controller	1	2
+3486	3302	PLAYSTATION(R)3 Controller	XInput Controller	0	2
+0	24686	XInput Controller	8BITDO PRO 2	0	1
+43590	4607	Xbox Wireless Controller	XBOX WIRELESS CONTROLLER	0	1
+10462	746	DualSense Wireless Controller	Generic USB Joystick	0	2
+10462	3302	Xbox Wireless Controller	Steam Deck Controller	0	1
+0	746	DualSense Wireless Controller	8BitDo Pro 2	0	2
+11720	3302	Steam Deck Controller		0	3
+1118	4607	PLAYSTATION(R)3 Controller	XInput Controller	1	1
+10462	4613	PS4 Controller	XINPUT CONTROLLER	1	3
+0	4613	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+11720	4607	XInput Controller		0	1
+10462	41401	Xbox Wireless Controller	Wireless Controller	0	1
+1118	746	XInput Controller	Generic USB Joystick	0	1
+11720	746		XInput Controller	0	1
+0	53394		STEAM DECK CONTROLLER	0	3
+30248	3302	DualSense Wireless Controller	DualSense Wireless Controller	0	2
+11720	4613	Generic USB Joystick	Generic USB Joystick	0	4
+52185	1	Steam Deck Controller	PS4 Controller	0	2
+0	4607	Steam Deck Controller	XINPUT CONTROLLER	0	1
+1356	1	PLAYSTATION(R)3 Controller	WIRELESS CONTROLLER	0	2
+1356	4607	Xbox Wireless Controller	Steam Deck Controller	1	2
+11720	27136	Generic USB Joystick	Steam Deck Controller	0	3
+1118	10117	Xbox Wireless Controller	Xbox Wireless Controller	1	1
+0	746	Wireless Controller	XInput Controller	1	1
+299	3302	Wireless Controller	PS4 CONTROLLER	0	2
+11720	1	XInput Controller	PLAYSTATION(R)3 Controller	0	2
+0	3302	Wireless Controller	Generic USB Joystick	1	2
+11720	1	PLAYSTATION(R)3 Controller		0	2
+1356	11135	XInput Controller	GENERIC USB JOYSTICK	0	2
+11720	3302	PS4 Controller	XInput Controller	1	2
+10462	4607	Steam Deck Controller	STEAM DECK CONTROLLER	0	4
+0	4607	PLAYSTATION(R)3 Controller	Steam Deck Controller	0	2
+0	44389	8BitDo Pro 2	Xbox Wireless Controller	0	1
+10462	3302	Xbox Wireless Controller	GENERIC USB JOYSTICK	0	1
+1118	4607	DualSense Wireless Controller	Generic USB Joystick	0	1
+11720	746	Xbox Wireless Controller	DualSense Wireless Controller	1	2
+11720	3302	PS4 Controller		1	2
+57941	50776	PS4 Controller	Xbox Wireless Controller	1	2
+11720	3302	Generic USB Joystick	Xbox Wireless Controller	1	1
+10462	3302		DualSense Wireless Controller	0	2
+0	24107	PLAYSTATION(R)3 Controller	8BITDO PRO 2	1	2
+27951	1	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1118	1	Steam Deck Controller	Xbox Wireless Controller	0	1
+11720	746	8BitDo Pro 2	Xbox Wireless Controller	1	1
+0	1	Generic USB Joystick	Wireless Controller	0	2
+10462	746		Wireless Controller	0	2
+1118	25749	Wireless Controller		0	1
+11099	4607	XInput Controller	Wireless Controller	0	1
+11720	3302	DualSense Wireless Controller	Steam Deck Controller	1	2
+0	5534	Xbox Wireless Controller	XBOX WIRELESS CONTROLLER	0	1
+49591	4613	Generic USB Joystick	8BITDO PRO 2	1	4
+1356	3302	Xbox Wireless Controller	PS4 Controller	0	2
+0	33984	Xbox Wireless Controller	Xbox Wireless Controller	0	1
+0	1	8BitDo Pro 2	PS4 CONTROLLER	0	2
+1356	4613	Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+11720	1	Xbox Wireless Controller	Wireless Controller	0	1
+0	3302	8BitDo Pro 2		0	4
+10462	4607	Steam Deck Controller		1	3
+0	4607	Xbox Wireless Controller	8BitDo Pro 2	0	1
+1118	1	XInput Controller	Wireless Controller	0	1
+0	23419	XInput Controller	PS4 Controller	1	2
+50274	4607		DualSense Wireless Controller	0	2
+0	4607	DualSense Wireless Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+9408	4607		PLAYSTATION(R)3 CONTROLLER	0	2
+1356	3302	PS4 Controller	Xbox Wireless Controller	0	2
+1118	746	8BitDo Pro 2	PLAYSTATION(R)3 Controller	1	1
+11083	1	Xbox Wireless Controller	Xbox Wireless Controller	0	1
+17338	47815	XInput Controller		1	1
+7928	3302	PLAYSTATION(R)3 Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+1356	3302	Wireless Controller	XBOX WIRELESS CONTROLLER	0	2
+0	746	DualSense Wireless Controller	DualSense Wireless Controller	1	2
+1356	4613	Wireless Controller	DualSense Wireless Controller	1	2
+9181	8094	Generic USB Joystick	8BitDo Pro 2	0	4
+1118	4613	PS4 Controller	Wireless Controller	0	1
+10462	4607	8BitDo Pro 2	Generic USB Joystick	1	3
+10462	746	Wireless Controller	Wireless Controller	0	2
+11720	38466	8BitDo Pro 2	DUALSENSE WIRELESS CONTROLLER	0	2
+0	746	Generic USB Joystick	Xbox Wireless Controller	1	1
+1356	746	Generic USB Joystick	Wireless Controller	1	2
+11720	1	PLAYSTATION(R)3 Controller	PS4 CONTROLLER	1	2
+11720	43042		WIRELESS CONTROLLER	1	2
+11720	40280	Steam Deck Controller	DualSense Wireless Controller	0	2
+10462	746	XInput Controller	8BITDO PRO 2	0	1
+24068	746	8BitDo Pro 2	PLAYSTATION(R)3 Controller	0	2
+1356	52225	Generic USB Joystick	DualSense Wireless Controller	1	2
+1118	1	Xbox Wireless Controller	Xbox Wireless Controller	1	1
+1356	1	8BitDo Pro 2	PLAYSTATION(R)3 Controller	0	2
+1356	4613	PLAYSTATION(R)3 Controller		0	2
+11720	1	DualSense Wireless Controller		1	2
+10462	4607	DualSense Wireless Controller	PLAYSTATION(R)3 Controller	1	3
+1118	4613	8BitDo Pro 2	Steam Deck Controller	1	1
+1356	3302	PLAYSTATION(R)3 Controller	8BitDo Pro 2	1	2
+11720	3302	XInput Controller	DualSense Wireless Controller	0	2
+11720	1	Generic USB Joystick	PS4 CONTROLLER	0	2
+0	1	Xbox Wireless Controller	Generic USB Joystick	0	1
+1118	746	Wireless Controller	Wireless Controller	1	1
+10462	746	Steam Deck Controller	DUALSENSE WIRELESS CONTROLLER	0	2
+10462	3302	PS4 Controller	XInput Controller	1	2
+1118	8479	8BitDo Pro 2	Generic USB Joystick	1	1
+11720	746	8BitDo Pro 2	XInput Controller	0	1
+44346	4613	DualSense Wireless Controller	WIRELESS CONTROLLER	0	2
+1356	4607	PS4 Controller	PLAYSTATION(R)3 Controller	0	2
+1118	1	Generic USB Joystick	XINPUT CONTROLLER	0	1
+1118	3302	PLAYSTATION(R)3 Controller	8BitDo Pro 2	0	1
+1356	4613	Wireless Controller	Xbox Wireless Controller	0	2
+11720	4607	Generic USB Joystick	Generic USB Joystick	0	4
+10462	3302	XInput Controller	PLAYSTATION(R)3 Controller	1	2
+63135	20862	PLAYSTATION(R)3 Controller	WIRELESS CONTROLLER	0	2
+10462	39651	8BitDo Pro 2	DualSense Wireless Controller	1	2
+11720	4607	XInput Controller	PS4 CONTROLLER	0	2
+10462	4607	Generic USB Joystick	Wireless Controller	0	4
+34665	4607	Steam Deck Controller		1	3
+11720	3302	PLAYSTATION(R)3 Controller	WIRELESS CONTROLLER	0	2
+55791	1	PS4 Controller	XInput Controller	1	2
+11720	4613	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	0	2
+1118	1	Xbox Wireless Controller	XInput Controller	0	1
+11720	6214	Xbox Wireless Controller		0	1
+0	3302	Generic USB Joystick		0	4
+1118	746	XInput Controller	8BitDo Pro 2	0	1
+1356	4613	Generic USB Joystick		0	2
+10462	3302	Generic USB Joystick	STEAM DECK CONTROLLER	0	3
+0	49808	Steam Deck Controller		1	3
+0	3302	Steam Deck Controller	Steam Deck Controller	0	3
+1118	23923	XInput Controller		0	1
+10462	4607	Xbox Wireless Controller		0	4
+11720	4613	DualSense Wireless Controller	Steam Deck Controller	1	2
+1356	48554	PLAYSTATION(R)3 Controller	PLAYSTATION(R)3 CONTROLLER	0	2
+11720	746	Xbox Wireless Controller	PLAYSTATION(R)3 Controller	1	2
+1118	4613	PLAYSTATION(R)3 Controller	DUALSENSE WIRELESS CONTROLLER	1	1
+8082	4613	Generic USB Joystick	Generic USB Joystick	0	4
+1356	56895	XInput Controller		0	2
+10462	18675	DualSense Wireless Controller	PS4 Controller	0	2
+0	3302	Generic USB Joystick	Steam Deck Controller	0	3
+1356	1		8BitDo Pro 2	0	2
+0	1	PS4 Controller		1	2
+49590	4607		Wireless Controller	0	2
+11720	746	8BitDo Pro 2	DualSense Wireless Controller	0	2
+10462	1	DualSense Wireless Controller	XInput Controller	0	2
+46552	1	Wireless Controller		0	2
+10462	4607	Wireless Controller		1	3
+10462	1	Steam Deck Controller	8BitDo Pro 2	0	3
+10462	1	XInput Controller	DualSense Wireless Controller	0	2
+10462	4613	XInput Controller	8BitDo Pro 2	0	3
+0	4613	Xbox Wireless Controller	WIRELESS CONTROLLER	0	1
+1356	746			1	2
+0	746	DualSense Wireless Controller	PS4 Controller	1	2
+1356	746	Steam Deck Controller	WIRELESS CONTROLLER	1	2
+11720	746		XInput Controller	0	1
+1356	746	Steam Deck Controller	PLAYSTATION(R)3 Controller	1	2
+1356	746	Xbox Wireless Controller	DualSense Wireless Controller	0	2
+1356	746	Wireless Controller	DualSense Wireless Controller	0	2
+0	1	Steam Deck Controller	8BitDo Pro 2	0	3
+0	1		Steam Deck Controller	0	3
+11720	25302	Steam Deck Controller	Generic USB Joystick	0	3
+51101	59767	Steam Deck Controller	PS4 Controller	1	2
+1356	1	Generic USB Joystick	GENERIC USB JOYSTICK	0	2
+1356	4607	Generic USB Joystick	XInput Controller	0	2

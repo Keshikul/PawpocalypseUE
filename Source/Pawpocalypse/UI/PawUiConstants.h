@@ -26,6 +26,8 @@ namespace PawUi
 	constexpr double RowHeight = 46.0;               // hud.tscn PawDamageButton custom_minimum_size
 	constexpr double RowGap = 4.0;                   // UpgradePanel separation
 	constexpr double TabHeight = 46.0;               // TAB_ICON_SIZE.y
+	constexpr double ReawakenGlowHz = 0.35;          // REAWAKEN_GLOW_HZ: the Reawaken tab's hue cycle while one is suggested
+	constexpr double ReawakenGlowSaturation = 0.75;  // REAWAKEN_GLOW_SATURATION
 	constexpr double MultiplierButtonWidth = 96.0;   // BuyMultiplierButton custom_minimum_size
 	constexpr double MultiplierButtonHeight = 34.0;
 	constexpr double LabelPx = 17.0;                 // theme Label/font_sizes
@@ -33,7 +35,6 @@ namespace PawUi
 	constexpr double SmallPx = 15.0;                 // the zone and wave labels
 	constexpr double OverFieldOutline = 2.0;         // _outline_over_playfield's 5 (Godot units): Slate's OutlineSize 5 drew
 	                                                 // the 17 px labels as solid ink blocks (seen 2026-11-01); 2 reads alike
-	constexpr double TabLabelPx = 13.0;              // the tab names until the tab icons arrive (phase 6): Godot's tabs are icons
 	constexpr double TabStarPx = 18.0;               // _set_tab_star
 
 	// dock_navigator.gd: hold-to-buy on shop rows only
@@ -49,6 +50,18 @@ namespace PawUi
 	constexpr double PounceReadyHz = 0.9;            // READY_HZ
 	constexpr double PounceWedgeAlpha = 0.62;        // WEDGE_ALPHA
 	constexpr double PounceMargin = 18.0;            // POUNCE_GAUGE_MARGIN
+
+	// Button prompts (hud.gd _build_dock_prompts, dock_navigator.gd, input_device.gd)
+	constexpr double TabPromptPx = 26.0;             // TabPrevPrompt / TabNextPrompt icon_px
+	constexpr double TabPromptGap = 4.0;             // the tab bar's separation beside them
+	constexpr double DockLegendPromptPx = 22.0;      // dock_legend.icon_px
+	constexpr double DockLegendPx = 14.0;            // dock_legend normal_font_size / bold_font_size
+	constexpr double PouncePromptPx = 28.0;          // pounce_prompt.icon_px
+	constexpr double PouncePromptGap = 8.0;          // _place_pounce_gauge: -p.x - 8 / size.x + 8
+	constexpr double RowPromptPx = 26.0;             // dock_navigator.gd _row_prompt.icon_px
+	constexpr double RowPromptGap = 10.0;            // ROW_PROMPT_GAP: outside the row, on the field side
+	constexpr double FocusPromptPx = 24.0;           // input_device.gd focus_prompt.icon_px
+	constexpr double FocusPromptInset = 10.0;        // FOCUS_PROMPT_INSET: inside the button's right edge
 
 	// tier_controller.gd: the boss panel
 	constexpr double BossBannerWidth = 760.0;        // BOSS_BANNER_WIDTH
@@ -96,13 +109,11 @@ namespace PawUi
 	constexpr double CeremonyPayoutTop = -20.0;      // Payout offset_top / offset_bottom
 	constexpr double CeremonyPayoutBottom = 90.0;
 
-	// The theme's WindowPanel (SBT_window: ui_window.svg, cream paper, a 3 px ink frame, inner corner radius 16; content margins
-	// 22 / 20). Drawn as a rounded brush until the art arrives (phase 6), like the dock. Worn by the job picker and the victory
-	// screen since F21 (designer 2026-11-03; Tests/Data/victory_look_godot.txt panel.style, jp.panel.style).
+	// The theme's WindowPanel (SBT_window: ui_window.svg, PawUi::Chrome Window since phase 6 slice 5a; content margins 22 / 20).
+	// Worn by the job picker and the victory screen since F21 (designer 2026-11-03; Tests/Data/victory_look_godot.txt
+	// panel.style, jp.panel.style).
 	constexpr double WindowPadX = 22.0;
 	constexpr double WindowPadY = 20.0;
-	constexpr double WindowRadius = 16.0;
-	constexpr double WindowFrame = 3.0;
 
 	// job_picker.gd
 	constexpr double JobPanelWidth = 560.0;          // panel.custom_minimum_size.x
@@ -122,4 +133,109 @@ namespace PawUi
 
 	// input_device.gd
 	constexpr double ModalGuardSec = 0.4;            // MODAL_GUARD_MSEC: a modal ignores presses this long after it opens
+
+	// main_menu.tscn / main_menu.gd (the title; Tests/Data/title_look_godot.txt). Offsets are the scene's, from its anchors.
+	constexpr double TitleNamePx = 76.0;             // Title font_size
+	constexpr double TitleNameTop = 90.0;            // Title offset_top (anchored top centre, 1000 x 100)
+	constexpr double TitleNameWidth = 1000.0;
+	constexpr double TitleNameHeight = 100.0;
+	constexpr double TitleVersionWidth = 240.0;      // VersionLabel: offset_left -260 .. offset_right -20
+	constexpr double TitleVersionHeight = 24.0;      // offset_top -44 .. offset_bottom -20
+	constexpr double TitleVersionMargin = 20.0;
+	constexpr double TitlePanelLeft = -230.0;        // Panel offsets from the centre: 460 x 440, its top 110 above the middle
+	constexpr double TitlePanelTop = -110.0;
+	constexpr double TitlePanelWidth = 460.0;
+	constexpr double TitlePanelHeight = 440.0;
+	constexpr double TitlePanelPadX = 28.0;          // StyleBoxFlat_panel content margins
+	constexpr double TitlePanelPadY = 24.0;
+	constexpr double TitlePanelRadius = 10.0;        // corner radius, a 3 px ink frame
+	constexpr double TitlePanelFrame = 3.0;
+	constexpr double TitleBodySeparation = 12.0;     // Body separation
+	constexpr double TitleMenuSeparation = 8.0;      // Menu separation
+	constexpr double TitleContinueHeight = 48.0;     // ContinueButton custom_minimum_size.y, font 22
+	constexpr double TitleContinuePx = 22.0;
+	constexpr double TitleButtonHeight = 40.0;       // the other menu buttons
+	constexpr double TitleScrimAlpha = 0.8;          // the panels' Scrim: Color(SKY base, 0.8)
+	constexpr double TitleSlotScrimAlpha = 0.88;     // SlotPanel/Scrim
+	constexpr double TitleWindowTitlePx = 32.0;      // the credits' and leaderboard's Title
+	constexpr double TitleWindowWidth = 760.0;       // CreditsPanel / LeaderboardPanel Window
+	constexpr double TitleCreditsHeight = 520.0;
+	constexpr double TitleLeaderboardHeight = 440.0;
+	constexpr double TitleConfirmWidth = 560.0;      // ConfirmPanel Window
+	constexpr double TitleConfirmHeight = 240.0;
+	constexpr double TitleConfirmSeparation = 16.0;  // its Body
+	constexpr double TitleConfirmRowSeparation = 12.0;
+	constexpr double TitleConfirmButtonWidth = 120.0; // Yes / Cancel custom_minimum_size
+	constexpr double TitleConfirmButtonHeight = 40.0;
+	constexpr double TitleSlotBodyWidth = 1680.0;    // SlotPanel/Body: offsets -840 .. 840, -290 .. 290
+	constexpr double TitleSlotBodyHeight = 580.0;
+	constexpr double TitleSlotSeparation = 24.0;     // Body and Row separation
+	constexpr double TitleSlotTitlePx = 40.0;
+	constexpr double TitleSlotBackHeight = 52.0;     // BackButton custom_minimum_size.y
+	constexpr double SlotCardWidth = 280.0;          // SLOT_CARD_SIZE
+	constexpr double SlotCardHeight = 360.0;
+	constexpr double SlotTextMargin = 14.0;          // SLOT_TEXT_MARGIN
+	constexpr double SlotDeleteHeight = 44.0;        // SLOT_DELETE_HEIGHT: the strip the Delete button sits in
+	constexpr double SlotDeleteButtonHeight = 37.0;  // the button's own height there (the theme's minimum: the look file)
+	constexpr double SlotNumberPx = 52.0;            // SLOT_NUMBER_FONT
+	constexpr double SlotColumnSeparation = 10.0;    // column separation
+	constexpr double SlotHoverScale = 1.10;          // SLOT_HOVER_SCALE
+	constexpr double SlotHoverSec = 0.12;            // the swell's tween
+	constexpr double TitleHintWidth = 1000.0;        // the hint: offsets -500 .. 500, -60 .. -26 from the bottom centre
+	constexpr double TitleHintBottom = 26.0;
+	constexpr double TitleHintHeight = 34.0;
+	constexpr double TitleHintPromptPx = 24.0;       // hint.icon_px
+	constexpr double TitleCornerMargin = 24.0;       // the Boba badge and the cluster: 24 from the left and the bottom
+	constexpr double BobaBadgeWidth = 167.0;         // as drawn in Godot (the look file): the photo's frame until the photo
+	constexpr double BobaBadgeHeight = 183.0;        // arrives (phase 6) keeps its place
+	constexpr double BobaBadgePad = 8.0;             // plate content margin
+	constexpr double BobaBadgeRadius = 12.0;
+	constexpr double BobaPhotoSize = 120.0;
+	constexpr double BobaCaptionPx = 13.0;
+	constexpr double BobaClusterGap = 14.0;          // the cluster starts 14 right of the badge
+	constexpr double ClusterButtonSize = 56.0;       // CLUSTER_PX
+	constexpr double ClusterGap = 10.0;              // CLUSTER_GAP
+	constexpr double ClusterRadius = 10.0;
+	constexpr double ClusterPad = 7.0;
+
+	// pause_menu.tscn
+	constexpr double PauseWindowWidth = 560.0;       // Window offsets -280 .. 280, -230 .. 230
+	constexpr double PauseWindowHeight = 460.0;
+	constexpr double PausePadX = 24.0;               // StyleBoxFlat_window content margins
+	constexpr double PausePadY = 20.0;
+	constexpr double PauseRadius = 10.0;             // corner radius, a 3 px ink frame
+	constexpr double PauseFrame = 3.0;
+	constexpr double PauseScrimAlpha = 0.8;          // Scrim: Color(SKY base, 0.8)
+	constexpr double PauseBodySeparation = 12.0;     // Body separation, MainPage separation
+	constexpr double PausePagesHeight = 360.0;       // Pages custom_minimum_size.y
+	constexpr double PauseButtonHeight = 54.0;       // the main page's buttons
+	constexpr double PauseSlotSeparation = 8.0;      // SlotPage / SlotList separation
+	constexpr double PauseSlotHeight = 52.0;         // _build_slots: custom_minimum_size.y
+	constexpr double PauseSlotBackHeight = 46.0;     // SlotBackButton
+
+	// settings_dialog.tscn (the scrim, the window's plate and margins are the pause menu's)
+	constexpr double SettingsWindowWidth = 1000.0;   // Window offsets -500 .. 500, -490 .. 490
+	constexpr double SettingsWindowHeight = 980.0;
+	constexpr double SettingsSectionSeparation = 6.0; // SectionBar separation
+	constexpr double SettingsPageSeparation = 10.0;  // AudioPage / VideoPage / ControlsPage separation
+	constexpr double SettingsSliderHeight = 24.0;    // MusicSlider / SfxSlider custom_minimum_size.y
+	constexpr double SettingsRowHeight = 46.0;       // a theme Button's height (the textured stylebox's 16 px margins round a
+	                                                 // 16 px label): the boxes, the lists, the section buttons, Close
+	constexpr double SettingsCheckPx = 16.0;         // CheckBox / OptionButton font_size
+	constexpr double SettingsRuleHeight = 4.0;       // the HSeparator: max(its separation 4, the style's minimum 2 + 2)
+
+	// controls_panel.gd (Settings > Controls, below the prompt and menu-side rows)
+	constexpr double ControlsSeparation = 8.0;       // Body / a row's separation
+	constexpr double ControlsCellWidth = 132.0;      // CELL_SIZE
+	constexpr double ControlsCellHeight = 40.0;
+	constexpr double ControlsResetWidth = 92.0;      // RESET_WIDTH
+	constexpr double ControlsSmallPx = 14.0;         // the column heads' and Reset's font_size
+	constexpr int32 ControlsIconPx = 26;             // a cell's prompt (PromptIcon icon_px)
+	// Godot's panel is a ScrollContainer that fills what the page leaves (size_flags_vertical EXPAND_FILL); here a box that
+	// high, which is what the 980 px window leaves under the prompt and menu-side rows (the asset owns it).
+	constexpr double ControlsScrollHeight = 480.0;
+
+	// Phase 6 slice 5b: icon sizes
+	constexpr double CardArtHeight = 104.0;          // catches_pick_ui.gd ART_HEIGHT (the card's picture)
+	constexpr double NodeIconPx = 56.0;              // skill_tree_ui.gd ICON_SIZE (a node's picture)
 }

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="64.0" cy="102.1" rx="53.2" ry="22.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="102.1" rx="49.9" ry="19.5" fill="#A37053" stroke="none"/>
+<ellipse cx="31.5" cy="97.8" rx="17.9" ry="17.2" fill="#2A1A33" stroke="none"/>
+<polygon points="15.4,101.4 33.9,56.3 47.8,97.6" fill="#2A1A33" stroke="none"/>
+<ellipse cx="31.5" cy="97.8" rx="14.6" ry="13.9" fill="#F4A968" stroke="none"/>
+<polygon points="19.0,97.8 33.6,61.4 44.0,94.3" fill="#F4A968" stroke="none"/>
+<ellipse cx="64.0" cy="102.1" rx="20.7" ry="19.8" fill="#2A1A33" stroke="none"/>
+<polygon points="45.6,105.7 66.8,53.9 82.7,101.2" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="102.1" rx="17.3" ry="16.5" fill="#F4A968" stroke="none"/>
+<polygon points="49.2,102.1 66.5,58.9 78.8,98.0" fill="#F4A968" stroke="none"/>
+<ellipse cx="96.5" cy="97.8" rx="17.9" ry="17.2" fill="#2A1A33" stroke="none"/>
+<polygon points="80.5,101.4 98.9,56.3 112.9,97.6" fill="#2A1A33" stroke="none"/>
+<ellipse cx="96.5" cy="97.8" rx="14.6" ry="13.9" fill="#F4A968" stroke="none"/>
+<polygon points="84.0,97.8 98.6,61.4 109.0,94.3" fill="#F4A968" stroke="none"/>
+<ellipse cx="64.0" cy="49.3" rx="25.3" ry="21.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="49.3" rx="21.9" ry="17.6" fill="#EC7B7B" stroke="none"/>
+<ellipse cx="39.7" cy="22.1" rx="11.5" ry="11.5" fill="#2A1A33" stroke="none"/>
+<ellipse cx="39.7" cy="22.1" rx="8.1" ry="8.1" fill="#EC7B7B" stroke="none"/>
+<ellipse cx="54.9" cy="14.9" rx="11.9" ry="11.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="54.9" cy="14.9" rx="8.6" ry="8.6" fill="#EC7B7B" stroke="none"/>
+<ellipse cx="73.1" cy="14.9" rx="11.9" ry="11.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="73.1" cy="14.9" rx="8.6" ry="8.6" fill="#EC7B7B" stroke="none"/>
+<ellipse cx="88.3" cy="22.1" rx="11.5" ry="11.5" fill="#2A1A33" stroke="none"/>
+<ellipse cx="88.3" cy="22.1" rx="8.1" ry="8.1" fill="#EC7B7B" stroke="none"/>
+</g>
+</svg>

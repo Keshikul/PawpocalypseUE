@@ -5,6 +5,1653 @@ and the exact next step. Read `docs/00-START-HERE.md` first, then the newest ent
 
 ---
 
+## 2026-11-07 (65) - Restyle R0 and R1: the look unhooked from Godot; the ink is plum
+
+### Where the project is
+- The restyle (`docs/WORKLIST-RESTYLE-2026-11-07.md`) is under way: **R0 and R1 done, next R2 (fonts)**. Phase 6 slice 6
+  (6b-6d) waits behind it (designer: "Restyle now"). Everyday `check_all` exit 0 (`build/check_all_r1d.log`, every gate PASS). Nothing committed after `98e3a4f`.
+- The game today: the field, the creatures, the chrome nine-patches and every UI text and frame are in Plum ink `#2A1A33`;
+  the panels are still cream (R3 turns the surfaces plum together with the text).
+
+### What happened this session
+1. Designer: **font M PLUS Rounded 1c; the cat stays grey; restyle now** (D14 in docs/01).
+2. **R0**: `tools/gen_paw_tokens.py` imports `tools/art/palette.py` (70 tokens byte-identical before any change); the Godot
+   scene/script literals moved into `palette.py LITERALS`; `build_art.py --check` no longer compares with Godot; Godot
+   fixture colours pass through the generated test-only `Source/PawCore/Tests/PcGodotLook.h` (Godot's palette frozen in
+   `tools/art/palette_godot_snapshot.json`; `Pc::PcFromGodot` in PcUnicornTests and PcRainbowTests); sabotage
+   `godot_look_off` CAUGHT. CLAUDE.md and docs 00/01/04/05/07/09 record that the look is ours.
+3. **R1**: `palette.py` PLUM family (`PLUM_*` tokens) + rule 6 (ten WCAG contrast pairs; catnip/crimson differ in
+   lightness); INK = Plum. All art regenerated and imported (390 SVGs, the 4 hand SVGs recoloured, rasters, cursors,
+   3 atlas pages, 9 chrome, 12 floors, 178 icons, 65 glyphs). `PawVfx`'s ink reads `Pc::Ink`; `gen_tree_tables.py` passes
+   Godot's tooltip/branch/link colours through the same map (the tooltip blurb was Godot's black).
+4. **Found: baked Widget Blueprints keep colours as values** (158 stale after the ink change; the job picker's and victory's
+   ink tests caught it). New: `PawUi::ForEachColour` / `LookObjects`, `UPawWidgetBaker::Recolour`, `py tools/bake_widgets.py
+   --run --recolour` (exact old palette colours only, hand edits kept; `tools/art/palette_widgets_snapshot.json`), test
+   `Pawpocalypse.UI.Widgets.Palette` (no `PawTokens::PALETTE_RETIRED` colour in any asset; seen to FAIL with 158; sabotage
+   `palette_walker_blind` CAUGHT). L0 `ui-rules` caught `FromSRGBColor` in UI code: `FLinearColor(FColor)` instead.
+5. Tour (Unreal side, `build/tour/ue`, 21:14-21:19): sampled pixels: title text, title buttons, dock frames, the cat and
+   the biome art all `(42, 26, 51)`.
+6. Canvas: the Style board rewritten as the plum spec (M PLUS Rounded 1c). Knowledge: `Unreal/09` §2.3 (baked colours are
+   values; the migration), `Godot/03` §6 (keeping oracle fixtures through a restyle), INDEX rows.
+
+### Open
+- R2 fonts next (worklist §5). D3 (the paw strike and the aura) is decided on R5's review sheet.
+- `docs/11` does not list the restyle yet (the worklist is the plan); `docs/00` status line to add when R3 changes what the
+  game looks like.
+
+### Next step
+*"Read docs/00-START-HERE.md and docs/HANDOFF-LOG.md, then do R2 (fonts) of docs/WORKLIST-RESTYLE-2026-11-07.md."*
+After any palette change: `gen_paw_tokens.py`, `build_art.py`, `raster_svg.py`, `pack_atlas.py`, `import_art.py --run`,
+`bake_widgets.py --run --recolour`, `check_all`.
+
+---
+
+## 2026-11-07 (64) - The restyle planned: the Unreal look leaves Godot (plum)
+
+### Where the project is
+- As (63): phase 6 slice 6, **6a done, next 6b**. No code, asset or gate changed this session; only this entry and the new
+  plan `docs/WORKLIST-RESTYLE-2026-11-07.md`. Nothing committed after `98e3a4f`.
+
+### What happened this session
+1. A look concept on a design canvas (https://claude.ai/artifact/3wbqpr2HT4daaSmtHtNT2K, private to the designer): the
+   game "goofy and chubby", then not-cute alternatives, palette research on similar games, the original field with **plum
+   menus** (chosen), a plum main menu (Boba's photo as the cameo) and skill tree, and a font test.
+2. **Designer decisions:** "The unreal version does not have to match godot, they can be different." and **"Plum
+   everywhere."** Rules and numbers still follow Godot exactly; the look does not. NOT yet written into CLAUDE.md / docs:
+   that is R0 of the plan.
+3. Font test (fontTools, every character of all 21 languages against each font's cmap): **M PLUS Rounded 1c** and **Dela
+   Gothic One** cover every Latin and Cyrillic language, Vietnamese and Japanese; Nunito all but Japanese; **Lilita One fails
+   cs, pl, hu, tr, vi, ru, uk**. Knowledge: `Unreal/09` §5 + INDEX row.
+4. Design review of every concept board rendered in the browser: three layout collisions fixed on the canvas; seven open
+   points recorded in the plan §3 (the paw cursor, the muddy aura, the cream boards, the font, small labels, the dock's void).
+
+### Open
+- **D1 font** (A: M PLUS Rounded 1c; B: Dela Gothic One + Nunito), **D2 the cat's colour** (recommend keep grey), D3 the paw
+  and the aura: plan §2.
+
+### Next step
+*"Read docs/00-START-HERE.md and docs/HANDOFF-LOG.md, then do 6b of docs/WORKLIST-SLICE6-2026-11-07.md."* The restyle
+(R0 onward) starts after slice 6, once D1 and D2 are answered.
+
+---
+
+## 2026-11-07 (63) - Phase 6 slice 6 planned; 6a: the Unicorn ceremony
+
+### Where the project is
+- Phase 6 slices 1-5 done; slice 6 started: its plan in `docs/WORKLIST-SLICE6-2026-11-07.md`, **6a done**. Everyday
+  `check_all` exit 0 (`build/check_all_6a.log`; L1 196 cases, `Pawpocalypse.UI` 73 tests). Nothing committed after `98e3a4f`.
+  **Next: 6b, the Reawaken banner.**
+
+### What happened (designer: "Start slice 6")
+1. **The survey** of unicorn_ceremony.gd, boba_cameo.gd, tutorial.gd, Godot's own gate ci/check_tutorial.gd and their callers,
+   written as the slice 6 plan: 6a the Unicorn ceremony, 6b the Reawaken banner (the tutorial's Reawaken cue leans on it),
+   6c Boba (the 14 photos, the cameo clock, five cameos, his places in the title / pause / settings / victory, never over
+   the tree; needs TRANS_BOUNCE), 6d the tutorial (eleven cues, the paw, Godot's gate walked in the port = phase 6's
+   "tutorial gate green"). A candidate finding noted for 6c: `BobaCameo.force()` skips the effects-off check.
+2. **The fixture `unicorn`** (`tools/godot_fixtures/unicorn_fixture.gd`): the real script recompiled with its draw calls,
+   global random draws and sounds renamed to recorders (5d's probe) and its class name replaced by its base; its tweens
+   stepped by `custom_step` after its `_process` (5c); 16 runs at 4 sizes, presses (key, echo, mouse, pad, release) at random
+   frames; per frame the clock, dim, cat, fade, rainbow, sounds, every 23rd bit and what it draws. `--check` byte for byte.
+3. **PawCore**: `PcTween`, Godot's Tween sequencing (steps of parallel tweeners, delays, callbacks, intervals, a delayed
+   property reading its start when its delay ends, the leftover time running into the next step), for 6c too;
+   `PcUnicornCeremony` over it. Within float32 of Godot: the cat 4.6e-4 px, a bit 1.7e-3 px, a tween value 6e-7. INK and GOLD
+   generated into PawCore's palette. Salt `UnicornFiesta`.
+4. **The game**: `UPawUnicornCeremony` (`WBP_UnicornCeremony`), the tree's last part (`add:Unicorn`, backup of the asset in
+   `build/wbp_backup_pre6a/`): plays when the Unicorn is bought and only then; Visible while it plays (eats clicks), holds
+   the keyboard focus, the tree hands it every key and buys nothing; a press after 0.6 s skips; the tree takes its focus back
+   when it ends. The cat from `DA_FieldAtlas`, the rest through `FPawFxCanvas`. `paw.Buy <branch>` for the tours; the tour's
+   new `unicorn` shot on both sides.
+5. Docs 00, 03, 04, 05, 06, 07, 09, 11, 12, the worklist, appendix B (appendices B and C regenerate unchanged); KB G/03
+   (the delayed tweener, the leftover).
+
+### Verified
+- L1 `Unicorn`, `Tween` PASS; 19 PawCore sabotages `tween_*` / `unicorn_*` all CAUGHT (`build/sabotage_unicorn_6a.log`;
+  `tween_delayed_reads_at_start` first MISSED: the test moved the value before the delayed step began; now during the delay,
+  CAUGHT). 627 in all.
+- `Pawpocalypse.UI.Unicorn.Plays`, `.RunsOut` PASS (the sound's rate limits on a driven clock: the first run dropped the second
+  whinny, played 0.3 s of no time after the first); 8 realm sabotages `unicorn_*` all CAUGHT
+  (`build/sabotage_unicorn_realm_6a.log`); `tree_browse_buys` retargeted to the extended purchase guard, CAUGHT. 455 in all.
+- The tour (`build/tour/compare/unicorn.png`): the dim, the rainbow, the mounted cat, gold stars with ink rims and confetti, in
+  both games (the Unreal shot lands later in the timeline: the tours' timing, not the ceremony's).
+- Mishap, repaired: a guard-less shell line started `sabotage_pawcore.py` with no `--only` (every sabotage); stopped after a
+  minute, it had left `PcProgress.cpp`'s rematch line sabotaged (`Out.bDefeated = false;`). Restored to the committed rule,
+  every sabotage target checked original; the L1 suite and `check_all` pass after it. Doc 12 has the row.
+
+### Open
+- 6b-6d (the worklist). The tree's `NativeTick` stepping the ceremony is seen only in the tour (the tests step it by hand).
+- From (62): the Reawaken banner and its frame (6b), the bars' minimum fill width side by side, the boss bar's step.
+
+### Next step
+*"Phase 6 slice 6b (docs/WORKLIST-SLICE6-2026-11-07.md §6b): the Reawaken banner. Read the rest of hud.gd
+_refresh_reawaken_banner (its place over the field), add its decision to PcHud against the real HUD (a fixture over random
+states, as the victory fixture runs the real hud.tscn), then the plate in UPawHudScreen (graft) with a second UPawRainbowFrame
+following it (margin 2, corner 10, width 5), its pop-in and jitter."*
+
+---
+
+## 2026-11-07 (62) - Phase 6 slice 5d: the rainbows and the tree's sky
+
+### Where the project is
+- Phase 6 slices 1-4 and 5a-5d done. Everyday `check_all` exit 0 (`build/check_all_5d.log`; L1 194 cases, `Pawpocalypse.UI` 71 tests, the game build too). Nothing committed after `98e3a4f`. **Next: slice 6**,
+  the unicorn ceremony, Boba in the menus, the tutorial overlay.
+
+### What happened (designer: "Yes": start 5d)
+1. **The fixture `rainbow`** (`tools/godot_fixtures/rainbow_fixture.gd`). A probe subclass cannot catch a `_draw()` script's
+   `draw_*` calls (they bind to the native methods), so the fixture reads each script's own source, renames ONLY its draw
+   calls (and the bar's global `randf_range` / `randf`) to recorders, recompiles it and drives it by hand: every other line is
+   Godot's. Refuses to run when a rename finds nothing. Five tables: 30 bars x 20 frames (an occasional 1.9 s hitch so a full
+   bar crosses its 24-spark cap), 40 frames x 10 steps, 200 frames following a leaning / hidden plate, the sky at 4 sizes x 4
+   effects budgets x 10 frames (long steps so clouds wrap). `--check` reproduces it byte for byte. Found on the way: a fixture
+   frozen one frame late moved by the wall clock (froze it straight after `add_child`); a GDScript parse error leaves headless
+   Godot idle for the runner's whole 30 min (KB G/03).
+2. **PawCore**: `PcRainbow` (rainbow_bar.gd: the clock, sparks, accumulator, bands; rainbow_frame.gd: outline, phase, the rect
+   grown round a plate; Godot's `Color.from_hsv`, `fposmod`, `Range.set_value`), within float32 (worst 1.5e-4 px); the sky
+   `PcSky` in `PcBackdrop` (Godot's RNG seeded by `hash("skill_tree_sky")`, float32 drift and wrap, twinkle, the two cloud
+   violets, the two-octave outline): **to the last float bit**. The sky's four colours generated into `PcBackdropTones.h` from
+   palette.gd. Salt `RainbowSpark`. L1: 4 cases.
+3. **Godot's ProgressBar snaps its value to a 0.01 step** (the fixture showed 0.6296 -> 0.63): the port's bars did not.
+   `PawUi::SetBarValue` keeps what Godot's Range keeps (the XP bar's step 0.0001) and sizes the fill as Godot does; every bar
+   now draws its fill at the fill's width with both caps (`EProgressBarFillStyle::Scale`; UMG's `Mask` cut the cap off square:
+   the "bar fill's end" open since (58)).
+4. **The game**: `UPawRainbowBar` (`WBP_RainbowBar`; the Reawaken page's bar, swapped in for `ReawakenBar`), `UPawRainbowFrame`
+   (`WBP_RainbowFrame`; `ZoneReady` in the HUD's root overlay, following the zone plate's painted geometry so it leans with
+   the plate's jitter; the old hue-walking border stand-in removed), `UPawTreeSky` (`WBP_TreeSky`; over the tree's Sky border,
+   which still takes the drag). Godot's draw calls through `FPawFxCanvas` (+ `Fan`, + per-point-colour `Polyline` with a 1 px
+   feather) and `PawUi::PaintCanvas`. Grafts: `PawHudScreen=swap:ReawakenBar>ReawakenRainbow;add:ZoneReady;restyle:WaveBar;
+   restyle:ZoneBar;restyle:XpBar;restyle:BossBar`, `PawSkillTreeScreen=add:TreeSky` (the baker's restyle now carries a bar's
+   fill style). Backups of the two assets before the graft: `build/wbp_backup_pre5d/`.
+5. Docs 00, 03, 04, 05, 07, 09, 11, 12, the worklist §5d, appendix B; KB G/03 (four entries), U/09 (two rows, two bullets),
+   INDEX.
+
+### Verified
+- L1 194 cases PASS; 26 PawCore sabotages `rainbow_*` / `sky_*` all CAUGHT (`build/sabotage_rainbow_5d.log`; one first MISSED,
+  `rainbow_fraction_unclamped`: the Range makes that clamp unreachable, so a unit check now pins it, then CAUGHT). 608 in all.
+- `Pawpocalypse.UI.Rainbow.Bar`, `.Frame`, `.Sky`, `.Widgets.*`, `.Chrome`, `.Hud.*` PASS; 16 realm sabotages `rainbow_*` / `sky_*`
+  all CAUGHT (`build/sabotage_rainbow_realm_5d.log`; `rainbow_frame_zone_margin` first MISSED: the parity test does not compare
+  that setting of a nested piece, so the Frame test now checks the code layout's frame too, then CAUGHT). 447 in all.
+  `hud_xp_not_refreshed` retargeted to the XP bar's new line (the everyday `sabotage targets current` found it), CAUGHT.
+- The first everyday run failed two gates, both fixed: L0 no-float (the sky test held `float` vectors: `PcSky::CloudOutline`
+  now hands out doubles, still exact) and the stale target above.
+- The tour (`build/tour/compare`): the Reawaken page's rainbow bar, the zone plate's turning frame ("Next biome - ready") and
+  the tree's violet sky with its stars and clouds, in both games.
+
+### Open
+- The Reawaken banner (hud.gd `_build_reawaken_banner`) is not ported, so neither is its rainbow frame (margin 2, corner 10,
+  width 5): `UPawRainbowFrame` takes those settings when the banner comes.
+- The fill's minimum width: `SetBarValue` uses Godot's `round(r * (w - m)) + m` (m = 16 for the theme fill), from 5a's reading
+  of Godot's ProgressBar; not yet measured side by side at a small fraction.
+- The boss bar's Range step is not checked (its Godot scene not read): it keeps the plain fraction, with the caps now kept.
+- The frame's 1 px feather is by eye; the tour shot is the check.
+- From (61): the title's slot cards swell linearly where Godot's tween is cubic ease-out.
+
+### Next step
+*"Phase 6 slice 6 (doc 11): the unicorn ceremony, Boba in the menus, the tutorial overlay. Start by surveying the Godot
+scripts (the unicorn's ceremony, boba_cameo.gd, the tutorial) and writing their slice plan into a worklist, as §Slice 5 was."*
+
+---
+
+## 2026-11-07 (61) - The docs brought up to date after slices 5a-5c
+
+### Where the project is
+- As (60): phase 6 slices 1-4 and 5a-5c done, everyday `check_all` exit 0 (`build/check_all_5c.log`). Nothing committed after
+  `98e3a4f`. Only docs and the port map's table changed in this session (no code, no assets). **Next: slice 5d.**
+
+### What happened (designer: "Make sure all docs are up to date")
+Every doc checked against the code and (58)-(60). Slices 5a-5c had updated docs 00, 01, 05, 09, 11 and the worklist; these had
+fallen behind:
+- **Appendix B** (`tools/make_port_map.py`, regenerated): `ui_juice.gd` named a `UPawUiJuice` that was never made (now `PcJuice`
+  + `FPawJuice`, built); `currency_icons.gd` now `PawUi::Icon` + `UPawIconText`, built in 5b.
+- **Doc 03**: a `PcJuice` row in the PawCore table, a `UiJuice` row in the node map, the chrome and icons in the HUD row.
+- **Doc 00**: `PcJuice`, `PawIcons` and `FPawJuice` in the inventory; phase 2's line said 563 PawCore sabotages (582).
+- **Doc 07**: nothing from 5a-5b was there: the raster groups `chrome` and `icons`, `import_art.py`'s five modes, the UI art as
+  built (the "still to come" line listed the icons), `DA_Icons`, the `Art/UI/Chrome` and `Art/UI/Icons` folders; the pipeline
+  sketch still showed the plan's `Data/Atlas.csv` (built: `SourceArt/png/atlas/field_<n>.png` + `field.csv`).
+- **Doc 05**: placeholders that phase 6 replaced (the job icons, the text tabs, the title cluster's words) and two title items
+  built long ago but still listed "not yet" (Settings, the last slot kept in the settings).
+- **Doc 09**: the `art rasters reproduce` row covers the chrome and the icons.
+- **Doc 12**: five rows from 5a-5c (the ring painted over the plate, CRLF in string tables, no NativeTick on Common UI buttons,
+  hover on a button Godot disables, `IsVisible()` in tests) and the global `randf_range` in the Godot RNG row.
+- **Doc 04** §8: the spike tools (`tools/spikes`) went with the spike code.
+- Docs 01, 02, 06, 08, 10, 11, 13 and CLAUDE.md needed nothing.
+
+### Verified
+- Appendices A and C regenerated into a scratch folder: identical to the docs (and every `Data/*.csv` identical).
+- Appendix B regenerated from the Godot repo as it is today (79 scripts, every one mapped).
+
+### Open
+- As (60). Also seen: the title's slot cards still swell linearly where Godot's tween is cubic ease-out (doc 05); Godot's easing
+  is now in PawCore (`TweenInterpolate`), so it could be matched.
+
+### Next step
+*As (60): "Phase 6 slice 5d (docs/WORKLIST-NIGHT-2026-11-05.md §5d): `rainbow_bar.gd`, `rainbow_frame.gd` (the zone plate's and
+Bait's frame), `skill_tree_sky.gd`, each a Slate paint of Godot's draw calls against a probe fixture of the real node (as slice
+2's backdrop); it also fixes the bar fill's caps."*
+
+---
+
+## 2026-11-06 (60) - The nightly after 5b, all green; phase 6 slice 5c: the motion
+
+### Where the project is
+- Phase 6 slices 1-4, 5a, 5b and **5c** done. Everyday `check_all` exit 0 (`build/check_all_5c.log`; `Pawpocalypse.UI` 68
+  tests, L1 190 cases, the game build too). Nothing committed after `98e3a4f`. **Next: slice 5d**, the rainbows and the tree's
+  sky.
+
+### What happened (designer: "Yes pmease": the nightly, fix what it finds, then 5c)
+1. **The nightly `-Full`** (`build/check_all_full_20261106.log`, 12:46-22:24, 9 h 38 min): all 31 gates PASS, 563 PawCore and
+   412 realm sabotages all CAUGHT, both clean builds pass. Nothing to fix.
+2. **The fixture `juice`** (`tools/godot_fixtures/juice_fixture.gd`): Godot's own `Tween.interpolate_value` for linear, sine,
+   quad, back, elastic x in, out, in_out, out_in (8,840 rows), and the REAL ui_juice.gd on a real Button: 160 random sequences
+   of 60 events and frames (hover, press, punch, pop-in, jitter on / off, disabled, hidden, the effects setting), the tweens
+   stepped by `Tween.custom_step` from a synchronous `_ready` (9,600 rows), and every jitter lean (301). The leans: Godot's
+   global `randf_range` is `randd()` (THREE PCG outputs), not the RandomNumberGenerator's float `randf_range` (two): a shadow
+   RNG drifted after the first lean (164 mismatches) until rebuilt from `randi()`; the fixture now refuses to finish on any
+   lean that does not match where the rotation landed. `--check` reproduces it byte for byte.
+3. **PawCore `PcJuice`** (`PcJuice.h/.cpp`): `TweenInterpolate` (easing_equations.h in doubles; worst 4.3e-7 off Godot's
+   float32), and UiJuice's state machine: one tween per property (a new one kills the old), each leg starting from the value
+   at its first step, the punch's leftover passed to its second leg, the jitter's next step a frame later, asleep when hidden,
+   off with the effects. L1 `Juice` 3 cases (worst sequence 1.5e-7). Salt `Jitter` in PcRng.h.
+4. **The game: `FPawJuice`** (`UI/PawJuice.h/.cpp`), one per screen, ticked by its owner, written as the render transform about
+   the centre. Hover on the shop rows, job buttons, tabs, travel rows, claim buttons (hud.gd), the tree's nodes, the title's
+   cluster; lean on the Reawaken tab (+ its hue glow, `_tick_reawaken_glow`, `PawUi::FromHsv`), Bait (F42), a newly open
+   biome's row, the zone plate, READY nodes in the spend step; punch on a bought row or node; pop-in on the tree's leaving
+   plate. Common UI's OnHovered is the pointer's and only on an enabled, interactable button (= `_on_enter`'s check); the
+   tree's nodes stay interactable in the port, so `SetHoverOff` carries Godot's `disabled` there. Visibility reads the
+   property, not `UWidget::IsVisible()` (false before a Slate widget exists: the KB had it, I re-found it).
+5. **Finding F42** (docs/01 and the Godot repo's findings file): `_refresh_bait_button` stops the Bait's lean and starts it
+   again on every refresh, so it trembles and never leans. Copied.
+6. Docs 00, 01 (F42), 05 (motion), 09, 11, the worklist's §5c; KB G/03 (global randf_range = randd; Tweens stepped by hand),
+   U/08 (OnHovered is the pointer's; UCommonButtonBase is DisableNativeTick), U/24, INDEX.
+
+### Verified
+- L1 `Juice`: 3 cases PASS; 19 PawCore sabotages `juice_*` all CAUGHT (`build/sabotage_juice_5c.log`, `_juice2_5c.log`: three
+  first written did not compile under warnings-as-errors, reworded to keep the parameter used, then CAUGHT). 582 in all.
+- `Pawpocalypse.UI.Juice.Hud`, `.Tree`, `.Title` PASS; 19 realm sabotages `juice_*` all CAUGHT
+  (`build/sabotage_juice_realm_5c.log`). 431 in all.
+- The tour (`build/tour/compare`): the open biome's row and the zone plate lean in both games.
+
+### Open
+- Not built (their owners are not ported): Boba's badge hover, cameo jitter and CEO pop-in, the Reawaken banner (pop-in and
+  lean; HANDOFF-LOG (23) "the Reawaken banner and glow": the glow is done), the language menu, the tutorial plate, the tooltip.
+- No test for Bait's lean (needs a biome with its bait earned); the tree's and title's `NativeTick` stepping is seen only in the
+  tour (the tests step the juice directly).
+- Common UI re-fires hover when a hovered button is locked or unlocked; Godot's mouse_entered does not: a hovered row that
+  becomes affordable pops in the port, not in Godot. Small; not changed.
+- From (59): the Achievements tab count, the bright yellow newly open plate, the tooltip, the bar fill's end (5d), the pad check
+  of the ring.
+
+### Next step
+*"Phase 6 slice 5d (docs/WORKLIST-NIGHT-2026-11-05.md §5d): `rainbow_bar.gd`, `rainbow_frame.gd` (the zone plate's and Bait's
+frame), `skill_tree_sky.gd`, each a Slate paint of Godot's draw calls against a probe fixture of the real node (as slice 2's
+backdrop); it also fixes the bar fill's caps."*
+
+---
+
+## 2026-11-06 (59) - Phase 6 slice 5b: the icons and the quick bar
+
+### Where the project is
+- Phase 6 slices 1-4, 5a and **5b** done. Everyday `check_all` exit 0 (`build/check_all_5b.log`; `Pawpocalypse.UI` 65 tests,
+  the game build too). Nothing committed after `98e3a4f`. **Next: the nightly `-Full`**, then slice 5c, the motion.
+
+### What happened (designer: "Do all next slices in order untill you think you need a long test")
+1. **Pipeline**: `tools/raster_svg.py` group `icons` (178 SVGs at their own 128 px, as Godot imports them: the 6 tabs, 3
+   currencies, 4 quick buttons, 3 title plates, the tick, 41 achievements, the cards, skills and jobs; Godot draws only 17 of the
+   `ui_*` SVGs, `ui_card_frame` / `ui_close` / `ui_lock` / `ui_skill_node*` / `ui_slot` nowhere); `tools/import_art.py icons`
+   -> `/Game/Pawpocalypse/Art/UI/Icons/T_*` + `DA_Icons` (UPawIconSet). `PawUi::Icon(stem or res:// path)` is Godot's
+   `Art.texture` (null when there is no art).
+2. **Pieces**: `UPawButton` got an optional `Icon` (Godot's `Button.icon`: at the content's left edge, the text centred in what
+   is left; an icon-only button centres it), `SetActiveLook` (a toggle held down: the theme's pressed plate, Common UI's
+   selection with `SetIsInteractableWhenSelected(true)`) and the bare look (`UPawBareButtonStyle`, `BP_BareButtonStyle`: a
+   TextureButton). New piece `UPawIconText` / `WBP_IconText` (`wrap_label`: a currency icon before a label).
+3. **The HUD as hud.gd**: currencies (34 px), the wave line's Bait icon, **icon-only tabs** with the names as tooltips and the
+   open tab on the pressed plate (the port's coloured tab plates were not Godot's: palette UI_TAB_* is not used by Godot's
+   HUD), the Reawaken page (progress Catnip, payout and total Stardust, the button), achievement rows (36 px icon) with Claim /
+   Claim all in Stardust, job rows (40 px), Bait (Catnip's icon when Catnip is short), realm rows asking for Catnip. Icons that
+   rules decide are set in `OnLayoutReady` (both modes; build code reaches only the bake).
+4. **The quick bar** (hud.tscn QuickSeparator / QuickBar / QuickStatus), absent from the port until now: Settings (the dialog on
+   the Modal stack), the tree (browse), Save ("Saved."), Save and back to the title; mouse only, as Godot's navigator never
+   visits it. New `ST_UI` keys `QUICK_*`.
+5. **Elsewhere**: the title's three plates (icons, no words), the card pictures (104 px), the tree's node icons (56 px), the
+   Pounce clock's paw (`skill_pounce`, r x 1.3).
+6. **The baker**: `props:Part` (a piece's own settings into the asset: the tabs' and plates' words cleared), `add:` takes a panel
+   with children (made empty in the asset, then each child by name). Grafted: `WBP_Button` (Icon), `WBP_HudScreen` (7 swaps:
+   the discs, the wave line, the three Reawaken / achievement lines; the quick bar; tabs' props), `WBP_MainMenu` (plates' props),
+   `WBP_CardFace` (Art), `WBP_TreeNode` (Icon); new `WBP_IconText`, `BP_BareButtonStyle`. Backups: `build/wbp_backup_pre5b/`.
+7. **A line-ending trap, found and gated**: Python's `Path.write_text` writes CRLF on this machine; `ST_UI.csv` written so
+   turned every line break inside a quoted string into two (4 UI tests failed: "line one\n\nline two"). Converted back to LF;
+   **new L0 rule**: any `\r` in an `ST_*.csv` fails (seen failing on the CRLF table, passing after). Note: many sources are now
+   CRLF (Python patches) and some LF (sed); Git normalises them on commit; only runtime-parsed files matter.
+8. Docs 00, 05 (§7 icons, the placeholders list), 09, 11, the worklist's §5b, CLAUDE.md; KB U/09 (§2.3 panels with children and
+   piece settings; §3 two rows), U/20 §2 (LF string tables), U/17 §3 (line endings from tools), INDEX.
+
+### Verified
+- `Pawpocalypse.UI.Icons` PASS: every constructed name and data icon_path resolves (Godot's 128 px), the HUD's icons, tabs and
+  pressed plate, the quick bar; `.Title.Look`, `.CardPick.Look`, `.Tree.Opens` check the plates, card pictures and node icons.
+- **17 new realm sabotages, all CAUGHT** (`icons_*` 13, `quick_*` 4; `build/sabotage_icons_5b.log`, `_quick_5b.log`,
+  `_icons2_5b.log`); `chrome_tab_separator_flat` retargeted (`TabRule`: the quick separator made the old target ambiguous),
+  CAUGHT again. 412 in all.
+- The tour beside Godot: the dock (tabs, currencies, Reawaken page, achievements, realms), card pick, tree, title: Godot's icons
+  where Godot has them.
+
+### Open
+- **The nightly `-Full`**: 5a and 5b changed most screens; the 382 older realm sabotages have not been run since (only
+  "targets current" is checked daily).
+- No test or sabotage for: the Pounce clock's paw (painted), the quick bar's Settings and tree presses (no stacks in the
+  test world), the settings lists' ring (from (58)).
+- The Achievements tab shows its count beside the trophy; in Godot's shot the count is not visible (" 1" on an expand_icon
+  button): look whether Godot draws it at all before calling it a port difference.
+- "Travel: <biome>" (a newly open biome): Godot's plate is bright yellow, the port's a 45 % gold wash (pre-existing; BIOME_READY_TINT).
+- The custom tooltip (upgrade_tooltip.gd) is not built: the engine tooltip shows the tab and quick-bar names.
+- From (58): the wave bar's fill end (5d), the pad check of the ring, everything open in (53)-(56).
+
+### Next step
+*"Run the nightly: `powershell -ExecutionPolicy Bypass -File tools\check_all.ps1 -Full` (~10 h, editor closed, nothing else
+building). Fix whatever it finds (a MISSED sabotage: retarget or retire with the reason, as (56)). Then phase 6 slice 5c, the
+motion (docs/WORKLIST-NIGHT-2026-11-05.md §5c): Godot's Tween easing (TRANS_BACK / ELASTIC / QUAD / SINE, EASE_OUT /
+IN_OUT) in PawCore exact against a fixture sampling the real Tween, then UiJuice's hover / jitter / pop_in / punch at
+Godot's call sites, render transform only."*
+
+---
+
+## 2026-11-06 (58) - Phase 6 slice 5a: the chrome
+
+### Where the project is
+- Phase 6 slices 1-4 and **5a** done. Everyday `check_all` exit 0 (every gate PASS, `Pawpocalypse.UI` 64 tests). Nothing
+  committed after `98e3a4f`. Next: slice 5b, the icons.
+
+### What happened (designer: "what's next on the dev list?" then "Yes please" to 5a, starting with step 1)
+1. **Step 1 measured**: the six `BP_*Style` Blueprints save no property values (their name tables hold no `NormalBase`,
+   `ButtonPadding`...), so a changed C++ constructor default reaches them. Confirmed after the rebuild: the Blueprints resolve to
+   the new brushes (`Pawpocalypse.UI.Chrome` reads them). Code owns the button looks until the designer edits a BP.
+2. **The design table was wrong about the consumers** (corrected in the worklist): Godot overrides the theme with flat
+   styles on the dock (`hud.tscn` `DockPanel`: `ui_dock.svg` is drawn nowhere), the title / pause / settings windows, the toast,
+   the boss panel, the zone plate and bar, the XP bar: those keep their Rounded brushes. What Godot's theme really draws, now
+   drawn the same way: Button (4 states; a locked row = the disabled plate), the settings lists (OptionButton plates, the
+   PopupMenu panel and hover), the WindowPanel (job picker, victory), the theme ProgressBar (the wave bar; the Reawaken bar's
+   track), the HSeparators.
+3. **Pipeline**: `tools/raster_svg.py` group `chrome` (9 SVGs at their own size, 1:1, as Godot's `svg/scale=1.0`; covered by
+   the existing `--check` gate), `tools/import_art.py chrome` -> `/Game/Pawpocalypse/Art/UI/Chrome/T_ui_*` (UI textures).
+   `PawUi::Chrome(EPawChrome)` (PawUiKit): Box brush, `ImageSize` = the SVG's size, `Margin` = Godot's `texture_margin` / size.
+4. **The selection ring** (SBF_focus: 3 px UI_FOCUS, radius 12, 3 px outside) is no longer part of the hovered brush: it is
+   painted OVER the plate by `UPawButton::NativePaint` (and `UPawSettingsDialog::NativePaint` for its lists). Rule
+   (`UPawButton::RingRule`): hovered, or focused when the last input was not the mouse (Godot hides mouse focus). Why: a
+   textured hover plate cannot also carry a ring, and Common UI never hovers a locked (interaction-off) button, nor does Slate
+   turn focus into hover. **A behaviour change worth a look on a pad**: keyboard / pad focus now rings even where Common UI
+   gave no hover (locked rows included).
+5. **Assets**: a new baker op `restyle:Part` (copies a part's brush / padding / bar style / size from the code layout into the
+   asset; nothing else) and `names:` (lists an asset's widgets). Applied: `WBP_HudScreen` (`swap:Border_3>TabSeparator`,
+   `restyle:WaveBar`, `restyle:ReawakenBar`), `WBP_SettingsDialog` (`SectionSeparator`, `SectionSeparatorBox`: 4 px),
+   `WBP_JobPicker` and `WBP_VictoryScreen` (`Panel`). Backups of the four pre-chrome assets:
+   `build/wbp_backup_pre5a/` (untracked; the Widgets folder is not in git yet either).
+6. **F41 (new)**: Godot's separators draw nothing (the 2 + 2 px texture margins fill the HSeparator's 4 px; measured in
+   Godot's tour shot). The port copies it. doc 01 §5 and the Godot repo's `docs/pawpocalypse-port-findings.md` (uncommitted).
+7. Docs 00, 01, 05 §7 (the look as built), 09, 11, the worklist's §5a, CLAUDE.md; KB U/09 (§2.3 restyle, §3 three rows,
+   §4 nine-patches and BP default propagation), G/07 (HSeparator), INDEX.
+
+### Verified
+- `Pawpocalypse.UI.Chrome` PASS: the 9 brushes against Godot's numbers (held in the test, apart from PawUi's table), the
+  textures' size and no mips, Godot's margin rule, BP_ButtonStyle / BP_LockedButtonStyle / UPawOption states, the 6 asset parts
+  AND their code layout, the ring rule, the ring painted off screen on a real `SCommonButton` hover (0 at rest, 1 hovered).
+- **13 new realm sabotages, all CAUGHT** (`chrome_*` 9, `ring_*` 4; `build/sabotage_chrome_5a.log`); clean build PASS; 395 in all.
+- **The asset half seen to fail**: the four pre-chrome Widget Blueprints swapped in, the test failed on exactly the 7 asset
+  checks (nothing from code), the new assets put back byte-identical.
+- The tour beside Godot (`py tools/godot_tour.py`, both sides re-shot: the old Godot shots of the job picker and victory
+  predated F21): the dock's rows, the job picker and the victory window now wear Godot's plates.
+- Everyday `check_all` exit 0 (`build/check_all_5a.log`).
+
+### Open
+- The settings lists' ring (`OptionShowsRing`) has no test or sabotage: no headless settings dialog with a hovered list yet.
+- UMG clips a bar's fill at the fraction; Godot resizes the fill nine-patch (both caps kept): the wave bar's fill end is
+  square. For slice 5d (the bars' own paint, with rainbow_bar.gd).
+- The dock's tabs: Godot's are icons with a darker plate when selected; the port's are words with an orange plate (5b).
+- The Quick bar (and its separator) is not in the port yet (5b brings `ui_quick_*`).
+- The pad check of the ring change (4 above) and everything open in (53)-(56).
+
+### Next step
+*"Phase 6 slice 5b, the icons (docs/WORKLIST-NIGHT-2026-11-05.md §5b): an icon data asset generated by the importer (name ->
+texture), every name Godot constructs resolving (test + a sabotage with one missing), then the placeholders replaced (grep
+"phase 6" in Source/Pawpocalypse/UI: tabs, currency discs, achievement marks, the Pounce clock, the title cluster, the card
+picture, the tree's node icons), the tour beside Godot."*
+
+---
+
+## 2026-11-06 (57) - The docs brought up to date
+
+### Where the project is
+- As (56): the nightly baseline proven, nothing committed after `98e3a4f`. Next: phase 6 slice 5a, the chrome.
+
+### What happened (designer: "Make sure all docs are up to date")
+Every doc read against the code, the gate logs of 2026-11-06 05:45 and (55)-(56). Fixed:
+- CLAUDE.md and `tools/check_all.ps1`'s header: the nightly is ~10 h (measured 2026-11-05/06), not ~7.1 h / ~5.5 h.
+- Doc 00 and doc 11: "next: the nightly" replaced by the night's result and the next step (slice 5a; its design in
+  `docs/WORKLIST-NIGHT-2026-11-05.md`).
+- Doc 09 §7: PawCore 187 test cases / 6.61 M assertions (was 182), `Pawpocalypse.Input` 18 tests (`.PadAudio`),
+  `Pawpocalypse.UI` 63; two everyday gates that had no row (`audio export reproduces`, `sabotage targets current`).
+- Doc 12: the stale-target pitfall now names the everyday gate; a new row for UI sabotages MISSED in bake-only code.
+- KB U/18 §8 (+ INDEX row and symptom): a mutant in code that only runs when an asset is created is caught by nothing.
+
+### Verified
+- Appendices A, B and C regenerated into a scratch folder: identical to the committed docs (and `Data/*.csv` identical).
+- `sabotage_pawcore.py --list` and `sabotage_realm.py --list`: every target current after the edits.
+
+### Open
+- As (56).
+
+### Next step
+*As (56): "Phase 6 slice 5a, the chrome (docs/WORKLIST-NIGHT-2026-11-05.md §Slice 5a): first measure who owns a button's look
+(does a changed C++ default reach `BP_ButtonStyle`?), then the nine-patch brushes from Godot's margins table, the test, the
+sabotages, the shots beside Godot."*
+
+---
+
+## 2026-11-06 (56) - The nightly, fixed (night worklist 2026-11-05)
+
+### Where the project is
+- Phase 6 slices 1-4 done, plus the Output device and the pad-audio toast (55). **The nightly baseline is proven**: every gate
+  ran and passed or was fixed and rerun alone; the everyday set exit 0 at 05:45. Next: phase 6 slice 5, starting with 5a.
+  Nothing committed after `98e3a4f`.
+
+### What happened (designer: "When the test finishes fix anything that's broken. I want you to create [and] execute an overnight plan")
+The plan: `docs/WORKLIST-NIGHT-2026-11-05.md` (closed). Its read-only part, written while the nightly ran: **slice 5's design**
+(5a the chrome with Godot's nine-patch margins table and the first step, 5b the icons, 5c the motion, 5d the rainbows and the
+tree's sky).
+1. **The nightly `-Full`** (20:40 -> 02:44, another project's soak sharing the CPU): 29 of 30 PASS: PawCore sabotage 563/563
+   (3 h 15 min), the Godot fixtures (23 min), L1 long (24 min), mirror 200k, fuzz 30k, the pawsim sweep (1 h 53 min), L4 pad-only.
+   **Realm sabotage FAILED in 0 s**: it refused to start on one STALE target, `settings_effects_ignored` (its line in
+   PawRealmView.cpp was rewritten by slice 3), so none of its 388 ran.
+2. **Fixed**: retargeted to the line that hands the effects budget to FPawVfx; CAUGHT alone. **The cause**: runs with `--only`
+   check only the targets they name, so a stale one hides until the nightly. New everyday gate **`sabotage targets current`**
+   (`--list` of both tools: every target, nothing built, seconds); seen to fail on a rewritten target in either tool and pass
+   restored (byte-identical).
+3. **The realm gate rerun** (02:47 -> 05:42): 381 of 388 CAUGHT, clean sources PASS. The 7 MISSED, each looked at:
+   `view_no_effects` (since slice 3 the effects spawn in `FPawVfx::OnFrameEvents`, not `SpawnEffects`): retargeted, CAUGHT alone.
+   Six were **retired**: their lines are in `Initialize`'s `BuildsInCode` branch, which since the Widget Blueprints (38) runs only
+   when the baker builds the asset, so the property (a hit-test visibility, a dim, a panel brush, a button style) is the asset's;
+   the tests still assert it on the real asset (they pass), but no code sabotage can reach it. 382 realm sabotages now, every
+   one seen CAUGHT.
+4. Docs 00, 09; KB U/18 §8 (check every mutation target daily) + INDEX (+ symptom).
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0 (05:45), the new gate among them.
+- The night's logs: `build/check_all_full_20261105.log`, `build/check_all/*.log`, `build/realm_sabotage_rerun_20261106.log`.
+
+### Open
+- **Asset-held properties have no negative test**: the six retired sabotages' properties now live in Widget Blueprints, where a
+  code sabotage cannot reach. Their tests read them from the real assets; an asset-level sabotage (edit the uasset headless,
+  run the test, restore) would close the gap: worth doing with slice 5a, which edits those assets anyway.
+- From (55): the Output device's real swap is not heard (the designer's two-device `-game` check). Everything else open in
+  (53)-(55).
+
+### Next step
+*"Phase 6 slice 5a, the chrome (docs/WORKLIST-NIGHT-2026-11-05.md §Slice 5a): first measure who owns a button's look (does a
+changed C++ default reach `BP_ButtonStyle`?), then the nine-patch brushes from Godot's margins table, the test, the sabotages,
+the shots beside Godot."*
+
+---
+
+## 2026-11-05 (55) - The Output device and the pad-audio toast, before the nightly
+
+### Where the project is
+- Phase 6 slices 1-4 done, and the two gaps (54) found in phase 6's audio now closed. Next: the nightly `-Full`, then slice 5.
+  Nothing committed after `98e3a4f`.
+
+### What happened (designer: "What's next can you do next before the long test?")
+The two gaps fit before the nightly so that its baseline covers them; slice 5 still waits for it (it changes every screen).
+1. **PawCore**: `Pc::SettingsOutputWant` (settings_manager.gd `_apply_output_device`: the stored device while the system lists
+   it, else "Default") and `Pc::DevicePadAudioToast` + `DevicePadAudioWaitMs` 2000 (input_device.gd `_watch_for_pad_audio`);
+   `PcDeviceToast::PadAudio`. Hand-written L1 tests from the Godot code (no fixture: a headless Godot lists only "Default", so
+   the real `AudioServer` cannot be driven); 3 sabotages CAUGHT (563 PawCore in all).
+2. **The output device** (`UPawAudioSubsystem`: `OutputDeviceList`, `ApplyOutputDevice`): the system's active devices by
+   friendly name from the WASAPI mixer's device cache (the same names Godot stores, so a Godot settings.cfg carries over),
+   "Default" first; applied at startup, on every settings change and when the pinned device is removed. **Unreal follows the
+   system's default even after a swap** (only `OpenAudioStream` sets the listening flag), so a chosen device is pinned with
+   `SetIsListeningForDeviceEvents(false)` beside the forced `RequestDeviceSwap`; "Default" turns it back on. Never in the editor.
+   Seams `SystemDevices` / `SwapOutput` for the tests. Modules `AudioMixer`, `AudioMixerCore`.
+3. **The Output list** (`UPawSettingsDialog`) shows the system's devices; the settings tests fix the system to "Default" only
+   (Godot's fixture is headless), so `.MatchesGodot` never depends on the machine.
+4. **The pad-audio toast** (`UPawInputDeviceSubsystem`): a connect after the boot window starts a watch; 2 s later (real time,
+   the core ticker: a paused game too) a new device while following the system shows Godot's text (`INPUT_toast_pad_audio`
+   in ST_UI, `UPawToast::ShowPadAudio`); each connect watches on its own; the setting is read after the wait.
+5. Docs 00, 05 (§3), 07 (§6), 08, 09, 11. KB: U/14 §2.2 (listing and pinning an output device; the trap), INDEX (+ symptom).
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0 (game target built too).
+- New engine tests: `Pawpocalypse.Audio.Output`, `.UI.Settings.Output`, `.Input.PadAudio`. Sabotages all CAUGHT: 3 PawCore
+  (`settings_output_want_unlisted`, `device_pad_audio_*` 2), 8 realm (`audio_output_*` 4, `pad_audio_*` 4); 388 realm in all.
+
+### Open
+- **Not heard**: the real swap was never made (the editor never makes it, headless has no device). The check is a `-game` run
+  with two output devices: pick one, plug in a pad with a headset, unplug the chosen device. Then the KB's U/14 §2.2 goes from
+  `[Docs]` to `[Verified]`.
+- Not tested: the editor guard in the engine swap (a sabotage would need a real device to notice).
+- Everything open in (53) and (54) other than these two.
+
+### Next step
+*"Run the nightly on its own: `powershell -ExecutionPolicy Bypass -File tools\check_all.ps1 -Full` (editor closed, ~7.6 h;
+exit 0 = done). Fix what it finds. Then phase 6 slice 5 (survey in (53)), then slice 6, then the exit tours."*
+
+---
+
+## 2026-11-05 (54) - Docs audit after phase 6 slices 1-4
+
+### Where the project is
+- Unchanged from (53): phase 6 slices 1-4 done; next the nightly `-Full`, then slice 5. Nothing committed after `98e3a4f`.
+  Only docs changed in this session (no code, no assets).
+
+### What happened (designer: "Make sure all docs are up to date")
+1. Every doc checked against the code as built. Updated: doc 00 (the state, the "what already exists" table: Render, Realm's
+   look and effects, Audio, the art and audio tools, the materials, `SourceArt` / `SourceAudio`, PawCore's `PcBackdrop`, 560
+   PawCore sabotages, ~7.6 h `-Full`), 03 (module tree, `PcEvents` as built, `PcBackdrop`, the audio row, the backdrop and
+   effects rows, visual definitions as built: no per-creature asset, the art found by the data's stem; plugins:
+   ProceduralMeshComponent on, Niagara unused), 04 (the pulse on the CPU, the sort priorities, the ortho Z-clip note, the
+   effects as draw calls, §7's table marked as the plan), 05 (glyph source, menu music and click done), 06 (the audio CSVs are
+   not tables), 07 (§2.1, folders, VFX as built), 08 (the volumes act), 09 (§7, the art and atlas gates, the runner's
+   unfinished-test check), 10, 11 (phase 6: slice 3 built as draw calls, exit-criteria progress, next the `-Full`), 12 (new
+   pitfalls), appendix B (regenerated). Docs 01, 02, 13 and CLAUDE.md needed nothing.
+2. **Two gaps found** (now open in docs 05, 07, 08 and 11): the settings' **Output device** (Godot sets
+   `AudioServer.output_device`; the port always plays to the default device) and the **pad-audio toast**
+   (input_device.gd `_watch_for_pad_audio`). Neither was in a slice's list; both belong to phase 6 (audio) and should be done
+   before phase 6's exit.
+
+### Open
+- The Output device choice and the pad-audio toast (above). Everything listed open in (53).
+
+### Next step
+Run the nightly gate on its own (nothing else beside it: it edits sources for its sabotages):
+`powershell -ExecutionPolicy Bypass -File tools\check_all.ps1 -Full` (~7.6 h; exit 0 = done). Then phase 6 slice 5 (survey
+in (53)), with the Output device and the pad-audio toast fitted in before the phase's exit tours.
+
+---
+
+## 2026-11-05 (53) - Phase 6 slice 4: the sound
+
+### Where the project is
+- Phase 6: slices 1-4 done; next slice 5 (UI art and motion). Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Do all next slices in order until you think you need a long test")
+1. **The sound table from Godot**: `py tools/export_audio.py` (audio_manager.gd EVENTS / the sounds each plays / FALLBACK_MUSIC)
+   -> `Data/AudioEvents.csv`, `Data/AudioMusic.csv` (also via `export_godot_data.py`: the data-export gate covers them; not
+   tables: `NOT_TABLES` in import_data / gen_paw_rows) and the 53 files something plays -> `SourceAudio/` (28.9 MB; LFS);
+   `--check` gate `audio export reproduces` (seen to fail on one changed number).
+2. **UE 5.8 imports OGG directly**: `py tools/import_audio.py --run` -> `SW_*` (`/Game/Pawpocalypse/Audio/Sfx`, `/Music`, the music
+   looping) and `DA_AudioBank` (`UPawAudioBank`).
+3. **`UPawAudioSubsystem`** (`Source/Pawpocalypse/Audio`): AudioManager's rules (16 voices in turn, interval / pitch spread /
+   dB / round robin per event, the buses from the settings live, the 1.2 s crossfade in dB, a track with no file carries on,
+   real time). When: a progress observer (purchase, Reawaken, skill level, achievement earned / claimed, a hand, a card
+   taken; `UPawGameSubsystem::ProgressEpoch` so a load or a new game is silent), the realm's field events (the drop, the
+   golden chime, the boss's summon and music, phase, defeat), the biome's music on a biome change and back after a Reawaken
+   dismisses the boss (a timeout leaves the boss's music on, as Godot), the UI's clicks (dock tabs, the buy multiplier, a
+   refused purchase, pause, the title's cluster), the title's music.
+4. **Finding F40**: five sounds play twice, layered (a signal hookup plus a direct call with no interval). The port copies it.
+5. `run_automation.py` waits up to 30 s for this project's exiting editor (a gate had refused on its predecessor's dying process).
+6. Docs 00, 01 (F40), 07 (§6 as built), 09, 11, CLAUDE.md. KB: U/14 §2.1 (OGG import, a sound table without Sound
+   Classes, audio tests with no device, a progress observer), Godot/07 (a sound played twice), INDEX.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0 (new: `audio export reproduces`, `L3 Pawpocalypse.Audio` 3 tests). A `-game`
+  run with the real device: no audio warning or error. Not heard: the designer's ears are the check.
+- Sabotages all CAUGHT: 8 `audio_*` (380 realm sabotages in all).
+
+### Open
+- Not wired yet: `boba_cameo`, `unicorn_neigh` (their callers come in slice 6), the language list's click (phase 7).
+- From before: F38-F40, Q9, phase 5's hand-checks, F34-F37, Q10, the nightly `-Full` not run since (33), the packaged bench.
+
+### Stopped here for the long test (designer: "until you think you need a long test")
+The nightly `-Full` has not run since (33); since then ~70 sabotages were added or retargeted (PawCore 549 -> 560, realm
+351 -> 380), the event flags widened, the automation runner changed twice. Slice 5 rewrites the look of every screen's assets,
+so it should start from a proven baseline. `-Full` edits sources for its sabotages: nothing else can run beside it.
+
+### Slice 5, surveyed (for the next session)
+- **Chrome is nine-patch art in Godot** (`scenes/ui/pawpocalypse_theme.tres`: StyleBoxTexture, `texture_margin` 16 for the
+  buttons, 20 for the panel...): `ui_button_normal/hover/pressed/disabled`, `ui_panel`, `ui_window`, `ui_dock`, `ui_bar_track/fill`,
+  `ui_separator` (+ `ui_slot`, `ui_card_frame`, `ui_skill_node[_locked|_owned]`, `ui_lock`, `ui_close`). The port draws rounded
+  flat brushes (`PawUiConstants.h` "until the art arrives"). In UMG: Box brushes over 2x rasters with ImageSize = the SVG's own
+  size and the margins as fractions; the button styles are `BP_*` assets that own their look (edit them by script, never re-bake).
+- **Icons by constructed name** (Godot `Art.texture`): `ui_tab_<id>` (tabs are icons, 52 x 46 buttons, hud.gd TAB_ICON_SIZE),
+  `ui_icon_catnip/stardust/bait` (currency_icons.gd: 26 px on buttons, 24 beside labels; the status bar's TextureRects; the
+  Bait button), `ui_quick_*` (TextureButtons), `achievement_<id>` (36 px, hud.gd 2219), the data's `icon_path` for cards
+  (catches_pick_ui.gd ART_HEIGHT), skills (skill_tree_ui.gd ICON_SIZE 56) and jobs (hud.gd 956: 40 px), `ui_menu_*` on the
+  title's cluster (56 px plates), `ui_tick` (the language list, phase 7). Placeholders to replace are marked "phase 6" in
+  `Source/Pawpocalypse/UI` (grep it: PawHudScreen, PawCardPickScreen, PawSkillTreeScreen, PawMainMenu, PawPounceClock, PawButton).
+- **UI motion**: `ui_juice.gd` (194 lines), `rainbow_bar.gd`, `rainbow_frame.gd` (the Bait-ready plate), `skill_tree_sky.gd`.
+- Pipeline: `tools/raster_svg.py` groups for the UI art at 2x the drawn size, `tools/import_art.py` (UI textures), parts
+  grafted with `py tools/bake_widgets.py --run --graft "Class=add:Part"`.
+
+### Next step
+*"Run the nightly: `powershell -ExecutionPolicy Bypass -File tools\check_all.ps1 -Full` (editor closed, ~7.5 h). Fix what it
+finds. Then phase 6 slice 5 (above), then slice 6 (the unicorn ceremony, Boba, the tutorial overlay), then the exit tours."*
+
+---
+
+## 2026-11-05 (52) - Phase 6 slice 3: the effects
+
+### Where the project is
+- Phase 6: slices 1-3 done (the field's art, the backdrops, the effects); next slice 4, audio. Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Do slice 3")
+1. **Godot's effects ported as its own draw calls.** Every Godot effect is `_draw()` code, so instead of doc 04's SDF quads
+   and Niagara the port carries a Godot-style draw API, `FPawFxCanvas` (Circle, Arc, Polyline, Line, Polygon, from_hsv:
+   vertex-coloured triangles at a depth), and `FPawVfx` (`Realm/PawVfx`): vfx_burst / slam / swipe / beam / shards /
+   edge_fire, aura_ring (incl. the Unicorn's rainbow), poop_zone_visual, damage_zone_field, boss_telegraph, golden_sparkle
+   and the Lone Hunter's halo, line by line, with tier_controller.gd's and player.gd's choice per field event (the Pied
+   Piper's arrivals, Sixth Sense's pulse, the drag tether, the rush pulse, Riddle, Execute, the swipe and Anvil Echo's reach,
+   Hammerfall, Overkill's 3 beams a frame, the Prism's paced chain and burst, the Pounce's burst + slam + dust, the kill pops
+   and the golden spray, the 70 ms bonus pops, the giblets, the bomb, the boss's window / phase / heal / adds and its three
+   delayed death rings, the Cone of Shame's ring, the job ring). The effects setting as Godot's spawners do; a 2,048 live cap
+   as a flood guard. The placeholder rings and discs are gone.
+2. **PawCore**: three event flags the effects need (Riddle armed, Execute's threshold, the Prism's kill); `Flags` is 32 bits.
+   Checked in the existing Riddle, Execute and beam-kill tests; 3 sabotages CAUGHT.
+3. **The renderer**: three translucent procedural-mesh bands rebuilt each frame (`EPawFxBand`: Ground under the shadows,
+   Under over them, Over per-vertex in Godot's z order among the sprites), priorities renumbered. **The camera's automatic
+   ortho planes clip Z 400** (found when the top effects vanished; explicit planes made it worse, cause unknown): everything
+   lies in Z 0..300, a test asserts it.
+4. **A gate bug, fixed**: `tools/run_automation.py` counted completed tests only, so a test that crashed the editor (an
+   access violation in `Pawpocalypse.Realm.View`, a stale sparkle slot after travel, also fixed) passed as "10 tests". It now
+   fails on a started test without a result and on a critical error; seen to fail on that very crash.
+5. **Finding F39** (doc 01 §5, the Godot findings file, uncommitted there): `VfxBurst.spawn` sets `global_position` before
+   `add_child`, so the two rings spawned under the cat draw at twice its position (measured in the real Godot: (1200, 500)
+   -> (2400, 1000)). The port copies it.
+6. Dev tour step `paw.Fx` (one of each effect round the cat). Seen in a `-game` window: the burst, both swipes (plain with
+   its ink edge, the earned crit pink), the beam, the gold shards, the slam with its cracks and dust, the boss's telegraph
+   over the kittens.
+7. Docs 00, 01 (F39), 04 (§7 as built), 09 (the Vfx tests, the runner, 560 / 372 sabotages), 11. KB: 2D/02 §4.6 (Godot effects
+   as draw calls; the ortho clipping), U/18 §2 and U/24 (count started tests), Godot/07 (global_position before add_child),
+   2D/00, INDEX.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0. Engine: Realm 13 tests (new `.Vfx.Mapping`, `.Vfx.Canvas`). Draw of 320
+  mice + 20 kittens with effects 0.36 ms (0.07 before). `py tools/padplay_tour.py`: PASS, 41.
+- Sabotages all CAUGHT: 3 PawCore `flag_*` (560 in all), 7 realm `vfx_*` (372 in all).
+
+### Open
+- Not reproduced: Godot's antialiased line feather (FXAA smooths); the slam's crack shapes (seeded per position, not by
+  Godot's hash(Vector2)); translucent blending in linear light. The effects are not compared side by side with Godot (they
+  are transient: a tour would need both games to spawn the same effect on cue).
+- From before: F38, F39, Q9, phase 5's hand-checks, F34-F37, Q10, the nightly `-Full` (~7.5 h now) not run since (33), the
+  packaged bench not run since slice 1.
+
+### Next step
+*"Phase 6 slice 4: audio (doc 07 §6): AudioManager.EVENTS -> Data/AudioEvents.csv -> DT_AudioEvents, the OGG import (or
+the WAV conversion), UPawAudioSubsystem::Play with Godot's rate limits and pitch jitter, the buses and the settings' sliders,
+the music's crossfade, the prune test both ways."*
+
+---
+
+## 2026-11-05 (51) - Phase 6 slice 2: the backdrops (and the title's garden)
+
+### Where the project is
+- Phase 6: slices 1 (the field's art) and 2 (the backdrops) **done**; next slice 3, the VFX. Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Continue")
+1. **The layout, exact** (PawCore `PcBackdrop`): biome_backdrop.gd's scatter, the title's trees, the patches and puddles,
+   the border rows and the corners, in Godot's draw order. Godot lays them out with its own `RandomNumberGenerator` seeded by
+   its own `hash()`, so the port carries both (`PcGodotRng`: PCG32, `randf` = two outputs in float32; `GodotHashString`,
+   `GodotHashBiomeConfig`: djb2, the Dictionary's murmur3 + fmix32), and rounds to float32 exactly where Godot makes a Vector2.
+   New fixture `backdrop` (`tools/godot_fixtures/backdrop_fixture.gd`): a probe subclass of the REAL node records every prop
+   and outline its own `_draw()` makes, in a SubViewport of 7 sizes (4:3 to 32:9) at 4 effects budgets, 13 ids: 364 layouts,
+   10,442 rectangles and 1,701 outlines, all equal to the float. 8 PawCore sabotages, all CAUGHT (one, the blob in double
+   instead of float, first NOBUILD, retargeted). L0 `no-float` gets ONE named exception, `FLOAT_IS_THE_SPEC` = PcBackdrop
+   (CLAUDE.md says so; nothing economic lives there).
+2. **The realm draws it** (`APawRealmView::DrawBackdrop`): the floor (`M_Floor`, the 12 generator PNGs imported as
+   `T_backdrop_tier_N`, tiled at 256 px from the top-left; all 12 referenced by the view: loaded with the map, never on
+   travel), the patches, puddles and rims (one `UProceduralMeshComponent` section with sRGB vertex colours, `M_BackdropFill`:
+   Godot's painter's order by primitive order; **ProceduralMeshComponent is now enabled for the game target**,
+   `tools/trim_game_plugins.py`), the props (atlas sprites in a new `Props` band). Laid out on a travel or a resize with the
+   budget of that moment, as Godot (a settings change shows from the next one).
+3. **The atlas** gains the 36 props (107 sprites, 3 pages); `tools/import_art.py --run floors`; `tools/create_maps.py` sets the
+   new materials and the floor list; `PcBackdropTones.h` generated from palette.gd's BACKDROPS by `tools/gen_paw_tokens.py`
+   (L0 checks it). `build_art.py --check` also runs the generator's floor seam gate (seen to fail at a lowered limit).
+4. **The title's garden**: `UPawGarden` (new piece, `WBP_Garden`), grafted into `WBP_MainMenu` as `Garden` right over the
+   paper floor (`bake_widgets.py --graft "PawMainMenu=add:Garden"`), paints the "menu" biome in Slate: the tiled floor, the
+   puddles (the Rooftops' sky), the props swaying about their roots; the scatter laid out on a resize, the patches and border
+   rows each frame with the budget of now (Godot's dancing `_draw`).
+5. **Seen beside Godot**: `py tools/godot_tour.py --set biomes` (new: `biome_probe.gd`, `paw.Travel <n>`): all 12 biomes and
+   the title, same props, patches and puddles in the same places (build/tour/compare). Differences seen, owned elsewhere: the
+   dock's tab icons and the cluster's icons (UI art, slice 5), the title's font (phase 7), Boba's photo (slice 6).
+6. Docs 00, 03 (§7 the plugin), 04 (§5.1), 05 (the garden), 07, 09, 11, CLAUDE.md. KB: Godot/03 (a RandomNumberGenerator
+   object's randf is not the global one's; hash() of String / Dictionary; float32 Vector2; recording a node's draws through a
+   probe subclass), 2D/02 §4.5 (tiled floor, ordered translucent polygons, a backdrop painted in Slate), 2D/00, INDEX.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0 (after the L0 exception). L1: the backdrop fixture exact. Engine: Realm 11,
+  UI 61 (new `Pawpocalypse.UI.Title.Garden`). `py tools/padplay_tour.py`: PASS, 41 checks.
+- Sabotages all CAUGHT: 8 PawCore `backdrop_*` (557 in all), 5 realm `backdrop_*` and 2 `garden_*` (365 in all).
+
+### Open
+- The rims are strips with averaged normals and hard edges (FXAA smooths them); Godot's polylines are antialiased. Patches
+  and puddles blend in linear light here, in sRGB in Godot (a touch lighter at their edges).
+- From before: F38, Q9, phase 5's hand-checks, F34-F37, Q10, the nightly `-Full` not run since (33), the packaged bench not
+  run since slice 1 (package only when asked).
+
+### Next step
+*"Phase 6 slice 3: the VFX (doc 11 phase 6): M_FxShape (aura ring, poop zone, damage zones, boss telegraph, swipe, slam, beam,
+the Lone Hunter halo), the bursts / shards / edge fire / golden sparkle, each honouring the effects setting, against the
+Godot vfx_*.gd code."*
+
+---
+
+## 2026-11-05 (50) - Phase 6 started: slice 1, the field's art
+
+### Where the project is
+- **Phase 6 (presentation) started**, in six slices (doc 11 phase 6): (1) the field's art, **done here**; (2) backdrops;
+  (3) VFX; (4) audio; (5) UI art and UI motion; (6) ceremonies, Boba, the tutorial; then the exit tours. Phase 5's hand-checks
+  still wait for the designer. Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Read the handoff. Do phase 6")
+1. **The art generators moved in** (`tools/art/`): Godot's sweet-grammar generators copied unchanged but for their output
+   paths (a PORT note in each); four hand-drawn UI SVGs as sources in `tools/art/hand/ui`; `flatten_backdrop.py` left out
+   (it reads a removed style folder). `py tools/art/build_art.py` writes `SourceArt/svg` (390 files, Godot's `assets/art`
+   layout); `--check` proves it **byte-identical to Godot's `assets/art`** and `palette.py --gd` identical to Godot's
+   `palette.gd`. Seen to fail (one ink hex: 738 differences). The glyphs moved from `SourceArt/svg/input` to
+   `SourceArt/svg/ui/input`; `raster_svg.py` reads `SourceArt/svg` now (no Godot copy), its PNGs unchanged.
+2. **The field atlas**: `py tools/pack_atlas.py` rasterises the 71 field sprites at 2x their largest drawn size (sizes from
+   Godot's code and data, in its docstring) into 2 pages of 2048 + `field.csv` (UVs, native size); `--check` reproduces it.
+   `py tools/import_art.py --run atlas`: `T_Atlas_Field_0/1` (BC7, mips, Never Stream, World) and `DA_FieldAtlas`
+   (`UPawSpriteAtlas`, new). `tools/create_field_materials.py` adds `M_Sprite` (masked) and `M_SpriteSoft` (translucent):
+   UV rect from custom data, tint, whiten. `tools/create_maps.py` sets them and the atlas on L_Realm's view.
+3. **The renderer** (`UPawSpriteRenderer::AddSprite`): per atlas page a masked, a soft and a shadow component; the logical
+   layers (Floor, Zones, Shadows, Bodies, new Overlays, Fx) kept, so the tests and the bench still count what is drawn.
+   Translucent bands ordered by sort priority. Mirroring by swapping the cell's U0 / U1.
+4. **The creatures as Godot draws them** (`APawRealmView::DrawCreatures`, constants and maths in `Realm/PawFieldLook.h`,
+   every one from Godot's code): mice at `sprite_target_px` with the breathing pulse (vertical only), facing by travel with
+   the 8 px/s dead zone, data tint x shield x snare (multiplied, as Godot), the signature glow (a white silhouette 1.24x,
+   breathing, behind); kittens at 96 px, gold / illusory tints; the cat in its VISUAL stage (the unicorn mount follows the
+   node), its weapon (mirrored) and job hat as children of the sprite, the Pounce hop (lift, crouch, stretch), facing by the
+   stick only; the boss at its SVG size x 0.9 with its twitch (anger after a heal), shield tint and the death sequence (six
+   shudders, the back-eased collapse); the adds' pulse; the ground shadow under every creature that stands (not the boss,
+   not the adds: Godot has none there). **Draw order is Godot's, not a Y-sort**: doc 04 §4 assumed Godot sorted creatures by
+   Y; it draws by z_index then tree order (mice < kittens < cat < weapon / adds < hat). Doc 04 corrected.
+5. Dev tour steps `paw.Cat <x> <y>` (place the cat; the stick claims the cursor) and `paw.Boss` (the first boss realm if
+   needed, bait topped up, a real summon). Screenshots of the field, the stage 3 cat with its weapon, the stage 6 unicorn with
+   its flag, and the Park Tyrant with kittens over it: all as expected (not yet compared side by side with Godot's).
+6. **Finding F38** (doc 01 §5 and the Godot findings file, uncommitted there): a cat steered right by the stick flips its
+   picture but its hat and weapon stay on the left (Godot's `flip_h` does not move children). Read in the code; the port copies it.
+7. Docs 00, 01 (F38), 04 (§4 the draw order, §5.1 built, §9), 07 (§2 built, §2.1, §3), 09 (two gates, the tests, 358
+   sabotages), 11 (phase 6 slices), CLAUDE.md (the tool commands). KB: 2D/02 §4.4 (atlas sprites on instanced quads: UV rect
+   and flip in custom data, sort priority bands, a source game's draw order, Godot modulate in linear, DataAssetFactory from
+   Python, test the import's freshness), 2D/00, INDEX.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0, with two new gates (`art generators reproduce`, `field atlas reproduces`).
+  Engine: `Pawpocalypse.Realm` 11 tests (new `.Look.Rules`, `.Look.Atlas`). Draw of 320 mice + 20 kittens 0.068 ms.
+- `py tools/padplay_tour.py`: RESULT PASS, 41 checks.
+- Sabotages, all CAUGHT: 7 new (`look_kittens_under_mice`, `look_enemy_without_art`, `look_cat_wears_the_kitten`,
+  `look_shadow_wrong_art`, `look_kitten_half_size`, `look_atlas_no_stems`, `look_hop_lower`) and 2 stale ones retargeted
+  (`view_no_shadows`, `render_counts_the_pool`); 358 realm sabotages in all. The atlas freshness check seen to fail on one
+  changed UV in `field.csv`.
+
+### Open
+- **Not in slice 1, owned by later slices**: the Lone Hunter halo (drawn as the zones' soft discs, under the shadows, until
+  the VFX slice's shape material), the golden sparkle (VFX), the effects (still placeholder rings), the floor (still flat
+  paper). Per-creature `UPawVisualDefinition` assets (doc 07 §4) not built: the look reads the CSV columns and Godot's code
+  constants; build them when a slice needs editable visuals.
+- Known small difference: Godot blends translucent sprites in sRGB space, Unreal in linear (doc 04 §5.1).
+- The side-by-side against Godot's field (the exit tour) waits for the backdrops. The packaged bench now also fails if the
+  sprites did not cook; it has not run since this slice (package only when asked).
+- F38 (new), Q9 (FXAA vs no AA: the masked outlines show their stair-step on movers), and from before: phase 5's hand-checks,
+  F34-F37, Q10, the nightly `-Full` not run since (33).
+
+### Next step
+*"Phase 6 slice 2: the backdrops. Port biome_backdrop.gd (the 12 tiling floors from SourceArt/svg/backdrops, the props laid
+out as Godot lays them, in the atlas or their own), tiled to any aspect up to 32:9 with a seam test; then the screenshot of
+each biome against Godot's."*
+
+---
+
+## 2026-11-05 (49) - Phase 5 slice 5: keys by position, the dock's held keys, the paw, the pad-only playthrough
+
+### Where the project is
+- **Phase 5's work is done** (slices 1-5). Its exit criteria are met but the hand-checks the designer has to make: a real Xbox
+  pad and a PlayStation pad through Steam Input, the paw cursor in a packaged build, a real AZERTY keyboard. Next: phase 6
+  (presentation). Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Do slice 5")
+1. **Keys by POSITION, on any keyboard layout (a port bug, found).** Doc 05 assumed Windows `FKey`s are positions; the engine
+   source says otherwise (`FWindowsApplication`: the layout's virtual key), and THIS machine proved it: the designer's Turkish
+   Q layout puts US `-`'s place on `EKeys::Asterix` and `=`'s on `EKeys::Hyphen`, so the port's zoom keys sat one key off
+   Godot's. `Input/PawKeyCodes`: every key with a place (letters, digits, punctuation) maps through the ACTIVE layout (US scan
+   code -> `MapVirtualKeyEx` -> the engine's own `GetKeyFromCodes`; back by the character for letters and digits, because the
+   engine's own VK map is built from the system layout: on Turkish Q it gives `EKeys::I` the key code `VK_OEM_7`). The game
+   logs the keys at startup ("on this keyboard, up is W Up, ..., zoom in Hyphen, zoom out Asterix" here). Automated runs pin US
+   English (`-PawUsKeyboard`, run_automation.py). `Pawpocalypse.Input.Azerty` injects French AZERTY: ZQSD, the prompt "Z", a
+   capture of Z is W's place.
+2. **The dock's held keys** (dock_navigator.gd `_tick_nav` / `_tick_press`): PawCore `PcDockRepeat` (in `PcHud`), exact against
+   the REAL navigator in the real HUD (new fixture `dock_repeat`: 600 sequences x 40 frames, a quarter starting with nothing
+   selected). The HUD polls what is held (`UPawInputDeviceSubsystem::IsActionHeld` / `TakeActionDown`, Godot's
+   `Input.is_action_pressed` / `just_pressed`): rows step at once, then after 0.35 s at 10 per second; a press presses at once,
+   then on a shop row only repeats (0.35 s, 4 rising to 12 per second): hold-to-buy on Space, Enter, pad A and LT. The port's
+   old hold-to-buy (any button held, the mouse too: not in Godot) is gone. The dock TAKES its keys first: the device
+   subsystem's input processor is now registered FIRST and consumes press / up / down while the dock is active
+   (`ConsumeForDock`), because Common UI's analog cursor turned pad A into a simulated click before any widget (one A bought
+   twice). Its tab keys act on their own press; echoes swallowed.
+3. **The paw cursor**: Godot's two SVGs rasterised at 40 px into `Content/Pawpocalypse/UI/Cursors` (`raster_svg.py --group
+   cursor`; staged loose in DefaultGame.ini), hardware cursors for the arrow and the pointing hand, closed while the left button
+   is held, both loaded at startup. Seen loading in a `-game` run.
+4. **Pads in the background**: ignored (project.godot `ignore_joypad_on_unfocused_application`; Slate's default, set by the
+   game); held keys forgotten when focus goes.
+5. **The pad-only playthrough and the focus tours** (Godot ci/check_padplay.gd): `paw.PadPlay` (Dev/PawPadPlay.cpp) and
+   `py tools/padplay_tour.py` (a real `-game` window, a fresh sandboxed save folder `build/padplay/saves`): pad buttons and a
+   trigger through `FSlateApplication`, title -> new game -> shop (press, LT held, X) -> a card -> travel -> Bait -> Reawaken
+   -> the tree -> pause -> Settings -> save and quit -> Continue; the focus tour at six screens. 41 checks, all PASS. Found by
+   it: the double A (item 2), and the pause menu's return to Settings lost (Common UI re-applies the desired focus target when
+   a modal closes: `UPawPauseMenu::ReturnFocus`). In the nightly `-Full`; `sabotage_realm.py` can run it as a test (`PADPLAY`).
+6. **Not ported: the unfocused frame cap** the plan listed: Godot has none, so it is a design change (doc 01 Q10, after
+   parity).
+7. Docs 00, 01 (Q10, D7), 05 (§3 slices 5a / 5b, §4 the paw), 09, 10 (the cursor folder staged), 11, 12 (four pitfalls),
+   CLAUDE.md. KB: U/08 §5.2 (FKey is the layout's; the engine's VK map is the system's; Common UI's simulated click and a
+   first-registered processor; focus re-applied after a modal; pads in the background; hardware cursors from PNG; a pad-only
+   playthrough through Slate), U/24 (three rows), INDEX.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0. L1: 182 cases, 6.42 M assertions. Engine: all 98 tests (`Input` 17).
+- `py tools/padplay_tour.py`: RESULT PASS, 41 checks. Fixture `dock_repeat` reproduces byte for byte.
+- Sabotages, all CAUGHT: 5 PawCore `dock_*` (549 in all; two first NOBUILD / MISSED and fixed: an unused parameter, and the
+  no-selection path the fixture did not reach until it started some sequences with the focus on a tab); 7 game-module (351 in
+  all): `keys_letters_by_name`, `paw_never_closes`, `held_stand_in_counts`, `held_axis_ignored`, and against the pad-only tour
+  `dock_consumes_nothing`, `dock_held_press_ignored`, `pause_forgets_settings`.
+
+### Open
+- The designer's hand-checks (phase 5 exit): a real Xbox pad and a PlayStation pad through Steam Input; the paw cursor in a
+  packaged build (package only when asked); a real AZERTY keyboard (only injected here).
+- Q10 (the unfocused frame cap). A keyboard layout switched while the game runs is read at the next apply (a remap or a restart).
+- From before: F34-F37; the `BOSS__name` warning; the version line; the nightly `-Full` (~7.1 h now) not run since (33).
+
+### Next step
+*"Phase 6, presentation (docs/11): start with its first slice. Before that, consider the nightly `-Full`: it has not run since
+(33) and now includes the pad-only playthrough."*
+
+---
+
+## 2026-11-05 (48) - Phase 5 slice 4c: the Controls page; slice 4 done
+
+### Where the project is
+- Phase 5, slices 1-4 done. Next: slice 5 (the focus tours, the pad-only playthrough tour, the paw cursors, the unfocused
+  throttle, the AZERTY check). Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Do next step", after (47))
+1. **A Godot fixture `controls`** (tools/godot_fixtures/controls_fixture.gd): the REAL ControlsPanel in the real settings dialog,
+   1,500 rows from a recorded start x 12 moves (a cell pressed, events while it listens: keys, echoes, releases, clicks, the
+   wheel, pad buttons, sticks, triggers; the clock incl. its exact 5 s edge; Reset; Reset all; the switches; the sliders; the
+   prompt style; a direct bind), the page after each. It first crashed Godot (signal 11): every redraw queue_free()s the old
+   prompts and no frame ran to free them; a frame now passes per row (KB G/03).
+2. **PawCore `PcControls`**: the status line, listening (cancel, swallow, bind, the timeout), Reset / Reset all, the switches,
+   the sliders (Godot's Range snaps FROM ITS MINIMUM, then clamps; the dead zone's bounds are float32: measured on 1,112 moves,
+   KB G/03), the controller column's family. L1: 2 cases (every move exact) + the long suite on all 1,500 rows.
+3. **`UPawControlsPanel`** (UI/PawControlsPanel; `WBP_ControlsPanel` baked; grafted into `WBP_SettingsDialog`'s Controls page,
+   backup before: `build/widgets_backup_47c/`): the switches, the binding table built at run time (a cell is a button with the
+   binding drawn over it, `UPawPromptIcon` always shown), the status line, Reset all, the stick switches, the two sliders, in a
+   480 px scroll box (Godot's fills what the page leaves: the asset owns the height; ~70 px spare in a 1080p shot). The dialog
+   hands it every key, release, click, wheel turn and analog value while a cell listens; its selection rows include the table.
+   ST_UI: 33 `CONTROLS_*` words (Godot's).
+4. **Two things found on the way**: (a) a prompt's binding is the FIRST of the action's Godot events for the device; when that
+   one has no Unreal key (a pad's Guide button) Godot draws nothing: `PawGlyphs::BindingFor` now reads the live Godot map
+   (`PawInput::LiveState`) instead of the context's keys, which skipped it and drew the next one. (b) **F37** (doc 01 §5 and
+   the Godot findings file): with Button prompts on Keyboard, a pad picked up does not redraw the page, so the controller
+   column can show the old pad; low priority; the port copies Godot (the panel redraws only on Godot's signals).
+5. Dev: `paw.Settings [audio|video|controls]` (Dev/PawShot.cpp). Seen in a `-game` run at 1920x1080: the page, the table with
+   keycaps and Xbox glyphs, the D-pad walking to a controller cell, pad A listening ("Press..." on the focused cell).
+6. Docs 00, 01 (F37), 03, 05 (slice 4c), 09 §7, 11, 12 (a `<=` edge never hit by random values); appendix B; CLAUDE.md (the
+   nightly ~6.9 h). KB: G/03 (Range from its minimum; node pile-up in a UI fixture), U/08 §4 (a game's own bindings on a
+   runtime context; capturing a key in a Common UI dialog), INDEX.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0. Its first run FAILED L0: the `CONTROLS_` string keys were not a known prefix
+  and the row names were built by concatenation (now listed literally).
+- L1: 181 cases, 6.23 M assertions; the long suite's Controls case on all 1,500 rows (2.1 M assertions). Fixtures `controls`
+  and `input_bindings` reproduce byte for byte.
+- `Pawpocalypse.UI.*` 61 (+ `.Controls.MatchesGodot`: 200 fixture rows on the shipped widgets with Slate's events through the
+  dialog, zero differences; `.Controls.Dialog`; `.Settings.Look` now counts the table's 39 controls); `Pawpocalypse.Input.*` 16.
+- Sabotages: 12 PawCore `controls_*` (544 in all) and 9 game-module `controls_*` (344 in all), all CAUGHT; `controls_timeout_strict`
+  was first MISSED (the clock never landed on 5 s exactly: 5.0 added to the fixture's ticks, 18 edge hits asserted), and one aimed
+  at a test hook was dropped. `glyph_any_device_binding` went STALE with the BindingFor change: retargeted, CAUGHT.
+
+### Open
+- Not yet seen on hardware or in a `-game` run: a remapped pad button driving the field (slice 5's tours); the scroll box's
+  height is the asset's to adjust (480 px leaves ~70 px).
+- F37 (low priority); from before: hold-to-repeat on the left trigger; the `BOSS__name` warning; F34, F35, F36; AZERTY; the
+  version line; the nightly `-Full` (~6.9 h now) not run since (33).
+
+### Next step
+*"Phase 5 slice 5: the focus tours (every screen walked with real Slate key and pad events, focus never lost), the pad-only
+playthrough tour (the whole loop with a pad alone), the paw cursors (open / closed), the unfocused frame cap, the AZERTY check
+(whether Windows FKeys are positions). Consider running the nightly -Full first: it has not run since (33)."*
+
+---
+
+## 2026-11-05 (47) - Phase 5 slice 4a/4b: remapping, the rules and the map
+
+### Where the project is
+- Phase 5, slices 1, 2, 3, 3b done; slice 4 split in three: **4a (the rules) and 4b (the map) done**, 4c (the Controls page)
+  next. Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Go, start slice 4")
+1. **Settled: remapping is Godot's own `[bindings]` in settings.cfg**, not Enhanced Input's user settings (docs/05 §1, docs/08
+   §3): a logical row writes several actions and a swap touches two rows, which per-key "player mappable" slots cannot hold;
+   Godot is the specification, and a Godot player's settings.cfg reads the same.
+2. **4a, the rules: PawCore `PcBindings`** (input_bindings.gd): the ten rows and their member actions, rebind (swap, refusals:
+   system keys, locked rows, taken keys, unchanged), reset_row (and the rows it then shares a key with), the saved diff,
+   working_state, apply() with Swap sticks / Swap confirm and back (and InputMap's own de-duplication, measured), the steer dead
+   zone, binding_from(). `PcSettings` reads and writes `[bindings]` as Godot's ConfigFile does (lists of flat dictionaries,
+   keys written sorted, a non-list dropped on load).
+3. **A new Godot fixture `input_bindings`** (tools/godot_fixtures/input_bindings_fixture.gd): 3,000 rows x 8 random ops (a
+   quarter starting from a hand-edited state with a row bare on one device), apply() with random switches, 3,000 raw events
+   through binding_from(), 1,500 settings.cfg files written and read by Godot (hand edits: floats, strings, missing fields,
+   unknown types, non-lists), the defaults in InputMap order. L1: 5 new test cases (`Bindings: *`) + the long suite on all
+   3,000 rows; exact.
+4. **4b, the map** (Source/Pawpocalypse/Input): `PawKeyCodes` (Godot events <-> FKeys: Godot's one Shift/Ctrl/Alt/Meta is
+   both of Unreal's sides, keypad Enter is Enter, the Y axes flip; a Slate key captured as Godot's raw event);
+   `PawInputDefaults.h` generated from Data/InputMap.csv by `tools/gen_input_defaults.py` (the CSV is not cooked; L0 checks it);
+   `PawInput::LiveContext()` / `ApplyBindings()` / `LiveState()` / `OnBindingsChanged()`: ONE transient mapping context the
+   player controller adds and every key question reads, rebuilt in place. `UPawInputDeviceSubsystem` applies when the
+   bindings, a swap or the dead zone change, asks each local player's Enhanced Input to rebuild, then fires
+   `OnControlsChanged` (the prompts redraw on it, not on the settings); the game instance installs a new navigation config
+   on `OnBindingsChanged`. `UPawSettingsSubsystem`: SetBindings, SetSwapConfirmBack, SetSwapSticks, SetInvertX/Y,
+   SetCursorSpeed, SetStickDeadzone, SetTutorialTips, ResetControls (set_control's early return on an equal value); Reload
+   broadcasts.
+5. Engine tests `Pawpocalypse.Input.RemapKeys`, `.RemapDefaults`, `.Remap` (Input: 16 tests).
+6. Docs 00, 03, 05 §1/§3/§5, 08 §3, 09 §7, 11, 12 (two pitfalls), CLAUDE.md (the generator), appendix B (input_bindings.gd's
+   destination; tools/make_port_map.py). KB: G/03 (ConfigFile's sorted Dictionary keys, InputMap's de-duplication and action
+   order), G/00-INDEX, INDEX.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0. Its first run FAILED L0: `PcBindings` used `float` (the steer dead zone's
+  float32 rounding, now done by arithmetic, `frexp` / `nearbyint` / `ldexp`) and `<deque>` (not on the allowed list; a vector
+  queue now); the Bindings tests stayed exact after both.
+- L1: 179 cases, 5.52 M assertions (+ 5 `Bindings: *`); the long suite's new case on all 3,000 binding rows (168 k assertions).
+- `Pawpocalypse.Input.*` 16 tests (+ `.RemapKeys`, `.RemapDefaults`, `.Remap`); `Pawpocalypse.UI.*`, `.Save`, `.Realm`, `.Data`
+  unchanged and green on the live context.
+- Sabotages: 23 PawCore (`bind_*`, `settings_bindings_*`; 532 in all), all CAUGHT (two first MISSED / NOBUILD and fixed: the
+  fixture now starts rows from a hand-edited state, pitfall in doc 12; `bind_deadzone_double` added with the L0 fix); 12
+  game-module (`remap_*`; 335 in all), all CAUGHT, each with UBT, and the clean build passing.
+
+### Open
+- 4c, the Controls page. Not yet seen in a `-game` run: a remap reaching Enhanced Input's actions on the field (the tests read
+  the live context and Slate's key path; the field's IA_Pounce after a pad rebind is to be seen in 4c's tour).
+- From before: hold-to-repeat on the left trigger; the `BOSS__name` warning; F34, F35, F36; AZERTY; the version line; the
+  nightly `-Full` (~6.7 h now) not run since (33).
+
+### Next step
+*"Phase 5 slice 4c: the Controls page (UPawControlsPanel, controls_panel.gd): Show button prompts and Tutorial tips, the
+binding table (a row per logical action, a keyboard and a controller cell drawn as prompts, Reset), listening (Esc / B cancel,
+5 s timeout, a click cancels a controller cell), the status line, Reset all controls, Swap confirm and back, Swap sticks,
+Invert X / Y, the cursor speed and dead zone sliders; pad_column_family; grafted into WBP_SettingsDialog's Controls page;
+proven against the real panel (extend fixture `input_bindings` or a new `controls`)."*
+
+---
+
+## 2026-11-05 (46) - The docs brought up to date after phase 5 slice 3b
+
+### Where the project is
+- Unchanged from (45): phase 5 slices 1, 2, 3 and 3b done. Next: slice 4 (remapping and the Controls page). Nothing committed
+  after `98e3a4f`.
+
+### What happened (designer: "make sure all docs are up to date")
+1. Every name the living docs (00-13, CLAUDE.md) put in backticks checked against the project (files, classes, assets,
+   tests): what remains unmatched is labelled as the plan or as a later phase's.
+2. **Doc 00**: the status date, the PawCore sabotage count (509), the nightly (~6.5 h now, not run since (33)), and the table of
+   what exists: `PcHud`, `PcPause`, `PcSettings`, `PcDevice`; `Input/`; the toast, the prompts and the Widget Blueprint
+   contract; the editor module (it was "empty"); `UI/Widgets`, `Input/`, `Art/UI/Input`; the new tools.
+3. **Doc 03**: PawCore modules since 2026-10-29; the autoload table as built (`UPawSettingsSubsystem` over `PcSettings`, not
+   `UGameUserSettings`; `UPawInputDeviceSubsystem` a GameInstance subsystem over `PcDevice`; the screens by class; the token
+   generator; what is planned and not built).
+4. **Doc 05**: §1 as built (no `BP_PawUIInputData`, no controller data assets); the action table's context column is the
+   plan (one `IMC_Pawpocalypse` as built); three "until phase 5" lines that phase 5 has done. **Doc 01** D6 and D7's status.
+   **Doc 07** and **04**: the token generator and the field's event queue as built. **Doc 08**: the last slot, which settings
+   are read, `[bindings]` left to slice 4.
+5. **Doc 09 §7**: phases 1-5; L1 174 cases / 5.50 M (long 31 / 5.50 M); 509 PawCore and 323 realm sabotages; new rows for
+   phase 4's UI tests (`.Title`, `.Pause`, `.Settings`, `.Widgets`), `Pawpocalypse.Input` (13), "art rasters reproduce" and the
+   two UBT builds; `.Save` is 9 tests (`.MidFight`). **Doc 12**: three pitfalls (stale sabotages, editor-only API in the game
+   target, a re-bake over a designer's asset). **Doc 06** and doc 00: the Godot code constants are 580 now (585 map rows,
+   `save` 25: the save fixes added 11). **Doc 11**: "Next: slice 4". CLAUDE.md: the nightly ~6.5 h.
+6. Appendices regenerated to scratch: A and C identical; **B** differed only in line counts (the designer's uncommitted Godot
+   fixes: 29,577 lines now) and was replaced.
+7. **Found on the way: one PawCore sabotage STALE** (`hud_row_enabled_short`: the shop's enabled line gained the currency
+   epsilon). Retargeted, seen CAUGHT with `--only`, the clean build passing. `--list` of both sabotage tools: 0 STALE.
+8. `Config/DefaultGame.ini`'s comment that promised `BP_PawUIInputData` for phase 5 now says it is not used.
+
+### Verified
+- `py tools/check_pawcore_static.py`: every gate PASS (the docs' generated parts and the data export current). The Godot
+  repo's status unchanged by the appendix runs. No engine gate was needed: no source changed but `tools/sabotage_pawcore.py`.
+
+### Open
+- Unchanged from (45). The nightly `-Full` (now ~6.5 h) has not run since (33).
+
+### Next step
+*"Phase 5 slice 4: remapping (input_bindings.gd's rules in PawCore against the real script, saved bindings applied to the
+mapping context, prompts redrawn on a remap) and the Controls page (bindings per device, Invert X / Y, Swap sticks, the stick
+dead zone, Show button prompts)."*
+
+---
+
+## 2026-11-04 (45) - Phase 5 slice 3b: the glyphs and button prompts
+
+### Where the project is
+- Phase 5, slices 1, 2, 3 and 3b done. Every prompt Godot draws outside the tutorial and the Controls page is drawn here,
+  for the device in hand. Next: slice 4 (remapping and the Controls page). Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Go", after (44))
+1. **The art**: `tools/raster_svg.py` copies Godot's 65 generated glyph SVGs to `SourceArt/svg/input/` and rasterises them at
+   56 px (2x the largest prompt) into `SourceArt/png/input/` (`--check` reproduces them byte for byte: a new everyday gate,
+   "art rasters reproduce", seen to fail on one changed pixel). `tools/import_art.py --run` imports them headless as
+   `T_input_*` under `/Game/Pawpocalypse/Art/UI/Input` (UserInterface2D, sRGB, no mips, Never Stream, UI group).
+2. **The rules**: `UI/PawGlyphs` (input_glyphs.gd) against a new Godot fixture `input_glyphs`: every action x family (160),
+   every bound key's label, the {token} replacement of the game's templates (50). Exact.
+3. **The widgets**: `UPawPromptIcon` (`WBP_PromptIcon`: a glyph or a drawn keycap) and `UPawPromptText` (`WBP_PromptText`:
+   rich text with a C++ decorator, `UPawPromptDecorator`), redrawn on a device change and on any settings change.
+   `PawText::PromptArgs` and the `PROMPT_*` placeholder words are gone; ST_UI gained `HUD_legend_*` and `KEY_*`.
+4. **Placed where Godot has them**: the HUD's tab keys, dock legend and Pounce key; the title's hint; the tree's legend and every
+   tooltip line; the press prompt on the focused button (one prompt owned by `UPawInputDeviceSubsystem`: inside the button's
+   right edge, or in the dock outside the row on the field side).
+5. **Grafting** (`UPawWidgetBaker::GraftParts`, `py tools/bake_widgets.py --run --graft "Class=add:Part;swap:Old>New"`): the
+   new parts went INTO the existing `WBP_HudScreen`, `WBP_MainMenu`, `WBP_SkillTreeScreen` (4 added; the hint, the tree's legend
+   and its 7 tooltip lines swapped in their old slots); nothing else in them touched. Backup before:
+   `build/widgets_backup_44b/`.
+6. Dev commands `paw.Press <key> [device]` (a key through Slate) and `paw.Prompts <style>` (Dev/PawShot.cpp). Seen in `-game`
+   runs: keycaps on the keys; Xbox glyphs after one pad press; PlayStation glyphs from the setting; the HUD, pause menu, tree,
+   title.
+7. `UPawSettingsSubsystem::SetShowPrompts` (Settings > Controls > Show button prompts; its control is slice 4).
+8. Docs 05 §5 (as built), 07 §2, 11, 00, CLAUDE.md. KB U/09 §2.3 (grafting) and §2.4 (a rich text decorator), U/17 §3
+   (script arguments), U/18 §2.1 (hold `TakeWidget`; texture sizes under -nullrhi), U/24 (two rows), INDEX.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0 (now with "art rasters reproduce"). Its first run FAILED the game-target build:
+  the new texture test read editor-only data (`Source`, `MipGenSettings`); now under `WITH_EDITORONLY_DATA`.
+- `Pawpocalypse.Input.*` 13 tests (new: `.Glyphs`, `.Prompts`); `Pawpocalypse.UI.*` 59 (the parity test on the grafted
+  assets; the title's hint and the tree's tooltip as prompts).
+- Sabotages, 12 new, all CAUGHT: `glyph_deck_draws_xbox`, `glyph_any_device_binding`, `glyph_escape_named_tab`,
+  `glyph_printable_by_name`, `glyph_placeholders_eaten`, `glyph_markup_unescaped`, `prompt_icon_deaf`,
+  `prompt_line_ignores_setting`, `prompt_text_fixed_family`, `prompt_focus_dock_side_swapped`, `prompt_hud_one_legend`,
+  `prompt_title_hint_words`. `tree_blurb_tokens_raw` removed (the blurb is a template now; `prompt_text_fixed_family` covers it).
+- **Found on the way: 9 game-module sabotages were STALE** (their target text gone since phase 4's settings and the bake: the
+  nightly `-Full` would have failed on them). 7 retargeted and seen CAUGHT (`hud_dock_not_reported`, `hud_dock_side_ignored`,
+  `hud_root_takes_clicks`, `hud_reawaken_one_press`, `pick_never_opens`, `save_automation_unsandboxed`,
+  `title_unreadable_has_delete`); 2 RETIRED (`victory_white_text`, `jobpick_white_note`: the colour is the asset's since the
+  bake, no source line reaches it; their tests still read the colour shown). All 323 now name code that exists.
+
+### Open
+- The tutorial's prompts (phase 6), the Controls page's binding cells and a redraw on a remap (slice 4), on a language change
+  (phase 7). "Achievements" touches the RB/D cap in the tab strip until the tab icons (phase 6).
+- From before: hold-to-repeat on the left trigger; Invert / Swap / dead-zone setters (slice 4); the `BOSS__name` warning; F34,
+  F35, F36; AZERTY; the version line; the nightly `-Full`.
+
+### Next step
+*"Phase 5 slice 4: remapping (input_bindings.gd's rules in PawCore against the real script, saved bindings applied to the
+mapping context, prompts redrawn on a remap) and the Controls page (bindings per device, Invert X / Y, Swap sticks, the stick
+dead zone, Show button prompts)."*
+
+---
+
+## 2026-11-04 (44) - Phase 5 slice 3: devices, the stick-steered cat, the toast; glyphs split to slice 3b
+
+### Where the project is
+- Phase 5, slices 1-3 done, **except the glyphs**, split into slice 3b (they need Godot's per-family SVG art through the art
+  pipeline, a job of its own). Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Do slice 3")
+1. **The device rules** (`input_device.gd` `observe()`) in PawCore: `PcDevice` (prompt family, cursor source, the connect and
+   disconnect toasts, the warp echo, the boot quiet time, the modal guard, the prompt-style setting, pad names -> family).
+   Ground truth: a new Godot fixture `input_device` (three tables: events -> state, names -> family, stick -> velocity). The
+   fixture is real time, so it records the clock it saw (`after` column) and `--check` re-runs it without comparing bytes.
+2. **`UPawInputDeviceSubsystem`**: an `IInputProcessor` feeds every key, axis and mouse event to `PcDevice`; XInput pads are
+   the Xbox family. The OS pointer hides when the stick or pad takes over (`CurrentMouseCursor`), and the toast shows.
+3. **The toast**: `UPawToast` (`WBP_Toast`, in `BakedClasses`), at the top edge above every screen, 2.4 s then a 0.4 s fade.
+   Strings `INPUT_toast_connected` / `_disconnected` in ST_UI; the toast picks them (`ShowConnection`), so the L0 lint sees them.
+4. **The stick-steered cat** (`player.gd` `_process`): `PawInput::StickVelocity` (Godot's curve, float math as Godot),
+   `APawRealmView::StickStep` (clamped to the playfield, far edges in), the pointer warped to the cat (`SetMouseLocation` +
+   the warp echo), `recentre` on R3's rising edge, `PointerOverField` (`Rect2.has_point`, never over the dock).
+5. **The stick dead-zone setting**: `PawInput::SetSteerDeadZone`, clamped 0.05 .. 0.9, on the steer actions only.
+6. Tests: `Pawpocalypse.Input.Velocity`, `.Device`, `.BootQuiet`, `.PointerOverField`; 11 Input tests in all. L1: 174.
+7. Docs 05 §4 (slice 3 as built), 06, 08 §3, 10, 11, 00. KB G/03 §6, G/07, U/08 §3.4 / §4 / §5, U/09, U/18 §7, U/24, INDEX.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0.
+- PawCore device sabotages: 12/12 CAUGHT. Game-module slice 3 sabotages: 9/9 CAUGHT (`input_pointer_field_dock` was MISSED
+  first: the test had no panel inside the playfield; one added. `input_device_toast_swapped` re-run CAUGHT after the strings
+  moved into the toast).
+- A `-game` run logs all three input lines (the IMC, the navigation config, the device subsystem).
+
+### Open
+- **Slice 3b, the glyphs**: per-family prompt icons and labels following `OnFamilyChanged`; keycaps drawn at run time.
+- Hold-to-repeat for `press` on the left trigger. Invert X / Y, swap sticks and the dead-zone setters in the Settings
+  subsystem (slice 4).
+- `ST_Data 'BOSS__name'` warning (pre-existing); F34, F35, F36; AZERTY; the version line; the nightly `-Full`.
+
+### Next step
+*"Phase 5 slice 3b: the glyphs (Godot's per-family SVG art through the art pipeline, keycaps drawn at run time, prompt
+icons and labels following OnFamilyChanged)."*
+
+---
+
+## 2026-11-04 (43) - Phase 5 slice 2: the field and every screen read Godot's input map
+
+### Where the project is
+- Phase 5, slices 1 and 2 done. No screen or field code reads a raw key any more (only the tree's mouse drag reads the mouse
+  button, which in Godot is not an action either). Next: slice 3. Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Do slice 2")
+1. **What a key IS** (`Input/PawInputMap`), the port's `event.is_action(...)`:
+   - `PawInput::KeyIs`, `ActionsOfKey` and `KeysOf` are built from the live mapping context. A stick or trigger pushed past
+     Slate's threshold arrives as a digital key (`Gamepad_RightTrigger`) and counts as its axis half.
+   - Godot's `get_vector` and `get_action_strength` (`GodotVector`, `SteerVector`, `Strength`) are measured with a new table
+     in the `input_axis` fixture: 3,008 `get_vector` deflections.
+2. **The screens**, each through its own Slate key handler, ask the map:
+   - the HUD: tabs (the D-pad's left / right now step tabs, as in Godot), `tab_1..6`, `buy_amount`, `open_upgrades` (U jumps
+     to Upgrades: new), `open_skill_tree`, `pause`, and `press` on the left trigger (the selected dock button);
+   - the pause menu (`back`, `pause`), the settings (`back`, sections), the title (`back`);
+   - the skill tree: close keys, `buy_amount`, the zoom by trigger STRENGTH as Godot (a half pull zooms at half speed; the
+     raw-key version zoomed at full speed), the pan from the steer stick through `get_vector` (dead zone removed, rescaled;
+     it was a raw stick past 0.2).
+3. **The menus navigate on Godot's `ui_*` keys**: `FPawNavigationConfig`, installed by the game instance (never the editor).
+   W / A / S / D now move the selection in menus and keypad Enter accepts, as in Godot. Common UI's input data is not needed.
+4. **The field**: the controller adds `IMC_Pawpocalypse` to its local player, and the realm view pounces on `IA_Pounce`; a
+   pointer press over the dock is the dock's (`PounceHeld`). Seen in a `-game` run: both log lines ("IMC_Pawpocalypse added
+   (71 mappings)", "the menus navigate on Godot's ui_* keys (12 keys, 5 accept / back)").
+5. **Tests**: `Pawpocalypse.Input.Keys`, `.Navigation`, `.Vector`, `.Screens` (every key bound to each screen's actions sent
+   through the screen's Slate widget, and unbound keys doing nothing), `.Pounce`; 7 Input tests in all. HUD test views:
+   `IsTabShown`, `PressSelected`; tree: `GetSteer`, `GetZoomHeld`.
+6. Docs 05 §3 (slice 2 as built), 11, 00. KB U/08 §3.4 (Slate navigation keys are not Enhanced Input's; asking which action
+   a key is; key tests without a viewport), INDEX.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0 (the game target builds).
+- Sabotages for slice 2, all 13 CAUGHT: `input_keys_no_standins`, `input_nav_standins_navigate`,
+  `input_vector_square_deadzone`, `input_hud_tab_next_lost`, `input_hud_upgrades_elsewhere`, `input_hud_pause_on_back`,
+  `input_pause_back_is_pause`, `input_settings_prev_goes_next`, `input_tree_zoom_sticks` (retargeted when the zoom moved to
+  strength), `input_tree_zoom_trigger_full`, `input_tree_pan_raw`, `input_title_back_lost`, `input_pounce_dock_ignored`.
+
+### Open
+- **Not covered yet**:
+  - hold-to-repeat for a `press` held on the left trigger (Space / Enter / A repeat through the buttons);
+  - Invert X / Y and the stick dead-zone setting (slices 3-4);
+  - the stick-steered cat and `recentre` (slice 3).
+- **A pre-existing warning**, seen in every `-game` log since 2026-11-02: `ST_Data 'BOSS__name'`, a boss name asked for with an
+  empty id. Not from this work; to trace.
+- From before: F34, F35, F36; AZERTY; the version line; the nightly `-Full`.
+
+### Next step
+*"Phase 5 slice 3: the device subsystem (prompt family and cursor source on first input, the connect toast, the warp echo),
+the stick-steered cat with recentre (Godot player.gd: stick_velocity, the curve, the dock bounds), the stick dead-zone setting
+applied to the steer actions, and the glyphs."*
+
+---
+
+## 2026-11-04 (42) - Phase 5 started: slice 1, Godot's input map as data and Enhanced Input assets
+
+### Where the project is
+- Phase 5 (pad and keyboard parity) has started, in five slices (doc 11 phase 5); slice 1 is done. Nothing reads the new
+  actions yet: the game still reads raw keys until slice 2. Nothing committed after `98e3a4f`.
+
+### What happened (designer: "start on phase 5")
+1. **`Data/InputMap.csv`** (`tools/export_input_map.py`, run by `export_godot_data.py`, so L0's data-export gate keeps it
+   current; seen to FAIL on a hand edit): Godot's `project.godot [input]`, 32 actions and 72 events, one row per event with
+   Godot's code beside the Unreal key. The export:
+   - binds keys by position and refuses a keycode-only or modified key;
+   - flips the stick Y signs (Godot +Y is down, Unreal's is up);
+   - maps keypad Enter to Enter, marked `merged`.
+   Not a DataTable: both generators skip it.
+2. **The assets**, GENERATED by `py tools/create_input_assets.py --run` (PawpocalypseEditor `UPawInputAssetBuilder`), never
+   edited by hand:
+   - one `IA_<Action>` per Godot action under `/Game/Pawpocalypse/Input/Actions`: Axis1D when the action has a stick or
+     trigger event, else Boolean;
+   - ONE context, `IMC_Pawpocalypse`, with 71 mappings (Godot keeps every action live at once).
+   `Input/PawInputMap.*` reads the CSV and names the assets for the builder and the tests alike.
+3. **`UPawHalfAxis`**, an Enhanced Input modifier: one direction of an axis with Godot's dead zone. Measured against Godot's own
+   `Input` with a new fixture, `input_axis` (5,726 stick and trigger values): pressed from the dead zone ON (`>=`), strength
+   rescaled from the dead zone to 1. A pressed value under Enhanced Input's actuation tolerance (1e-4) reads 1e-4, so it stays
+   pressed.
+4. **Tests**:
+   - `Pawpocalypse.Input.Map`: the assets equal the CSV; the Y signs flipped; every action has both devices except the
+     one-device list (pad only: `steer_*`, `recentre`; keyboard only: `tab_1..6`, `open_upgrades`).
+   - `Pawpocalypse.Input.HalfAxis`: Godot's 5,726 values through the context's own modifiers, exactly.
+   - `check_all` gained `L3 Pawpocalypse.Input`.
+5. **Tooling bugs found and fixed**:
+   - The Godot fixtures shared one sandboxed `user://`: the settings fixture's last random `settings.cfg` set the next
+     fixture's stick dead zone to 0.11. Every Godot run now starts from a fresh sandbox.
+   - The title fixture (since (37)) records the wall clock, so `-Full`'s "fixtures reproduce" gate could never pass on it.
+     The check now masks its clock columns and compares calendar dates as dates; everything else stays byte for byte. The
+     save, title, pause, settings and input_axis fixtures reproduce.
+6. Docs 05 §3 (as built), 06 §2, 11 (phase 5's slices), 00, CLAUDE.md (the tool). KB: G/03 §6 (Godot's axis actions; a
+   fresh `user://` per fixture; wall-clock fixtures), U/08 §4 (generating Enhanced Input assets; one half of an axis; the
+   actuation tolerance), INDEX.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0 (with `L3 Pawpocalypse.Input` and `UBT game build`).
+- Sabotages, all CAUGHT: `input_halfaxis_no_rescale`, `_strict_deadzone`, `_no_floor`, `_both_ways`, `input_map_godot_sign`,
+  `input_map_merged_ignored`.
+
+### Open
+- **The steer dead zone is a setting in Godot** (`stick_deadzone`, default 0.2, applied by `InputBindings.apply`): the
+  assets carry 0.2. Applying the setting at run time is slice 3.
+- **The AZERTY check**: doc 05 assumes Windows `FKey`s are positions; not measured yet (slice 5).
+- From before: F34, F35, F36 for the designer; the version line; the nightly `-Full`; a pad look at the pause menu and the
+  settings popup.
+
+### Next step
+*"Phase 5 slice 2: add IMC_Pawpocalypse to the player and route the game and every screen through the actions (pounce on
+IA_Pounce, steer on IA_Steer*, the dock's tabs / rows / buy amount / tab_1..6, the tree's open / zoom / sections, Back / Pause on
+every screen), Common UI's Click / Back from IA_UiAccept / IA_UiCancel; keep the existing UI tests green and add tests that drive
+the actions."*
+
+---
+
+## 2026-11-04 (41) - Phase 4 closed: the exit review, the packaged gate, the build on Drive
+
+### Where the project is
+- **Phase 4 is closed.** A packaged Development build is on the designer's Google Drive:
+  `Games/Pawpocalypse/Pawpocalypse-UE-phase4-Development-2026-11-04.zip` (190 MB; the archive is `build/package`).
+- Next: phase 5 (pad and keyboard parity, doc 11). Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Go ahead. When package is done put it in drive-pawpocalypse")
+1. **The exit review** is written under doc 11 phase 4's exit criteria: each one and the tests that prove it. One was not
+   covered (a save taken with a boss up), so there is a new test, `Pawpocalypse.Save.MidFight`, sabotaged with
+   `save_midfight_bait_not_saved` (CAUGHT). It found **F36**: the Bait paid for an interrupted fight stays spent, so the whole
+   Bait is owed again after a load (the port copies Godot; in doc 01 §5 and the Godot findings file).
+2. **Packaging found two things the everyday gates could not:**
+   - **The game target did not compile.** `PawWidgetTests.cpp` (since (38)) used editor-only data (`ClassGeneratedBy`,
+     `HasMetaData`); it is now `#if WITH_DEV_AUTOMATION_TESTS && WITH_EDITOR`. `check_all` gained a `UBT game build` gate,
+     seen to FAIL with the guard removed.
+   - **The bench had been measuring a held field.** Since the card pick (phase 3), level-ups dealt hands that held the field:
+     83 % of the measured frames were a paused world, and the bench still said PASS. `paw.Bench` now owns Auto-Card with the
+     switch on, and FAILS when the field is held on more than 1 % of the frames. It was seen to FAIL in a package with
+     auto-pick off (11,277 of 13,623 frames held).
+3. **The packaged gate, PASS**, with the field running every frame (`held=0`). At 1280x800 on an RTX 5070, with 320 mice and
+   20 kittens:
+   - game thread 1.30 ms mean / 2.58 ms p99 (budget 4);
+   - render thread 1.35 / 2.00 ms; GPU 0.36 / 0.38 ms;
+   - 34.6 draw calls (budget 50; 13.6 at phase 2, before the HUD's screens).
+   The packaged title screen was looked at in a sandboxed run (`-PawSaveDir` to a scratch folder; nothing written there).
+4. **The zip** leaves out `Pawpocalypse/Saved` (the bench's shots and logs) and adds a README (a test build; no audio,
+   placeholder art, the console in). It was copied into `G:\My Drive\Games\Pawpocalypse`, the only Pawpocalypse folder on the
+   designer's Drive, and Drive shows it at full size.
+5. Docs 11 (the exit review; phase 4 CLOSED), 10 (the game target, the zip), 00, CLAUDE.md (the game-target gate). KB: U/18 §7
+   (a frame gate must prove the simulation ran), U/24 (the editor-only data row).
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0, with the new `UBT game build`; L3 Save 9 tests.
+- The packaged gate PASS (after it was seen to FAIL on a held field).
+
+### Open
+- For the designer: **F34, F35, F36**.
+- No `-game` look yet at the pause menu or the settings popup with a pad.
+- Carried over: the version line still reads v1.0.0.0 (no ProjectVersion yet); the nightly `-Full`; hardening the other
+  screens; editable colours for the painted widgets; the HUD's quick bar.
+
+### Next step
+*"Phase 5 (doc 11): every Godot action in Enhanced Input with both devices, the device subsystem, glyphs, every screen's focus
+wiring, remapping; first a -game look at the pause menu and the settings popup with a pad."*
+
+---
+
+## 2026-11-04 (40) - Phase 4: the settings popup; every phase 4 step built
+
+### Where the project is
+- Every step of phase 4 is built (the save, the title, the pause menu, the settings). Next: the phase's exit review and its
+  packaged gate. Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Do pop up")
+1. **Godot fixture `settings`** (`tools/godot_fixtures/settings_fixture.gd`, registered): the real SettingsManager reads a
+   settings.cfg that Godot's own ConfigFile wrote (keys left out, values out of range, unknown names). Then six changes are
+   made on the live settings dialog. After each step it records every setting and everything the dialog shows. 3,000 rows,
+   plus 3,000 `fit_to_screen` / `centred_position` cases.
+2. **PawCore `PcSettings`**: every field and default of settings_manager.gd. It reads and writes Godot's settings.cfg text
+   with Godot's load-time clamps, and holds the dialog's rules: the sliders, the volume lines, each list's item, the
+   sections, the Output list, the effects budget and fitting the window. Measured on the way and copied:
+   - Godot's text-to-number reader is not correctly rounded: "0.9500000000000001" reads 0.95.
+   - The sliders snap as `floor(v / step + 0.5) / (1 / step)`, which gives +0 below zero, where C's `round` gives -0.
+   - The dead zone's floor is `float(0.05)`, because Vector2 holds 32-bit floats.
+   - The port's writer picks a spelling that this reader gives back exactly.
+3. **`UPawSettingsSubsystem`** (game instance) keeps the file as the entry `settings` of the slots' own storage. That storage
+   is now chosen by `PawStorageForThisRun`, shared with the saves, so the sandbox is the same. It is the one writer, and it
+   applies:
+   - the window (fitted to the screen and centred, or fullscreen), V-Sync and the frame cap: never in the editor, never in a
+     run without settings storage (the bench, the tour), and the window never when the command line names one;
+   - the menu side (the HUD's dock follows), ask-before-Reawaken (the HUD's box; it was a global until now), and the effects
+     budget (the realm's bursts honour it, as Godot's VfxBurst does);
+   - the last slot used: the saves start on it, and saving into or loading a slot moves it.
+4. **`UPawSettingsDialog`**, baked to **`WBP_SettingsDialog`**, on the Modal stack (pause holder "settings"):
+   - three sections, pages and Close, as settings_dialog.tscn;
+   - the lists are `UPawOption`, a themed combo box (its font can only be set in a subclass's constructor; KB U/09 §3);
+   - opened by the pause menu's Settings (the menu steps aside and comes back on Settings) and by the title's (the selection
+     comes home to it).
+   Words: `SETTINGS_*` (37 keys); L0 knows the prefix.
+5. **Tests**:
+   - `PcSettingsTests` (L1): the replay and the window cases, a round trip, junk files, and `[bindings]` skipped.
+   - `Pawpocalypse.UI.Settings.*`: MatchesGodot (300 rows on the widget), Look, FromPause, FromTitle, Persists, Applies.
+   - `Realm.View` now also checks that effects off spawns no burst.
+   - The pause and title Look tests follow Settings being live.
+6. **Finding F35** (for the designer): ticking Fullscreen does not grey Resolution until the dialog is reopened. Written into
+   doc 01 §5 and the Godot findings file; the port copies Godot.
+7. Docs 05 §6.3, 08 §3 (as built; the planned extras that Godot does not have are not built), 11, 00. KB: G/03 §6 (the
+   reader, the snapping, Vector2 floats), G/07, U/09 §3, U/24, INDEX.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0 (L3 UI 59 tests).
+- Sabotages, all CAUGHT:
+  - **PawCore (15)**: `settings_*`. One first slipped through: the -0 slider. L1 compared with `==`, which holds -0 equal to
+    +0; it now checks the sign bit, and the sabotage putting `round` back is caught.
+  - **Game module (16)**: `settings_*` and `pause_settings_never_opens` (replacing `pause_settings_live`).
+- A miss found on the way: a pick made by code did not move its list's selection. Fixed (`ShowPicked`) and sabotaged.
+
+### Open
+- **F34, F35** for the designer.
+- **Phase 4's exit**: review each exit criterion against the tests, then the packaged gate (needs the designer's go, since it
+  packages).
+- **Not seen running yet**: no `-game` look at the settings popup or the pause menu (the tests run without a window, so the
+  combo boxes' pad behaviour is unseen).
+- **Not built yet**: the HUD's quick bar (it waits on its icons).
+- Carried over: the version line; the nightly `-Full`; hardening the other screens; editable colours for painted widgets.
+
+### Next step
+*"Phase 4 exit: check each exit criterion of doc 11 phase 4 against the tests; a -game look at the pause menu and the
+settings popup (pad and mouse); then, with the designer's go, the packaged gate."*
+
+---
+
+## 2026-11-04 (39) - Phase 4: the pause menu, Widget-Blueprint-first
+
+### Where the project is
+- Phase 4 slices 1-3 done, every UI class a Widget Blueprint (38), and now the pause menu. Next: the settings popup. Nothing
+  committed after `98e3a4f`.
+
+### What happened (designer: "Continue")
+1. **`PcPause`** (PawCore): pause_menu.gd's rules as data (open, close, the two pages, the two-press overwrite, the two-press
+   quit and the discard, each slot's caption form, the selection on the Save page). `PcPauseTests` replays every press of the
+   real pause_menu.tscn (fixture `pause`: 600 rows in L1, 2,000 in the long suite), Godot's stale captions included.
+2. **`UPawPauseMenu`**, built on the PawWidgets contract and baked once to **`WBP_PauseMenu`** (now in `PawUi::BakedClasses`):
+   - the layout is pause_menu.tscn's (constants `Pause*` in PawUiConstants.h), on the Menu stack, pause holder "pause";
+   - Save writes through `UPawSaveSubsystem::SaveGame(slot)`; Back to Main Menu's second press saves, flushes and opens L_Title
+     (`OnLeave`); the discard leaves without writing;
+   - Esc / pad B are back, pad Start closes;
+   - Settings is disabled until its slice.
+   Words: `PAUSE_*` in ST_UI (17 keys). Godot builds " (current)" in code, so the port has one key per form with it and one
+   without. L0 knows the `PAUSE` prefix.
+3. **The HUD opens it** (`UPawHudScreen::OpenPauseMenu`, Esc / pad Start) only when:
+   - nothing is on the Menu or Modal stack;
+   - nothing else holds the field;
+   - and it is not the frame after something else let go (`HeldByOtherFrame`, Godot's `_held_by_other_frame`).
+4. **Tests**: `Pawpocalypse.UI.Pause.*`, 6 tests:
+   - MatchesGodot: 300 fixture rows on the widget; slot lines the menu wrote are checked whole, older files up to their numbers.
+   - Look, Opens, Leaves, BackKeys and Overwrite.
+5. Docs 05 §6.3, 11 (phase 4), 00.
+
+### Verified
+- Sabotages, CAUGHT:
+  - **PawCore (9)**: `pause_*` in sabotage_pawcore.py. `pause_overwrite_unasked` first did not compile (`false &&` breaks
+    warnings-as-errors in PawCore) and was rewritten as an inverted comparison.
+  - **Game module (12)**: `pause_*` in sabotage_realm.py. `pause_opens_over_a_menu` was first MISSED: every real Menu-stack
+    screen also holds the field, so the hold check hid a missing stack check. Opens now stacks a plain screen that does not
+    hold the field, on the Menu stack and on the Modal stack; both stack sabotages are now CAUGHT.
+- Everyday `check_all`: every gate PASS, exit 0. L3 UI: 53 tests (was 47), with Widgets.AreBlueprints and Parity covering
+  WBP_PauseMenu.
+
+### Open
+- **F34** (designer): an overwrite armed on the Save page survives Back to the main page. The port copies Godot until it is
+  decided.
+- No `-game` look at the pause menu yet, and no pause step in `godot_tour.py`.
+- Carried over from (37) and (38):
+  - the version line;
+  - the nightly `-Full`;
+  - hardening the other screens against parts deleted from their assets;
+  - editable colours for the painted widgets.
+
+### Next step
+*"Phase 4: the settings popup (Audio / Video / Controls placeholders; the last slot used), Widget-Blueprint-first; then the
+pause menu's Settings button opens it."*
+
+---
+
+## 2026-11-04 (38) - Every UI screen and piece is an editable Widget Blueprint
+
+### Where the project is
+- Phase 4 slices 1-3 done. The pause menu was started (its Godot fixture `pause` is generated and registered:
+  `tools/godot_fixtures/pause_fixture.gd`, `Tests/Data/pause_godot.tsv`; no PcPause or screen yet) when the designer asked for
+  the UI as Widget Blueprints; it waits, to be built Blueprint-first. Nothing committed after `98e3a4f`.
+
+### What happened (designer: "Make sure all ui assets are widget blueprints so i can edit them"; then, asked: the WIDGET
+BLUEPRINT owns the layout once baked, and the system first, the pause menu after)
+1. **The system** (KB U/09 §2-2.2's pattern): `UI/PawWidgets.h` (the contract, `PawUi::Resolve`, `paw.UI.CodeLayout`, the
+   baking flag with its root class, `CollectNamed`, `PawUi::BakedClasses` = the bake order), PawpocalypseEditor `UPawWidgetBaker`
+   (+ `tools/bake_widgets.py --run`, headless): for each listed class WITHOUT an asset, the code layout copied into
+   `/Game/Pawpocalypse/UI/Widgets/WBP_<Name>` (bound parts named and made variables, a GUID per widget) or a `BP_<Name>` child of a
+   button style. **Never over an existing asset.**
+2. **19 assets**: BP_ButtonStyle, BP_LockedButtonStyle, BP_FlatButtonStyle, BP_PlateButtonStyle, BP_CardFaceStyle,
+   BP_TreeNodeStyle; WBP_Button, WBP_CardFace, WBP_TreeNode, WBP_TreeLinks (paint only: an empty tree), WBP_PounceClock,
+   WBP_ReawakenCeremony; WBP_RootLayout, WBP_MainMenu, WBP_HudScreen, WBP_CardPickScreen, WBP_SkillTreeScreen, WBP_JobPicker,
+   WBP_VictoryScreen. Every class converted: parts `BindWidgetOptional` and named; `OnLayoutReady` wires both modes; the rows from
+   data (shop, realms, cards, achievements, jobs, job picker rows, card faces, tree nodes) built at runtime into named containers
+   (`Page0`, `RealmList`, `CardList`, `AchievementList`, `JobList`, `List`, `Row`, `Canvas`); `UPawButton`'s instance settings
+   are properties (`LabelText`, `LabelPx`, `WrapAt`, `bAlignLeft`, `bFlatLook`), its styles resolved to their Blueprints. The
+   player controller and the HUD create every screen through the resolver.
+3. **Bugs met writing the baker** (KB U/09 §2.2, U/24): the Common button's own wrapper saved into WBP_Button, and nested
+   pieces' transient insides copied along, ended in a stack overflow on the next bake; unwrapping and detaching fixed both. The
+   parity test must skip Common UI's own optional binding (`InputActionWidget`). The title screen now survives a part the
+   designer deletes (null-safe accessors).
+4. **Tests**: `Pawpocalypse.UI.Widgets.AreBlueprints` (every listed class resolves to its Blueprint; none native) and `.Parity`
+   (each asset against its code layout: every bound part in both, the same widget classes, the same words and button settings).
+   Every UI test now runs on the Blueprints (`PawUi::Resolve` in the test worlds).
+5. CLAUDE.md (a hard rule and the tool), doc 05 §2, doc 00; KB U/09 §2.2, U/24 two rows, INDEX, U/00.
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0; L3 UI 47 tests (was 45), Realm 9, on the Blueprints.
+- A real `-game` run from L_Title on the Blueprints: the menu, a new game, L_Realm with the HUD, the skill tree (shots
+  `Saved/PawShots/wbp_*.png`).
+- Sabotages, CAUGHT: `widgets_resolver_ignores_assets`, `widgets_part_unbound`, `widgets_blueprint_never_wired` (first MISSED:
+  the unwired screen crashed the editor, which the harness reads as "not run"; the Look test now asserts every part wired,
+  and the screen no longer crashes), `widgets_button_label_lost`, `widgets_code_drifts_from_asset` (Parity).
+
+### Open
+- **A Parity failure after a designer's edit can be on purpose** (the asset owns the layout): read what it names before
+  "fixing" anything. The other screens still index some parts directly: a part deleted from their assets fails Parity (every
+  gate) rather than shipping, but would crash at runtime; hardening them like the title is open.
+- The painted widgets' colours (Pounce clock, tree links) are C++ tokens, not editable properties yet (KB: "state looks as
+  EditAnywhere properties").
+- From (37): the version line; the nightly `-Full`; no title step in `godot_tour.py`.
+- **F34 (new, for the designer)**: Godot's pause menu keeps an armed overwrite after Back to the main page (835 of the
+  `pause` fixture's presses), against its own comment; written into doc 01 §5 and the Godot findings file. The pause menu
+  copies Godot until it is decided.
+
+### Next step
+*"Phase 4: the pause menu, Widget-Blueprint-first (PcPause from the generated `pause` fixture; UPawPauseMenu baked to
+WBP_PauseMenu), then the settings popup."*
+
+---
+
+## 2026-11-04 (37) - Phase 4 slice 3: the title screen
+
+### Where the project is
+- Phase 4 slices 1-3 done: the save, its container, the title screen. Next: the pause menu, then the settings popup.
+  Nothing committed after `98e3a4f` in either repo.
+
+### What happened (designer: "Do phase 4 slice 3")
+1. **Fixture `title`** (`tools/godot_fixtures/title_fixture.gd`, registered in `make_godot_fixtures.py`): the REAL
+   main_menu.tscn over 3,000 random games in memory and random sets of real slot files (some missing, 265 unreadable): what
+   Continue / Load / the status line / the five cards / the leaderboard / the default selection show, and
+   `format_when` / `format_duration` / `_kills_text` on their own inputs (the week's edge sampled on purpose: a sabotage moving it
+   to 10 days was MISSED until it was). Its resolved look -> `Tests/Data/title_look_godot.txt`.
+2. **`PcTitle`** (PawCore): the menu (Continue = a save on disk OR progress in memory; Load = a save; the status counts the game
+   IN MEMORY), the play clock, the kills text, "last saved" (buckets, then the UTC date: civil-from-days), the leaderboard's last
+   line, the slot screen's default. `PcTitleTests`: Godot's English rebuilt from the values with Godot's own templates, equal on
+   1,000 rows (3,000 in the long test), every form covered; a date test across leap days and eras.
+3. **`UPawMainMenu`** (`UI/PawMainMenu.*`), pushed by the player controller wherever there is no realm (L_Title): Godot's
+   layout (a canvas with the scene's anchors and offsets; `PawUiConstants` Title*), the menu, the slots (an empty card starts a
+   game THERE, an occupied one loads; Delete asks, Cancel under the key, one-shot), the leaderboard placeholder, the credits, the
+   confirm; `FocusTop` = `_focus_top` (only the top layer wired, disabled rows dropped); Back (Esc / pad B) closes the top layer,
+   on the menu asks to quit; Exit saves a game worth keeping. The slot cards swell by size (the column too). **(34)'s save traps
+   closed**: a new game = `NewGame` + an empty achievement load + `SaveGame(slot)` in the same frame (the old slot kept byte for
+   byte, through the end-of-frame save and an autosave); a load is followed by `OpenLevel(L_Realm)`. Seams: `OnPlay`, `OnOpenUrl`,
+   `OnQuit`, `Now`. `UPawPlateButtonStyle` (the cluster's plates). `UPawHudScreen::ForgetJobsSeen` (HUD._jobs_seen = -1).
+4. **Words**: 49 `TITLE_*` keys and 4 new `PROMPT_*` (A, D, T, Esc: Godot's first keys) in ST_UI; `PawText` `SlotClock`, `Mice`,
+   `When`, `Version`; L0's key pattern knows `TITLE`. A `\n` inside a string-table value comes out as a line break (measured:
+   the cards equal Godot's; KB U/20 §2). `EngineSettings` added to the game module (the version line).
+5. **`paw.Title <press> [n]`** (Dev/PawShot.cpp) and `APawPlayerController::GetMainMenu`: a real `-game` run from L_Title
+   (`-PawSaveDir` to a scratch folder): the menu, the leaderboard, the slot screen, slot 1 -> `slot_0.sav` written ->
+   `LoadMap L_Realm` -> "Realm started in tier_1" with the HUD up. Shots in `Saved/PawShots/title_*.png`.
+6. Doc 05 §6.3 (the title screen), doc 11 phase 4, doc 00.
+
+### Not yet (each waits for its phase; doc 05 §6.3)
+- The garden (a paper floor), Boba's photo and the cameo on a click (the frame and caption keep his place), the cluster's icons
+  (the words), the menu music: phase 6. The Language list: phase 7 (the button is there, disabled). Settings: the settings slice
+  (disabled). The last slot used = the save's active slot until settings persist it. The title -> realm fade (doc 03 §4).
+- The version line reads `v1.0.0.0`: `ProjectVersion` is unset in DefaultGame.ini (Godot's says v0.0.2 / itch 0.2.5): the
+  designer's call (doc 10).
+
+### Verified
+- Everyday `check_all`: every gate PASS, exit 0 (L1 167 cases; L3 UI 45 tests, was 38). The Development game target builds.
+- `Pawpocalypse.UI.Title.*` (6): MatchesGodot (300 fixture rows: status, Continue / Load, every card and its Delete, the
+  leaderboard), Look, NewGame, Load, Delete, BackAndQuit.
+- Sabotages, each CAUGHT, the clean build passing: game module 13 (`title_status_plural_swapped`, `title_card_when_ignores_clock`,
+  `title_unreadable_has_delete`, `title_mice_k_plain`, `title_new_game_into_active_slot`, `title_new_game_keeps_achievements`,
+  `title_load_skipped`, `title_confirm_default_yes`, `title_confirm_not_one_shot`, `title_exit_never_saves`,
+  `title_menu_wires_disabled`, `title_back_quits_unasked`, `title_discord_opens_the_board`); PawCore 8 (`title_*` in
+  `sabotage_pawcore.py`; `title_when_week_is_days` MISSED until the fixture sampled the week's edge).
+- Not run: the nightly `-Full` (its fixture check now includes `title`); the hover swell is not driven by a test (no pointer
+  in the automation world); no side-by-side shot of Godot's title yet (`godot_tour.py` has no title step).
+
+### Next step
+*"Phase 4: the pause menu (pause_menu.gd: Resume, Save, Settings, Quit to title, quit saves first; its format_duration and
+_kills_text are PcTitle's already), then the settings popup and the last slot used."*
+
+---
+
+## 2026-11-04 (36) - The save findings F26-F33: written up, decided, fixed in Godot, the port followed
+
+### Where the project is
+- Phase 4 slices 1-2 done, the title screen (slice 3) next. Nothing committed after `98e3a4f` in either repo.
+
+### What happened
+1. **Written up** (designer: "Go"): every save finding of (34) and (35) re-read in the Godot code (file and line) into doc 01
+   §5 and the designer's copy (`C:\Games\pawpocalypse\docs\pawpocalypse-port-findings.md`): F26 the deepest biome not
+   saved (Continue opens biome 1: every capped line back to its biome-1 cap, kittens 24 -> 10 after the Mythic Realm, every
+   open biome NEW again); F27 Second Helping's deferred Stardust; F28 Body Count's and Levy's counts (Infestation and
+   Reputation are documented as never saved on purpose: not findings); F29 a quit mid-Reawaken skips the spend step, the
+   job picker and Territory's start; F30 the shop's `catnip < cost` vs the purchase's epsilon; F31 the GDD's kitten line;
+   F32 saved levels unchecked; F33 NaN/inf survive a `.tres` save. F5 also notes NaN/inf.
+2. **Decided** (designer, 2026-11-04, every recommended answer): save the deepest biome; save all three counters; resume a
+   Reawaken on load; apply the four small fixes.
+3. **Godot first** (uncommitted there; on top of its 2026-11-03 changes): `pawpocalypse_save_data.gd` five new @exports
+   (no version bump); `save_manager.gd` saves / restores them (clamped), `_finite_numbers()` (every non-finite float of a
+   loaded save reads 0); `skill_tree_manager.gd` / `game_state.gd` `apply_save_data()` clamp levels; `game_state.gd`
+   `reawaken_in_progress` (reset by a new game); `hud.gd` sets it BEFORE `reawaken()` (SaveManager saves on `reawakened`,
+   inside that call), clears it in `_travel_to_starting_biome()`, `_resume_reawaken()` deferred from `_ready()`, the shop
+   button's epsilon; the GDD line. Tests added: `check_playthrough.gd` `_test_run_state_survives_a_restart`,
+   `_test_damaged_save_loads_safely`; `check_hud.gd` `_test_shop_button_matches_the_purchase`,
+   `_test_reawaken_resumes_after_a_restart`. `messages.pot` re-extracted (line references only). The suite's run had made
+   two `.uid` files next to the designer's untracked probes: deleted, the repo's status is as before.
+4. **The port followed**: `PcSaveState` + `CaptureSave` / the file / `ApplySave` (non-finite -> 0 first, then the clamps,
+   then the five fields), `PcProgress::bReawakenInProgress` (cleared by `NewGame`), `PcHud` ShopRow's epsilon;
+   `UPawHudScreen`: the flag set before `Pc::Reawaken`, cleared in `TravelToStartingBiome`, `ResumeReawakenIfPending()` in
+   `Pump` (waits while the ceremony, the Menu stack or the Modal stack is up: unlike Godot it also covers a later load from
+   the title). Fixture `save` extended (out-of-range and non-finite fields, the flag) and regenerated from the fixed Godot;
+   the fixture test now also checks the file read back against Godot's save columns (a field the writer dropped would
+   otherwise round-trip unseen) and asserts coverage of every new case.
+
+### Verified
+- Godot `tools/check_all.sh`: every gate green but `loc` before the `.pot` refresh; `loc` green after (playthrough 1,200
+  assertions, hud 6,652). Godot sabotages (a scratchpad script, restored byte for byte): 12 of 12 make their gate fail;
+  11 by the named assertion, `resume_always` by the hud gate timing out (the forced resume travels the test's HUD).
+- Fixture `save` (3,000 rows; first 1,000 in the repo): 724 non-finite numbers loaded, 476 deepest biomes out of range,
+  738 mid-Reawaken saves, negative levels and counters; Godot reads every non-finite number as 0 (so F33 was real: the
+  `.tres` keeps NaN). PawCore matches on all 3,000 rows (the long test) and 1,000 in L1; L1 165 cases.
+- PawCore sabotages, CAUGHT: `save_deepest_lost`, `file_drops_the_flag`, `reader_skips_levy`, `load_deepest_unclamped`,
+  `load_pending_negative`, `load_body_count_lost`, `load_flag_lost`, `load_nan_kept`, `load_branch_unclamped`,
+  `load_shop_negative`, `newgame_keeps_the_flag`, `shop_row_strict`. Game module (`sabotage_realm.py`), CAUGHT by
+  `Pawpocalypse.UI.Ceremony.Resumes`: `reawaken_flag_never_set`, `reawaken_flag_never_cleared`, `reawaken_never_resumes`,
+  `reawaken_resume_under_the_tree`.
+- `make_godot_fixtures.py --check`: every fixture reproduces byte for byte from the changed Godot code (the other managers
+  are untouched by it). Everyday `check_all`: every gate PASS, exit 0, after `Data/CodeConstantsMap.csv` gained the four new
+  numeric save defaults (destination `save`; L0 had failed on them) and appendix C was regenerated (580 constants);
+  `Data/CodeConstants.csv` unchanged.
+
+### Open
+- Commit both repos (the designer's call). The Godot repo now also holds F26-F33.
+- From (35): no gate builds the game target; the tree nav test does not check where Next leads.
+- From (34): the title-screen traps (`NewGame` / `LoadGame` / `paw.Cheat.Reawaken`).
+
+### Next step
+*"Phase 4 slice 3, the title screen (doc 11 phase 4), minding HANDOFF-LOG (34)'s NewGame / LoadGame save traps; a load from
+the title must StartRealm, and a mid-Reawaken save resumes by itself (36)."*
+
+---
+
+## 2026-11-04 (35) - (34)'s robustness findings fixed; the spike code deleted
+
+### Where the project is
+- Phase 4 slices 1-2 done; the title screen (slice 3) next. Committed and pushed through `98e3a4f`; everything below is
+  uncommitted, for the designer to review.
+
+### What happened (designer: "Yes do that please", to (34)'s step 1 + the start-here fix + deleting the spikes)
+1. **Godot measured first.** A headless probe in the sandboxed scratch copy (Godot 4.7.1): `"%.Nf" % NAN/INF/-INF` = `nan`
+   / `inf` / `-inf` (N = 0..3); `int()` and `roundi()` of NAN, INF, -INF and 1e300 = `-9223372036854775808`;
+   `Amounts.short(NAN)` and `(INF)` = `-9223372036854775808Qi`, `(-INF)` = `--9223372036854775808Qi` (NaN skips the loop and
+   reads `SUFFIX_ORDER[-1]`, the last).
+2. **`PcFormat`, non-finite safe.** One digit splitter (`SignificantDigits`, zeroed buffer, refuses text without an `e`)
+   for `FixedLikeGodot` and `OneDecimalLikeGodot`: no more `atoi` past the string. `FixedLikeGodot` prints Godot's
+   `nan`/`inf`/`-inf`; `IntLikeGodot` / `RoundiLikeGodot` give Godot's `INT64_MIN` for NaN, the infinities and past int64,
+   spelled out instead of a C++ cast that is undefined; `ShortAmount` prints `nanQi` / `infQi` / `-infQi` (Godot's suffix;
+   the value instead of int()'s overflow, the deviation it already had past int64; header says so). `FixedLikeGodot`'s
+   past-1e15 buffer 64 -> 400 (1.8e308 with 6 decimals is 316 characters; it truncated).
+3. **`PcJson`.** A number past a double's range now reads as every other reader reads it (`1e400` = inf, `1e-400` = 0, sign
+   kept: `OverflowsDouble`, from the first significant digit's decimal exponent, saturated); it read 0 because `from_chars`
+   leaves the value untouched on `result_out_of_range`. The duplicate-key check is a hash set per object (was a scan per key:
+   100,000 keys = 5e9 compares). First-wins kept.
+4. **`PcProgress`.** `IsFinalBossRealm` guards the three `BossRealms.back()` reads (`MarkBossDefeated`, `RecordBossDefeat`,
+   `RaisesVictory`).
+5. **Doc 03 §6 follows the code:** a validator failure leaves the game without data in every build (`bDataReady` false, no
+   realm), Shipping included; only the log level differs. Running on refused rules would be worse; the gates catch it first.
+6. **The spike code deleted** (all 124 files tracked and on origin first): `Source/Pawpocalypse/Dev/Spikes` (8),
+   `tools/spikes` (10), `Content/Pawpocalypse/Dev/Spikes` (106, 4.9 MB); the spike-only `ImageCore` / `Paper2D` module
+   dependencies out of `Pawpocalypse.Build.cs`. All of it is in `10c118e`; doc 07 says where the S3 raster/pack script is
+   (`git show 10c118e:tools/spikes/s3_raster_pack.py`), docs 00, 04 and 11 say it is gone.
+7. **Doc 00**: "nothing is committed since `7410909`" was stale (now: pushed through `98e3a4f`); the spike rows gone.
+8. **Unity builds off in both modules** (`bUseUnity = false` in `Pawpocalypse.Build.cs` and `PawCore.Build.cs`). Deleting the
+   spike files made the editor build fail in files nobody touched: the unity groups reshuffled, and so did UBT's adaptive
+   unity, which pulls git-modified files out of the groups. Two failure shapes: same-named file-local helpers (`S` /
+   `Shown` / `Rule` / `Utf8` in the UI tests, `IsEqualApprox` / `Upgrade` in PawCore: C2084) and a local shadowing another
+   file's file-scope colour (`Paper` in PawRealmView vs PawHudScreen: C4459). Renaming would only fix today's grouping. Without
+   unity each file compiles alone (PawCore exactly as the standalone build compiles it), and an edit recompiles one file.
+9. **The Development GAME target did not build** (an older bug, found by building it): `PawTreeTests.cpp`'s nav helper
+   called `UWidgetNavigation::GetNavigationData`, which only exists `WITH_EDITOR`; automation tests compile into the
+   Development game build (the one `packaged_bench.py` packages). It now reads the fields, as PawHudTests does. Negative test: Left
+   read as Right -> `Pawpocalypse.UI.Tree.Navigation` FAILED (261 of 348 rules), restored -> 7/7 PASS. (A Next -> Previous
+   mutant was NOT caught: the test only asserts Next is non-null.) Game target Development and Shipping both compile.
+10. **Knowledge base**: G/03 §6 (non-finite values in Godot, measured), G/07 row; U/10 §5.3 (a hand-written JSON reader:
+   `from_chars` range, duplicate keys); U/01 §2.5 (unity regrouping on delete / adaptive edit, C4459, `bUseUnity = false`);
+   U/24 rows (from_chars, unity, editor-only `GetNavigationData`); both folder indexes and the symptom index.
+
+### Not acted on, and why (for the designer: Godot first)
+- `ApplySave` does not clamp levels: Godot does not either (`skill_tree_manager.gd` 341 takes `int(saved)`; `game_state.gd`
+  2511 the upgrade levels as they are), so clamping is a load-rule change. Same for a NaN or infinity in the save: Godot's
+  `.tres` writes and reads them back too. Both go with the save findings of (34).
+
+### Verified
+- Everyday `check_all` after the last change: every gate PASS, exit 0 (L1 164 cases, was 161; L3 Data 2, Realm 9, Save 8,
+  UI 38). UBT game target: Development and Shipping compile (Development did not before item 9).
+- New tests: "Formatting never reads past its text on NaN or an infinity" (Godot's measured strings), "a number past a
+  double's range", "a repeated key keeps its first value, and 100,000 keys read in linear time", and a no-bosses case in
+  "Progress rules from the Godot comments".
+- Sabotages, each seen CAUGHT with the clean build passing: 8 new (`format_nonfinite_reads_on`, `format_nonfinite_first_suffix`,
+  `format_int_overflow_max`, `json_out_of_range_zero`, `json_overflow_by_digits`, `json_exponent_sign_lost`,
+  `json_duplicate_kept`, `final_boss_on_no_bosses`) and 6 retargeted at the rewritten lines (`format_more_digits`,
+  `progress_final_clock_every_clear`, `progress_ending_on_any_boss`, `victory_any_boss`, `victory_first_clear_only`,
+  `victory_every_last_boss_kill`); `format_half_up_strict` and `format_no_negative_zero` re-run. 453 PawCore sabotages, every
+  target present exactly once (checked). The digit buffer is zeroed so the guard's mutant fails the same way every run.
+  The nightly `-Full` has not run on this state.
+
+### Open
+- (34)'s save findings, to write up for the designer (doc 01 §5 + the Godot findings file), now with the two above.
+- (34)'s title-screen traps (`NewGame` / `LoadGame` / `paw.Cheat.Reawaken`); (34)'s gate items (sabotage scripts edit real
+  sources; no sanitizer build; the colour lint skips `Realm/`). Dev/Spikes in Shipping: gone.
+- **No gate builds the game target**: `check_all` builds only the editor target, which is how item 9 went unnoticed for a
+  week. Proposed: a `UBT game build` gate (Development; ~30 s incremental). Not added without asking.
+- The tree nav test does not check where Next leads (only that it is set).
+- Still open from (33): commit the Godot repo; the F19 hint's translations; F6; the phase 3 packaged-build gate.
+
+### Next step
+*"Write up HANDOFF-LOG (34)'s save findings (plus (35)'s level clamp and non-finite values) for the designer: doc 01 §5 and
+`C:\Games\pawpocalypse\docs\pawpocalypse-port-findings.md`. Then phase 4 slice 3, the title screen, minding the NewGame /
+LoadGame save traps in (34)."*
+
+---
+
 ## 2026-11-04 (34) - A whole-codebase review; one port bug fixed: the kittens chased the oldest boss add
 
 ### Where the project is

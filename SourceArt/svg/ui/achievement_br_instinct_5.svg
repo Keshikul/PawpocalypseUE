@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="104.0" cy="64.0" rx="19.1" ry="19.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="98.6" cy="84.0" rx="19.1" ry="19.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="84.0" cy="98.6" rx="19.1" ry="19.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="104.0" rx="19.1" ry="19.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="44.0" cy="98.6" rx="19.1" ry="19.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="29.4" cy="84.0" rx="19.1" ry="19.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="24.0" cy="64.0" rx="19.1" ry="19.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="29.4" cy="44.0" rx="19.1" ry="19.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="44.0" cy="29.4" rx="19.1" ry="19.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="24.0" rx="19.1" ry="19.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="84.0" cy="29.4" rx="19.1" ry="19.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="98.6" cy="44.0" rx="19.1" ry="19.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="64.0" rx="47.1" ry="47.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="104.0" cy="64.0" rx="16.0" ry="16.0" fill="#B88558" stroke="none"/>
+<ellipse cx="98.6" cy="84.0" rx="16.0" ry="16.0" fill="#B88558" stroke="none"/>
+<ellipse cx="84.0" cy="98.6" rx="16.0" ry="16.0" fill="#B88558" stroke="none"/>
+<ellipse cx="64.0" cy="104.0" rx="16.0" ry="16.0" fill="#B88558" stroke="none"/>
+<ellipse cx="44.0" cy="98.6" rx="16.0" ry="16.0" fill="#B88558" stroke="none"/>
+<ellipse cx="29.4" cy="84.0" rx="16.0" ry="16.0" fill="#B88558" stroke="none"/>
+<ellipse cx="24.0" cy="64.0" rx="16.0" ry="16.0" fill="#B88558" stroke="none"/>
+<ellipse cx="29.4" cy="44.0" rx="16.0" ry="16.0" fill="#B88558" stroke="none"/>
+<ellipse cx="44.0" cy="29.4" rx="16.0" ry="16.0" fill="#B88558" stroke="none"/>
+<ellipse cx="64.0" cy="24.0" rx="16.0" ry="16.0" fill="#B88558" stroke="none"/>
+<ellipse cx="84.0" cy="29.4" rx="16.0" ry="16.0" fill="#B88558" stroke="none"/>
+<ellipse cx="98.6" cy="44.0" rx="16.0" ry="16.0" fill="#B88558" stroke="none"/>
+<ellipse cx="64.0" cy="64.0" rx="44.0" ry="44.0" fill="#B88558" stroke="none"/>
+<ellipse cx="64.0" cy="64.0" rx="34.0" ry="34.0" fill="#2A1A33" stroke="#2A1A33"/>
+<ellipse cx="64.0" cy="64.0" rx="29.1" ry="20.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="64.0" rx="26.0" ry="17.0" fill="#8596C3" stroke="none"/>
+<ellipse cx="64.0" cy="64.0" rx="11.0" ry="11.0" fill="#FFF9E3" stroke="none"/>
+<ellipse cx="64.0" cy="64.0" rx="5.0" ry="5.0" fill="#8596C3" stroke="none"/>
+</g>
+</svg>

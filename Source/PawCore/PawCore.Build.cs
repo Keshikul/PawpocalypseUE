@@ -11,6 +11,12 @@ public class PawCore : ModuleRules
 		// standalone build trips over it.
 		PCHUsage = PCHUsageMode.NoPCHs;
 
+		// No unity build either: each .cpp compiles alone, exactly as the standalone build compiles it. In a unity group
+		// two files' file-local helpers of the same name (IsEqualApprox, Upgrade, ...) collide as soon as the grouping
+		// reshuffles, which adding, removing or merely editing a file can do (UBT's adaptive unity pulls git-modified files
+		// out of the groups). KB U/01 §2.5.
+		bUseUnity = false;
+
 		PrivateDependencyModuleNames.Add("Core");
 	}
 }

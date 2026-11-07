@@ -209,8 +209,27 @@ def const_colour(src, name, where):
     return tuple(float(m.group(k)) if m.group(k) else 1.0 for k in (1, 2, 3, 4))
 
 
+def restyled():
+    """Godot's palette colour -> ours, for the colours the restyle changed (D14; gen_paw_tokens.colour_pairs against the
+    palette frozen at the fork). The tree's words still come from Godot; a colour Godot wrote as a palette value is drawn in
+    today's value of that palette colour. Keys and values are "RRGGBB"."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import gen_paw_tokens
+    return {old[1:].upper(): new[1:].upper() for old, new, _ in gen_paw_tokens.colour_pairs(gen_paw_tokens.SNAPSHOT)}
+
+
+def ours_bytes(rgba, table):
+    """(r, g, b, a) bytes through restyled(); alpha kept."""
+    key = "%02X%02X%02X" % tuple(rgba[:3])
+    if key not in table:
+        return tuple(rgba)
+    new = table[key]
+    return (int(new[0:2], 16), int(new[2:4], 16), int(new[4:6], 16), rgba[3])
+
+
 def render(godot):
     src = (Path(godot) / SCRIPT).read_text(encoding="utf-8")
+    table = restyled()
     labels = string_dict(src, "BRANCH_LABELS")
     blurbs = string_dict(src, "BRANCH_BLURBS")
     colours = colour_dict(src, "BRANCH_COLORS")
@@ -270,8 +289,8 @@ def render(godot):
     ui.write("\tstruct FBranchColour\n\t{\n\t\tconst TCHAR* Id;\n\t\tFLinearColor Colour;\n\t};\n\n")
     ui.write("\t// One colour per trunk, shared by everything growing off it (BRANCH_COLORS); a branch not listed draws white.\n")
     ui.write("\tinline const FBranchColour BranchColours[] = {\n")
-    for bid, (r, g, b, a) in colours:
-        ui.write('\t\t{ TEXT("%s"), PawTokens::Srgb(%d, %d, %d, %d) },\n' % (bid, r, g, b, a))
+    for bid, rgba in colours:
+        ui.write('\t\t{ TEXT("%s"), PawTokens::Srgb(%d, %d, %d, %d) },\n' % ((bid,) + ours_bytes(rgba, table)))
     ui.write("\t};\n\n")
     ui.write("\t// The nodes that hand the cat a verb: a rainbow ring in every state (RAINBOW_BRANCHES).\n")
     ui.write("\tinline const TCHAR* const RainbowBranches[] = { %s };\n" % ", ".join('TEXT("%s")' % x for x in rainbow))
@@ -280,12 +299,13 @@ def render(godot):
     ui.write("\t// The tooltip's colours (_on_node_hovered's bbcode, two of them not in the palette): the blurb, \"Fully bought.\", the\n")
     ui.write("\t// Next line, why it cannot be bought, and \"You have n.\".\n")
     for name, hexcode in tips:
+        hexcode = table.get(hexcode.upper(), hexcode)
         ui.write("\tinline const FLinearColor %s = PawTokens::Srgb(0x%s, 0x%s, 0x%s);\n" % (name, hexcode[0:2], hexcode[2:4], hexcode[4:6]))
     ui.write("\n\t// %s DIM (a link not walked) and SHUT (the road not taken); %s SHINE_COLOR, a self_modulate MULTIPLIER\n" % (LINKS_SCRIPT, SCRIPT))
     ui.write("\t// (above 1: the node brightens), not a colour.\n")
     for name, (r, g, b, a) in (("LinkDim", dim), ("LinkShut", shut)):
         ui.write("\tinline const FLinearColor %s = PawTokens::Srgb(%d, %d, %d, %d);\n"
-                 % (name, round(r * 255), round(g * 255), round(b * 255), round(a * 255)))
+                 % ((name,) + ours_bytes((round(r * 255), round(g * 255), round(b * 255), round(a * 255)), table)))
     ui.write("\tinline const FLinearColor ShineTint = FLinearColor(%.4ff, %.4ff, %.4ff, %.4ff);\n" % shine)
     ui.write("}\n")
     return st.getvalue(), core.getvalue(), ui.getvalue(), len(labels), len(cases), len(channels)

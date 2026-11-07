@@ -19,6 +19,7 @@
 //
 // Negative tests: tools/sabotage_realm.py (`hud_*`).
 
+#include "PcRainbow.h"
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetNavigation.h"
 #include "Components/PanelWidget.h"
@@ -27,6 +28,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
+#include "UI/PawWidgets.h"
 #include "PcAchievements.h"
 #include "PcCards.h"
 #include "PcCheats.h"
@@ -78,7 +80,7 @@ namespace
 			{
 				return false;
 			}
-			Hud = CreateWidget<UPawHudScreen>(GI, UPawHudScreen::StaticClass());
+			Hud = CreateWidget<UPawHudScreen>(GI, PawUi::Resolve<UPawHudScreen>());
 			if (!T.TestNotNull(TEXT("the HUD is built"), Hud))
 			{
 				return false;
@@ -246,7 +248,9 @@ bool FPawHudReadoutsTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("the zone plate's kind"), Zone.Kind, Pc::PcZonePlateKind::Progress);
 	TestEqual(TEXT("the zone plate"), S(W.Hud->GetZoneText()),
 		FString::Printf(TEXT("Next biome  —  %s / %s"), *S(PawText::Amount(Zone.Have)), *S(PawText::Amount(Zone.Need))));
-	TestTrue(TEXT("its bar"), FMath::IsNearlyEqual(W.Hud->GetZoneFill(), static_cast<float>(Zone.Fraction), 1e-5f));
+	// The bar keeps what Godot's Range keeps: the fraction snapped to 0.01.
+	TestTrue(TEXT("its bar"), FMath::IsNearlyEqual(W.Hud->GetZoneFill(),
+		static_cast<float>(Pc::GodotRangeValue(Zone.Fraction, 0.0, 1.0, Pc::GodotRangeStep)), 1e-6f));
 	const Pc::PcWaveLine Wave = Pc::WaveLine(W.D(), P);
 	TestEqual(TEXT("the wave line shown as PcHud says"), W.Hud->IsWaveVisible(), Wave.bVisible);
 	if (Wave.bVisible && !Wave.bBait)

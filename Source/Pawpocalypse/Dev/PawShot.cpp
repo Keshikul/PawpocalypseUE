@@ -10,6 +10,18 @@
 //   paw.Wait <frames>        hold the queue this many frames (a step otherwise waits 30)
 //   paw.Take                 take the first card of the hand (as its button does)
 //   paw.Victory [seconds]    the ending, as the last boss's kill raises it (the time shown: 4200 s unless given)
+//   paw.Title <press> [n]    a press on the title screen: new, load, continue, leaderboard, credits, back, slot <n>
+//                            (0-based; an empty slot starts a game there, an occupied one loads it; both open L_Realm)
+//   paw.Press <key> [device] a key or pad button pressed and let go THROUGH SLATE (the device subsystem sees it, focus moves
+//                            on it): Gamepad_DPad_Down 1 is pad 1's D-pad (the prompts turn to the pad's)
+//   paw.Prompts <style>      Settings > Controls > Button prompts (auto, keyboard, xbox, playstation, steam_deck)
+//   paw.Settings [section]   open the settings dialog on its page: audio, video, controls (the title or the HUD's Modal stack)
+//   paw.Cat <x> <y>          put the cat at field pixel (x, y), the stick claiming the cursor so the OS pointer does not move it
+//   paw.Boss                 bring the biome's boss out now (as the bait does; the look tours, phase 6)
+//   paw.Travel <n>           travel to biome n (1-based, tier_n), as the Realms page does (the backdrop tours, phase 6)
+//   paw.Buy <branch>         in the spend step, press a node as a click does (the Unicorn's ceremony tour, phase 6)
+//   paw.Fx                   one of each effect round the cat: a burst, a slam, a swipe and a crit swipe, a beam, shards
+//                            (the effect looks, phase 6 slice 3; the effects setting decides as in play)
 // e.g. -ExecCmds="paw.Cheat.Catnip 300,paw.Tab 3,paw.Shot realms,paw.Tab 2,paw.Shot reawaken quit"
 
 #include "Containers/Ticker.h"
@@ -18,6 +30,8 @@
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Save/PawSettingsSubsystem.h"
 #include "HAL/IConsoleManager.h"
 #include "Misc/Paths.h"
 #include "Core/PawGameSubsystem.h"
@@ -25,8 +39,18 @@
 #include "PcData.h"
 #include "PcHud.h"
 #include "Realm/PawRealmSubsystem.h"
+#include "Realm/PawRealmView.h"
+#include "EngineUtils.h"
+#include "Input/PawInputDeviceSubsystem.h"
+#include "PcField.h"
+#include "PcProgress.h"
+#include "PcFieldRules.h"
+#include "PcEconomy.h"
 #include "UI/PawCardPickScreen.h"
 #include "UI/PawHudScreen.h"
+#include "UI/PawMainMenu.h"
+#include "UI/PawRootLayout.h"
+#include "UI/PawSettingsDialog.h"
 #include "UI/PawSkillTreeScreen.h"
 #include "UnrealClient.h"
 
@@ -45,6 +69,15 @@ namespace
 		Victory,
 		Wait,
 		Take,
+		Title,
+		Press,
+		Prompts,
+		Settings,
+		Cat,
+		Boss,
+		Travel,
+		Fx,
+		Buy,
 	};
 	struct FStep
 	{
@@ -57,6 +90,9 @@ namespace
 		bool bJobs = false;
 		double Seconds = 4200.0;
 		int32 Frames = 30;
+		FString Press;
+		int32 Arg = 0;
+		double X = 0.0, Y = 0.0;
 	};
 	TArray<FStep> GQueue;
 	int32 GFramesLeft = 0;
@@ -92,6 +128,62 @@ namespace
 			GFramesLeft = FMath::Max(0, Step.Frames);
 			return true;
 		}
+		if (Step.Kind == EStep::Press)
+		{
+			const FKey Key(*Step.Press);
+			if (!Key.IsValid() || !FSlateApplication::IsInitialized())
+			{
+				UE_LOG(LogPaw, Warning, TEXT("paw.Press: no such key '%s'"), *Step.Press);
+				return true;
+			}
+			const FKeyEvent Event(Key, FModifierKeysState(), FInputDeviceId::CreateFromInternalId(Step.Arg), false, 0, 0, TOptional<int32>(0)); // Slate user 0: the one player
+			FSlateApplication::Get().ProcessKeyDownEvent(Event);
+			FSlateApplication::Get().ProcessKeyUpEvent(Event);
+			return true;
+		}
+		if (Step.Kind == EStep::Prompts)
+		{
+			UWorld* World = GEngine && GEngine->GameViewport ? GEngine->GameViewport->GetWorld() : nullptr;
+			UPawSettingsSubsystem* S = World && World->GetGameInstance() ? World->GetGameInstance()->GetSubsystem<UPawSettingsSubsystem>() : nullptr;
+			if (S)
+			{
+				S->SetPromptStyle(Step.Press);
+			}
+			return true;
+		}
+		if (Step.Kind == EStep::Settings)
+		{
+			UWorld* World = GEngine && GEngine->GameViewport ? GEngine->GameViewport->GetWorld() : nullptr;
+			APawPlayerController* PC = World ? Cast<APawPlayerController>(World->GetFirstPlayerController()) : nullptr;
+			UPawRootLayout* Root = PC ? PC->GetRootLayout() : nullptr;
+			if (UPawSettingsDialog* D = Root ? UPawSettingsDialog::Open(Root->ModalStack, nullptr) : nullptr)
+			{
+				D->PressSection(Step.Press == TEXT("video") ? Pc::PcSettingsSection::Video
+					: Step.Press == TEXT("controls") ? Pc::PcSettingsSection::Controls : Pc::PcSettingsSection::Audio);
+			}
+			return true;
+		}
+		if (Step.Kind == EStep::Title)
+		{
+			UWorld* World = GEngine && GEngine->GameViewport ? GEngine->GameViewport->GetWorld() : nullptr;
+			APawPlayerController* PC = World ? Cast<APawPlayerController>(World->GetFirstPlayerController()) : nullptr;
+			UPawMainMenu* M = PC ? PC->GetMainMenu() : nullptr;
+			if (!M)
+			{
+				UE_LOG(LogPaw, Warning, TEXT("paw.Title: no title screen"));
+				return true;
+			}
+			const FString& P = Step.Press;
+			if (P == TEXT("new")) { M->PressNewGame(); }
+			else if (P == TEXT("load")) { M->PressLoad(); }
+			else if (P == TEXT("continue")) { M->PressContinue(); }
+			else if (P == TEXT("leaderboard")) { M->PressLeaderboard(); }
+			else if (P == TEXT("credits")) { M->PressCredits(); }
+			else if (P == TEXT("back")) { M->Back(); }
+			else if (P == TEXT("slot")) { M->PressSlot(Step.Arg); }
+			else { UE_LOG(LogPaw, Warning, TEXT("paw.Title: no such press '%s'"), *P); }
+			return true;
+		}
 		if (Step.Kind == EStep::Take)
 		{
 			// THROUGH THE SCREEN, as its button does: the realm's ChooseCard alone empties the hand and leaves the screen up
@@ -104,11 +196,96 @@ namespace
 			}
 			return true;
 		}
+		if (Step.Kind == EStep::Buy)
+		{
+			UPawHudScreen* H = Hud();
+			UPawSkillTreeScreen* Tree = H ? H->GetSkillTree() : nullptr;
+			if (!Tree || !Tree->PressNode(Step.Press))
+			{
+				UE_LOG(LogPaw, Warning, TEXT("paw.Buy %s: nothing bought"), *Step.Press);
+			}
+			return true;
+		}
 		if (Step.Kind == EStep::Tree)
 		{
 			if (UPawHudScreen* H = Hud(); !H || !H->OpenSkillTree(Step.bSpend))
 			{
 				UE_LOG(LogPaw, Warning, TEXT("paw.Tree: the tree did not open"));
+			}
+			return true;
+		}
+		if (Step.Kind == EStep::Fx)
+		{
+			UWorld* World = GEngine && GEngine->GameViewport ? GEngine->GameViewport->GetWorld() : nullptr;
+			APawRealmView* View = nullptr;
+			for (TActorIterator<APawRealmView> It(World); It && !View; ++It)
+			{
+				View = *It;
+			}
+			FPawVfx::FContext C;
+			if (!View || !View->MakeVfxContext(C, 0.0))
+			{
+				UE_LOG(LogPaw, Warning, TEXT("paw.Fx: no realm view"));
+				return true;
+			}
+			FPawVfx& V = View->GetVfxForTest();
+			const FVector2D Cat = C.Cat;
+			V.Burst(C, Cat + FVector2D(-260.0, -160.0), FLinearColor(0.55f, 0.82f, 1.0f, 0.9f), 120.0, 1.2, 4.0);
+			V.Slam(C, Cat + FVector2D(0.0, 200.0), 160.0, false);
+			V.Swipe(C, Cat, Cat + FVector2D(140.0, -60.0), 62.0, false, false);
+			V.Swipe(C, Cat + FVector2D(-300.0, 120.0), Cat + FVector2D(-180.0, 140.0), 62.0, true, true);
+			V.Beam(C, Cat + FVector2D(200.0, 100.0), Cat + FVector2D(420.0, -60.0), FLinearColor(0.95f, 0.75f, 1.0f, 0.95f), 7.0, 1.2);
+			V.Shards(C, Cat + FVector2D(260.0, -200.0), FLinearColor(1.0f, 0.86f, 0.32f, 1.0f), 26, 340.0, 1.1, 0.0, 16.0, true);
+			return true;
+		}
+		if (Step.Kind == EStep::Travel)
+		{
+			UWorld* World = GEngine && GEngine->GameViewport ? GEngine->GameViewport->GetWorld() : nullptr;
+			if (UPawRealmSubsystem* R = World ? World->GetSubsystem<UPawRealmSubsystem>() : nullptr; !R || !R->Travel(Step.Arg - 1))
+			{
+				UE_LOG(LogPaw, Warning, TEXT("paw.Travel %d: no such biome"), Step.Arg);
+			}
+			return true;
+		}
+		if (Step.Kind == EStep::Cat || Step.Kind == EStep::Boss)
+		{
+			UWorld* World = GEngine && GEngine->GameViewport ? GEngine->GameViewport->GetWorld() : nullptr;
+			UPawRealmSubsystem* R = World ? World->GetSubsystem<UPawRealmSubsystem>() : nullptr;
+			UPawGameSubsystem* G = R ? R->GetGame() : nullptr;
+			if (!G || !G->IsDataReady())
+			{
+				UE_LOG(LogPaw, Warning, TEXT("paw.Cat / paw.Boss: no realm"));
+				return true;
+			}
+			if (Step.Kind == EStep::Cat)
+			{
+				if (UPawInputDeviceSubsystem* Device = World->GetGameInstance()->GetSubsystem<UPawInputDeviceSubsystem>())
+				{
+					Device->ClaimStick();
+				}
+				R->SetCat(Step.X, Step.Y);
+			}
+			else
+			{
+				// The first boss realm when this biome has none; the bait topped up as the cheat overlay would, then a real
+				// summon.
+				const Pc::PcGameData& D = G->Data();
+				Pc::PcProgress& P = G->Progress();
+				const Pc::PcField& F = R->GetSim().Field;
+				if (F.TierIndex < 0 || D.Tiers[static_cast<size_t>(F.TierIndex)].BossData.empty())
+				{
+					R->Travel(static_cast<int32>(Pc::RealmIndex(D, D.Code.BossRealms.front())));
+				}
+				const Pc::PcBoss* B = F.TierIndex >= 0 ? D.FindBoss(D.Tiers[static_cast<size_t>(F.TierIndex)].BossData) : nullptr;
+				if (B)
+				{
+					P.TierKillCount += Pc::BaitShortfall(D, P, *B) * B->KillsPerBait;
+					P.Catnip = FMath::Max(P.Catnip, 1e15);
+				}
+				if (!B || !Pc::SummonFieldBoss(R->GetSim().Field, D, P))
+				{
+					UE_LOG(LogPaw, Warning, TEXT("paw.Boss: the boss did not come out"));
+				}
 			}
 			return true;
 		}
@@ -232,6 +409,45 @@ namespace
 			Queue(Step);
 		}));
 
+	FAutoConsoleCommand CatCommand(TEXT("paw.Cat"), TEXT("paw.Cat <x> <y>: put the cat at a field pixel (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Cat;
+			Step.X = Args.Num() > 0 ? FCString::Atod(*Args[0]) : 1200.0;
+			Step.Y = Args.Num() > 1 ? FCString::Atod(*Args[1]) : 540.0;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand FxCommand(TEXT("paw.Fx"), TEXT("paw.Fx: one of each effect round the cat (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>&)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Fx;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand TravelCommand(TEXT("paw.Travel"), TEXT("paw.Travel <n>: travel to biome n, 1-based (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Travel;
+			Step.Arg = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : 1;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand BossCommand(TEXT("paw.Boss"), TEXT("paw.Boss: bring the boss out (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>&)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Boss;
+			Queue(Step);
+		}));
+
 	FAutoConsoleCommand HandCommand(TEXT("paw.Hand"), TEXT("paw.Hand: deal a card hand (queued with paw.Shot)."),
 		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>&)
 		{
@@ -270,6 +486,17 @@ namespace
 			Queue(Step);
 		}));
 
+	FAutoConsoleCommand TitleCommand(TEXT("paw.Title"), TEXT("paw.Title <press> [n]: a press on the title screen (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Title;
+			Step.Press = Args.Num() > 0 ? Args[0] : FString();
+			Step.Arg = Args.Num() > 1 ? FCString::Atoi(*Args[1]) : 0;
+			Queue(Step);
+		}));
+
 	FAutoConsoleCommand WaitCommand(TEXT("paw.Wait"), TEXT("paw.Wait <frames>: hold the tour queue (queued with paw.Shot)."),
 		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
 		{
@@ -280,12 +507,53 @@ namespace
 			Queue(Step);
 		}));
 
+	FAutoConsoleCommand BuyCommand(TEXT("paw.Buy"), TEXT("paw.Buy <branch>: press a node of the spend step's tree (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Buy;
+			Step.Press = Args.Num() > 0 ? Args[0] : FString(TEXT("unlock_unicorn"));
+			Queue(Step);
+		}));
+
 	FAutoConsoleCommand TakeCommand(TEXT("paw.Take"), TEXT("paw.Take: take the hand's first card (queued with paw.Shot)."),
 		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>&)
 		{
 			FStep Step;
 			Step.bShot = false;
 			Step.Kind = EStep::Take;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand PressCommand(TEXT("paw.Press"), TEXT("paw.Press <key> [device]: a key pressed and let go through Slate (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Press;
+			Step.Press = Args.Num() > 0 ? Args[0] : FString();
+			Step.Arg = Args.Num() > 1 ? FCString::Atoi(*Args[1]) : 0;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand PromptsCommand(TEXT("paw.Prompts"), TEXT("paw.Prompts <style>: Settings > Controls > Button prompts (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Prompts;
+			Step.Press = Args.Num() > 0 ? Args[0] : FString(TEXT("auto"));
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand SettingsCommand(TEXT("paw.Settings"), TEXT("paw.Settings [audio|video|controls]: open the settings dialog (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Settings;
+			Step.Press = Args.Num() > 0 ? Args[0] : FString(TEXT("audio"));
 			Queue(Step);
 		}));
 

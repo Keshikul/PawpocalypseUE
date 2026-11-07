@@ -1,0 +1,38 @@
+# Godot 4.7.1 InputBindings ground truth (scripts/systems/input_bindings.gd, the real project.godot [input], scratch copy
+# of the project, sandboxed user://), generated 2026-10-28 by tools/godot_fixtures/input_bindings_fixture.gd. An event is
+# k<physical keycode>, m<mouse button>, b<joy button>, a<joy axis><sign>; none is -. Result: 0 BOUND, 1 SWAPPED,
+# 2 REFUSED_SYSTEM, 3 REFUSED_TAKEN, 4 UNCHANGED. Saved: action=[{key:<i|f|s|b>value|...},...]; doubles as C hex floats.
+# The project's map as InputBindings captured it, in InputMap.get_actions() order.
+action	events	deadzone
+ui_accept	k4194309,k4194310,k32,b0	0x1.0000000000000p-1
+ui_cancel	k4194305,b1	0x1.0000000000000p-1
+ui_left	k4194319,k65,b13,a0-	0x1.0000000000000p-1
+ui_right	k4194321,k68,b14,a0+	0x1.0000000000000p-1
+ui_up	k4194320,k87,b11,a1-	0x1.0000000000000p-1
+ui_down	k4194322,k83,b12,a1+	0x1.0000000000000p-1
+pounce	m1,a5+	0x1.0000000000000p-1
+steer_left	a2-	0x1.99999a0000000p-3
+steer_right	a2+	0x1.99999a0000000p-3
+steer_up	a3-	0x1.99999a0000000p-3
+steer_down	a3+	0x1.99999a0000000p-3
+recentre	b8	0x1.0000000000000p-1
+tab_prev	k65,k4194319,b9,b13	0x1.0000000000000p-1
+tab_next	k68,k4194321,b10,b14	0x1.0000000000000p-1
+menu_up	k87,k4194320,b11,a1-	0x1.0000000000000p-1
+menu_down	k83,k4194322,b12,a1+	0x1.0000000000000p-1
+press	k32,k4194309,b0,a4+	0x1.0000000000000p-1
+buy_amount	k81,b2	0x1.0000000000000p-1
+tab_1	k49	0x1.0000000000000p-1
+tab_2	k50	0x1.0000000000000p-1
+tab_3	k51	0x1.0000000000000p-1
+tab_4	k52	0x1.0000000000000p-1
+tab_5	k53	0x1.0000000000000p-1
+tab_6	k54	0x1.0000000000000p-1
+open_skill_tree	k84,b3	0x1.0000000000000p-1
+open_upgrades	k85	0x1.0000000000000p-1
+back	k4194305,b1	0x1.0000000000000p-1
+pause	k4194305,b6	0x1.0000000000000p-1
+section_prev	k4194323,b9	0x1.0000000000000p-1
+section_next	k4194324,b10	0x1.0000000000000p-1
+zoom_in	k61,a5+	0x1.0000000000000p-1
+zoom_out	k45,a4+	0x1.0000000000000p-1

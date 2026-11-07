@@ -101,6 +101,8 @@ private:
 	bool IsWorldPaused() const;
 	void QueueWrite(int32 Slot, TArray<uint8>&& Bytes);
 	void SeedDigest();
+	void RememberSlot();
+	void StartOnLastSlot();
 	void OnActivationChanged(bool bActive);
 	void OnEnterBackground();
 

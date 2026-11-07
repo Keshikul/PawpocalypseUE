@@ -1,5 +1,7 @@
 #include "Realm/PawRealmSubsystem.h"
 
+#include "Audio/PawAudioSubsystem.h"
+
 #include "Core/PawGameSubsystem.h"
 #include "Core/PawLog.h"
 #include "Engine/GameInstance.h"
@@ -42,6 +44,11 @@ bool UPawRealmSubsystem::StartRealm(uint64 Seed)
 	Sim.Input.CatX = Sim.Field.CatX;
 	Sim.Input.CatY = Sim.Field.CatY;
 	bRunning = true;
+	// A tier scene's _ready plays its music: whatever played before (the title's), the first frame plays the biome's.
+	if (UPawAudioSubsystem* Audio = UPawAudioSubsystem::Of(this))
+	{
+		Audio->SetRealmTier(FString());
+	}
 	UE_LOG(LogPaw, Log, TEXT("Realm started in %hs (seed %llu, %.2f ms)"), Game->Progress().CurrentBiomeId.c_str(),
 		static_cast<unsigned long long>(Sim.BaseSeed), Sim.LastTravelMs);
 	return true;
@@ -58,6 +65,21 @@ void UPawRealmSubsystem::AdvanceFrame(double RealDelta)
 	Sim.Input.bAutoTravelSetting = Game->Slot().bAutoTravel;
 	Sim.Input.bAutoPickSetting = Game->Slot().bAutoPickCard;
 	Sim.Advance(Game->Data(), Game->Progress(), RealDelta);
+	// The sound of the frame (audio_manager.gd's hookups on the field), and the biome's music when the biome changed.
+	if (UPawAudioSubsystem* Audio = UPawAudioSubsystem::Of(this))
+	{
+		const FString Tier = CurrentTierId();
+		Audio->OnFieldEvents(Sim.FrameEvents, Tier);
+		Audio->SetRealmTier(Tier);
+	}
+}
+
+FString UPawRealmSubsystem::CurrentTierId() const
+{
+	const UPawGameSubsystem* Game = GetGame();
+	const int64_t T = Sim.Field.TierIndex;
+	return Game && T >= 0 && static_cast<size_t>(T) < Game->Data().Tiers.size()
+		? FString(UTF8_TO_TCHAR(Game->Data().Tiers[static_cast<size_t>(T)].Id.c_str())) : FString();
 }
 
 void UPawRealmSubsystem::SetAutoTravel(bool bOn)
@@ -139,7 +161,14 @@ void UPawRealmSubsystem::OnReawakened()
 {
 	if (UPawGameSubsystem* Game = GetGame(); bRunning && Game)
 	{
+		const bool bBossWasUp = Sim.Field.bBossUp;
 		Sim.OnReawakened(Game->Data(), Game->Progress());
+		// _dismiss_boss: only a boss that was up brings the biome's music back.
+		UPawAudioSubsystem* Audio = UPawAudioSubsystem::Of(this);
+		if (bBossWasUp && Audio)
+		{
+			Audio->OnBossDismissed(CurrentTierId());
+		}
 	}
 }
 

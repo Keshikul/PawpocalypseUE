@@ -29,17 +29,13 @@ namespace Pc
 
 	namespace
 	{
-		// Godot's "%.1f" on Windows rounds like the legacy msvcrt printf its MinGW build links: the double is first written
-		// to 17 significant decimal digits, then rounded HALF UP at the first decimal. So 1.25 -> "1.3", 1.45 (binary
-		// 1.44999999999999995559 = "1.4500000000000000") -> "1.5", but 9.95 (binary 9.94999999999999928946 =
-		// "9.9499999999999993") -> "9.9". C's correctly rounded printf gave 1.2/1.4/9.9 (67 mismatches) and rounding the
-		// scaled double half away from zero gave 1.3/1.5/10.0 (43 mismatches); this matches all 4,402 Godot outputs in
-		// Tests/Data/amounts_godot.tsv. Only called for 1 <= value < 1000.
-		std::string OneDecimalLikeGodot(double Value, const std::string& Separator)
+		// "%.16e" of a FINITE double, split into its 17 significant digits and its decimal exponent. False for anything
+		// else (printf writes "inf" / "nan" with no exponent to read).
+		bool SignificantDigits(double Value, std::string& Digits, int& Exponent)
 		{
-			char Buf[64];
+			char Buf[64] = {}; // zeroed: past the text is a terminator, never stack garbage
 			std::snprintf(Buf, sizeof(Buf), "%.16e", Value); // d.dddddddddddddddde+XX: 17 correctly rounded digits
-			std::string Digits;
+			Digits.clear();
 			const char* P = Buf;
 			for (; *P && *P != 'e'; ++P)
 			{
@@ -48,7 +44,49 @@ namespace Pc
 					Digits += *P;
 				}
 			}
-			const int Exponent = std::atoi(P + 1);
+			if (*P != 'e')
+			{
+				return false;
+			}
+			Exponent = std::atoi(P + 1);
+			return true;
+		}
+
+		// Godot's int() / roundi() on x86-64: the conversion instruction answers 0x8000000000000000 for NaN, the
+		// infinities and anything past int64 (measured on Godot 4.7.1, 2026-11-04). C++ leaves that cast undefined, so
+		// the answer is spelled out.
+		int64_t Int64LikeGodot(double Value)
+		{
+			if (!(Value >= -9223372036854775808.0 && Value < 9223372036854775808.0))
+			{
+				return INT64_MIN;
+			}
+			return static_cast<int64_t>(Value);
+		}
+
+		// Godot's "%.Nf" of a non-finite value (measured): "nan", "inf", "-inf".
+		std::string NonFiniteLikeGodot(double Value)
+		{
+			return std::isnan(Value) ? "nan" : (Value < 0.0 ? "-inf" : "inf");
+		}
+	}
+
+	namespace
+	{
+		// Godot's "%.1f" on Windows rounds like the legacy msvcrt printf its MinGW build links: the double is first written
+		// to 17 significant decimal digits, then rounded HALF UP at the first decimal. So 1.25 -> "1.3", 1.45 (binary
+		// 1.44999999999999995559 = "1.4500000000000000") -> "1.5", but 9.95 (binary 9.94999999999999928946 =
+		// "9.9499999999999993") -> "9.9". C's correctly rounded printf gave 1.2/1.4/9.9 (67 mismatches) and rounding the
+		// scaled double half away from zero gave 1.3/1.5/10.0 (43 mismatches); this matches all 4,402 Godot outputs in
+		// Tests/Data/amounts_godot.tsv. Only called for 1 <= value < 1000.
+		std::string OneDecimalLikeGodot(double Value, const std::string& Separator)
+		{
+			std::string Digits;
+			int Exponent = 0;
+			if (!SignificantDigits(Value, Digits, Exponent))
+			{
+				return NonFiniteLikeGodot(Value);
+			}
 			// Digit i stands for 10^(Exponent - i): the tenths digit is i = Exponent + 1, the one deciding the rounding next.
 			const size_t Cut = static_cast<size_t>(Exponent + 2);
 			int64_t Tenths = 0;
@@ -69,6 +107,13 @@ namespace Pc
 		const double Group = Style.Group;
 		double Magnitude = std::fabs(Value);
 		const std::string Sign = Value < 0.0 ? "-" : "";
+		if (!std::isfinite(Value))
+		{
+			// Godot printed int()'s overflow here: NaN fails every comparison, so its tier stays 0 and the suffix is
+			// SUFFIX_ORDER[-1], the last; an infinity divides down to the last tier (measured: both "-9223372036854775808Qi",
+			// -inf "--9223372036854775808Qi"). As past the int64 range, the port prints the value instead.
+			return Sign + NonFiniteLikeGodot(Magnitude) + Style.Suffixes.back();
+		}
 		if (Magnitude < Group)
 		{
 			return Sign + WholeNumber(std::floor(Magnitude));
@@ -97,18 +142,13 @@ namespace Pc
 		Digits = std::max(0, std::min(Digits, 6));
 		const bool bNegative = Value < 0.0;
 		const double Abs = std::fabs(Value);
-		char Buf[64];
-		std::snprintf(Buf, sizeof(Buf), "%.16e", Abs); // 17 correctly rounded significant digits
 		std::string Sig;
-		const char* P = Buf;
-		for (; *P && *P != 'e'; ++P)
+		int Exponent = 0;
+		if (!SignificantDigits(Abs, Sig, Exponent))
 		{
-			if (*P >= '0' && *P <= '9')
-			{
-				Sig += *P;
-			}
+			return NonFiniteLikeGodot(Value);
 		}
-		const int Exponent = std::atoi(P + 1);
+		char Buf[400]; // "%.6f" of the largest double is 316 characters
 		// Digit i weighs 10^(Exponent - i): keep Exponent + 1 + Digits of them, the next one rounds half up.
 		const int Keep = Exponent + 1 + Digits;
 		if (Exponent > 15)
@@ -141,11 +181,11 @@ namespace Pc
 
 	std::string RoundiLikeGodot(double Value)
 	{
-		return std::to_string(static_cast<int64_t>(std::round(Value)));
+		return std::to_string(Int64LikeGodot(std::round(Value)));
 	}
 
 	std::string IntLikeGodot(double Value)
 	{
-		return std::to_string(static_cast<int64_t>(Value));
+		return std::to_string(Int64LikeGodot(Value));
 	}
 }

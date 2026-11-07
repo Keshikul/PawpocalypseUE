@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<rect x="10.2" y="3.0" width="107.7" height="122.0" rx="9.7" fill="#2A1A33" stroke="none"/>
+<rect x="13.9" y="6.7" width="100.3" height="114.6" rx="6.0" fill="#F8F1DE" stroke="none"/>
+<rect x="19.8" y="12.7" width="88.3" height="11.9" rx="3.6" fill="#6B7485" stroke="none"/>
+<ellipse cx="89.1" cy="78.3" rx="6.3" ry="5.6" fill="#2A1A33" stroke="none"/>
+<ellipse cx="93.5" cy="70.9" rx="5.6" ry="7.5" fill="#2A1A33" stroke="none"/>
+<ellipse cx="89.1" cy="78.3" rx="4.3" ry="3.7" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="93.5" cy="70.9" rx="3.7" ry="5.6" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="70.5" cy="74.6" rx="21.2" ry="18.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="80.4" cy="72.1" rx="15.6" ry="16.2" fill="#2A1A33" stroke="none"/>
+<ellipse cx="59.3" cy="59.7" rx="16.2" ry="16.2" fill="#2A1A33" stroke="none"/>
+<ellipse cx="61.8" cy="88.3" rx="5.6" ry="5.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="71.7" cy="88.9" rx="5.6" ry="5.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="81.7" cy="87.6" rx="5.6" ry="5.0" fill="#2A1A33" stroke="none"/>
+<polygon points="59.5,46.0 40.9,37.7 45.8,57.5" fill="#2A1A33" stroke="none"/>
+<polygon points="72.8,57.5 77.7,37.7 59.1,46.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="70.5" cy="74.6" rx="19.2" ry="16.1" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="80.4" cy="72.1" rx="13.7" ry="14.3" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="59.3" cy="59.7" rx="14.3" ry="14.3" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="61.8" cy="88.3" rx="3.7" ry="3.1" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="71.7" cy="88.9" rx="3.7" ry="3.1" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="81.7" cy="87.6" rx="3.7" ry="3.1" fill="#F8F1DE" stroke="none"/>
+<polygon points="56.6,46.3 42.7,40.0 46.6,54.7" fill="#F8F1DE" stroke="none"/>
+<polygon points="72.1,54.7 75.9,40.0 62.0,46.3" fill="#F8F1DE" stroke="none"/>
+<ellipse cx="69.3" cy="78.3" rx="14.3" ry="9.3" fill="#FAF5E6" stroke="none"/>
+<polygon points="54.1,48.4 47.2,45.2 49.1,52.6" fill="#D4ABA2" stroke="none"/>
+<polygon points="69.5,52.6 71.5,45.2 64.5,48.4" fill="#D4ABA2" stroke="none"/>
+<polyline points="55.0,66.6 45.7,65.1" fill="none" stroke="#2A1A33" stroke-width="1.1"/>
+<polyline points="55.0,67.6 45.7,67.6" fill="none" stroke="#2A1A33" stroke-width="1.1"/>
+<polyline points="55.0,68.5 45.7,70.0" fill="none" stroke="#2A1A33" stroke-width="1.1"/>
+<polyline points="63.7,66.6 73.0,65.1" fill="none" stroke="#2A1A33" stroke-width="1.1"/>
+<polyline points="63.7,67.6 73.0,67.6" fill="none" stroke="#2A1A33" stroke-width="1.1"/>
+<polyline points="63.7,68.5 73.0,70.0" fill="none" stroke="#2A1A33" stroke-width="1.1"/>
+<ellipse cx="52.5" cy="58.8" rx="6.8" ry="6.8" fill="#F6F6F6" stroke="#2A1A33"/>
+<ellipse cx="52.5" cy="59.3" rx="1.6" ry="1.6" fill="#2A1A33" stroke="none"/>
+<ellipse cx="54.5" cy="56.4" rx="1.0" ry="1.0" fill="#F6F6F6" stroke="none"/>
+<ellipse cx="66.2" cy="58.8" rx="8.3" ry="8.3" fill="#F6F6F6" stroke="#2A1A33"/>
+<ellipse cx="66.2" cy="59.3" rx="2.0" ry="2.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="68.7" cy="55.8" rx="1.2" ry="1.2" fill="#F6F6F6" stroke="none"/>
+<ellipse cx="59.3" cy="67.6" rx="2.0" ry="1.6" fill="#877B80" stroke="none"/>
+<polyline points="55.6,69.4 55.9,69.6 56.3,69.8 56.6,70.0 57.0,70.2 57.3,70.3 57.6,70.4 58.0,70.5 58.3,70.6 58.6,70.6 59.0,70.6 59.3,70.7 59.7,70.6 60.0,70.6 60.3,70.6 60.7,70.5 61.0,70.4 61.4,70.3 61.7,70.2 62.0,70.0 62.4,69.8 62.7,69.6 63.0,69.4" fill="none" stroke="#2A1A33" stroke-width="1.1"/>
+<rect x="28.2" y="102.2" width="71.6" height="9.5" rx="3.6" fill="#6B7485" stroke="none"/>
+</g>
+</svg>

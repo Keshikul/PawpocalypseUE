@@ -1,0 +1,378 @@
+{
+  "stacklands": {
+    "paper": "#FFF9E3",
+    "paper_band": "#FFF6CF",
+    "paper_bright": "#FFFDED",
+    "sand": "#F7F2DC",
+    "sand_detail": "#E5D4B7",
+    "meadow": "#B3E5B2",
+    "meadow_detail": "#98BE98",
+    "world_green": "#9AC09B",
+    "night_green": "#607E60",
+    "night_deep": "#58705A",
+    "ocean": "#AFD1EC",
+    "ink": "#1A1A1A",
+    "disabled": "#C7C1AB",
+    "alert": "#FF7055",
+    "red": [
+      "#D86061",
+      "#EC7B7B"
+    ],
+    "coral": [
+      "#F6BBAD",
+      "#F8A08C"
+    ],
+    "orange": [
+      "#E89956",
+      "#F4A968"
+    ],
+    "yellow": [
+      "#FFEFB4",
+      "#F2C65B"
+    ],
+    "blue": [
+      "#6B81B9",
+      "#8596C3"
+    ],
+    "green": [
+      "#AEDC84",
+      "#70954F"
+    ],
+    "slate": [
+      "#6B7485",
+      "#9BA2AD"
+    ],
+    "dark": [
+      "#474641",
+      "#63625D"
+    ],
+    "grey": [
+      "#F6F6F6",
+      "#CDCDCD"
+    ],
+    "cream": [
+      "#F8F1DE",
+      "#EEE2AC"
+    ],
+    "black": [
+      "#1A1A1A",
+      "#3A3A3A"
+    ],
+    "disc": "#F0E7B3"
+  },
+  "ink": "#1A1A1A",
+  "eye": "#F6F6F6",
+  "gold": "#F2C65B",
+  "stardust": "#8596C3",
+  "alert": "#FF7055",
+  "disabled": "#C7C1AB",
+  "player": {
+    "cat_body": "#9E9285",
+    "cat_accent": "#474641",
+    "cat_nose": "#F8A08C",
+    "kitten_body": "#F8F1DE",
+    "kitten_accent": "#F8A08C",
+    "unicorn_body": "#F6F6F6"
+  },
+  "enemies": {
+    "mouse": {
+      "body": "#8596C3",
+      "accent": "#6B81B9"
+    },
+    "rat": {
+      "body": "#D86061",
+      "accent": "#EC7B7B"
+    },
+    "vole": {
+      "body": "#E89956",
+      "accent": "#F4A968"
+    },
+    "gristle": {
+      "body": "#F2C65B",
+      "accent": "#E89956"
+    },
+    "moth": {
+      "body": "#F6BBAD",
+      "accent": "#F8A08C"
+    },
+    "dog": {
+      "body": "#EEE2AC",
+      "accent": "#F2C65B"
+    },
+    "goose": {
+      "body": "#F6F6F6",
+      "accent": "#F4A968"
+    },
+    "squirrel": {
+      "body": "#E89956",
+      "accent": "#F4A968"
+    },
+    "cockroach": {
+      "body": "#474641",
+      "accent": "#E89956"
+    },
+    "toad": {
+      "body": "#AEDC84",
+      "accent": "#70954F"
+    },
+    "crocodile": {
+      "body": "#AEDC84",
+      "accent": "#70954F"
+    },
+    "pigeon": {
+      "body": "#F8F1DE",
+      "accent": "#F8A08C"
+    },
+    "seagull": {
+      "body": "#D86061",
+      "accent": "#EC7B7B"
+    },
+    "hamster": {
+      "body": "#E89956",
+      "accent": "#F4A968"
+    },
+    "parrot": {
+      "body": "#D86061",
+      "accent": "#EC7B7B"
+    },
+    "slime_rat": {
+      "body": "#9BA2AD",
+      "accent": "#6B81B9"
+    },
+    "robot_mouse": {
+      "body": "#CDCDCD",
+      "accent": "#6B81B9"
+    },
+    "dust_bunny": {
+      "body": "#F8F1DE",
+      "accent": "#EEE2AC"
+    },
+    "sludge_cat": {
+      "body": "#AEDC84",
+      "accent": "#70954F"
+    },
+    "golden_mouse": {
+      "body": "#F2C65B",
+      "accent": "#E89956"
+    },
+    "ghost_mouse": {
+      "body": "#F6F6F6",
+      "accent": "#8596C3"
+    },
+    "void_mouse": {
+      "body": "#9BA2AD",
+      "accent": "#6B81B9"
+    },
+    "crow": {
+      "body": "#70954F",
+      "accent": "#AEDC84"
+    },
+    "hound": {
+      "body": "#D86061",
+      "accent": "#EC7B7B"
+    },
+    "bat": {
+      "body": "#6B81B9",
+      "accent": "#8596C3"
+    },
+    "ghost": {
+      "body": "#F6F6F6",
+      "accent": "#8596C3"
+    },
+    "imp": {
+      "body": "#D86061",
+      "accent": "#F2C65B"
+    },
+    "ant": {
+      "body": "#E89956",
+      "accent": "#D86061"
+    }
+  },
+  "bosses": {
+    "park_tyrant": {
+      "body": "#AEDC84",
+      "accent": "#70954F"
+    },
+    "rival_champion": {
+      "body": "#E89956",
+      "accent": "#F4A968"
+    },
+    "factory_foreman": {
+      "body": "#9BA2AD",
+      "accent": "#F2C65B"
+    },
+    "litter_king": {
+      "body": "#F6BBAD",
+      "accent": "#F8A08C"
+    },
+    "void_god": {
+      "body": "#6B81B9",
+      "accent": "#8596C3"
+    },
+    "generic": {
+      "body": "#F2C65B",
+      "accent": "#D86061"
+    },
+    "add": {
+      "body": "#D86061",
+      "accent": "#EC7B7B"
+    }
+  },
+  "backdrops": {
+    "tier_1_backyard": {
+      "field": "#B3E5B2",
+      "detail": "#98BE98",
+      "patch": "#A4D0A4",
+      "puddle": "",
+      "register": "light"
+    },
+    "tier_2_alley": {
+      "field": "#C8D1DE",
+      "detail": "#91A2BA",
+      "patch": "#AAB7CA",
+      "puddle": "#AEBBCF",
+      "register": "light"
+    },
+    "tier_3_park": {
+      "field": "#C3E6A5",
+      "detail": "#98C274",
+      "patch": "#ABD28A",
+      "puddle": "",
+      "register": "light"
+    },
+    "tier_4_rooftops": {
+      "field": "#AFD1EC",
+      "detail": "#7BA5C7",
+      "patch": "#92B9D8",
+      "puddle": "",
+      "register": "light"
+    },
+    "tier_5_sewers": {
+      "field": "#4B665D",
+      "detail": "#375249",
+      "patch": "#3D584F",
+      "puddle": "#5F7A71",
+      "register": "dark"
+    },
+    "tier_6_turf": {
+      "field": "#F0C4B1",
+      "detail": "#CC967E",
+      "patch": "#DCAB95",
+      "puddle": "",
+      "register": "light"
+    },
+    "tier_7_portal": {
+      "field": "#4B516B",
+      "detail": "#373E57",
+      "patch": "#3D445D",
+      "puddle": "",
+      "register": "dark"
+    },
+    "tier_8_mythic": {
+      "field": "#5A4766",
+      "detail": "#463452",
+      "patch": "#4C3A58",
+      "puddle": "",
+      "register": "dark"
+    },
+    "tier_9_kitchen": {
+      "field": "#F7F2DC",
+      "detail": "#E5D4B7",
+      "patch": "#EDE2C8",
+      "puddle": "",
+      "register": "light"
+    },
+    "tier_10_vets": {
+      "field": "#C1E6DC",
+      "detail": "#8CC2B4",
+      "patch": "#A4D2C6",
+      "puddle": "#A7D6CA",
+      "register": "light"
+    },
+    "tier_11_factory": {
+      "field": "#615144",
+      "detail": "#4C3E31",
+      "patch": "#524437",
+      "puddle": "",
+      "register": "dark"
+    },
+    "tier_12_litterbox": {
+      "field": "#3E3652",
+      "detail": "#2C253D",
+      "patch": "#312A43",
+      "puddle": "#514766",
+      "register": "dark"
+    }
+  },
+  "ui": {
+    "panel": "#FFF9E3",
+    "panel_band": "#FFF6CF",
+    "panel_frame": "#1A1A1A",
+    "text": "#1A1A1A",
+    "text_muted": "#8F886F",
+    "text_disabled": "#C7C1AB",
+    "button": "#FFFDED",
+    "button_hover": "#FFF6CF",
+    "button_pressed": "#EEE2AC",
+    "button_disabled": "#EBE5CF",
+    "button_frame": "#1A1A1A",
+    "slot": "#EEE2AC",
+    "badge": "#FF7055",
+    "focus": "#FF7055",
+    "catnip": "#F2C65B",
+    "stardust": "#8596C3",
+    "tab_upgrades": "#F4A968",
+    "tab_reawaken": "#8596C3",
+    "tab_realms": "#70954F",
+    "tab_catches": "#F2C65B",
+    "tab_awards": "#F8A08C",
+    "boss_banner": "#D86061",
+    "boss_banner_text": "#FFF9E3",
+    "danger": "#D86061",
+    "good": "#70954F",
+    "card_plate": "#F8F1DE",
+    "card_swarm": "#70954F",
+    "card_pounce": "#EC7B7B",
+    "card_aura": "#8596C3",
+    "card_deck": "#F2C65B",
+    "card_take": "#1A1A1A",
+    "card_banish": "#FF7055"
+  },
+  "sky": {
+    "base": "#251D33",
+    "cloud": "#312540",
+    "cloud_warm": "#362842",
+    "star": "#FFF9E3",
+    "plate": "#383045",
+    "plate_edge": "#5B516B"
+  },
+  "materials": {
+    "metal": "#9BA2AD",
+    "metal_dark": "#6B7485",
+    "wood": "#F4A968",
+    "wood_dark": "#9E6A3C",
+    "cloth": "#8596C3",
+    "cloth_dark": "#6B81B9",
+    "warm": "#F8A08C",
+    "paper": "#F8F1DE",
+    "flame": "#F4A968",
+    "leaf": "#AEDC84",
+    "leaf_dark": "#70954F",
+    "aura": "#8596C3",
+    "aura_dark": "#6B81B9",
+    "claw": "#EC7B7B",
+    "bomb": "#9BA2AD",
+    "bait": "#F8A08C",
+    "bronze": "#B88558",
+    "silver": "#CDCDCD",
+    "rainbow": [
+      "#EC7B7B",
+      "#F8A08C",
+      "#F4A968",
+      "#F2C65B",
+      "#AEDC84",
+      "#8596C3",
+      "#6B81B9"
+    ]
+  }
+}

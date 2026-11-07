@@ -1,0 +1,126 @@
+# Godot 4.7.1 InputGlyphs ground truth (scripts/systems/input_glyphs.gd, the real project.godot [input]), generated 2026-10-28
+# by tools/godot_fixtures/input_glyphs_fixture.gd: InputGlyphs.key_label per physical keycode (headless: the US
+# label); ue_key = tools/export_input_map.py KEYS (blank: a key the port does not bind yet).
+keycode	label	ue_key
+33	!	
+34	"	
+35	#	
+36	$	
+37	%	
+38	&	
+39	'	
+40	(	
+41	)	
+42	*	
+43	+	
+44	,	
+45	-	Hyphen
+46	.	
+47	/	
+48	0	Zero
+49	1	One
+50	2	Two
+51	3	Three
+52	4	Four
+53	5	Five
+54	6	Six
+55	7	Seven
+56	8	Eight
+57	9	Nine
+58	:	
+59	;	
+60	<	
+61	=	Equals
+62	>	
+63	?	
+64	@	
+65	A	A
+66	B	B
+67	C	C
+68	D	D
+69	E	E
+70	F	F
+71	G	G
+72	H	H
+73	I	I
+74	J	J
+75	K	K
+76	L	L
+77	M	M
+78	N	N
+79	O	O
+80	P	P
+81	Q	Q
+82	R	R
+83	S	S
+84	T	T
+85	U	U
+86	V	V
+87	W	W
+88	X	X
+89	Y	Y
+90	Z	Z
+91	[	
+92	\	
+93	]	
+94	^	
+95	_	
+96	`	
+97	A	
+98	B	
+99	C	
+100	D	
+101	E	
+102	F	
+103	G	
+104	H	
+105	I	
+106	J	
+107	K	
+108	L	
+109	M	
+110	N	
+111	O	
+112	P	
+113	Q	
+114	R	
+115	S	
+116	T	
+117	U	
+118	V	
+119	W	
+120	X	
+121	Y	
+122	Z	
+123	{	
+124	|	
+125	}	
+126	~	
+32	Space	SpaceBar
+4194309	Enter	Enter
+4194310	Enter	Enter
+4194305	Esc	Escape
+4194306	Tab	Tab
+4194325	Shift	
+4194326	Ctrl	
+4194328	Alt	
+4194308	Backspace	BackSpace
+4194319	Left	Left
+4194320	Up	Up
+4194321	Right	Right
+4194322	Down	Down
+4194323	PageUp	PageUp
+4194324	PageDown	PageDown
+4194317	Home	
+4194318	End	
+4194311	Insert	
+4194312	Delete	
+4194332	F1	
+4194343	F12	
+4194438	Kp 0	
+4194447	Kp 9	
+4194437	Kp Add	
+4194435	Kp Subtract	
+4194433	Kp Multiply	
+4194434	Kp Divide	
+4194329	CapsLock	

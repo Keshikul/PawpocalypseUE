@@ -13,6 +13,8 @@
 // labels are white at the engine's 16 px and its button is the engine's grey plate (measured from the real screen:
 // Tests/Data/victory_look_godot.txt; tokens GODOT_*). The engine's font (Open Sans SemiBold) waits for the font phase.
 //
+// A Widget Blueprint (WBP_VictoryScreen; PawWidgets.h): the parts above are bound by name.
+//
 // Not yet: the Boba cameo's "victory" menu visit and its nyan fly-past 1.5 s in (BobaCameo, phase 6).
 
 #include "CoreMinimal.h"
@@ -59,18 +61,19 @@ protected:
 
 private:
 	UPawRealmSubsystem* Realm() const;
+	void OnLayoutReady();
 
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> Dim;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> Panel;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Headline;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Flavour;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Time;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> Ok;
 	TArray<UWidget*> Wired;
 };

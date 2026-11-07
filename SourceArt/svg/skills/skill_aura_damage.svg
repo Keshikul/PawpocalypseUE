@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="112.1" cy="64.0" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="108.5" cy="82.4" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="98.0" cy="98.0" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="82.4" cy="108.5" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="112.1" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="45.6" cy="108.5" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="30.0" cy="98.0" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="19.5" cy="82.4" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="15.9" cy="64.0" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="19.5" cy="45.6" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="30.0" cy="30.0" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="45.6" cy="19.5" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="15.9" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="82.4" cy="19.5" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="98.0" cy="30.0" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="108.5" cy="45.6" rx="12.9" ry="12.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="112.1" cy="64.0" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="108.5" cy="82.4" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="98.0" cy="98.0" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="82.4" cy="108.5" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="64.0" cy="112.1" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="45.6" cy="108.5" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="30.0" cy="98.0" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="19.5" cy="82.4" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="15.9" cy="64.0" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="19.5" cy="45.6" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="30.0" cy="30.0" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="45.6" cy="19.5" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="64.0" cy="15.9" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="82.4" cy="19.5" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="98.0" cy="30.0" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<ellipse cx="108.5" cy="45.6" rx="9.5" ry="9.5" fill="#8596C3" stroke="none"/>
+<polygon points="52.3,24.3 74.9,29.9 65.2,101.9" fill="#2A1A33" stroke="none"/>
+<polygon points="54.2,29.0 72.7,34.5 65.1,96.8" fill="#EC7B7B" stroke="none"/>
+</g>
+</svg>

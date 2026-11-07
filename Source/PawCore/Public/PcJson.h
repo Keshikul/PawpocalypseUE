@@ -1,7 +1,8 @@
 #pragma once
 
 // A small JSON reader and writer for the save file (docs/08 §2): objects, arrays, strings, booleans, null, and numbers
-// kept as written (an integer stays an exact int64; anything else is a double). Pure C++17. The reader never throws and
+// kept as written (an integer stays an exact int64; anything else is a double; past a double's range it rounds as every
+// other reader does: "1e400" is an infinity, "1e-400" zero). Pure C++17. The reader never throws and
 // never recurses past MaxDepth (a hostile file must not crash the game: KB U/10 §1); the writer emits a fixed key order,
 // so the same state always writes the same bytes.
 

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <array>
 #include <charconv>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <system_error>
@@ -75,6 +76,12 @@ namespace Pc
 		S.Promised = P.PromisedCards;
 		S.PrototypeCard = P.PrototypeCard;
 		S.CardsTakenThisRun = P.CardsTakenThisRun;
+		// Where the run stands (F26-F29).
+		S.DeepestBiomeIndex = P.DeepestBiomeIndex;
+		S.PendingSecondHelping = P.PendingSecondHelping;
+		S.KillsThisCycle = P.KillsThisCycle;
+		S.KillsSinceTithe = P.KillsSinceTithe;
+		S.bReawakenInProgress = P.bReawakenInProgress;
 		S.LastPlayedUnix = NowUnix;
 		return S;
 	}
@@ -101,21 +108,23 @@ namespace Pc
 			{
 				if (D.FindUpgrade(Id))
 				{
-					P.UpgradeLevels[Id] = Level;
+					// Never below 0 (F32); no top: the cap is on the effect, not the level.
+					P.UpgradeLevels[Id] = std::max<int64_t>(Level, 0);
 				}
 			}
 		}
 
-		// SkillTreeManager.apply_save_data(): every known branch takes the saved level, or 0.
+		// SkillTreeManager.apply_save_data(): every known branch takes the saved level, or 0, clamped to 0..max (F32).
 		void ApplyTree(const PcGameData& D, PcProgress& P, const std::map<std::string, int64_t>& Saved)
 		{
 			P.BranchLevels.clear();
 			for (const PcSkillBranch& B : D.Branches)
 			{
 				const auto It = Saved.find(B.Id);
-				if (It != Saved.end() && It->second != 0)
+				const int64_t Level = It != Saved.end() ? std::clamp<int64_t>(It->second, 0, BranchMaxLevel(B)) : 0;
+				if (Level != 0)
 				{
-					P.BranchLevels[B.Id] = It->second;
+					P.BranchLevels[B.Id] = Level;
 				}
 			}
 		}
@@ -317,8 +326,16 @@ namespace Pc
 		return Out;
 	}
 
-	PcLoadResult ApplySave(const PcGameData& D, PcProgress& P, const PcSaveState& S, const PcSlotExtras& Current)
+	PcLoadResult ApplySave(const PcGameData& D, PcProgress& P, const PcSaveState& Saved, const PcSlotExtras& Current)
 	{
+		// SaveManager._finite_numbers() (F33): every number of the save that is not finite reads as 0, before anything.
+		PcSaveState S = Saved;
+		for (double* V : {&S.Catnip, &S.Stardust, &S.LifetimeCatnipEver, &S.LifetimeCatnipThisCycle, &S.StardustGrantedEver,
+				&S.LastPlayedUnix, &S.PlaySecondsThisCycle, &S.TotalPlaySeconds, &S.FinalBossSeconds, &S.CatchesPoints,
+				&S.PendingSecondHelping})
+		{
+			*V = std::isfinite(*V) ? *V : 0.0;
+		}
 		PcLoadResult R;
 		R.Extras = Current;
 		if (S.Version < PcGodotSaveVersion)
@@ -363,6 +380,12 @@ namespace Pc
 			P.CardsTakenThisRun = std::max<int64_t>(S.CardsTakenThisRun, 0);
 			ApplyRunCards(D, P, S);
 		}
+		// Where the run stands (F26-F29). An older save holds the defaults, which is what a restart always gave.
+		P.DeepestBiomeIndex = std::clamp<int64_t>(S.DeepestBiomeIndex, 0, static_cast<int64_t>(D.Tiers.size()) - 1);
+		P.PendingSecondHelping = std::max(S.PendingSecondHelping, 0.0);
+		P.KillsThisCycle = std::max<int64_t>(S.KillsThisCycle, 0);
+		P.KillsSinceTithe = std::max<int64_t>(S.KillsSinceTithe, 0);
+		P.bReawakenInProgress = S.bReawakenInProgress;
 		return R;
 	}
 
@@ -658,6 +681,11 @@ namespace Pc
 		Key(Body, "promised", bFirst); Strings(Body, S.Promised);
 		Key(Body, "prototype_card", bFirst); JsonString(Body, S.PrototypeCard);
 		Key(Body, "cards_taken_this_run", bFirst); JsonInt(Body, S.CardsTakenThisRun);
+		Key(Body, "deepest_biome_index", bFirst); JsonInt(Body, S.DeepestBiomeIndex);
+		Key(Body, "pending_second_helping", bFirst); JsonDouble(Body, S.PendingSecondHelping);
+		Key(Body, "kills_this_cycle", bFirst); JsonInt(Body, S.KillsThisCycle);
+		Key(Body, "kills_since_tithe", bFirst); JsonInt(Body, S.KillsSinceTithe);
+		Key(Body, "reawaken_in_progress", bFirst); Body += S.bReawakenInProgress ? "true" : "false";
 		Body += "\n}\n";
 
 		char Header[96];
@@ -788,6 +816,11 @@ namespace Pc
 		Rd.StringList("promised", S.Promised);
 		Rd.String("prototype_card", S.PrototypeCard);
 		Rd.Int("cards_taken_this_run", S.CardsTakenThisRun);
+		Rd.Int("deepest_biome_index", S.DeepestBiomeIndex);
+		Rd.Double("pending_second_helping", S.PendingSecondHelping);
+		Rd.Int("kills_this_cycle", S.KillsThisCycle);
+		Rd.Int("kills_since_tithe", S.KillsSinceTithe);
+		Rd.Bool("reawaken_in_progress", S.bReawakenInProgress);
 		if (!Rd.Error.empty())
 		{
 			return Say(PcSaveReadError::BadJson, Rd.Error);

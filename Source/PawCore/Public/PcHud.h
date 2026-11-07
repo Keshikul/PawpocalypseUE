@@ -342,4 +342,30 @@ namespace Pc
 		int64_t S = 0;
 	};
 	PAWCORE_API PcDuration DurationParts(double Seconds);
+
+	// --- the dock's held keys (dock_navigator.gd _tick_nav / _tick_press; proven against it, fixture `dock_repeat`) -----------
+	// The dock polls what is HELD, every frame, on its own clock, for every device (a pad does not echo; a key's echo is
+	// swallowed): a held up / down steps the row at once, then after a delay at a steady rate; a held press presses at once,
+	// then (on a shop row only: a second press anywhere else is a second decision) repeats after a delay, speeding up.
+	constexpr double DockNavRepeatDelay = 0.35;   // NAV_REPEAT_DELAY
+	constexpr double DockNavRepeatHz = 10.0;      // NAV_REPEAT_HZ
+	constexpr double DockPressRepeatDelay = 0.35; // PRESS_REPEAT_DELAY
+	constexpr double DockPressStartHz = 4.0;      // PRESS_REPEAT_START_HZ
+	constexpr double DockPressMaxHz = 12.0;       // PRESS_REPEAT_MAX_HZ
+	constexpr double DockPressRampSec = 1.2;      // PRESS_RAMP_SEC
+
+	struct PcDockRepeat
+	{
+		int64_t NavDir = 0;
+		double NavHeld = 0.0;
+		double NavNext = 0.0;
+		double PressHeld = 0.0;
+		double PressNext = 0.0;
+	};
+	// _tick_nav(): the row step to make this frame (-1 up, +1 down, 0 none).
+	PAWCORE_API int64_t DockTickNav(PcDockRepeat& R, bool bUpHeld, bool bDownHeld, double Dt);
+	enum class PcDockPress : uint8_t { None, ShowSelection, Press };
+	// _tick_press(): bJustPressed: the press went down this frame; bSelection: a row is selected; bRepeatRow: it repeats.
+	// ShowSelection: the first press with nothing selected selects the remembered row instead of pressing anything.
+	PAWCORE_API PcDockPress DockTickPress(PcDockRepeat& R, bool bJustPressed, bool bHeld, bool bSelection, bool bRepeatRow, double Dt);
 }

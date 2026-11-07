@@ -35,13 +35,14 @@ namespace PawText
 	// Any data field by convention: DataField(TEXT("CARD"), "bounty", TEXT("desc")) -> ST_Data "CARD_bounty_desc".
 	PAWPOCALYPSE_API FText DataField(const TCHAR* Prefix, const std::string& Id, const TCHAR* Field);
 
-	// The skill tree: a node's caption (BRANCH_LABELS), its blurb with the action tokens filled (prompt text until the
-	// glyphs, phase 5), and an effect's parts joined as _effect_text joins them.
+	// The skill tree: a node's caption (BRANCH_LABELS), its blurb (a prompt template: its {action} tokens are drawn by
+	// UPawPromptText), and an effect's parts joined as _effect_text joins them.
 	PAWPOCALYPSE_API FText TreeLabel(const std::string& Id);
 	PAWPOCALYPSE_API FText TreeBlurb(const std::string& Id);
 	PAWPOCALYPSE_API FText TreeEffect(const std::vector<Pc::PcTreePhrase>& Parts);
-	// The action tokens a line may name ({press}, {back}, {pounce}, ...), as prompt text.
-	PAWPOCALYPSE_API FFormatNamedArguments PromptArgs();
+	// Text built from string-table text that must pass as it is: a prompt line's rich text markup, a keycap's label, a key's
+	// engine name (Godot shows "PageUp" untranslated). Never a source of player-facing words.
+	PAWPOCALYPSE_API FText Verbatim(const FString& Built);
 
 	// Amounts.short (PcFormat ShortAmount), the game's own compact number rule. Culture-invariant until its suffixes join the
 	// string tables (phase 7).
@@ -57,6 +58,15 @@ namespace PawText
 	PAWPOCALYPSE_API FText Fixed(double Value, int32 Decimals);
 	// VictoryScreen.format_duration (PcHud DurationParts): "{h}h {m}m {s}s", or "{m}m {s}s" under an hour.
 	PAWPOCALYPSE_API FText Duration(double Seconds);
+
+	// The title's slot cards (PcTitle; main_menu.gd / pause_menu.gd): PauseMenu.format_duration ("{h}h {m}m", "{m}m {s}s",
+	// "{s}s"), PauseMenu._kills_text ("{n}M mice", "{n}K mice", "{n} mice"), MainMenu.format_when ("just now", "{n} min ago",
+	// ..., past a week the UTC date "2026-11-04", culture-invariant as Godot's "%04d-%02d-%02d").
+	PAWPOCALYPSE_API FText SlotClock(double Seconds);
+	PAWPOCALYPSE_API FText Mice(int64 Kills);
+	PAWPOCALYPSE_API FText When(double Unix, double Now);
+	// "v" and the project's version (Godot: "v%s" % application/config/version, never translated).
+	PAWPOCALYPSE_API FText Version();
 
 	// True when both tables are registered and Key exists in ST_UI (the tests ask; a missing key shows as the key itself).
 	PAWPOCALYPSE_API bool HasUi(const TCHAR* Key);

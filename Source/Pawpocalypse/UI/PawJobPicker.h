@@ -85,18 +85,19 @@ protected:
 
 private:
 	void EnsureRow(int32 Index);
+	void OnLayoutReady();
 	bool CanTakeFocus() const;
 	UPawRealmSubsystem* Realm() const;
 
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> Dim;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> Panel;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Title;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Note;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UVerticalBox> List;
 	UPROPERTY()
 	TArray<TObjectPtr<UPawButton>> Buttons; // pooled with their blurbs: an open reuses them and hides the rest

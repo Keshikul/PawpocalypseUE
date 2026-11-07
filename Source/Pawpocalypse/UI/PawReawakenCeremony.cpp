@@ -9,6 +9,7 @@
 #include "UI/PawTokens.h"
 #include "UI/PawUiConstants.h"
 #include "UI/PawUiKit.h"
+#include "UI/PawWidgets.h"
 
 namespace
 {
@@ -22,15 +23,16 @@ namespace
 	}
 
 	// A label centred in a rect given as Godot offsets about the screen's centre (anchors 0.5).
-	UTextBlock* CentredLabel(UWidgetTree* T, UCanvasPanel* Canvas, double Px, const FLinearColor& Colour, double Top, double Bottom)
+	UTextBlock* CentredLabel(UWidgetTree* T, UCanvasPanel* Canvas, double Px, const FLinearColor& Colour, double Top, double Bottom,
+		FName Name)
 	{
-		UBorder* Box = T->ConstructWidget<UBorder>();
+		UBorder* Box = T->ConstructWidget<UBorder>(UBorder::StaticClass(), FName(Name.ToString() + TEXT("Box")));
 		Box->SetBrush(NoBrush());
 		Box->SetPadding(FMargin(0.0f));
 		Box->SetHorizontalAlignment(HAlign_Center);
 		Box->SetVerticalAlignment(VAlign_Center); // vertical_alignment = 1
 		Box->SetVisibility(ESlateVisibility::HitTestInvisible);
-		UTextBlock* Text = MakeText(T, Px, Colour);
+		UTextBlock* Text = MakeText(T, Px, Colour, false, Name);
 		Text->SetJustification(ETextJustify::Center); // horizontal_alignment = 1
 		Box->SetContent(Text);
 		UCanvasPanelSlot* S = Canvas->AddChildToCanvas(Box);
@@ -44,29 +46,32 @@ namespace
 
 bool UPawReawakenCeremony::Initialize()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree)
+	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree && PawUi::BuildsInCode(this))
 	{
 		WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"), RF_Transient);
 		UWidgetTree* T = WidgetTree;
 		// mouse_filter = 2 on every node: the ceremony never takes a click, the game under it runs and plays on.
-		UCanvasPanel* Canvas = T->ConstructWidget<UCanvasPanel>();
+		UCanvasPanel* Canvas = T->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("Canvas"));
 		Canvas->SetVisibility(ESlateVisibility::HitTestInvisible);
 		WidgetTree->RootWidget = Canvas;
 
-		Flash = T->ConstructWidget<UBorder>();
+		Flash = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Flash"));
 		Flash->SetBrush(Rounded(PawTokens::CEREMONY_FLASH, PawTokens::CEREMONY_FLASH, 0.0f, 0.0f));
 		Flash->SetVisibility(ESlateVisibility::HitTestInvisible);
 		UCanvasPanelSlot* FlashSlot = Canvas->AddChildToCanvas(Flash);
 		FlashSlot->SetAnchors(FAnchors(0.0f, 0.0f, 1.0f, 1.0f));
 		FlashSlot->SetOffsets(FMargin(0.0f));
 
-		Headline = CentredLabel(T, Canvas, CeremonyHeadlinePx, PawTokens::CEREMONY_HEADLINE, CeremonyHeadlineTop, CeremonyHeadlineBottom);
-		Payout = CentredLabel(T, Canvas, CeremonyPayoutPx, PawTokens::CEREMONY_PAYOUT, CeremonyPayoutTop, CeremonyPayoutBottom);
+		Headline = CentredLabel(T, Canvas, CeremonyHeadlinePx, PawTokens::CEREMONY_HEADLINE, CeremonyHeadlineTop, CeremonyHeadlineBottom, TEXT("Headline"));
+		Payout = CentredLabel(T, Canvas, CeremonyPayoutPx, PawTokens::CEREMONY_PAYOUT, CeremonyPayoutTop, CeremonyPayoutBottom, TEXT("Payout"));
 	}
 	const bool bOk = Super::Initialize();
-	// visible = false until play().
-	SetVisibility(ESlateVisibility::Collapsed);
-	Apply(FAlphas());
+	// visible = false until play(). Not while baking: the asset keeps the layout drawn, so the designer sees it.
+	if (bOk && PawUi::ShouldWire(this))
+	{
+		SetVisibility(ESlateVisibility::Collapsed);
+		Apply(FAlphas());
+	}
 	return bOk;
 }
 

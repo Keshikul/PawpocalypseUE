@@ -15,6 +15,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
+#include "UI/PawWidgets.h"
 #include "PcCheats.h"
 #include "PcCombat.h"
 #include "PcData.h"
@@ -71,8 +72,8 @@ namespace
 			{
 				return false;
 			}
-			Root = CreateWidget<UPawRootLayout>(GI, UPawRootLayout::StaticClass());
-			Hud = CreateWidget<UPawHudScreen>(GI, UPawHudScreen::StaticClass());
+			Root = CreateWidget<UPawRootLayout>(GI, PawUi::Resolve<UPawRootLayout>());
+			Hud = CreateWidget<UPawHudScreen>(GI, PawUi::Resolve<UPawHudScreen>());
 			if (!T.TestNotNull(TEXT("root"), Root) || !T.TestNotNull(TEXT("HUD"), Hud))
 			{
 				return false;

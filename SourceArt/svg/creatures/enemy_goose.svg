@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="73.2" cy="93.9" rx="40.4" ry="28.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="56.7" cy="71.2" rx="16.6" ry="30.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="48.5" cy="46.5" rx="14.6" ry="25.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="38.1" cy="21.7" rx="18.7" ry="18.7" fill="#2A1A33" stroke="none"/>
+<ellipse cx="62.9" cy="116.6" rx="11.5" ry="8.4" fill="#2A1A33" stroke="none"/>
+<ellipse cx="85.6" cy="116.6" rx="11.5" ry="8.4" fill="#2A1A33" stroke="none"/>
+<ellipse cx="73.2" cy="93.9" rx="37.2" ry="24.8" fill="#F6F6F6" stroke="none"/>
+<ellipse cx="56.7" cy="71.2" rx="13.4" ry="26.8" fill="#F6F6F6" stroke="none"/>
+<ellipse cx="48.5" cy="46.5" rx="11.4" ry="22.7" fill="#F6F6F6" stroke="none"/>
+<ellipse cx="38.1" cy="21.7" rx="15.5" ry="15.5" fill="#F6F6F6" stroke="none"/>
+<ellipse cx="62.9" cy="116.6" rx="8.3" ry="5.2" fill="#F6F6F6" stroke="none"/>
+<ellipse cx="85.6" cy="116.6" rx="8.3" ry="5.2" fill="#F6F6F6" stroke="none"/>
+<ellipse cx="75.3" cy="100.1" rx="24.8" ry="13.4" fill="#F9F7F0" stroke="none"/>
+<ellipse cx="23.7" cy="23.7" rx="9.3" ry="5.2" fill="#F4A968" stroke="none"/>
+<ellipse cx="30.9" cy="20.8" rx="7.2" ry="7.2" fill="#F6F6F6" stroke="#2A1A33"/>
+<ellipse cx="30.9" cy="21.2" rx="1.7" ry="1.7" fill="#2A1A33" stroke="none"/>
+<ellipse cx="33.1" cy="18.2" rx="1.1" ry="1.1" fill="#F6F6F6" stroke="none"/>
+<ellipse cx="45.4" cy="20.8" rx="9.4" ry="9.4" fill="#F6F6F6" stroke="#2A1A33"/>
+<ellipse cx="45.4" cy="21.3" rx="2.3" ry="2.3" fill="#2A1A33" stroke="none"/>
+<ellipse cx="48.2" cy="17.4" rx="1.4" ry="1.4" fill="#F6F6F6" stroke="none"/>
+<ellipse cx="21.6" cy="23.7" rx="3.3" ry="2.6" fill="#867D8B" stroke="none"/>
+<polyline points="15.4,26.8 16.0,27.2 16.6,27.5 17.1,27.8 17.7,28.1 18.3,28.3 18.8,28.5 19.4,28.6 19.9,28.8 20.5,28.8 21.1,28.9 21.6,28.9 22.2,28.9 22.8,28.8 23.3,28.8 23.9,28.6 24.4,28.5 25.0,28.3 25.6,28.1 26.1,27.8 26.7,27.5 27.3,27.2 27.8,26.8" fill="none" stroke="#2A1A33" stroke-width="1.7"/>
+</g>
+</svg>

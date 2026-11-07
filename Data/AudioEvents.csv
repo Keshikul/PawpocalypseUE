@@ -1,0 +1,17 @@
+event,min_interval,pitch,volume_db,sounds
+ui_click,0.04,0.04,-14,click_001.ogg;click_002.ogg;click_003.ogg;click_004.ogg;click_005.ogg
+purchase,0.05,0.08,-8,confirmation_001.ogg;confirmation_002.ogg;confirmation_003.ogg;confirmation_004.ogg
+purchase_denied,0.2,0.02,-12,error_002.ogg;error_003.ogg;error_004.ogg
+mouse_killed,0.11,0.16,-18,drop_001.ogg;drop_002.ogg;drop_003.ogg;drop_004.ogg
+golden_caught,0.1,0.1,-6,glass_001.ogg;glass_003.ogg;glass_005.ogg
+card_offered,0,0,-4,question_001.ogg;question_002.ogg
+card_taken,0,0.03,-4,select_003.ogg;select_005.ogg;select_007.ogg
+skill_purchase,0,0.05,-4,maximize_003.ogg;maximize_006.ogg;maximize_009.ogg
+boss_summon,0,0,0,bong_001.ogg
+boss_phase,0.15,0.05,-6,glitch_001.ogg;glitch_002.ogg;glitch_003.ogg;glitch_004.ogg
+boss_defeated,0,0,0,maximize_001.ogg;maximize_004.ogg
+reawaken,0,0,0,maximize_007.ogg
+achievement_earned,0.05,0.03,-6,pluck_001.ogg;pluck_002.ogg
+achievement_claim,0.05,0.06,-8,tick_001.ogg;tick_002.ogg;tick_004.ogg
+boba_cameo,2,0.08,-8,open_001.ogg;open_002.ogg
+unicorn_neigh,0.3,0.1,-4,neigh_001.wav

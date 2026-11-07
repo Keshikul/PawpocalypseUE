@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="64.0" cy="97.4" rx="33.6" ry="27.6" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="97.4" rx="30.7" ry="24.7" fill="#EC7B7B" stroke="none"/>
+<ellipse cx="29.9" cy="59.3" rx="14.2" ry="14.2" fill="#2A1A33" stroke="none"/>
+<ellipse cx="29.9" cy="59.3" rx="11.4" ry="11.4" fill="#EC7B7B" stroke="none"/>
+<ellipse cx="51.3" cy="49.3" rx="14.9" ry="14.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="51.3" cy="49.3" rx="12.0" ry="12.0" fill="#EC7B7B" stroke="none"/>
+<ellipse cx="76.7" cy="49.3" rx="14.9" ry="14.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="76.7" cy="49.3" rx="12.0" ry="12.0" fill="#EC7B7B" stroke="none"/>
+<ellipse cx="98.1" cy="59.3" rx="14.2" ry="14.2" fill="#2A1A33" stroke="none"/>
+<ellipse cx="98.1" cy="59.3" rx="11.4" ry="11.4" fill="#EC7B7B" stroke="none"/>
+<rect x="60.2" y="16.5" width="15.0" height="33.6" rx="4.7" fill="#2A1A33" stroke="none"/>
+<polygon points="48.8,25.5 67.7,3.0 86.6,25.5" fill="#2A1A33" stroke="none"/>
+<rect x="63.1" y="19.4" width="9.3" height="27.8" rx="1.9" fill="#F2C65B" stroke="none"/>
+<polygon points="52.9,24.0 67.7,7.3 82.6,24.0" fill="#F2C65B" stroke="none"/>
+</g>
+</svg>

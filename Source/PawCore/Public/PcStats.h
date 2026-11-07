@@ -68,6 +68,9 @@ namespace Pc
 		int64_t KillsSinceTithe = 0;                      // Levy's counter
 		double InfestationBonus = 0.0;                    // spawn rate Infestation has added, decaying
 		double PendingSecondHelping = 0.0;                // Second Helping's deferred half of the last Reawaken
+		// GameState.reawaken_in_progress: from a Reawaken until the run lands in its starting biome (ceremony, spend step,
+		// job picker, travel). The HUD sets and clears it; saved, so a load in between resumes at the spend step (F29).
+		bool bReawakenInProgress = false;
 		double PlaySecondsThisCycle = 0.0;
 		double TotalPlaySeconds = 0.0;
 		double FinalBossSeconds = 0.0;                    // the play clock at the FIRST final-boss clear (0 = not yet)

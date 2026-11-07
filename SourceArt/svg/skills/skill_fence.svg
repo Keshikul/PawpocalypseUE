@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="58.5" cy="49.8" rx="36.0" ry="36.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="58.5" cy="49.8" rx="32.7" ry="32.7" fill="#F2C65B" stroke="none"/>
+<ellipse cx="58.5" cy="49.8" rx="17.6" ry="17.6" fill="#B6924F" stroke="none"/>
+<rect x="6.7" y="50.8" width="20.9" height="63.4" rx="6.6" fill="#2A1A33" stroke="none"/>
+<polygon points="5.1,61.1 17.2,40.4 29.2,61.1" fill="#2A1A33" stroke="none"/>
+<rect x="10.1" y="54.2" width="14.2" height="56.6" rx="3.3" fill="#6E7486" stroke="none"/>
+<polygon points="9.5,58.6 17.2,45.5 24.8,58.6" fill="#6E7486" stroke="none"/>
+<rect x="30.7" y="50.8" width="20.9" height="63.4" rx="6.6" fill="#2A1A33" stroke="none"/>
+<polygon points="29.1,61.1 41.1,40.4 53.1,61.1" fill="#2A1A33" stroke="none"/>
+<rect x="34.0" y="54.2" width="14.2" height="56.6" rx="3.3" fill="#6E7486" stroke="none"/>
+<polygon points="33.5,58.6 41.1,45.5 48.7,58.6" fill="#6E7486" stroke="none"/>
+<rect x="54.6" y="50.8" width="20.9" height="63.4" rx="6.6" fill="#2A1A33" stroke="none"/>
+<polygon points="53.0,61.1 65.1,40.4 77.1,61.1" fill="#2A1A33" stroke="none"/>
+<rect x="58.0" y="54.2" width="14.2" height="56.6" rx="3.3" fill="#6E7486" stroke="none"/>
+<polygon points="57.4,58.6 65.1,45.5 72.7,58.6" fill="#6E7486" stroke="none"/>
+<rect x="78.6" y="50.8" width="20.9" height="63.4" rx="6.6" fill="#2A1A33" stroke="none"/>
+<polygon points="77.0,61.1 89.0,40.4 101.0,61.1" fill="#2A1A33" stroke="none"/>
+<rect x="81.9" y="54.2" width="14.2" height="56.6" rx="3.3" fill="#6E7486" stroke="none"/>
+<polygon points="81.4,58.6 89.0,45.5 96.6,58.6" fill="#6E7486" stroke="none"/>
+<rect x="102.5" y="50.8" width="20.9" height="63.4" rx="6.6" fill="#2A1A33" stroke="none"/>
+<polygon points="101.0,61.1 113.0,40.4 125.0,61.1" fill="#2A1A33" stroke="none"/>
+<rect x="105.9" y="54.2" width="14.2" height="56.6" rx="3.3" fill="#6E7486" stroke="none"/>
+<polygon points="105.4,58.6 113.0,45.5 120.6,58.6" fill="#6E7486" stroke="none"/>
+<polyline points="6.3,78.2 115.2,78.2" fill="none" stroke="#565469" stroke-width="6.5"/>
+</g>
+</svg>

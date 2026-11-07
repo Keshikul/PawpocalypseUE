@@ -65,6 +65,8 @@ public:
 	bool Travel(int32 Index);
 	// The Summon button: false when the boss is not summonable or the bait is refused (the bait is then kept).
 	bool SummonBoss();
+	// The biome the field is in (its tier id), or "" before one.
+	FString CurrentTierId() const;
 	// After a Reawaken (the game's or the cheat's): what TierController did on the `reawakened` signal.
 	void OnReawakened();
 	// CardManager.choose(): take a card from the hand up (only a card in it), then the stats rebuilt, as Godot's

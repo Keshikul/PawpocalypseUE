@@ -1,5 +1,9 @@
 #include "UI/PawCardPickScreen.h"
 
+#include "UI/PawIcons.h"
+
+#include "Components/Image.h"
+
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/BorderSlot.h"
@@ -22,6 +26,7 @@
 #include "UI/PawTokens.h"
 #include "UI/PawUiConstants.h"
 #include "UI/PawUiKit.h"
+#include "UI/PawWidgets.h"
 
 const FName UPawCardPickScreen::PauseHolder(TEXT("card_pick"));
 
@@ -71,9 +76,9 @@ namespace
 		return W && W->GetVisibility() != ESlateVisibility::Collapsed && (W->HasAnyUserFocus() || W->HasFocusedDescendants());
 	}
 
-	UTextBlock* CardText(UWidgetTree* T, double Px, const FLinearColor& Colour, float Wrap)
+	UTextBlock* CardText(UWidgetTree* T, double Px, const FLinearColor& Colour, float Wrap, FName Name)
 	{
-		UTextBlock* Text = MakeText(T, Px, Colour);
+		UTextBlock* Text = MakeText(T, Px, Colour, false, Name);
 		Text->SetAutoWrapText(false);
 		Text->SetWrapTextAt(Wrap);
 		return Text;
@@ -103,19 +108,19 @@ UPawCardFace::UPawCardFace(const FObjectInitializer& ObjectInitializer)
 
 bool UPawCardFace::Initialize()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree)
+	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree && PawUi::BuildsInCode(this))
 	{
 		// Content before Super::Initialize: the Common button wraps it in its own button (docs/05 §2 rule 9).
 		WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"), RF_Transient);
 		UWidgetTree* T = WidgetTree;
-		USizeBox* Size = T->ConstructWidget<USizeBox>();
+		USizeBox* Size = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("Size"));
 		Size->SetWidthOverride(static_cast<float>(CardWidth));
 		Size->SetMinDesiredHeight(static_cast<float>(CardHeight));
 		WidgetTree->RootWidget = Size;
 
 		// A STACKLANDS CARD: cream plate, a 3 px ink frame (the alert red when it costs you something), the flavour on a
 		// coloured band across the top. The plate never takes the click itself: the button around it does.
-		Plate = T->ConstructWidget<UBorder>();
+		Plate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Plate"));
 		Plate->SetPadding(FMargin(static_cast<float>(CardFramePx), static_cast<float>(CardFramePx), static_cast<float>(CardFramePx),
 			static_cast<float>(CardBottomPad)));
 		Plate->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
@@ -125,15 +130,15 @@ bool UPawCardFace::Initialize()
 		Plate->SetContent(Box);
 
 		// The band, ink-ruled underneath like a Stacklands card's name strip.
-		Band = T->ConstructWidget<UBorder>();
+		Band = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Band"));
 		Band->SetPadding(FMargin(static_cast<float>(CardBandPadX), static_cast<float>(CardBandPadY)));
 		Band->SetVisibility(ESlateVisibility::HitTestInvisible);
 		Box->AddChildToVerticalBox(Band);
 		UVerticalBox* BandBox = T->ConstructWidget<UVerticalBox>();
 		Band->SetContent(BandBox);
-		FlavourText = CardText(T, CardFlavourPx, PawTokens::INK, BandWrap);
+		FlavourText = CardText(T, CardFlavourPx, PawTokens::INK, BandWrap, TEXT("FlavourText"));
 		BandBox->AddChildToVerticalBox(FlavourText);
-		NameText = CardText(T, CardNamePx, PawTokens::INK, BandWrap);
+		NameText = CardText(T, CardNamePx, PawTokens::INK, BandWrap, TEXT("NameText"));
 		BandBox->AddChildToVerticalBox(NameText)->SetPadding(FMargin(0.0f, 2.0f, 0.0f, 0.0f));
 		UBorder* Rule = T->ConstructWidget<UBorder>();
 		Rule->SetBrush(Rounded(PawTokens::INK, PawTokens::INK, 0.0f, 0.0f));
@@ -149,28 +154,32 @@ bool UPawCardFace::Initialize()
 			static_cast<float>(CardInnerPadX), 0.0f));
 		const FMargin Gap(0.0f, 0.0f, 0.0f, static_cast<float>(CardSeparation));
 		// "NEW" versus "LEVEL 2 of 3" is the single most useful thing on the card (Godot).
-		RankText = CardText(T, CardRankPx, PawTokens::UI_CARD_BANISH, BodyWrap);
+		RankText = CardText(T, CardRankPx, PawTokens::UI_CARD_BANISH, BodyWrap, TEXT("RankText"));
 		Body->AddChildToVerticalBox(RankText)->SetPadding(Gap);
-		// (The card's picture goes here with phase 6's art; cards without one keep this layout, as in Godot.)
-		BodyText = CardText(T, CardBodyPx, PawTokens::INK, BodyWrap);
+		// The picture, when there is one (_card_art: 104 tall, keep aspect, centred); cards without one keep the layout.
+		Art = T->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("Art"));
+		Art->SetVisibility(ESlateVisibility::Collapsed);
+		UVerticalBoxSlot* ArtSlot = Body->AddChildToVerticalBox(Art);
+		ArtSlot->SetHorizontalAlignment(HAlign_Center);
+		ArtSlot->SetPadding(Gap);
+		BodyText = CardText(T, CardBodyPx, PawTokens::INK, BodyWrap, TEXT("BodyText"));
 		UVerticalBoxSlot* TextSlot = Body->AddChildToVerticalBox(BodyText);
 		TextSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 		TextSlot->SetPadding(Gap);
-		WarnText = CardText(T, CardWarnPx, PawTokens::UI_CARD_BANISH, BodyWrap);
+		WarnText = CardText(T, CardWarnPx, PawTokens::UI_CARD_BANISH, BodyWrap, TEXT("WarnText"));
 		WarnText->SetText(PawText::Ui(TEXT("PICK_costs")));
 		WarnText->SetVisibility(ESlateVisibility::Collapsed);
 		Body->AddChildToVerticalBox(WarnText)->SetPadding(Gap);
 
-		Take = T->ConstructWidget<UPawButton>(UPawButton::StaticClass());
+		Take = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("Take"));
 		Take->SetLabel(PawText::Ui(TEXT("PICK_take")));
 		Take->SetMinDimensions(0, static_cast<int32>(CardTakeHeight));
 		Body->AddChildToVerticalBox(Take)->SetPadding(Gap);
 		// BANISH sits under Take, smaller and quieter: destroying a card is the rarer intent, and it must not be what a fast
 		// clicker hits. Shown only while a banish is held.
-		Banish = T->ConstructWidget<UPawButton>(UPawButton::StaticClass());
+		Banish = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("Banish"));
 		Banish->SetLabel(PawText::Ui(TEXT("PICK_banish")));
 		Banish->SetLabelSize(CardBanishPx);
-		Banish->SetLabelColour(true, PawTokens::UI_CARD_BANISH);
 		Banish->SetMinDimensions(0, static_cast<int32>(CardBanishHeight));
 		Banish->SetVisibility(ESlateVisibility::Collapsed);
 		Body->AddChildToVerticalBox(Banish);
@@ -180,7 +189,24 @@ bool UPawCardFace::Initialize()
 	// not land on the same card twice.
 	SetIsFocusable(false);
 	SetRenderTransformPivot(FVector2D(0.5, 0.5)); // grow from the middle
+	if (bOk && PawUi::ShouldWire(this))
+	{
+		OnFaceReady();
+	}
 	return bOk;
+}
+
+void UPawCardFace::OnFaceReady()
+{
+	// The look in play (BP_CardFaceStyle once baked); Banish speaks in the alert red (runtime state, not the layout's).
+	if (!GetStyle() || GetStyle()->GetClass() == UPawCardFaceStyle::StaticClass())
+	{
+		SetStyle(PawUi::Resolve(UPawCardFaceStyle::StaticClass()));
+	}
+	if (Banish)
+	{
+		Banish->SetLabelColour(true, PawTokens::UI_CARD_BANISH);
+	}
 }
 
 void UPawCardFace::SetLook(const FLook& Look)
@@ -190,6 +216,12 @@ void UPawCardFace::SetLook(const FLook& Look)
 	RankText->SetText(Look.Rank);
 	SetTextColour(RankText, Look.RankColour);
 	BodyText->SetText(Look.Body);
+	if (Art)
+	{
+		const FSlateBrush Picture = PawUi::IconBrush(Look.ArtPath, CardArtHeight);
+		Art->SetVisibility(Picture.GetResourceObject() ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		Art->SetBrush(Picture);
+	}
 	WarnText->SetVisibility(Look.bCosts ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	Banish->SetVisibility(Look.bBanish ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 	// The trade is visible before the text is read: a card that costs you something wears the alert frame.
@@ -200,6 +232,12 @@ void UPawCardFace::SetLook(const FLook& Look)
 	// A pooled card starts flat again.
 	LiftScale = 1.0f;
 	SetRenderScale(FVector2D(1.0, 1.0));
+}
+
+FString UPawCardFace::GetArtName() const
+{
+	const UObject* Tex = Art && Art->GetVisibility() != ESlateVisibility::Collapsed ? Art->GetBrush().GetResourceObject() : nullptr;
+	return Tex ? Tex->GetName() : FString();
 }
 
 bool UPawCardFace::IsLifted() const
@@ -239,23 +277,23 @@ bool UPawCardFace::IsWarningShown() const { return WarnText && WarnText->GetVisi
 
 bool UPawCardPickScreen::Initialize()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree)
+	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree && PawUi::BuildsInCode(this))
 	{
 		WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"), RF_Transient);
 		UWidgetTree* T = WidgetTree;
-		UOverlay* Root = T->ConstructWidget<UOverlay>();
+		UOverlay* Root = T->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("Root"));
 		WidgetTree->RootWidget = Root;
 
 		// Eats every click behind it: without it a Pounce fires through the modal (Godot's MOUSE_FILTER_STOP). The tree
 		// page's violet, not black: the game's night with the lights down.
-		Dim = T->ConstructWidget<UBorder>();
+		Dim = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Dim"));
 		Dim->SetBrush(Rounded(PawTokens::SKY_BASE.CopyWithNewOpacity(static_cast<float>(PickDimAlpha)), PawTokens::INK, 0.0f, 0.0f));
 		Dim->SetVisibility(ESlateVisibility::Visible);
 		UOverlaySlot* DimSlot = Root->AddChildToOverlay(Dim);
 		DimSlot->SetHorizontalAlignment(HAlign_Fill);
 		DimSlot->SetVerticalAlignment(VAlign_Fill);
 
-		UVerticalBox* Column = T->ConstructWidget<UVerticalBox>();
+		UVerticalBox* Column = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("Column"));
 		Column->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		UOverlaySlot* ColumnSlot = Root->AddChildToOverlay(Column);
 		ColumnSlot->SetHorizontalAlignment(HAlign_Center);
@@ -263,12 +301,12 @@ bool UPawCardPickScreen::Initialize()
 		const FMargin Gap(0.0f, 0.0f, 0.0f, static_cast<float>(PickColumnGap));
 
 		// Paper text: the title sits on the dim, not on a card.
-		Title = MakeText(T, PickTitlePx, PawTokens::UI_PANEL);
+		Title = MakeText(T, PickTitlePx, PawTokens::UI_PANEL, false, TEXT("Title"));
 		Title->SetJustification(ETextJustify::Center);
 		UVerticalBoxSlot* TitleSlot = Column->AddChildToVerticalBox(Title);
 		TitleSlot->SetHorizontalAlignment(HAlign_Center);
 		TitleSlot->SetPadding(Gap);
-		Subtitle = MakeText(T, PickSubtitlePx, PawTokens::DISABLED);
+		Subtitle = MakeText(T, PickSubtitlePx, PawTokens::DISABLED, false, TEXT("Subtitle"));
 		Subtitle->SetJustification(ETextJustify::Center);
 		Subtitle->SetAutoWrapText(false);
 		Subtitle->SetWrapTextAt(SubtitleWrap);
@@ -276,19 +314,32 @@ bool UPawCardPickScreen::Initialize()
 		SubSlot->SetHorizontalAlignment(HAlign_Center);
 		SubSlot->SetPadding(Gap);
 
-		Row = T->ConstructWidget<UHorizontalBox>();
+		Row = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("Row"));
 		Row->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		UVerticalBoxSlot* RowSlot = Column->AddChildToVerticalBox(Row);
 		RowSlot->SetHorizontalAlignment(HAlign_Center);
 		RowSlot->SetPadding(Gap);
 
-		RerollButton = T->ConstructWidget<UPawButton>(UPawButton::StaticClass());
+		RerollButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("RerollButton"));
 		RerollButton->SetMinDimensions(0, static_cast<int32>(RerollHeight));
 		RerollButton->SetVisibility(ESlateVisibility::Collapsed);
-		RerollButton->OnClicked().AddWeakLambda(this, [this]() { ClickReroll(); });
 		Column->AddChildToVerticalBox(RerollButton)->SetHorizontalAlignment(HAlign_Center);
 	}
-	return Super::Initialize();
+	const bool bOk = Super::Initialize();
+	if (bOk && PawUi::ShouldWire(this))
+	{
+		OnLayoutReady();
+	}
+	return bOk;
+}
+
+void UPawCardPickScreen::OnLayoutReady()
+{
+	if (RerollButton)
+	{
+		RerollButton->OnClicked().AddWeakLambda(this, [this]() { ClickReroll(); });
+	}
+	// The faces are made per deal, into Row (FaceAt).
 }
 
 UWidget* UPawCardPickScreen::GetDim() const { return Dim; }
@@ -316,7 +367,7 @@ UPawCardFace* UPawCardPickScreen::FaceAt(int32 Index)
 	while (Faces.Num() <= Index)
 	{
 		const int32 I = Faces.Num();
-		UPawCardFace* Face = WidgetTree->ConstructWidget<UPawCardFace>(UPawCardFace::StaticClass());
+		UPawCardFace* Face = WidgetTree->ConstructWidget<UPawCardFace>(PawUi::Resolve<UPawCardFace>());
 		Face->OnClicked().AddWeakLambda(this, [this, I]() { ClickTake(I); });
 		Face->GetTake()->OnClicked().AddWeakLambda(this, [this, I]() { ClickTake(I); });
 		Face->GetBanish()->OnClicked().AddWeakLambda(this, [this, I]() { ClickBanish(I); });
@@ -391,6 +442,13 @@ void UPawCardPickScreen::ShowHand(bool bRefocus)
 		Values.Add(TEXT("c"), PawText::CardNumber(C.Cost));
 		Look.Body = FText::Format(PawText::DataField(TEXT("CARD"), C.CardId, TEXT("desc")), Values);
 		Look.bCosts = C.bCosts;
+		for (const Pc::PcCard& Card : G->Data().Cards)
+		{
+			if (Card.Id == C.CardId)
+			{
+				Look.ArtPath = UTF8_TO_TCHAR(Card.IconPath.c_str());
+			}
+		}
 		Look.bBanish = Pick.bBanish;
 		UPawCardFace* Face = FaceAt(I);
 		Face->SetLook(Look);

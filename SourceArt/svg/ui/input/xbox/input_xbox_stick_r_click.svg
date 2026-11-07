@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="64.0" cy="64.0" rx="57.1" ry="57.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="64.0" rx="54.0" ry="54.0" fill="#EEE2AC" stroke="none"/>
+<ellipse cx="64.0" cy="68.0" rx="41.1" ry="41.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="64.0" cy="68.0" rx="38.0" ry="38.0" fill="#FFFDED" stroke="none"/>
+<ellipse cx="64.0" cy="68.0" rx="30.0" ry="30.0" fill="#E5D4B7" stroke="none"/>
+<polyline points="40.6,82.0 40.6,54.0" fill="none" stroke="#2A1A33" stroke-width="6.2"/>
+<polyline points="40.6,54.0 52.0,54.0 53.6,54.2 55.2,54.7 56.6,55.6 57.8,56.8 58.7,58.2 59.2,59.8 59.4,61.4 59.2,63.0 58.7,64.6 57.8,66.0 56.6,67.2 55.2,68.1 53.6,68.6 52.0,68.8 40.6,68.8" fill="none" stroke="#2A1A33" stroke-width="6.2"/>
+<polyline points="49.0,68.8 60.6,82.0" fill="none" stroke="#2A1A33" stroke-width="6.2"/>
+<polyline points="86.1,58.2 84.5,56.3 82.2,55.0 79.5,54.2 76.6,54.0 73.7,54.5 71.2,55.7 69.3,57.3 68.1,59.3 67.8,61.5 68.4,63.7 69.8,65.6 71.9,67.1 74.5,68.1 77.4,68.4 77.4,67.6 80.3,67.9 82.9,68.9 85.0,70.4 86.4,72.3 87.0,74.5 86.7,76.7 85.5,78.7 83.6,80.3 81.1,81.5 78.2,82.0 75.3,81.8 72.6,81.0 70.3,79.7 68.7,77.8" fill="none" stroke="#2A1A33" stroke-width="6.2"/>
+</g>
+</svg>

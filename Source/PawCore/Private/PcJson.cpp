@@ -1,10 +1,12 @@
 #include "PcJson.h"
 
+#include <algorithm>
 #include <charconv>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <system_error>
+#include <unordered_set>
 
 namespace Pc
 {
@@ -35,6 +37,56 @@ namespace Pc
 
 	namespace
 	{
+		// For a decimal number from_chars refused as out of range: does it overflow (true) or underflow (false)? The decimal
+		// exponent of its first significant digit decides: "1e400" -> 400, "0.00012e-400" -> -404. The exponent saturates,
+		// so "1e99999999999999999999" is still an overflow.
+		bool OverflowsDouble(const char* P, const char* End)
+		{
+			if (P < End && *P == '-')
+			{
+				++P;
+			}
+			int64_t Leading = 0;   // significant digits before the point
+			int64_t ZerosAfter = 0; // zeros after the point before the first significant digit
+			bool bSeen = false;
+			for (; P < End && *P >= '0' && *P <= '9'; ++P)
+			{
+				bSeen = bSeen || *P != '0';
+				Leading += bSeen ? 1 : 0;
+			}
+			if (P < End && *P == '.')
+			{
+				for (++P; P < End && *P >= '0' && *P <= '9'; ++P)
+				{
+					if (!bSeen && *P == '0')
+					{
+						++ZerosAfter;
+					}
+					else
+					{
+						bSeen = true;
+					}
+				}
+			}
+			int64_t Exponent = 0;
+			if (P < End && (*P == 'e' || *P == 'E'))
+			{
+				++P;
+				const bool bMinus = P < End && *P == '-';
+				if (P < End && (*P == '+' || *P == '-'))
+				{
+					++P;
+				}
+				for (; P < End && *P >= '0' && *P <= '9'; ++P)
+				{
+					Exponent = std::min<int64_t>(Exponent * 10 + (*P - '0'), 1000000000);
+				}
+				Exponent = bMinus ? -Exponent : Exponent;
+			}
+			const int64_t FirstDigit = Leading > 0 ? Leading - 1 : -(ZerosAfter + 1);
+			return FirstDigit + Exponent > 0;
+		}
+
 		struct Parser
 		{
 			const char* P = nullptr;
@@ -271,6 +323,13 @@ namespace Pc
 				{
 					return Fail("a number that does not read");
 				}
+				if (R.ec == std::errc::result_out_of_range)
+				{
+					// from_chars leaves D untouched here; every other JSON reader (Godot's, Python's) rounds to the
+					// nearest double: an infinity for "1e400", zero for "1e-400". The sign stays.
+					D = OverflowsDouble(Start, P) ? HUGE_VAL : 0.0;
+					D = *Start == '-' ? -D : D;
+				}
 				Out.Type = PcJsonValue::Kind::Double;
 				Out.Double = D;
 				return true;
@@ -298,6 +357,9 @@ namespace Pc
 						++P;
 						return true;
 					}
+					// The keys already read: a duplicate keeps the first value, and finding it must not cost a scan of the
+					// whole object per key (a hostile save with 100,000 keys).
+					std::unordered_set<std::string> Seen;
 					while (true)
 					{
 						SkipSpace();
@@ -321,7 +383,7 @@ namespace Pc
 						{
 							return false;
 						}
-						if (!Out.Find(Key))
+						if (Seen.insert(Key).second)
 						{
 							Out.Object.emplace_back(std::move(Key), std::move(Member));
 						}

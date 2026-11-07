@@ -23,6 +23,7 @@
 #include "Engine/World.h"
 #include "Blueprint/WidgetNavigation.h"
 #include "Misc/AutomationTest.h"
+#include "UI/PawWidgets.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "PcData.h"
@@ -75,8 +76,8 @@ namespace
 			{
 				return false;
 			}
-			Root = CreateWidget<UPawRootLayout>(GI, UPawRootLayout::StaticClass());
-			Hud = CreateWidget<UPawHudScreen>(GI, UPawHudScreen::StaticClass());
+			Root = CreateWidget<UPawRootLayout>(GI, PawUi::Resolve<UPawRootLayout>());
+			Hud = CreateWidget<UPawHudScreen>(GI, PawUi::Resolve<UPawHudScreen>());
 			if (!T.TestNotNull(TEXT("root"), Root) || !T.TestNotNull(TEXT("HUD"), Hud))
 			{
 				return false;
@@ -121,7 +122,11 @@ namespace
 		{
 			return nullptr;
 		}
-		const FWidgetNavigationData& Data = N->GetNavigationData(Dir);
+		// The fields, not GetNavigationData(): that one is WITH_EDITOR only, and the Development game target compiles these
+		// tests too (it failed to build until 2026-11-04).
+		const FWidgetNavigationData& Data = Dir == EUINavigation::Up ? N->Up : Dir == EUINavigation::Down ? N->Down
+			: Dir == EUINavigation::Left ? N->Left : Dir == EUINavigation::Right ? N->Right
+			: Dir == EUINavigation::Next ? N->Next : N->Previous;
 		return Data.Rule == EUINavigationRule::Explicit ? Data.Widget.Get() : nullptr;
 	}
 
@@ -160,6 +165,14 @@ bool FPawTreeOpensTest::RunTest(const FString& Parameters)
 		Seated += N && Tree->GetLayout().Nodes.at(KV.first).X == KV.second.X && Tree->GetLayout().Nodes.at(KV.first).Y == KV.second.Y ? 1 : 0;
 	}
 	TestEqual(TEXT("every node where PcTreeLayout seats it"), Seated, static_cast<int32>(L.Nodes.size()));
+	// Phase 6 slice 5b: every node wears its branch's icon (icon_path; skill_tree_ui.gd ICON_SIZE 56).
+	int32 Pictured = 0;
+	for (const Pc::PcSkillBranch& B : W.D().Branches)
+	{
+		const UPawTreeNode* N = Tree->GetNode(UTF8_TO_TCHAR(B.Id.c_str()));
+		Pictured += N && !B.IconPath.empty() && N->GetIconName() == TEXT("T_") + FPaths::GetBaseFilename(UTF8_TO_TCHAR(B.IconPath.c_str())) ? 1 : 0;
+	}
+	TestEqual(TEXT("every node its branch's icon"), Pictured, static_cast<int32>(W.D().Branches.size()));
 	TestEqual(TEXT("captions are BRANCH_LABELS, not the data's name"), S(Tree->GetCaption(TEXT("overkill"))), FString(TEXT("Splash")));
 	TestEqual(TEXT("a trunk's caption"), S(Tree->GetCaption(TEXT("claws"))), FString(TEXT("Claws")));
 	const Pc::PcRect2 B = Pc::TreeBounds(L);
@@ -389,7 +402,11 @@ bool FPawTreeTextTest::RunTest(const FString& Parameters)
 		TestTrue(TEXT("the next level"), Lines.ContainsByPredicate([&](const FText& T) { return T.ToString() == Next; }));
 		TestTrue(TEXT("its cost"), Lines.ContainsByPredicate([&](const FText& T) { return T.ToString().StartsWith(TEXT("Cost: ")) && T.ToString().EndsWith(TEXT(" Stardust")); }));
 		TestTrue(TEXT("too poor: what you have"), Lines.ContainsByPredicate([](const FText& T) { return T.ToString() == TEXT("You have 0."); }));
-		TestFalse(TEXT("a blurb's action token is filled"), S(PawText::TreeBlurb("unlock_pounce")).Contains(TEXT("{pounce}")));
+		// A blurb's action token is the device's prompt (input_prompts_godot.tsv blurb_pounce, family 0: the left mouse button).
+		Tree->ShowTip(TEXT("unlock_pounce"), true);
+		const TArray<FText> Pounce = Tree->GetTipLines();
+		TestTrue(TEXT("a blurb's {pounce} is the mouse button's glyph"), Pounce.Num() > 0
+			&& S(Pounce[0]).Contains(TEXT("a burst on <g:input_keyboard_mouse_left>, worth more")));
 		// An unlock's title has no count.
 		Tree->ShowTip(TEXT("unlock_aura"), true);
 		TestEqual(TEXT("an unlock's title"), S(Tree->GetTipTitle()), FString(TEXT("Aura")));

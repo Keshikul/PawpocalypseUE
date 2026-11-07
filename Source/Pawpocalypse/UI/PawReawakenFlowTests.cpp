@@ -24,11 +24,13 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
+#include "UI/PawWidgets.h"
 #include "PcData.h"
 #include "PcEconomy.h"
 #include "PcHud.h"
 #include "PcJobs.h"
 #include "PcProgress.h"
+#include "PcSave.h"
 #include "PcStats.h"
 #include "PcTree.h"
 #include "Realm/PawRealmSim.h"
@@ -42,6 +44,7 @@
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
 #include "UI/PawUiConstants.h"
+#include "UI/PawUiKit.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 
 #include <algorithm>
@@ -77,8 +80,8 @@ namespace
 			{
 				return false;
 			}
-			Root = CreateWidget<UPawRootLayout>(GI, UPawRootLayout::StaticClass());
-			Hud = CreateWidget<UPawHudScreen>(GI, UPawHudScreen::StaticClass());
+			Root = CreateWidget<UPawRootLayout>(GI, PawUi::Resolve<UPawRootLayout>());
+			Hud = CreateWidget<UPawHudScreen>(GI, PawUi::Resolve<UPawHudScreen>());
 			if (!T.TestNotNull(TEXT("root"), Root) || !T.TestNotNull(TEXT("HUD"), Hud))
 			{
 				return false;
@@ -398,10 +401,10 @@ bool FPawJobPickerAsksTest::RunTest(const FString& Parameters)
 	}
 	TestTrue(TEXT("the note in ink"), Picker->GetNote()->GetColorAndOpacity().GetSpecifiedColor().Equals(PawTokens::UI_TEXT));
 	{
+		// The theme's WindowPanel: ui_window.svg's nine-patch (phase 6 slice 5a; Pawpocalypse.UI.Chrome checks every brush).
 		const FSlateBrush& Plate = Picker->GetPanel()->Background;
-		TestTrue(TEXT("on the paper window"), Plate.TintColor.GetSpecifiedColor().Equals(PawTokens::UI_PANEL));
-		TestTrue(TEXT("framed in ink"), Plate.OutlineSettings.Color.GetSpecifiedColor().Equals(PawTokens::UI_PANEL_FRAME)
-			&& Plate.OutlineSettings.Width > 0.0f);
+		TestTrue(TEXT("on the window plate"), Plate.DrawAs == ESlateBrushDrawType::Box && Plate.GetResourceObject() != nullptr
+			&& Plate.GetResourceObject() == PawUi::Chrome(PawUi::EPawChrome::Window).GetResourceObject());
 	}
 	TestEqual(TEXT("the baseline last"), Picker->GetRowJobId(3), FString());
 	TestEqual(TEXT("No job"), S(Picker->GetRowLabel(3)), FString(TEXT("No job")));
@@ -521,6 +524,56 @@ bool FPawJobPickerNoJobsTest::RunTest(const FString& Parameters)
 	TestFalse(TEXT("nothing held is not a choice: no picker"), W.Hud->GetJobPicker() && W.Hud->GetJobPicker()->IsActivated());
 	TestEqual(TEXT("nothing on the Modal stack"), W.Root->ModalStack->GetNumWidgets(), 0);
 	TestEqual(TEXT("the travel at once"), W.Realm->GetSim().Travels, TravelsBefore + 1);
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawReawakenResumesTest, "Pawpocalypse.UI.Ceremony.Resumes", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// F29 (designer 2026-11-04, Godot first): a Reawaken sets the flag and the save carries it; a load with it set opens the spend
+// step (no ceremony), whose end travels and clears it; without it nothing opens.
+bool FPawReawakenResumesTest::RunTest(const FString& Parameters)
+{
+	FFlowWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	Pc::PcProgress& P = W.P();
+	W.Hud->Pump(1.0 / 60.0);
+	TestFalse(TEXT("no Reawaken in progress: nothing opens"), W.Hud->GetSkillTree() && W.Hud->GetSkillTree()->IsActivated());
+	if (!W.Reawaken(*this))
+	{
+		W.Close();
+		return false;
+	}
+	TestTrue(TEXT("a Reawaken is in progress"), P.bReawakenInProgress);
+	TestTrue(TEXT("and the save carries it"), Pc::CaptureSave(W.D(), P, Pc::PcSlotExtras(), 1.0).bReawakenInProgress);
+	W.LeaveSpendStep(*this);
+	TestNull(TEXT("no job held: no picker"), W.Hud->GetJobPicker());
+	TestFalse(TEXT("arrived: the Reawaken is over"), P.bReawakenInProgress);
+
+	// A save made mid-Reawaken, loaded: the flag alone opens the spend step, without the ceremony.
+	P.bReawakenInProgress = true;
+	W.Hud->Pump(1.0 / 60.0);
+	TestFalse(TEXT("no ceremony replayed"), W.Hud->GetCeremony()->IsPlaying());
+	UPawSkillTreeScreen* Tree = W.Hud->GetSkillTree();
+	if (!TestTrue(TEXT("the spend step resumes"), Tree && Tree->IsActivated() && Tree->IsSpendMode()))
+	{
+		W.Close();
+		return false;
+	}
+	W.Hud->Pump(1.0 / 60.0);
+	TestEqual(TEXT("opened once"), W.Root->MenuStack->GetNumWidgets(), 1);
+	const int64 TravelsBefore = W.Realm->GetSim().Travels;
+	Tree->PressClose();
+	Tree->PressClose();
+	TestFalse(TEXT("the spend step is left"), Tree->IsActivated());
+	TestFalse(TEXT("then the run arrives and the flag clears"), P.bReawakenInProgress);
+	TestTrue(TEXT("the travel ran (or the run was already there)"), W.Realm->GetSim().Travels >= TravelsBefore);
+	W.Hud->Pump(1.0 / 60.0);
+	TestFalse(TEXT("and nothing reopens"), W.Hud->GetSkillTree() && W.Hud->GetSkillTree()->IsActivated());
 	W.Close();
 	return true;
 }

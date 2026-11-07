@@ -20,6 +20,9 @@ UPROJECT = os.path.join(ROOT, "Pawpocalypse.uproject")
 UBT = [r"C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat", "PawpocalypseEditor", "Win64", "Development",
        "-Project=" + UPROJECT, "-WaitMutex"]
 RE_DONE = re.compile(r"Test Completed\. Result=\{(\w+)\} Name=\{([^}]*)\} Path=\{([^}]*)\}")
+# Every test that STARTS must complete: a crash mid-test ends the run with the test started and no result, and only the
+# completed ones used to be counted (found 2026-11-05: an access violation in Pawpocalypse.Realm.View passed as "10 tests").
+RE_START = re.compile(r"Test Started\. Name=\{([^}]*)\} Path=\{([^}]*)\}")
 
 
 def editor_running():
@@ -39,6 +42,12 @@ def main():
     skip_build = "--no-build" in args
     args = [a for a in args if a != "--no-build"]
     filt = args[0] if args else "Pawpocalypse."
+    # The run before this one may still be exiting (check_all starts the next gate the moment the last returns: seen
+    # 2026-11-05, a gate refused on its predecessor's dying process): give this project's processes 30 s to go first.
+    import time
+    deadline = time.time() + 30.0
+    while editor_running() and time.time() < deadline:
+        time.sleep(2.0)
     if editor_running():
         print("run_automation: an Unreal editor is running; close it first (this never closes it for you)")
         return 2
@@ -48,8 +57,10 @@ def main():
             print(out[-3000:])
             print("run_automation: FAIL, the editor build failed: nothing was tested (the DLLs on disk are not this source)")
             return 1
+    # -PawUsKeyboard: keys with a place map through the US layout whatever this machine types (the fixtures' labels are Godot's
+    # headless US ones; a test that wants another layout sets it: Pawpocalypse.Input.Azerty).
     cmd = [EDITOR, UPROJECT, '-ExecCmds=Automation RunTests %s;Quit' % filt, "-TestExit=Automation Test Queue Empty",
-           "-nullrhi", "-unattended", "-nop4", "-SCCProvider=None", "-stdout", "-log"]
+           "-nullrhi", "-unattended", "-nop4", "-SCCProvider=None", "-stdout", "-log", "-PawUsKeyboard"]
     r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     text = r.stdout + r.stderr
     log = os.path.join(ROOT, "build", "automation_%s.log" % re.sub(r"[^\w.]", "_", filt))
@@ -62,7 +73,14 @@ def main():
     for line in text.splitlines():
         if "PAW_" in line or ("LogAutomationController: Error" in line):
             print("  " + line.strip()[-300:])
-    ok = bool(results) and all(v == "Success" for v, _, _ in results)
+    started = {path for _, path in RE_START.findall(text)}
+    unfinished = sorted(started - {path for _, _, path in results})
+    for path in unfinished:
+        print("CRASHED  %s (started, never completed)" % path)
+    crashed = "=== Critical error: ===" in text
+    if crashed:
+        print("  the editor hit a critical error (see the log's callstack)")
+    ok = bool(results) and all(v == "Success" for v, _, _ in results) and not unfinished and not crashed
     print("run_automation: %s, %d test(s) (log: %s)" % ("PASS" if ok else "FAIL", len(results), log))
     return 0 if ok else 1
 

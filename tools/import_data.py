@@ -21,7 +21,8 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "Data")
-NOT_TABLES = {"CodeConstantsMap.csv"}
+NOT_TABLES = {"CodeConstantsMap.csv", "InputMap.csv", "AudioEvents.csv", "AudioMusic.csv"}  # InputMap: Enhanced Input
+# assets; Audio*: the audio bank (tools/import_audio.py), not tables
 ASSET_DIR = "/Game/Pawpocalypse/Data"
 EDITOR = r"C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 UPROJECT = os.path.join(ROOT, "Pawpocalypse.uproject")

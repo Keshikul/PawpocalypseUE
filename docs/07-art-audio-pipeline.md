@@ -24,7 +24,7 @@ Unreal has no production SVG texture import (doc 04 R11), so:
 ```
 tools/art/*.py --all --write  ->  SourceArt/svg/<type>/<name>.svg      (text, committed, generated)
 tools/raster_svg.py            ->  SourceArt/png/<type>/<name>.png      (gitignored, regenerated)
-tools/pack_atlas.py            ->  SourceArt/atlas/<page>.png + Data/Atlas.csv (id, page, x, y, w, h, pivot)
+tools/pack_atlas.py            ->  SourceArt/png/atlas/field_<n>.png + field.csv (id, page, texel rect, UVs, size)
 tools/import_art.py (headless) ->  /Game/Pawpocalypse/Art/...           (T_*, committed via LFS)
 ```
 
@@ -39,15 +39,53 @@ tools/import_art.py (headless) ->  /Game/Pawpocalypse/Art/...           (T_*, co
 - **Premultiplied alpha** in the rasteriser output (dark fringes otherwise when scaled) or straight alpha with a material that
   handles it consistently; spike S3 picks one and the material matches.
 
+**Built** (phase 5 slice 3b, 2026-11-04; phase 6 slice 1, 2026-11-05):
+- **`tools/art/`**: the Godot generators (`make_sweet_art.py`, `sweet_ui.py`, `sweet_biomes.py`, `sweet_props.py`,
+  `sweet_shapes.py`, `sweet_evolutions.py`, `sweet_input.py`, `make_ground_shadow.py`, `palette.py`), copied unchanged but
+  for their output paths (each has a PORT note). `flatten_backdrop.py` was not copied: it reads a removed "famine" style folder
+  and generates nothing the game ships. Four UI drawings were hand-made in Godot (`app_icon`, `ui_menu_bug` / `discord` /
+  `language`): their sources are `tools/art/hand/ui`.
+- **`py tools/art/build_art.py`** writes `SourceArt/svg` (committed, generated), mirroring Godot's `assets/art` folders: 390
+  files (the SVGs, the 12 backdrop floors, the ground shadow). `--check` regenerates into `build/` and fails on any byte that
+  differs from `SourceArt/svg` OR from the Godot game's `assets/art` (Boba's photos aside): **byte-identical to Godot's**
+  (2026-11-05), and `palette.py --gd` reproduces Godot's `palette.gd` exactly. Seen to fail: one ink hex changed, 738
+  differences. Gate `art generators reproduce`.
+- `tools/raster_svg.py` (groups `input`, 56 px; `cursor`, 40 px; since phase 6 slice 5a `chrome`, the theme's 9 nine-patch
+  SVGs, and since 5b `icons`, 178 SVGs: both at the SVG's own size, as Godot imports them at `svg/scale=1.0`): reads
+  `SourceArt/svg` (no longer copies from Godot); `--check` covers every group.
+- **`py tools/pack_atlas.py`**: the field's 107 sprites (39 enemy drawings, 7 bosses incl. `boss_generic` and `boss_add`, the
+  7 cat stages, 6 weapons, 10 hats, the kitten, the ground shadow; since slice 2 the 36 backdrop props: corner pieces at
+  190 px, the title's tree at 264.5, the rest at 124.8) rasterised at 2x their largest drawn size and shelf-packed
+  into `SourceArt/png/atlas/field_<n>.png` (3 pages of 2048, 63 % full, 4 px extrusion) + `field.csv` (id, page, texel
+  rect, UVs, native size). Not trimmed: every drawing is a square fitted by its longest edge and drawn centred, as Godot's
+  Sprite2D draws it, so the cell IS the sprite. `--check` reproduces it (gate `field atlas reproduces`).
+- `tools/import_art.py --run [input|chrome|icons|atlas|floors]` (headless): the glyphs, the chrome (`Art/UI/Chrome/T_ui_*`)
+  and the icons (`Art/UI/Icons/T_*` + `DA_Icons`, `UPawIconSet`, rewritten whole) as UI textures (no mips); the atlas as `T_Atlas_Field_<n>` (BC7,
+  sRGB, mips, Never Stream, World group, clamped) and `DA_FieldAtlas` (`UPawSpriteAtlas`, rewritten whole) in
+  `/Game/Pawpocalypse/Art/Field`. `Pawpocalypse.Realm.Look.Atlas` checks the asset against `field.csv` (a repack without a
+  re-import fails it) and that every texture the data names is in it.
+- The floors (slice 2): `py tools/import_art.py --run floors` imports the generator's own 12 PNGs from
+  `SourceArt/svg/backdrops` as `T_backdrop_tier_N` (BC7, mips, WRAP, Never Stream, World) in `/Game/Pawpocalypse/Art/Backdrops`.
+  `build_art.py --check` also runs the generator's seam gate (`sweet_biomes.py --seams`: worst join 1.33, limit 2.0).
+- The UI art (phase 6 slices 5a-5b): Godot's theme nine-patches (`PawUi::Chrome`: the brush's margins are Godot's
+  `texture_margin` over the SVG's size) and every icon Godot asks for by constructed name or `icon_path` (`PawUi::Icon`, =
+  Godot's `Art.texture`: tabs, currencies, quick bar, the title's plates, achievements, cards, skills, jobs). Tests
+  `Pawpocalypse.UI.Chrome`, `.Icons` (doc 05 §7). The rainbow bar and frame and the tree's sky are painted, not art
+  (slice 5d, doc 05 §7). Still to come: Boba's photos.
+
 ### 2.1 Changing a design (what the designer does)
 
 Shapes are not edited in Unreal (no SVG editing or production SVG import, doc 04 R11), and they were not edited in Godot
 either: Godot only imported the generated SVGs. The source of a design is its generator in `tools/art/` (the sweet grammar)
 plus `palette.py` for its colours. A change is: edit the generator -> `--batch <family>` contact sheet -> `--write` -> one
-command rasterises, packs and reimports (`tools/import_art.py`, phase 6), and the textures update in the editor. **What is
-editable inside Unreal**: everything in a creature's visual definition (`UPawVisualDefinition`, doc 03 §6): which texture,
-on-screen size, tint/flash colours, sounds; gameplay numbers stay in `Data/*.csv`. Until phase 6 builds that pipeline,
-changes are made in the Godot project and re-exported (CLAUDE.md: no design changes during the port).
+command each regenerates, packs and reimports (`py tools/art/build_art.py`, `py tools/pack_atlas.py`,
+`py tools/import_art.py --run atlas`, editor closed), and the textures update in the editor. **What is
+editable inside Unreal** (planned): everything in a creature's visual definition (`UPawVisualDefinition`, doc 03 §6): which
+texture, on-screen size, tint/flash colours, sounds; gameplay numbers stay in `Data/*.csv`. **Not built in phase 6 slices 1-4**:
+the look reads the data's columns and Godot's code constants (`Realm/PawFieldLook.h`); changes are made in the Godot project
+and re-exported (CLAUDE.md: no design changes during the port). **Since 2026-11-07 (D14) the generators
+are this project's own**: a look change is made here only, never in Godot; `build_art.py --check` compares with the committed
+`SourceArt/svg`. (Before that, a generator change was made in Godot first and copied.)
 
 ### 2.2 Decided by spike S3 (2026-10-28, doc 04 §10)
 
@@ -55,10 +93,16 @@ Raster at **2x** the largest on-screen size at 1080p (target x 1.03 pulse; the c
 `resvg_py`; field sprites compressed **BC7** (no measurable loss on this flat art, a quarter of the memory); atlas pages
 **2048 x 2048**, cells edge-extruded **4 px**. The 52 field sprites take 2 pages, 11.2 MB of VRAM. The first versions of
 `tools/raster_svg.py` / `tools/pack_atlas.py` are `tools/spikes/s3_raster_pack.py` (shelf packer; trimming and pivots still
-to add).
+to add; deleted with the spikes 2026-11-04: `git show 10c118e:tools/spikes/s3_raster_pack.py`).
 
 ## 3. Colour tokens
 
+- **As built (2026-11-07, R0)**: `tools/gen_paw_tokens.py` imports `tools/art/palette.py` and writes `PawTokens.h`,
+  `PcBackdropTones.h` and the test-only `Source/PawCore/Tests/PcGodotLook.h` (L0 checks all three are current; it refuses a
+  palette that fails `palette.py`'s rules). The colours Godot authored as scene/script literals live in `palette.py LITERALS`.
+  `PcGodotLook.h` maps Godot's palette (frozen at the fork: `tools/art/palette_godot_snapshot.json`) to ours, so a test that
+  compares a Godot fixture's colour still proves WHICH colour is drawn where (`Pc::PcFromGodot`); the generator refuses an
+  ambiguous map (one Godot colour that became two of ours). Before R0 it read the Godot repo's `palette.gd`.
 - `tools/art/palette.py` is the single source of every colour. Add an emitter: `py tools/art/palette.py --cpp` writes
   `Source/Pawpocalypse/UI/PawTokens.h` (as Godot's `--gd` writes `palette.gd`). A test compares the header with `palette.py`
   (Godot's `check_mirror` did the same for `palette.gd`).
@@ -78,13 +122,16 @@ to add).
 
 - **Atlas cells padded and edge-extruded** by at least 2^(mip levels used) px (mip bleeding).
 - **Naming**: textures `T_<id>` where `<id>` is the Godot asset name (`T_enemy_backyard_mouse`); atlas pages
-  `T_Atlas_<group>_<n>`; materials `M_Sprite_Masked`, `M_Sprite_Glow`, `M_Shadow`, `M_FxShape`, `M_Floor`; instances `MI_*` (until phase 6 the
-  renderer draws with the generated placeholders `M_FieldFlat`/`Soft`/`Disc`/`Ring`, doc 04 §5.1);
-  data assets `DA_Visual_<id>` `[KB U/16 §1]`.
-- **Folders**: everything shipped under `/Game/Pawpocalypse/` (always cooked): `Art/Atlas`, `Art/Backdrops`, `Art/UI`,
-  `Art/Cursors` (the `Slate` folder sits outside `/Game` content by engine convention), `Materials`, `Data`, `Audio`, `Fonts`,
-  `Maps`, `UI` (widget BPs if any).
-- **Visual definitions** (`UPawVisualDefinition`, one per creature/boss/cat stage/weapon/hat/job/card/skill icon): atlas id,
+  `T_Atlas_<group>_<n>` (as built: `T_Atlas_Field_<n>`); materials as built (phase 6, all generated by
+  `tools/create_field_materials.py`): `M_Sprite` (masked atlas sprites), `M_SpriteSoft` (translucent: the shielded, glows,
+  shadows), `M_Floor`, `M_BackdropFill` (sRGB vertex colours: the backdrop's patches and the effects), plus the shape
+  materials `M_FieldFlat`/`Soft`/`Disc`/`Ring` (the flat floor fallback, zones, the old rings); per-page instances are
+  dynamic (`UMaterialInstanceDynamic`); data assets `DA_<Name>` (`DA_FieldAtlas`, `DA_AudioBank`, `DA_Icons`) `[KB U/16 §1]`.
+- **Folders**: everything shipped under `/Game/Pawpocalypse/` (always cooked). As built: `Art/Field` (the atlas),
+  `Art/Backdrops` (the floors), `Art/UI/Input` (the glyphs), `Art/UI/Chrome` (the nine-patches), `Art/UI/Icons` (+
+  `DA_Icons`), `UI/Cursors` (loose PNGs, staged), `Materials`, `Data`,
+  `Audio/Sfx`, `Audio/Music` (+ `DA_AudioBank`), `Maps`, `UI/Widgets` (the Widget Blueprints), `Input`, `Localization`.
+- **Visual definitions** (planned, not built: see §2.1) (`UPawVisualDefinition`, one per creature/boss/cat stage/weapon/hat/job/card/skill icon): atlas id,
   pivot, on-screen target px, tint, glow colour; found by id through the Asset Manager. Rules rows never hold asset paths
   (the CSV's `texture_path`/`icon_path` are mapped to ids by the importer) `[KB U/04 §5]`.
 - **Move/rename only in the Content Browser or via the `git mv` + redirect + resave route**; never in Explorer `[KB U/16 §2]`.
@@ -99,6 +146,30 @@ to add).
   script against every `.po` file's characters; any missing glyph falls to a fallback face, never a box.
 
 ## 6. Audio
+
+**As built (phase 6 slice 4, 2026-11-05).** `py tools/export_audio.py` reads audio_manager.gd (EVENTS, the sounds each event
+plays as `_load_all_variants` decides, FALLBACK_MUSIC) into `Data/AudioEvents.csv` / `Data/AudioMusic.csv` (also written by
+`export_godot_data.py`, so the data-export gate covers them) and copies ONLY the 53 files something plays into `SourceAudio/`
+(28.9 MB of Godot's 83); `--check` (gate `audio export reproduces`). **UE 5.8 imports OGG Vorbis directly** (SoundFactory:
+wav, aif, ogg, flac, opus, mp3): no conversion. `py tools/import_audio.py --run` -> `SW_*` in `/Game/Pawpocalypse/Audio/{Sfx,Music}`
+(music looping) and `DA_AudioBank` (`UPawAudioBank`). `UPawAudioSubsystem` (`Source/Pawpocalypse/Audio`) is AudioManager:
+16 voices in turn, each event's interval / pitch spread / dB and round robin, the buses as linear amplitudes read live from
+the settings (Master x Music / SFX; mute), the 1.2 s crossfade in dB, a track with no file keeps the music on (biomes 9-12),
+real-time clocks. What plays when follows Godot's hookups: a progress observer (a new game or a load bumps
+`UPawGameSubsystem::ProgressEpoch` and is heard as nothing), the field's events from the realm, the biome's music on a biome
+change, the UI's clicks (dock tabs, the buy multiplier, a refused purchase, the pause menu, the title's cluster), the title's
+music. Godot's double plays kept (F40). `unicorn_neigh` plays since slice 6a (the Unicorn ceremony's two whinnies, with
+`boss_defeated`'s fanfare, through `UPawAudioSubsystem::PlayFrom`). Not in this slice: `boba_cameo` (its caller, slice 6c), the
+language list's click (phase 7), the credits screen's rows (the CREDITS.md is still empty in Godot), `make_neigh.py` (the
+neigh is Godot's WAV, copied). **The Output device** (2026-11-05; settings_manager.gd `_apply_output_device`): the
+Output list is the system's active devices by friendly name, "Default" first (Godot's `get_output_device_list()`, read from
+the WASAPI mixer's device cache: `IAudioPlatformDeviceInfoCache::GetAllActiveOutputDevices`, read-locked, game thread);
+`UPawAudioSubsystem::ApplyOutputDevice` plays to the stored device while it is listed, else the system's
+(`Pc::SettingsOutputWant`), on startup, every settings change and when the pinned device is removed
+(`UAudioDeviceNotificationSubsystem::DeviceRemovedNative`). A chosen device is PINNED: the swap
+(`RequestDeviceSwap`, forced, on the audio thread) goes with `SetIsListeningForDeviceEvents(false)`, because the mixer
+otherwise keeps following the system's default after a swap (a pad's headset would take the sound back); "Default" turns it
+on again. Never in the editor. The pad-audio toast: doc 05 §3. Tests `Pawpocalypse.Audio.Output`, `.UI.Settings.Output`. The plan below (a DataTable, Sound Classes, a concurrency asset) was not needed.
 
 - **One event table**: Godot `AudioManager.EVENTS` (each row: event, files, `min_interval`, pitch jitter, `volume_db`) plus
   `FALLBACK_MUSIC`/`FALLBACK_SFX` become `Data/AudioEvents.csv` -> `DT_AudioEvents` (event key, sound asset id, bus,
@@ -124,8 +195,11 @@ to add).
 - No frame animation: single drawings with a per-instance pulse and liveliness, done in the sprite material's vertex shader
   (doc 04 §5.1). If run cycles arrive later, `tools/make_anim_atlas.py`/`export_anim_atlas.py` already produce atlases; the
   material reads a frame index from per-instance data.
-- VFX are mostly geometry (SDF material) and small Niagara bursts (doc 04 §7); no VFX textures beyond a few soft dots/shards.
-- The Unicorn ceremony's whinny (`make_neigh.py`) and the ceremonies' timings port as data on the ceremony widgets.
+- VFX: planned as SDF geometry and small Niagara bursts; **built (phase 6 slice 3) as Godot's own draw calls** tessellated on the
+  CPU (`FPawFxCanvas`, `FPawVfx`; doc 04 §7 as built): no VFX textures at all.
+- The Unicorn ceremony's whinny (`make_neigh.py`) and the ceremonies' timings port as data on the ceremony widgets. As built
+  (phase 6 slice 6a): the whinny is Godot's WAV, copied; the Unicorn ceremony's timings are code constants in Godot, so they
+  are PawCore constants (`Pc::Unicorn` in `PcUnicorn.h`), proved against the real script by the fixture `unicorn`.
 
 ## 8. Store media
 

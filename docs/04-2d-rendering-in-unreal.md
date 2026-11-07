@@ -50,7 +50,8 @@ changes pixels switched off, and prove the colours and edges with measurements.
 
 ## 3. Colour fidelity (decided; proved by spike S1 and a gate)
 
-The Stacklands palette is the game's identity; an ink `#1A1A1A` that renders `#262626` is a bug.
+The palette (`tools/art/palette.py`, the project's own since the restyle, D14) is the game's identity; an ink that renders a
+shade off its token is a bug.
 
 1. **Every field material is Unlit.** No lights in the level at all.
 2. **Exposure fixed**: project `r.DefaultFeature.AutoExposure=False`; in the one unbound Post Process Volume:
@@ -77,7 +78,12 @@ in Slate" option §5.3). The spike decides; the gate keeps it honest.
 
 ## 4. Sorting and edges (decided in principle; the AA method is spike S1's)
 
-**Sort by depth, not by translucency.** The Godot game sorts creatures by Y (lower on screen = in front). In Unreal:
+**Sort by depth, not by translucency.** ~~The Godot game sorts creatures by Y (lower on screen = in front).~~ **Corrected
+2026-11-05 (phase 6 slice 1): it does not.** No node in Godot's field has `y_sort_enabled`; it draws by `z_index`, then by
+scene-tree order: the mice (enemy.tscn, z 0, in pool order; the boss a later child of the same node), the kittens (z 1), the
+cat (z 2; its weapon z 3, its hat z 4), the boss's adds (z 3), the ground shadows on one layer under everything (z -1). A
+kitten is drawn over every mouse whatever their Y. The port follows that order (`PawLook::Order` in
+`Realm/PawFieldLook.h`: Z = 100 + (z x 2000 + tree position) x 0.01); the Y-sorted plan below was never built. In Unreal:
 
 - The camera looks straight down the -Z axis at the XY plane; field pixel (x, y) maps to world (x, -y) with
   `1 field px = 1 unreal unit`.
@@ -85,7 +91,7 @@ in Slate" option §5.3). The spike decides; the gate keeps it honest.
   camera. Depth testing then sorts every pixel correctly, **including between instances of one instanced component**
   (which translucency cannot, R6).
 - Fixed layers keep their order by Z band: backdrop < ground zones < shadows (one band, R1 of the Godot rules) <
-  aura ring < creatures (Y-sorted band) < cat < weapon < hat < over-creature VFX.
+  aura ring < creatures (Godot's z, then tree order: mice < kittens < cat < weapon / adds < hat) < over-creature VFX.
 - That means creature materials are **Masked** (or opaque with alpha test) so they write depth.
 
 **Edges then need anti-aliasing**, and the choice has costs (R7). Spike S1 renders the same moving crowd four ways and
@@ -119,7 +125,8 @@ their OWN Z band where order inside the band does not matter.
   (`BatchUpdateInstancesTransforms` / `UpdateInstances` with `bMarkRenderStateDirty` only once).
 - **Interpolate** positions between sim steps (doc 03 §5).
 - **The pulse and liveliness** (Godot: per-instance scale/rotation wobble) move into the material (vertex shader:
-  `sin(Time * rate + phase)` scale about the feet), costing nothing on the CPU.
+  `sin(Time * rate + phase)` scale about the feet), costing nothing on the CPU. **As built (phase 6)**: on the CPU, in the
+  transform each frame (`PawLook::PulseY`, Godot's formula; the transforms are written every frame anyway).
 - **Shadows**: one instanced component, one soft-ellipse texture or SDF material, its own Z band, translucent (order
   within the band is irrelevant).
 - **The cat, weapon and hat**: three instances (or three plain components): only one cat.
@@ -127,6 +134,28 @@ their OWN Z band where order inside the band does not matter.
 
 **Budget**: ~6-10 draw calls for the whole field plus the backdrop and VFX, against a KB budget of 2,500 `[KB U/15]`.
 **Built (2026-10-31, phase 2 slice 7)**: `UPawSpriteRenderer` (`Source/Pawpocalypse/Render`), five layers (floor, zones, shadows, bodies, effects), one `UInstancedStaticMeshComponent` each on `/Engine/BasicShapes/Plane`, 4 custom floats (linear RGB + alpha) per instance, pooled at a high-water mark and parked, one transform batch a layer a frame. Its materials are generated (`tools/create_field_materials.py`) and draw placeholder shapes from the UVs alone (a disc with an ink rim for bodies, soft discs, rings) until phase 6's atlas swaps the body material. Measured in the editor build: 320 mice + 20 kittens, advance + draw 0.06 ms (draw 0.045 ms). **The effects layer is translucent, not additive**: additive light on the paper floor (#FFF9E3) is invisible (seen in the first screenshot); §7's additive bursts must use a translucent or darkening blend on light biomes.
+**Phase 6 slice 1 (2026-11-05): the atlas sprites.** The creatures are their Godot drawings: `UPawSpriteRenderer::AddSprite`
+draws a cell of the field atlas (`UPawSpriteAtlas`, `DA_FieldAtlas`; doc 07 §2) on three components per page: MASKED
+(`M_Sprite`: opaque art, per-pixel depth), SOFT (`M_SpriteSoft`, translucent: art whose tint has alpha < 1, the shielded mouse,
+the illusory kitten, the dying boss, and the whitened signature glow) and SHADOW (the ground shadow). 9 custom floats: linear
+tint RGBA, the cell's U0 V0 U1 V1 (mirrored by swapping U0/U1), whiten. Translucent bands keep their order by
+`SetTranslucentSortPriority` (as of slice 3: backdrop fill -1 < zones / ground effects 0 < shadows 1 < under effects 2 < soft sprites 3 < over effects 4 < the old ring effects 5). Two pages: 9 sprite and shape components in
+all. The view (`APawRealmView::DrawCreatures`) draws Godot's look from `Realm/PawFieldLook.h`: sizes, the breathing pulse,
+facing, tints multiplied as Godot multiplies them (a modulate is sRGB-space: the linear tint is m^2.2), the glow, the cat's
+stage / weapon / hat / hop, the boss's twitch, shield tint and death sequence, the adds' pulse, the shadows' placement.
+Measured (editor, `Pawpocalypse.Realm.View`): 320 mice + 20 kittens, draw 0.068 ms. Known difference: Godot blends
+translucent sprites in sRGB space, Unreal in linear (the shielded mouse is a touch lighter at its edges).
+**Phase 6 slice 2 (2026-11-05): the backdrop** (biome_backdrop.gd). Its layout is PawCore `PcBackdrop`, exact against the
+real Godot node (fixture `backdrop`: 364 layouts, every prop rectangle and outline point to the float, Godot's PCG32
+`RandomNumberGenerator` and `hash()` reproduced, float32 where Godot's Vector2 is). The renderer draws it in three bands
+under everything that moves: the FLOOR (`M_Floor`: the biome's 512 px texture tiled at 256 px from the top-left, UV repeat
+in custom data; `T_backdrop_tier_N`, all 12 referenced by the view so they load with the map, never on travel), the
+PATCHES AND PUDDLES (one `UProceduralMeshComponent` section, Z 2: fans and rim strips with sRGB vertex colours decoded
+exactly by `M_BackdropFill`, translucent, Godot's painter's order kept by primitive order), the PROPS (atlas sprites,
+masked, Z 3 + 0.004 per place in Godot's draw order). Laid out again on a travel or a resize, with the effects budget of
+that moment (as Godot: a settings change shows from the next one). The title's garden (biome "menu", dancing) is the same
+layout painted in Slate by `UPawGarden` over the title's paper floor (doc 05). Seen side by side with Godot in all 12
+biomes and the title (`py tools/godot_tour.py --set biomes`): the same props, patches and puddles in the same places.
 **Spike S2 (§10) chose this renderer**: 13 draw calls for 774 items, game thread 0.6 ms, worst-case GPU 5.15 ms at 1280x800.
 
 ### 5.2 Rejected: Paper2D components per entity
@@ -151,6 +180,9 @@ cost at 700 elements. Choose by measurement; the world-space renderer is the def
   the ortho "width" is the visible height and the width follows the window, which is exactly the expand aspect below
   (spike S1 measured it; corrected 2026-10-28, this line used to say `OrthoWidth = logical field width`). Near and far set
   around the Z bands (R10's depth-precision notes; S1 used auto planes and saw no z-fighting; `r.Ortho.*` stay default).
+  **Measured 2026-11-05 (phase 6 slice 3)**: with the automatic planes and the camera at Z 1000, geometry at Z 300 draws and at
+  Z 400 is clipped; explicit planes (near 0, far 2000) clipped everything above about Z 100 (unexplained). So the automatic
+  planes stay and every band lies in Z 0..300 (`Pawpocalypse.Realm.Vfx.Canvas` asserts it).
 - With no pawn, the player controller resets its view target to itself after `BeginPlay`: `APawRealmView` sets the camera
   as view target once the controller is ready (S1 found it).
 - **Logical size**: `LogicalHeight = 1080`, `LogicalWidth = 1080 * (window width / window height)`: exactly Godot's
@@ -167,6 +199,8 @@ cost at 700 elements. Choose by measurement; the world-space renderer is the def
 
 ## 7. Effects
 
+**The table below is the PLAN; it was superseded by what phase 6 slice 3 built (the "As built" paragraph after it).**
+
 | Godot primitive | Unreal plan |
 |---|---|
 | Discs and rings (aura ring, poop zone, crater, slam ring, telegraph) | **SDF material on an instanced quad** (`M_FxShape`, per-instance: shape, radius, thickness, colour, progress). Crisp at any resolution; one draw call per band |
@@ -174,12 +208,30 @@ cost at 700 elements. Choose by measurement; the world-space renderer is the def
 | Beams (Prism, overkill splash) | Capsule SDF quads stretched between two points |
 | Bursts, shards, sparkles, edge-fire embers | **Niagara** CPU sprite emitters (few particles each), pooled, fixed bounds, no warm-up, an Effect Type per category for budgets `[KB U/13]`; or instanced quads if spike S2 shows Niagara overhead per burst |
 | White flash, signature glow, golden sparkle, tint | Per-instance custom data in the creature material |
-| Rainbow frame / rainbow bar | UI materials (UMG) |
+| Rainbow frame / rainbow bar (and the tree's sky) | AS BUILT (phase 6 slice 5d): no material. Godot's draw calls (`FPawFxCanvas`) painted in Slate as one `MakeCustomVerts` batch per piece (`PawUi::PaintCanvas`); the shapes from PawCore (`PcRainbow`, `PcSky`) exact against the real scripts; the frame's antialiased line gets a 1 px feather (no FXAA over Slate) |
+| Unicorn ceremony (the dim, the rainbow's arcs, confetti, stars) | AS BUILT (phase 6 slice 6a): the same way, one `MakeCustomVerts` batch from `PcUnicornCeremony`'s shapes (the stars fanned from their centre, the arcs and the stars' ink rims with a 1 px feather); the mounted cat a second custom-verts quad over it from its `DA_FieldAtlas` page (mirrored, turned and scaled about the middle of its foot) |
 | Graphics setting ("effects: full / reduced / off") | One `EffectsBudget` in `UPawGameUserSettings`; every effect spawner asks it; "reduced" scales counts with a floor of one; "off" returns nothing (the Godot gate's rule) |
 
-Every effect is triggered by draining `PcEvents` (doc 03 §5), never by the simulation calling into rendering.
+Every effect is triggered by draining `PcEvents` (as built: the field's `PcFieldEvent`s; doc 03 §5), never by the simulation calling into rendering.
 
-## 8. The phase-0 spikes (throwaway code in `Source/Pawpocalypse/Dev/Spikes`, deleted after)
+**As built (phase 6 slice 3, 2026-11-05): not SDF quads and Niagara, but Godot's own draw calls.** Every Godot effect is
+immediate-mode drawing (`draw_arc`, `draw_circle`, `draw_polyline`, `draw_colored_polygon`); `FPawFxCanvas` is that API,
+tessellating each call into vertex-coloured triangles at a depth, and `FPawVfx` (`Realm/PawVfx`) is vfx_burst / slam /
+swipe / beam / shards / edge_fire, aura_ring, poop_zone_visual, damage_zone_field, boss_telegraph, golden_sparkle and the
+Lone Hunter's halo ported line by line, with tier_controller.gd's and player.gd's choice of effect per field event (three
+new event flags: Riddle, Threshold, Beam; `PcFieldEvent::Flags` is 32 bits now). The renderer draws three translucent
+procedural-mesh bands rebuilt each frame (`EPawFxBand`): GROUND under the shadows (Edge Burn, a scene node before the
+creatures in Godot's tree), UNDER over them (the poop zone, the damage zones), OVER among the sprites with each vertex at
+the depth of its Godot z and tree place (the halo behind its kitten, the aura behind the cat, sparkles and slams, the
+telegraph at z 5, then the swipes, beams, bursts and shards at Z 300 on top). Their material is `M_BackdropFill` (sRGB
+vertex colours decoded exactly). The effects setting is honoured as Godot's spawners do; a live cap of 2,048 (Godot had
+none) only guards a flood. Measured: 320 mice + 20 kittens + effects, draw 0.36 ms on the game thread (0.07 without).
+**The camera's automatic ortho planes clip world Z 400** (Z 300 draws; explicit planes near 0 / far 2000 clipped all
+above about Z 100, unexplained): every band lies in Z 0..300, `Pawpocalypse.Realm.Vfx.Canvas` asserts it.
+Not ported: Godot's antialiased line feather (FXAA); the slam's cracks are seeded from the position's bits, not Godot's
+`hash(Vector2)` (the same place cracks the same way, not in Godot's exact shape).
+
+## 8. The phase-0 spikes (throwaway code in `Source/Pawpocalypse/Dev/Spikes` and `tools/spikes`, deleted 2026-11-04; in git at `10c118e`)
 
 | Spike | Build | Measure | Decides |
 |---|---|---|---|
@@ -201,7 +253,7 @@ From `Knowledge/2D/01` applied to Pawpocalypse. Each one is a test or a logged s
 | **Entities are array rows, never Actors**; pools with high-water marks; dead instances parked, never removed | 320 enemies + shadows + kittens + zones; per-Actor cost is the classic 2D-in-UE slowdown |
 | ~~A uniform spatial grid in `PcField`~~ **Not needed (measured 2026-10-31)** | The planned grid was for kittens seeking, splash and overlap tests at 320 x 30. Measured with plain loops over the struct-of-arrays rows: a full field (320 mice, 21 kittens, the aura, zones, the Prism, Snare, Gridlock) steps in **0.093 ms** (`Long: the step time ...`, MSVC /O2). The loops also keep Godot's tie order exact for free. Revisit only if a profile says so |
 | **Per-step budgets** (12 strikes, 3 splash beams per frame as in Godot; spawns per step capped) | Late-game damage kills a field in one frame; effects must not follow it |
-| **Shadows, ground zones and glows in their own Z bands**; creatures in one Y-sorted band | Interleaving breaks batches (Godot: shadows on one layer took 632 draw calls to 2) |
+| **Shadows, ground zones and glows in their own Z bands**; creatures in one band ordered as Godot draws them (z, then tree order; §4) | Interleaving breaks batches (Godot: shadows on one layer took 632 draw calls to 2) |
 | **Octagon quads** for creature instances if spike S2 shows fill-rate cost at 1280x800 | Chubby round sprites leave the corners of a quad empty; an octagon cuts most of it for 8 vertices |
 | **Atlas cells padded and edge-extruded** by 2^(mip levels used) px; mips only where sprites are drawn smaller than rasterised | Mip bleeding between cells shows as coloured fringes on small mice |
 | **Never Stream** on every field texture; biome textures loaded when the biome begins, never per frame | Streaming blurs 2D sprites; loads during play hitch |
@@ -321,7 +373,8 @@ GPU numbers understate it. Its draw calls and game-thread cost decide it regardl
 
 **Decision: the instanced-quad renderer (§5.1) stays.** All budgets of §9 hold with large margins: 13 draw calls (< 50), game
 thread 0.6-0.7 ms (< 4 ms), worst-case GPU 5.15 ms at 1280x800 on a GPU weaker than the Deck's (60 fps = 16.7 ms). It keeps
-per-pixel depth sorting (§4), materials (SDF effects, flashes, pulse in the vertex shader) and Niagara. **Paper2D is rejected**:
+per-pixel depth sorting (§4), materials (SDF effects, flashes, pulse in the vertex shader) and Niagara (as built the effects
+are draw calls on procedural meshes instead, §7). **Paper2D is rejected**:
 ~2,200 draw calls (44x the field budget) and 2x the game-thread cost. **Slate is the measured fallback**: on the weak GPU it
 cost half of ISM's GPU time (2.61 vs 5.15 ms) at equal CPU; if phase 8's Deck profiling shows GPU pressure, look first at what
 ISM pays for on that GPU (the deferred scene passes; fill rate of the 64 large translucent zones: §9's octagon quads), then at

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<!-- The application icon: the cat's face on a gold badge with a thick ink rim.
+     Drawn 2026-09-15 to replace the stock Godot icon on the executable and the
+     window (designer: "a cat face with a border on the outside or something
+     that will fit our game"). Same rules as every sprite: ink #2A1A33 outline
+     as an underlay, flat colour on top, no gradients; the cat is the grey
+     #9E9285 of player_cat_stage_1.svg with its white eyes and pink nose.
+     Everything is big and few, because Windows shows this at 16 px. -->
+<g stroke-linejoin="round" stroke-linecap="round">
+<!-- the badge: ink rim, gold face -->
+<circle cx="64" cy="64" r="62" fill="#2A1A33"/>
+<circle cx="64" cy="64" r="54.5" fill="#F2C65B"/>
+<!-- ears: ink underlay, grey, inner ear -->
+<polygon points="22,24 50,44 30,72" fill="#2A1A33"/>
+<polygon points="106,24 78,44 98,72" fill="#2A1A33"/>
+<polygon points="27,31 47,47 34,66" fill="#9E9285"/>
+<polygon points="101,31 81,47 94,66" fill="#9E9285"/>
+<polygon points="33,39 45,49 38,60" fill="#F8A08C"/>
+<polygon points="95,39 83,49 90,60" fill="#F8A08C"/>
+<!-- head -->
+<ellipse cx="64" cy="74" rx="41" ry="36.5" fill="#2A1A33"/>
+<ellipse cx="64" cy="74" rx="37" ry="32.5" fill="#9E9285"/>
+<!-- muzzle -->
+<ellipse cx="64" cy="87" rx="20" ry="12" fill="#D6CFC3"/>
+<!-- eyes: white, ink pupil, highlight -->
+<ellipse cx="49" cy="70" rx="9.5" ry="9.5" fill="#2A1A33"/>
+<ellipse cx="79" cy="70" rx="9.5" ry="9.5" fill="#2A1A33"/>
+<ellipse cx="49" cy="70" rx="7.6" ry="7.6" fill="#F6F6F6"/>
+<ellipse cx="79" cy="70" rx="7.6" ry="7.6" fill="#F6F6F6"/>
+<ellipse cx="50" cy="71" rx="3.4" ry="3.4" fill="#2A1A33"/>
+<ellipse cx="80" cy="71" rx="3.4" ry="3.4" fill="#2A1A33"/>
+<ellipse cx="52.2" cy="67.6" rx="1.5" ry="1.5" fill="#F6F6F6"/>
+<ellipse cx="82.2" cy="67.6" rx="1.5" ry="1.5" fill="#F6F6F6"/>
+<!-- nose and mouth -->
+<ellipse cx="64" cy="83" rx="4.6" ry="3.6" fill="#2A1A33"/>
+<ellipse cx="64" cy="82.6" rx="3.4" ry="2.6" fill="#F8A08C"/>
+<polyline points="57,90 60.5,93 64,90 67.5,93 71,90" fill="none" stroke="#2A1A33" stroke-width="2.4"/>
+<!-- whiskers -->
+<polyline points="42,84 26,81" fill="none" stroke="#2A1A33" stroke-width="2.2"/>
+<polyline points="42,88 26,89" fill="none" stroke="#2A1A33" stroke-width="2.2"/>
+<polyline points="86,84 102,81" fill="none" stroke="#2A1A33" stroke-width="2.2"/>
+<polyline points="86,88 102,89" fill="none" stroke="#2A1A33" stroke-width="2.2"/>
+</g>
+</svg>

@@ -18,6 +18,7 @@
 #include "UI/PawTokens.h"
 #include "UI/PawUiConstants.h"
 #include "UI/PawUiKit.h"
+#include "UI/PawWidgets.h"
 
 const FName UPawJobPicker::PauseHolder(TEXT("job_picker"));
 
@@ -31,15 +32,15 @@ namespace
 
 bool UPawJobPicker::Initialize()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree)
+	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree && PawUi::BuildsInCode(this))
 	{
 		WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"), RF_Transient);
 		UWidgetTree* T = WidgetTree;
-		UOverlay* Root = T->ConstructWidget<UOverlay>();
+		UOverlay* Root = T->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("Root"));
 		WidgetTree->RootWidget = Root;
 
 		// A dimmer, so the dock behind reads as out of play rather than still clickable; it eats every click (modal).
-		Dim = T->ConstructWidget<UBorder>();
+		Dim = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Dim"));
 		Dim->SetBrush(Rounded(PawTokens::SKY_BASE.CopyWithNewOpacity(static_cast<float>(PickDimAlpha)), PawTokens::INK, 0.0f, 0.0f));
 		Dim->SetVisibility(ESlateVisibility::Visible);
 		UOverlaySlot* DimSlot = Root->AddChildToOverlay(Dim);
@@ -53,7 +54,7 @@ bool UPawJobPicker::Initialize()
 		UOverlaySlot* SizeSlot = Root->AddChildToOverlay(Size);
 		SizeSlot->SetHorizontalAlignment(HAlign_Center);
 		SizeSlot->SetVerticalAlignment(VAlign_Center);
-		Panel = T->ConstructWidget<UBorder>();
+		Panel = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Panel"));
 		Panel->SetBrush(WindowBrush());
 		Panel->SetPadding(WindowPadding());
 		Panel->SetVisibility(ESlateVisibility::Visible); // the plate stops clicks too
@@ -64,14 +65,14 @@ bool UPawJobPicker::Initialize()
 		Panel->SetContent(Body);
 		const FMargin Gap(0.0f, 0.0f, 0.0f, static_cast<float>(JobBodySeparation));
 
-		Title = MakeText(T, JobTitlePx, PawTokens::INK);
+		Title = MakeText(T, JobTitlePx, PawTokens::INK, false, TEXT("Title"));
 		Title->SetJustification(ETextJustify::Center);
 		Title->SetText(PawText::Ui(TEXT("JOBPICK_title")));
 		UVerticalBoxSlot* TitleSlot = Body->AddChildToVerticalBox(Title);
 		TitleSlot->SetHorizontalAlignment(HAlign_Center);
 		TitleSlot->SetPadding(Gap);
 
-		Note = MakeText(T, LabelPx, PawTokens::UI_TEXT); // the theme's Label: ink, 17 px
+		Note = MakeText(T, LabelPx, PawTokens::UI_TEXT, false, TEXT("Note")); // the theme's Label: ink, 17 px
 		Note->SetJustification(ETextJustify::Center);
 		Note->SetAutoWrapText(false);
 		Note->SetWrapTextAt(InnerWidth);
@@ -80,11 +81,21 @@ bool UPawJobPicker::Initialize()
 		NoteSlot->SetHorizontalAlignment(HAlign_Center);
 		NoteSlot->SetPadding(Gap);
 
-		List = T->ConstructWidget<UVerticalBox>();
+		List = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("List"));
 		List->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		Body->AddChildToVerticalBox(List);
 	}
-	return Super::Initialize();
+	const bool bOk = Super::Initialize();
+	if (bOk && PawUi::ShouldWire(this))
+	{
+		OnLayoutReady();
+	}
+	return bOk;
+}
+
+void UPawJobPicker::OnLayoutReady()
+{
+	// The rows are made from the jobs held, into List, when the picker opens (EnsureRow).
 }
 
 UPawRealmSubsystem* UPawJobPicker::Realm() const
@@ -99,7 +110,7 @@ void UPawJobPicker::EnsureRow(int32 Index)
 	{
 		const int32 I = Buttons.Num();
 		const FMargin Gap(0.0f, I == 0 ? 0.0f : static_cast<float>(JobListSeparation), 0.0f, 0.0f);
-		UPawButton* Button = WidgetTree->ConstructWidget<UPawButton>(UPawButton::StaticClass());
+		UPawButton* Button = WidgetTree->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>());
 		Button->SetMinDimensions(0, static_cast<int32>(JobRowHeight));
 		Button->OnClicked().AddWeakLambda(this, [this, I]() { ClickRow(I); });
 		List->AddChildToVerticalBox(Button)->SetPadding(Gap);

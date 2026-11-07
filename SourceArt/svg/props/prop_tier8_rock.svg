@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="54.0" cy="88.0" rx="35.1" ry="27.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="84.0" cy="82.0" rx="27.1" ry="25.1" fill="#2A1A33" stroke="none"/>
+<polygon points="67.5,87.9 77.7,35.4 95.1,85.5" fill="#2A1A33" stroke="none"/>
+<ellipse cx="54.0" cy="88.0" rx="32.0" ry="24.0" fill="#9E93B5" stroke="none"/>
+<ellipse cx="84.0" cy="82.0" rx="24.0" ry="22.0" fill="#9E93B5" stroke="none"/>
+<polygon points="70.0,84.0 78.0,40.0 92.0,82.0" fill="#F2C65B" stroke="none"/>
+<ellipse cx="48.0" cy="82.0" rx="12.0" ry="7.0" fill="#B5ABC9" stroke="none"/>
+</g>
+</svg>

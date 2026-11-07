@@ -12,6 +12,9 @@
 #include "PcAchievements.h"
 #include "PcData.h"
 #include "PcProgress.h"
+#include "PcEconomy.h"
+#include "PcCheats.h"
+#include "PcFieldRules.h"
 #include "PcSave.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "Save/PawSaveStorage.h"
@@ -522,6 +525,67 @@ bool FPawSaveVersionsTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("in the current version"),
 		Pc::ReadSaveFile(std::string(reinterpret_cast<const char*>(Written.GetData()), Written.Num()), Back) == Pc::PcSaveReadError::None
 			? Back.Version : int64(-1), Pc::PcGodotSaveVersion);
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSaveMidFightTest, "Pawpocalypse.Save.MidFight",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// A save while a boss is up (doc 11 phase 4: busy-state saves). Godot keeps no fight in the save: what is written is the
+// progress (the kills banked in the biome, the Bait already paid), never "beaten". Loaded, the boss is not on the ledger
+// and nothing is up; the Bait paid for the fight stays spent (finding F36).
+bool FPawSaveMidFightTest::RunTest(const FString& Parameters)
+{
+	FSaveWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	UPawRealmSubsystem* Realm = W.World->GetSubsystem<UPawRealmSubsystem>();
+	const Pc::PcGameData& D = W.D();
+	const std::string BossRealm = D.Code.BossRealms.front();
+	const int32 Index = static_cast<int32>(Pc::RealmIndex(D, BossRealm));
+	const Pc::PcBoss* Boss = D.FindBoss(D.Tiers[static_cast<size_t>(Index)].BossData);
+	if (!TestNotNull(TEXT("the realm"), Realm) || !TestNotNull(TEXT("the first boss"), Boss))
+	{
+		W.Close();
+		return false;
+	}
+	Pc::PcProgress& P = W.P();
+	Realm->SetViewSize(1920.0, 1080.0);
+	Pc::CheatUnlockAllTiers(D, P); // the ladder open (the cheat marks every boss beaten) ...
+	P.BossesDefeated.erase(BossRealm); // ... but this one: its fight is the point
+	TestTrue(TEXT("the realm starts"), Realm->StartRealm(7));
+	TestTrue(TEXT("to the boss biome"), Realm->Travel(Index));
+	P.TierKillCount += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
+	P.Catnip += Pc::SummonCatnipCost(D, P, *Boss);
+	if (!TestTrue(TEXT("the boss is summoned"), Realm->SummonBoss()))
+	{
+		W.Close();
+		return false;
+	}
+	Realm->AdvanceFrame(1.0 / 60.0);
+	TestTrue(TEXT("the fight is on"), Realm->GetSim().Field.bBossUp);
+	W.Save->SaveGame(2);
+	W.Save->Flush();
+	const int64 Banked = P.TierKillCount;
+	TestFalse(TEXT("not beaten"), Pc::IsBossDefeated(P, BossRealm));
+	// The next session: a new game in memory, the slot loaded.
+	W.Game->NewGame();
+	TestTrue(TEXT("the mid-fight save loads"), W.Save->LoadGame(2) == EPawLoadOutcome::Loaded);
+	TestFalse(TEXT("the boss is not on the ledger"), Pc::IsBossDefeated(W.P(), BossRealm));
+	TestFalse(TEXT("nor cleared this cycle"), W.P().BossesClearedThisCycle.count(BossRealm) > 0);
+	TestEqual(TEXT("the biome's kills are banked"), W.P().TierKillsByBiome[D.Tiers[static_cast<size_t>(Index)].Id], Banked);
+	TestTrue(TEXT("the realm starts from it"), Realm->StartRealm(7));
+	TestTrue(TEXT("back in the boss biome"), Realm->Travel(Index));
+	TestFalse(TEXT("no boss up after a load"), Realm->GetSim().Field.bBossUp);
+	// AS GODOT HAS IT (finding F36): the Bait paid for the interrupted fight stays spent (bait_spent is saved, the fight is
+	// not), so the whole Bait is owed again before the boss comes out.
+	TestEqual(TEXT("the paid Bait is gone: all of it owed again"), Pc::BaitShortfall(D, W.P(), *Boss), Boss->BaitRequired);
+	W.P().Catnip += Pc::SummonCatnipCost(D, W.P(), *Boss);
+	TestFalse(TEXT("so the boss cannot be summoned again from those kills"), Realm->SummonBoss());
 	W.Close();
 	return true;
 }

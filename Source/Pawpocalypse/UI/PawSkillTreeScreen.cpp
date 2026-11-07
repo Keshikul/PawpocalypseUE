@@ -1,5 +1,11 @@
 #include "UI/PawSkillTreeScreen.h"
 
+#include "UI/PawIcons.h"
+
+#include "Components/Image.h"
+
+#include "Input/PawInputMap.h"
+#include "Save/PawSettingsSubsystem.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/CanvasPanel.h"
@@ -18,11 +24,15 @@
 #include "Realm/PawRealmSubsystem.h"
 #include "Rendering/DrawElements.h"
 #include "UI/PawButton.h"
+#include "UI/PawPrompts.h"
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
 #include "UI/PawTreeTables.h"
 #include "UI/PawUiConstants.h"
 #include "UI/PawUiKit.h"
+#include "UI/PawWidgets.h"
+#include "UI/PawTreeSky.h"
+#include "UI/PawUnicornCeremony.h"
 
 const FName UPawSkillTreeScreen::PauseHolder(TEXT("tree"));
 
@@ -59,11 +69,11 @@ namespace
 	constexpr double TipMargin = 14.0;                  // MARGIN_PX
 	constexpr double TipTitlePx = 20.0;                 // its title font_size
 	constexpr double TipDockX = 24.0, TipDockY = 72.0;  // TIP_DOCK_INSET
+	constexpr double TreePromptPx = 22.0;               // legend.icon_px; the tooltip's bbcode(..., 22)
 	constexpr double FollowBox = 0.6;                   // FOLLOW_BOX
 	constexpr double FollowSec = 0.18;                  // FOLLOW_SEC
 	constexpr double PanPxPerSec = 1400.0;              // PAN_PX_PER_SEC
 	constexpr double ZoomPerSec = 1.2;                  // ZOOM_PER_SEC
-	constexpr double StickDead = 0.2;                   // the pad's steer dead zone
 	constexpr double LineWidth = 5.0, LineWidthOwned = 7.0; // LINE_WIDTH, LINE_WIDTH_OWNED
 	constexpr double RainbowInset = 7.0, RainbowWidth = 5.0, RainbowCorner = 20.0; // RAINBOW_*
 	constexpr int32 RainbowSegments = 10;
@@ -226,22 +236,28 @@ UPawTreeNode::UPawTreeNode(const FObjectInitializer& ObjectInitializer)
 
 bool UPawTreeNode::Initialize()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree)
+	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree && PawUi::BuildsInCode(this))
 	{
 		WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"), RF_Transient);
-		USizeBox* Box = WidgetTree->ConstructWidget<USizeBox>();
+		USizeBox* Box = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("Size"));
 		Box->SetWidthOverride(static_cast<float>(NodePx));
 		Box->SetHeightOverride(static_cast<float>(NodePx));
 		WidgetTree->RootWidget = Box;
-		UOverlay* Root = WidgetTree->ConstructWidget<UOverlay>();
+		UOverlay* Root = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("Root"));
 		Box->SetContent(Root);
-		Frame = WidgetTree->ConstructWidget<UBorder>();
+		Frame = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Frame"));
 		Frame->SetVisibility(ESlateVisibility::HitTestInvisible);
 		UOverlaySlot* FS = Root->AddChildToOverlay(Frame);
 		FS->SetHorizontalAlignment(HAlign_Fill);
 		FS->SetVerticalAlignment(VAlign_Fill);
+		// The branch's icon, in the middle (skill_tree_ui.gd ICON_SIZE 56), under the counter.
+		Icon = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("Icon"));
+		Icon->SetVisibility(ESlateVisibility::Collapsed);
+		UOverlaySlot* IS = Root->AddChildToOverlay(Icon);
+		IS->SetHorizontalAlignment(HAlign_Center);
+		IS->SetVerticalAlignment(VAlign_Center);
 		// Ladders carry "3/10" in the bottom right; unlocks carry nothing.
-		CounterText = MakeText(WidgetTree, CounterPx, FLinearColor::White);
+		CounterText = MakeText(WidgetTree, CounterPx, FLinearColor::White, false, TEXT("CounterText"));
 		UOverlaySlot* CS = Root->AddChildToOverlay(CounterText);
 		CS->SetHorizontalAlignment(HAlign_Right);
 		CS->SetVerticalAlignment(VAlign_Bottom);
@@ -249,7 +265,36 @@ bool UPawTreeNode::Initialize()
 	}
 	const bool bOk = Super::Initialize();
 	SetRenderTransformPivot(FVector2D(0.5, 0.5));
+	if (bOk && PawUi::ShouldWire(this))
+	{
+		OnNodeReady();
+	}
 	return bOk;
+}
+
+void UPawTreeNode::SetIconPath(const FString& Path)
+{
+	if (Icon)
+	{
+		const FSlateBrush B = PawUi::IconBrush(Path, NodeIconPx);
+		Icon->SetVisibility(B.GetResourceObject() ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		Icon->SetBrush(B);
+	}
+}
+
+FString UPawTreeNode::GetIconName() const
+{
+	const UObject* Tex = Icon && Icon->GetVisibility() != ESlateVisibility::Collapsed ? Icon->GetBrush().GetResourceObject() : nullptr;
+	return Tex ? Tex->GetName() : FString();
+}
+
+void UPawTreeNode::OnNodeReady()
+{
+	// The look in play: BP_TreeNodeStyle once baked.
+	if (!GetStyle() || GetStyle()->GetClass() == UPawTreeNodeStyle::StaticClass())
+	{
+		SetStyle(PawUi::Resolve(UPawTreeNodeStyle::StaticClass()));
+	}
 }
 
 void UPawTreeNode::FrameColours(PcTreeNodeState S, const FLinearColor& Trunk, FLinearColor& OutFill, FLinearColor& OutEdge)
@@ -321,21 +366,26 @@ FString UPawSkillTreeScreen::LastSelected() { return GLastSelected; }
 
 bool UPawSkillTreeScreen::Initialize()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree)
+	if (!HasAnyFlags(RF_ClassDefaultObject) && !WidgetTree && PawUi::BuildsInCode(this))
 	{
 		WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"), RF_Transient);
-		UOverlay* Root = WidgetTree->ConstructWidget<UOverlay>();
+		UOverlay* Root = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("Root"));
 		WidgetTree->RootWidget = Root;
-		// Its own opaque backdrop (docs/05 §2 rule 11): the tree's night sky (the stars of skill_tree_sky.gd wait for
-		// phase 6). Visible: it takes the drag and the wheel, and nothing reaches the field.
-		UBorder* Sky = WidgetTree->ConstructWidget<UBorder>();
+		// Its own opaque backdrop (docs/05 §2 rule 11): the tree's night sky. Visible: it takes the drag and the wheel, and
+		// nothing reaches the field.
+		UBorder* Sky = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Sky"));
 		Sky->SetBrush(Rounded(PawTokens::SKY_BASE, PawTokens::SKY_BASE, 0.0f, 0.0f));
 		Sky->SetVisibility(ESlateVisibility::Visible);
 		UOverlaySlot* SkySlot = Root->AddChildToOverlay(Sky);
 		SkySlot->SetHorizontalAlignment(HAlign_Fill);
 		SkySlot->SetVerticalAlignment(VAlign_Fill);
+		// skill_tree.tscn Root/Background: skill_tree_sky.gd's clouds and stars over it (phase 6 slice 5d). Takes no input.
+		TreeSky = WidgetTree->ConstructWidget<UPawTreeSky>(PawUi::Resolve<UPawTreeSky>(), TEXT("TreeSky"));
+		UOverlaySlot* StarsSlot = Root->AddChildToOverlay(TreeSky);
+		StarsSlot->SetHorizontalAlignment(HAlign_Fill);
+		StarsSlot->SetVerticalAlignment(VAlign_Fill);
 		// The content area: below the header, clipped; the canvas under a render transform inside it.
-		UBorder* Content = WidgetTree->ConstructWidget<UBorder>();
+		UBorder* Content = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Content"));
 		Content->SetBrush(NoBrush());
 		Content->SetPadding(FMargin(0.0f, static_cast<float>(ContentTop), 0.0f, 0.0f));
 		Content->SetClipping(EWidgetClipping::ClipToBounds);
@@ -343,83 +393,139 @@ bool UPawSkillTreeScreen::Initialize()
 		UOverlaySlot* ContentSlot = Root->AddChildToOverlay(Content);
 		ContentSlot->SetHorizontalAlignment(HAlign_Fill);
 		ContentSlot->SetVerticalAlignment(VAlign_Fill);
-		Canvas = WidgetTree->ConstructWidget<UCanvasPanel>();
+		Canvas = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("Canvas"));
 		Canvas->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		Canvas->SetRenderTransformPivot(FVector2D(0.0, 0.0));
 		Content->SetContent(Canvas);
 		BuildChrome(Root);
+		// The Unicorn's arrival over all of it (unicorn_ceremony.gd: its own CanvasLayer 15 over the tree's 1). Collapsed until
+		// it plays.
+		Unicorn = WidgetTree->ConstructWidget<UPawUnicornCeremony>(PawUi::Resolve<UPawUnicornCeremony>(), TEXT("Unicorn"));
+		UOverlaySlot* UnicornSlot = Root->AddChildToOverlay(Unicorn);
+		UnicornSlot->SetHorizontalAlignment(HAlign_Fill);
+		UnicornSlot->SetVerticalAlignment(VAlign_Fill);
 	}
-	return Super::Initialize();
+	const bool bOk = Super::Initialize();
+	if (bOk && PawUi::ShouldWire(this))
+	{
+		OnLayoutReady();
+	}
+	return bOk;
+}
+
+void UPawSkillTreeScreen::OnLayoutReady()
+{
+	// The parts, in either mode.
+	PawUi::CollectNamed(WidgetTree, TEXT("TipPrompt"), 7, TipLines);
+	CloseSlot = CloseButton ? Cast<UOverlaySlot>(CloseButton->Slot) : nullptr;
+	TipSlot = TipPanel ? Cast<UCanvasPanelSlot>(TipPanel->Slot) : nullptr;
+	if (CloseButton)
+	{
+		CloseButton->OnClicked().AddWeakLambda(this, [this]() { PressClose(); });
+	}
+	if (Unicorn)
+	{
+		// finished: _enter_focus(), the tree takes the keys back.
+		TWeakObjectPtr<UPawSkillTreeScreen> Self(this);
+		Unicorn->OnFinished = [Self]()
+		{
+			UPawSkillTreeScreen* S = Self.Get();
+			UWidget* Target = S ? S->NativeGetDesiredFocusTarget() : nullptr;
+			if (Target && S->CanTakeFocus())
+			{
+				Target->SetFocus();
+			}
+		};
+	}
+	for (const bool bIn : { true, false })
+	{
+		if (UPawButton* B = Cast<UPawButton>(WidgetTree->FindWidget(bIn ? TEXT("ZoomIn") : TEXT("ZoomOut"))))
+		{
+			B->OnClicked().AddWeakLambda(this, [this, bIn]() { ZoomBy(bIn ? Pc::TreeLayout::ZoomStep : -Pc::TreeLayout::ZoomStep); });
+		}
+	}
+	// Not baked: the legend's template (its prompts follow the device).
+	if (LegendPrompts)
+	{
+		LegendPrompts->SetTemplate(PawText::Ui(TEXT("TREE_legend")));
+	}
 }
 
 void UPawSkillTreeScreen::BuildChrome(UOverlay* Root)
 {
 	UWidgetTree* T = WidgetTree;
 	// The balance on the sky, not on a panel: paper, not ink.
-	StardustText = MakeText(T, LabelPx, PawTokens::SKY_STAR);
+	StardustText = MakeText(T, LabelPx, PawTokens::SKY_STAR, false, TEXT("StardustText"));
 	UOverlaySlot* SS = Root->AddChildToOverlay(StardustText);
 	SS->SetHorizontalAlignment(HAlign_Right);
 	SS->SetVerticalAlignment(VAlign_Top);
 	SS->SetPadding(FMargin(0.0f, 20.0f, 20.0f, 0.0f));
 
-	UVerticalBox* ZoomBox = T->ConstructWidget<UVerticalBox>();
+	UVerticalBox* ZoomBox = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("ZoomBox"));
 	UOverlaySlot* ZS = Root->AddChildToOverlay(ZoomBox);
 	ZS->SetHorizontalAlignment(HAlign_Left);
 	ZS->SetVerticalAlignment(VAlign_Top);
 	ZS->SetPadding(FMargin(static_cast<float>(ZoomBoxX), static_cast<float>(ZoomBoxY), 0.0f, 0.0f));
 	for (const bool bIn : { true, false })
 	{
-		UPawButton* B = T->ConstructWidget<UPawButton>(UPawButton::StaticClass());
+		UPawButton* B = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), bIn ? TEXT("ZoomIn") : TEXT("ZoomOut"));
 		B->SetLabel(PawText::Ui(bIn ? TEXT("TREE_zoom_in") : TEXT("TREE_zoom_out")));
 		B->SetMinDimensions(static_cast<int32>(ZoomButtonPx), static_cast<int32>(ZoomButtonPx));
 		B->SetIsFocusable(false); // the mouse's; the pad zooms on the triggers
-		B->OnClicked().AddWeakLambda(this, [this, bIn]() { ZoomBy(bIn ? Pc::TreeLayout::ZoomStep : -Pc::TreeLayout::ZoomStep); });
 		ZoomBox->AddChildToVerticalBox(B)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
 	}
 
-	Legend = MakeText(T, LabelPx, PawTokens::SKY_STAR);
-	Legend->SetText(PawText::Ui(TEXT("TREE_legend"), PawText::PromptArgs()));
-	UOverlaySlot* LS = Root->AddChildToOverlay(Legend);
+	// skill_tree_ui.gd _build_legend: a PromptLabel along the bottom, prompts 22 px.
+	LegendPrompts = T->ConstructWidget<UPawPromptText>(PawUi::Resolve<UPawPromptText>(), TEXT("LegendPrompts"));
+	LegendPrompts->IconPx = static_cast<int32>(TreePromptPx);
+	LegendPrompts->TextPx = static_cast<float>(LabelPx);
+	LegendPrompts->TextColour = PawTokens::SKY_STAR;
+	UOverlaySlot* LS = Root->AddChildToOverlay(LegendPrompts);
 	LS->SetHorizontalAlignment(HAlign_Center);
 	LS->SetVerticalAlignment(VAlign_Bottom);
 	LS->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 12.0f));
 
 	// The unspent warning, in the middle (playtest 2026-10-01 #32: the caption change at the bottom went unseen on a pad).
-	WarningPlate = T->ConstructWidget<UBorder>();
+	WarningPlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("WarningPlate"));
 	WarningPlate->SetBrush(Rounded(PawTokens::UI_PANEL, PawTokens::INK, 3.0f, 8.0f));
 	WarningPlate->SetPadding(FMargin(18.0f));
 	WarningPlate->SetVisibility(ESlateVisibility::Collapsed);
-	WarningText = MakeText(T, WarnPx, PawTokens::INK);
+	WarningText = MakeText(T, WarnPx, PawTokens::INK, false, TEXT("WarningText"));
 	WarningText->SetJustification(ETextJustify::Center);
 	WarningPlate->SetContent(WarningText);
 	UOverlaySlot* WS = Root->AddChildToOverlay(WarningPlate);
 	WS->SetHorizontalAlignment(HAlign_Center);
 	WS->SetVerticalAlignment(VAlign_Top);
 
-	CloseButton = T->ConstructWidget<UPawButton>(UPawButton::StaticClass());
+	CloseButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("CloseButton"));
 	CloseButton->SetIsFocusable(false); // Back / B close it on the keys and pad; the selection stays on the tree
-	CloseButton->OnClicked().AddWeakLambda(this, [this]() { PressClose(); });
 	CloseSlot = Root->AddChildToOverlay(CloseButton);
 
 	// The tooltip, placed absolutely over everything.
-	UCanvasPanel* TipLayer = T->ConstructWidget<UCanvasPanel>();
+	UCanvasPanel* TipLayer = T->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("TipLayer"));
 	TipLayer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	UOverlaySlot* TL = Root->AddChildToOverlay(TipLayer);
 	TL->SetHorizontalAlignment(HAlign_Fill);
 	TL->SetVerticalAlignment(VAlign_Fill);
-	TipPanel = T->ConstructWidget<UBorder>();
+	TipPanel = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("TipPanel"));
 	TipPanel->SetBrush(Rounded(PawTokens::UI_PANEL, PawTokens::INK, 3.0f, 8.0f));
 	TipPanel->SetPadding(FMargin(16.0f, 12.0f));
 	TipPanel->SetVisibility(ESlateVisibility::Collapsed);
 	UVerticalBox* TipBox = T->ConstructWidget<UVerticalBox>();
 	TipPanel->SetContent(TipBox);
-	TipTitle = MakeText(T, TipTitlePx, PawTokens::INK);
+	TipTitle = MakeText(T, TipTitlePx, PawTokens::INK, false, TEXT("TipTitle"));
 	TipBox->AddChildToVerticalBox(TipTitle)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
 	for (int32 I = 0; I < 7; ++I)
 	{
-		UTextBlock* Line = MakeText(T, LabelPx, PawTokens::INK);
-		Line->SetAutoWrapText(false);
-		Line->SetWrapTextAt(static_cast<float>(TipWidth - 32.0));
+		// Lines with prompts inline (the buy line, a blurb's {pounce}: InputGlyphs.bbcode at 22 px, shown whatever the
+		// Show button prompts setting).
+		UPawPromptText* Line = T->ConstructWidget<UPawPromptText>(PawUi::Resolve<UPawPromptText>(), PawUi::Numbered(TEXT("TipPrompt"), I));
+		Line->IconPx = static_cast<int32>(TreePromptPx);
+		Line->TextPx = static_cast<float>(LabelPx);
+		Line->TextColour = PawTokens::INK;
+		Line->bCentred = false;
+		Line->bHideWithPrompts = false;
+		Line->WrapAt = static_cast<float>(TipWidth - 32.0);
 		Line->SetVisibility(ESlateVisibility::Collapsed);
 		TipBox->AddChildToVerticalBox(Line)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 4.0f));
 		TipLines.Add(Line);
@@ -445,7 +551,7 @@ void UPawSkillTreeScreen::BuildCanvas()
 	const Pc::PcVec2 Size = Pc::TreeCanvasSize(Pc::TreeBounds(Layout));
 	UWidgetTree* T = WidgetTree;
 
-	LinksLayer = T->ConstructWidget<UPawTreeLinks>(UPawTreeLinks::StaticClass());
+	LinksLayer = T->ConstructWidget<UPawTreeLinks>(PawUi::Resolve<UPawTreeLinks>());
 	LinksLayer->SetVisibility(ESlateVisibility::HitTestInvisible);
 	UCanvasPanelSlot* LSlot = Canvas->AddChildToCanvas(LinksLayer);
 	LSlot->SetPosition(FVector2D::ZeroVector);
@@ -481,11 +587,16 @@ void UPawSkillTreeScreen::BuildCanvas()
 	for (const FString& Id : Order)
 	{
 		const FVector2D C = V(Layout.Nodes.at(Utf8(Id)));
-		UPawTreeNode* N = T->ConstructWidget<UPawTreeNode>(UPawTreeNode::StaticClass());
+		UPawTreeNode* N = T->ConstructWidget<UPawTreeNode>(PawUi::Resolve<UPawTreeNode>());
 		N->BranchId = Id;
+		if (const Pc::PcSkillBranch* Branch = G->Data().FindBranch(Utf8(Id)))
+		{
+			N->SetIconPath(UTF8_TO_TCHAR(Branch->IconPath.c_str()));
+		}
 		N->OnClicked().AddWeakLambda(this, [this, Id]() { PressNode(Id); });
 		Place(N, C, FVector2D(NodePx));
 		Nodes.Add(Id, N);
+		Juice.Hover(N, this); // UiJuice.hover(btn)
 		// The caption below the square, two lines at a fixed width, outlined in the sky so a trunk line under it reads.
 		UTextBlock* Cap = MakeText(T, CaptionPx, PawTokens::SKY_STAR);
 		FSlateFontInfo Font = Cap->GetFont();
@@ -532,6 +643,11 @@ UPawGameSubsystem* UPawSkillTreeScreen::Game() const
 {
 	const UPawRealmSubsystem* R = Realm();
 	return R ? R->GetGame() : nullptr;
+}
+
+bool UPawSkillTreeScreen::IsCeremonyPlaying() const
+{
+	return Unicorn && Unicorn->IsPlaying();
 }
 
 bool UPawSkillTreeScreen::CanTakeFocus() const
@@ -688,6 +804,10 @@ void UPawSkillTreeScreen::RefreshAll()
 		const bool bShine = B->bIsUnlock && Owned == 0 && Pc::TreeCanBuyNow(D, P, S) && bSpendMode;
 		Nodes[Id]->SetLook(State, TrunkColour(Id), B->bIsUnlock, Counter, bShine);
 		Halos[Id]->SetVisibility(State == PcTreeNodeState::Ready ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		// btn.disabled = maxed or not available or not affordable or not _spend_mode: no hover pop on a node that cannot be
+		// bought now. A READY node leans while it waits, on top of its halo (the halo does not rotate: a glow, not a frame).
+		Juice.SetHoverOff(Nodes[Id], !(bSpendMode && Pc::TreeCanBuyNow(D, P, S)));
+		Juice.Jitter(Nodes[Id], State == PcTreeNodeState::Ready && bSpendMode, FPawJuice::EffectsOn(this));
 	}
 	// The links (an edge is owned only when both ends are bought), the rainbow verbs, the breathing Unicorn, the job rings.
 	LinksLayer->Links.Reset();
@@ -809,7 +929,7 @@ void UPawSkillTreeScreen::ShowTip(const FString& Id, bool bDocked)
 	}
 	if (Tip.bBuyPrompt)
 	{
-		Lines.Add({ PawText::Ui(TEXT("TREE_buy"), PawText::PromptArgs()), PawTokens::INK });
+		Lines.Add({ PawText::Ui(TEXT("TREE_buy")), PawTokens::INK });
 	}
 	for (int32 I = 0; I < TipLines.Num(); ++I)
 	{
@@ -817,8 +937,8 @@ void UPawSkillTreeScreen::ShowTip(const FString& Id, bool bDocked)
 		TipLines[I]->SetVisibility(bShow ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 		if (bShow)
 		{
-			TipLines[I]->SetText(Lines[I].Key);
-			SetTextColour(TipLines[I], Lines[I].Value);
+			TipLines[I]->SetTextColour(Lines[I].Value);
+			TipLines[I]->SetTemplate(Lines[I].Key);
 		}
 	}
 	TipPanel->SetVisibility(ESlateVisibility::HitTestInvisible);
@@ -842,16 +962,21 @@ void UPawSkillTreeScreen::ShowTip(const FString& Id, bool bDocked)
 	TipSlot->SetPosition(At);
 }
 
+FString UPawSkillTreeScreen::GetLegend() const
+{
+	return LegendPrompts ? LegendPrompts->GetNeutral() : FString();
+}
+
 TArray<FText> UPawSkillTreeScreen::GetTipLines() const
 {
 	TArray<FText> Out;
 	if (TipPanel && TipPanel->GetVisibility() != ESlateVisibility::Collapsed)
 	{
-		for (const UTextBlock* L : TipLines)
+		for (const UPawPromptText* L : TipLines)
 		{
-			if (L->GetVisibility() != ESlateVisibility::Collapsed)
+			if (L && L->GetVisibility() != ESlateVisibility::Collapsed)
 			{
-				Out.Add(L->GetText());
+				Out.Add(PawText::Verbatim(L->GetNeutral()));
 			}
 		}
 	}
@@ -864,7 +989,7 @@ bool UPawSkillTreeScreen::PressNode(const FString& Id)
 {
 	// The rule at the point the Stardust moves: only the spend step buys (browsing is read-only).
 	UPawGameSubsystem* G = Game();
-	if (!bSpendMode || !G || !G->IsDataReady())
+	if (!bSpendMode || !G || !G->IsDataReady() || IsCeremonyPlaying())
 	{
 		return false;
 	}
@@ -891,6 +1016,13 @@ bool UPawSkillTreeScreen::PressNode(const FString& Id)
 	bConfirmLeaving = false;
 	WarningPlate->SetVisibility(ESlateVisibility::Collapsed);
 	RefreshAll();
+	if (Id == TEXT("unlock_unicorn") && Unicorn)
+	{
+		// _play_unicorn_ceremony(): the tooltip hides, the ceremony plays over the tree.
+		TipPanel->SetVisibility(ESlateVisibility::Collapsed);
+		Unicorn->Play(ViewSize.X > 0.0 ? ViewSize : FVector2D(1920.0, 1080.0));
+	}
+	Juice.Punch(Nodes.FindRef(Id)); // _play_purchase_pop: the shared purchase punch
 	ShowTip(Id, bTipDocked); // the tooltip under the cursor shows the next level's price at once (designer 2026-08-23)
 	return true;
 }
@@ -905,6 +1037,7 @@ void UPawSkillTreeScreen::PressClose()
 		const bool bUnspent = G && G->IsDataReady() && Pc::HasAffordableBranch(G->Data(), G->Progress());
 		WarningText->SetText(PawText::Ui(bUnspent ? TEXT("TREE_warn_unspent") : TEXT("TREE_warn_next")));
 		WarningPlate->SetVisibility(ESlateVisibility::HitTestInvisible);
+		Juice.PopIn(WarningPlate); // UiJuice.pop_in(_unspent_plate)
 		StyleClose();
 		return;
 	}
@@ -1018,6 +1151,7 @@ void UPawSkillTreeScreen::NativeTick(const FGeometry& Geometry, float DeltaSecon
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
 	SetViewSize(FVector2D(Geometry.GetLocalSize()));
+	Juice.Tick(DeltaSeconds);
 	// The halos breathe; the rainbow turns; the pulse breathes.
 	HaloClock += DeltaSeconds;
 	const double T = 0.5 + 0.5 * FMath::Sin(HaloClock * UE_DOUBLE_TWO_PI / HaloPeriodSec);
@@ -1034,8 +1168,9 @@ void UPawSkillTreeScreen::NativeTick(const FGeometry& Geometry, float DeltaSecon
 		LinksLayer->RainbowPhase = FMath::Fmod(LinksLayer->RainbowPhase + DeltaSeconds * RainbowTurnsPerSec, 1.0);
 		LinksLayer->PulseClock = FMath::Fmod(LinksLayer->PulseClock + DeltaSeconds, 1.0 / PulseHz);
 	}
-	// The pad: right stick pans, the triggers (or = and -) zoom, both held.
-	if (Stick.Size() > StickDead)
+	// The pad (_tick_pad_view): the steer stick pans (Player.steer_input: dead zone already removed), zoom_in / zoom_out zoom,
+	// both held.
+	if (!Stick.IsZero())
 	{
 		bFollowing = false;
 		Pan -= Stick * PanPxPerSec * DeltaSeconds;
@@ -1093,10 +1228,17 @@ void UPawSkillTreeScreen::NativeTick(const FGeometry& Geometry, float DeltaSecon
 
 FReply UPawSkillTreeScreen::NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& KeyEvent)
 {
-	// Keys until phase 5's Enhanced Input actions (docs/05 §3): back / open_skill_tree close (the spend step asks once);
-	// buy_amount jumps; = / - and the triggers zoom.
+	// skill_tree_ui.gd, through the input map: back / open_skill_tree close (the spend step asks once); buy_amount jumps to
+	// the next affordable node; zoom_in / zoom_out zoom while held.
 	const FKey K = KeyEvent.GetKey();
-	if (K == EKeys::Escape || K == EKeys::Gamepad_FaceButton_Right || K == EKeys::T || K == EKeys::Gamepad_FaceButton_Top)
+	if (IsCeremonyPlaying())
+	{
+		// The tree takes no keys while the Unicorn arrives (Back cannot close it out from under it); a press skips.
+		Unicorn->Input(KeyEvent.IsRepeat() ? Pc::PcUnicornInput::KeyEcho
+			: (K.IsGamepadKey() ? Pc::PcUnicornInput::PadDown : Pc::PcUnicornInput::KeyDown));
+		return FReply::Handled();
+	}
+	if (PawInput::KeyIs(K, TEXT("back")) || PawInput::KeyIs(K, TEXT("open_skill_tree")))
 	{
 		if (!KeyEvent.IsRepeat())
 		{
@@ -1104,19 +1246,21 @@ FReply UPawSkillTreeScreen::NativeOnPreviewKeyDown(const FGeometry& Geometry, co
 		}
 		return FReply::Handled();
 	}
-	if (K == EKeys::Q || K == EKeys::Gamepad_FaceButton_Left)
+	if (PawInput::KeyIs(K, TEXT("buy_amount")))
 	{
 		JumpToAffordable();
 		return FReply::Handled();
 	}
-	if (K == EKeys::Equals || K == EKeys::Add || K == EKeys::Gamepad_RightTrigger)
+	// zoom_in / zoom_out: a key holds strength 1; a trigger's digital stand-in is handled but changes nothing (its analog
+	// value carries its strength, NativeOnAnalogValueChanged).
+	if (PawInput::KeyIs(K, TEXT("zoom_in")) || PawInput::KeyIs(K, TEXT("zoom_out")))
 	{
-		ZoomHeld = 1.0;
-		return FReply::Handled();
-	}
-	if (K == EKeys::Hyphen || K == EKeys::Subtract || K == EKeys::Gamepad_LeftTrigger)
-	{
-		ZoomHeld = -1.0;
+		if (!PawInput::IsStandIn(K))
+		{
+			bZoomInKey |= PawInput::KeyIs(K, TEXT("zoom_in"));
+			bZoomOutKey |= PawInput::KeyIs(K, TEXT("zoom_out"));
+			RefreshZoom();
+		}
 		return FReply::Handled();
 	}
 	return Super::NativeOnPreviewKeyDown(Geometry, KeyEvent);
@@ -1125,26 +1269,56 @@ FReply UPawSkillTreeScreen::NativeOnPreviewKeyDown(const FGeometry& Geometry, co
 FReply UPawSkillTreeScreen::NativeOnKeyUp(const FGeometry& Geometry, const FKeyEvent& KeyEvent)
 {
 	const FKey K = KeyEvent.GetKey();
-	if (K == EKeys::Equals || K == EKeys::Add || K == EKeys::Gamepad_RightTrigger || K == EKeys::Hyphen || K == EKeys::Subtract
-		|| K == EKeys::Gamepad_LeftTrigger)
+	if (PawInput::KeyIs(K, TEXT("zoom_in")) || PawInput::KeyIs(K, TEXT("zoom_out")))
 	{
-		ZoomHeld = 0.0;
+		if (!PawInput::IsStandIn(K))
+		{
+			bZoomInKey &= !PawInput::KeyIs(K, TEXT("zoom_in"));
+			bZoomOutKey &= !PawInput::KeyIs(K, TEXT("zoom_out"));
+			RefreshZoom();
+		}
 		return FReply::Handled();
 	}
 	return Super::NativeOnKeyUp(Geometry, KeyEvent);
 }
 
+void UPawSkillTreeScreen::RefreshZoom()
+{
+	// _tick_pad_view: get_action_strength("zoom_in") - get_action_strength("zoom_out"); an action's strength is its strongest
+	// event's (a held key 1, a trigger its strength past the dead zone).
+	float In = bZoomInKey ? 1.0f : 0.0f;
+	float Out = bZoomOutKey ? 1.0f : 0.0f;
+	for (const TPair<FKey, float>& A : ZoomAxes)
+	{
+		In = FMath::Max(In, PawInput::Strength(TEXT("zoom_in"), A.Key, A.Value));
+		Out = FMath::Max(Out, PawInput::Strength(TEXT("zoom_out"), A.Key, A.Value));
+	}
+	ZoomHeld = static_cast<double>(In - Out);
+}
+
 FReply UPawSkillTreeScreen::NativeOnAnalogValueChanged(const FGeometry& Geometry, const FAnalogInputEvent& Event)
 {
-	const FKey K = Event.GetKey();
-	if (K == EKeys::Gamepad_RightX)
+	if (IsCeremonyPlaying())
 	{
-		Stick.X = Event.GetAnalogValue();
+		return FReply::Handled(); // no steering or zooming under the ceremony
+	}
+	// Player.steer_input(): Input.get_vector over the steer actions (their keys and dead zone, from the input map), with
+	// Settings > Controls > Invert X / Y. Godot's vector points +Y down, as the screen does.
+	const FKey K = Event.GetKey();
+	if (PawInput::KeyIs(K, TEXT("zoom_in")) || PawInput::KeyIs(K, TEXT("zoom_out")))
+	{
+		ZoomAxes.Add(K, Event.GetAnalogValue());
+		RefreshZoom();
 		return FReply::Handled();
 	}
-	if (K == EKeys::Gamepad_RightY)
+	if (PawInput::IsSteerAxis(K))
 	{
-		Stick.Y = -Event.GetAnalogValue(); // stick up is +Y; the screen's up is -Y
+		SteerAxes.Add(K, Event.GetAnalogValue());
+		const FVector2f V = PawInput::SteerVector(SteerAxes);
+		const UPawSettingsSubsystem* Settings = GetGameInstance() ? GetGameInstance()->GetSubsystem<UPawSettingsSubsystem>() : nullptr;
+		const bool bInvertX = Settings && Settings->Get().bInvertX;
+		const bool bInvertY = Settings && Settings->Get().bInvertY;
+		Stick = FVector2D(bInvertX ? -V.X : V.X, bInvertY ? -V.Y : V.Y);
 		return FReply::Handled();
 	}
 	return Super::NativeOnAnalogValueChanged(Geometry, Event);

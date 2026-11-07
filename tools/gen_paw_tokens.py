@@ -1,82 +1,117 @@
-"""Writes Source/Pawpocalypse/UI/PawTokens.h, the game's colour tokens, from the Godot palette (docs/05 §7).
+"""Writes the game's colour tokens from the project's own palette, tools/art/palette.py (docs/05 §7, docs/07 §3).
 
-The Godot project generates scripts/systems/palette.gd from its tools/palette.py; every flat `const NAME := Color("#RRGGBB")`
-there becomes `PawTokens::NAME` here (the same name, so a Godot line ports by grep). Screens never hold a colour value:
-the L0 gate `ui-literals` fails on an FLinearColor/FColor literal anywhere in the UI code but this generated header.
+Since 2026-11-07 the Unreal look no longer follows Godot (designer: "The unreal version does not have to match godot, they
+can be different."; docs/WORKLIST-RESTYLE-2026-11-07.md R0). The palette is ours: tools/art/palette.py, whose gdscript()
+still renders the table in Godot's palette.gd shape (one `const NAME := Color("#RRGGBB")` per colour), so every token keeps
+the name a Godot line uses and a Godot behaviour still ports by grep. Screens never hold a colour value: the L0 gate
+`ui-literals` fails on an FLinearColor/FColor literal anywhere in the UI code but this generated header.
 
-    py tools/gen_paw_tokens.py [--godot C:/Games/pawpocalypse] [--check]
+Writes three files:
+  Source/Pawpocalypse/UI/PawTokens.h        every flat colour, plus the literals Godot authored in scenes and scripts
+                                            (palette.py LITERALS)
+  Source/PawCore/Public/PcBackdropTones.h   the BACKDROPS table (each biome's field, detail, patch and puddle, sRGB bytes;
+                                            puddle alpha 0 = a dry biome), the sky and the ink, for PawCore
+  Source/PawCore/Tests/PcGodotLook.h        Godot's colour -> ours, for the tests that compare with Godot fixtures: the
+                                            fixtures still prove geometry, timing and WHICH colour is drawn where; this
+                                            table says what that colour is now. Built from the frozen snapshot of the
+                                            palette at the fork (tools/art/palette_godot_snapshot.json) against today's.
+
+    py tools/gen_paw_tokens.py [--check]
 """
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tools" / "art"))
+import palette  # noqa: E402  (tools/art/palette.py)
+
 OUT = ROOT / "Source" / "Pawpocalypse" / "UI" / "PawTokens.h"
+TONES = ROOT / "Source" / "PawCore" / "Public" / "PcBackdropTones.h"
+LOOK = ROOT / "Source" / "PawCore" / "Tests" / "PcGodotLook.h"
+SNAPSHOT = ROOT / "tools" / "art" / "palette_godot_snapshot.json"
+# The palette the baked Widget Blueprints carry (they saved their colours as values when baked): what
+# tools/bake_widgets.py --recolour migrates them FROM, rewritten to today's palette after a migration.
+WIDGETS_SNAPSHOT = ROOT / "tools" / "art" / "palette_widgets_snapshot.json"
+RE_BACKDROP = re.compile(r'^\t"(\w+)": \{"field": (Color\([^)]*\)), "detail": (Color\([^)]*\)), "patch": (Color\([^)]*\)), '
+                         r'"puddle": (Color\([^)]*\)), "dark": (true|false)\},?$', re.M)
 RE_CONST = re.compile(r'^const ([A-Z][A-Z0-9_]*) := Color\("#([0-9A-Fa-f]{6})([0-9A-Fa-f]{2})?"\)', re.M)
-RE_SCENE_COLOR = re.compile(r'^([\w/]+) = Color\(([-\d.e]+), ([-\d.e]+), ([-\d.e]+), ([-\d.e]+)\)$')
-
-# Colours a Godot SCENE authors as literals (not palette.gd): (token, scene under the Godot project, node, property).
-SCENE_COLOURS = [
-    ("CEREMONY_FLASH", "scenes/ui/reawaken_ceremony.tscn", "Flash", "color"),
-    ("CEREMONY_HEADLINE", "scenes/ui/reawaken_ceremony.tscn", "Headline", "theme_override_colors/font_color"),
-    ("CEREMONY_PAYOUT", "scenes/ui/reawaken_ceremony.tscn", "Payout", "theme_override_colors/font_color"),
-]
 
 
-def scene_colour(godot, scene, node, prop):
-    """The Color(r, g, b, a) a .tscn sets on one node's property; fails loudly when the scene no longer has it."""
-    current = None
-    for line in (Path(godot) / scene).read_text(encoding="utf-8").splitlines():
-        if line.startswith("["):
-            m = re.match(r'\[node name="([^"]+)"', line)
-            current = m.group(1) if m else None
-            continue
-        if current == node:
-            m = RE_SCENE_COLOR.match(line.strip())
-            if m and m.group(1) == prop:
-                return tuple(m.group(i) for i in range(2, 6))
-    raise SystemExit("gen_paw_tokens: %s has no %s on node %s" % (scene, prop, node))
+def colour_bytes(expr):
+    """Color("#RRGGBB[AA]") or Color(r, g, b, a) (floats 0-1) -> (r, g, b, a) bytes."""
+    m = re.match(r'Color\("#([0-9A-Fa-f]{6})([0-9A-Fa-f]{2})?"\)$', expr)
+    if m:
+        return tuple(int(m.group(1)[i:i + 2], 16) for i in (0, 2, 4)) + (int(m.group(2), 16) if m.group(2) else 255,)
+    m = re.match(r'Color\(([-\d.]+), ([-\d.]+), ([-\d.]+), ([-\d.]+)\)$', expr)
+    if m:
+        return tuple(int(round(float(m.group(i)) * 255)) for i in range(1, 5))
+    raise SystemExit("gen_paw_tokens: cannot read %s" % expr)
 
 
-# Colours a Godot SCRIPT authors as literals in code: (token, script under the Godot project, the left-hand side).
-CODE_COLOURS = [
-    ("VICTORY_DIM", "scripts/systems/victory_screen.gd", "dim.color"),
-]
-RE_CODE_COLOR = re.compile(r'^\s*([\w.]+) = Color\(([-\d.e]+), ([-\d.e]+), ([-\d.e]+), ([-\d.e]+)\)\s*$')
-
-
-def code_colour(godot, script, lhs):
-    """The Color(r, g, b, a) one assignment in a .gd sets; fails loudly when the script has none, or more than one."""
-    found = []
-    for line in (Path(godot) / script).read_text(encoding="utf-8").splitlines():
-        m = RE_CODE_COLOR.match(line)
-        if m and m.group(1) == lhs:
-            found.append(tuple(m.group(i) for i in range(2, 6)))
-    if len(found) != 1:
-        raise SystemExit("gen_paw_tokens: %s sets %s %d times (want 1)" % (script, lhs, len(found)))
-    return found[0]
-
-
-def render(godot):
-    src = (Path(godot) / "scripts" / "systems" / "palette.gd").read_text(encoding="utf-8")
-    rows = RE_CONST.findall(src)
-    if not rows:
-        raise SystemExit("gen_paw_tokens: no Color constants found in palette.gd")
+def render_tones(src):
+    rows = RE_BACKDROP.findall(src)
+    if len(rows) < 12:
+        raise SystemExit("gen_paw_tokens: the palette's BACKDROPS has %d biomes (want 12)" % len(rows))
     lines = [
         "#pragma once",
         "",
-        "// GENERATED by tools/gen_paw_tokens.py from the Godot project's scripts/systems/palette.gd. Do not edit: change the",
-        "// palette in Godot (tools/palette.py there), then re-run the generator. The only place UI code may hold a colour",
-        "// value (docs/05 §7; L0 gate ui-literals).",
+        "// GENERATED by tools/gen_paw_tokens.py from tools/art/palette.py BACKDROPS. Do not edit.",
+        "// Each biome's floor tones, sRGB bytes; a puddle alpha of 0 is a dry biome (biome_backdrop.gd draws no puddles there).",
+        "",
+        "#include <cstdint>",
+        "",
+        "namespace Pc",
+        "{",
+        "\tstruct PcTone",
+        "\t{",
+        "\t\tuint8_t R = 0, G = 0, B = 0, A = 0;",
+        "\t};",
+        "\tstruct PcBackdropTones",
+        "\t{",
+        "\t\tconst char* Id;",
+        "\t\tPcTone Field, Detail, Patch, Puddle;",
+        "\t\tbool bDark;",
+        "\t};",
+        "\tinline constexpr PcBackdropTones BackdropTones[] = {",
+    ]
+    for tid, field, detail, patch, puddle, dark in rows:
+        parts = ", ".join("{ %d, %d, %d, %d }" % colour_bytes(c) for c in (field, detail, patch, puddle))
+        lines.append("\t\t{ \"%s\", %s, %s }," % (tid, parts, dark))
+    lines.append("\t};")
+    # The skill tree's sky (skill_tree_sky.gd, phase 6 slice 5d): the palette's SKY_* that it draws with.
+    consts = {m.group(1): m.group(0).split(":= ", 1)[1] for m in RE_CONST.finditer(src)}
+    lines.append("\t// The skill tree's sky (skill_tree_sky.gd): its base, star and two cloud violets; and the ink and gold PawCore")
+    lines.append("\t// draws with (the Unicorn ceremony's stars and their rims).")
+    for name in ("SKY_BASE", "SKY_STAR", "SKY_CLOUD", "SKY_CLOUD_WARM", "INK", "GOLD"):
+        if name not in consts:
+            raise SystemExit("gen_paw_tokens: the palette has no %s" % name)
+        words = name.split("_")
+        token = ("Sky" + "".join(w.capitalize() for w in words[1:])) if words[0] == "SKY" else "".join(w.capitalize() for w in words)
+        lines.append("\tinline constexpr PcTone %s = { %d, %d, %d, %d };" % ((token,) + colour_bytes(consts[name])))
+    lines += ["}", ""]
+    return "\n".join(lines)
+
+
+def render(src):
+    rows = RE_CONST.findall(src)
+    if not rows:
+        raise SystemExit("gen_paw_tokens: no Color constants found in the palette")
+    lines = [
+        "#pragma once",
+        "",
+        "// GENERATED by tools/gen_paw_tokens.py from tools/art/palette.py. Do not edit: change the palette there, then re-run",
+        "// the generator. The only place UI code may hold a colour value (docs/05 §7; L0 gate ui-literals).",
         "",
         '#include "CoreMinimal.h"',
         "",
         "namespace PawTokens",
         "{",
-        "\t// sRGB bytes, as the palette authors them (Godot's Color(\"#hex\") is sRGB); Slate wants linear.",
+        "\t// sRGB bytes, as the palette authors them; Slate wants linear.",
         "\tinline FLinearColor Srgb(uint8 R, uint8 G, uint8 B, uint8 A = 255) { return FLinearColor::FromSRGBColor(FColor(R, G, B, A)); }",
-        "\t// A scene's Color(r, g, b, a): sRGB floats, decoded as Godot's Color::srgb_to_linear; alpha stays as is.",
+        "\t// sRGB floats (Godot's Color(r, g, b, a) in a scene), decoded as Godot's Color::srgb_to_linear; alpha stays as is.",
         "\tinline float SrgbToLinear(double C) { return static_cast<float>(C <= 0.04045 ? C / 12.92 : FMath::Pow((C + 0.055) / 1.055, 2.4)); }",
         "\tinline FLinearColor SrgbF(double R, double G, double B, double A = 1.0) { return FLinearColor(SrgbToLinear(R), SrgbToLinear(G), SrgbToLinear(B), static_cast<float>(A)); }",
         "",
@@ -85,34 +120,152 @@ def render(godot):
         r, g, b = (int(hexrgb[i:i + 2], 16) for i in (0, 2, 4))
         a = int(alpha, 16) if alpha else 255
         lines.append("\tinline const FLinearColor %s = Srgb(0x%02X, 0x%02X, 0x%02X%s);" % (name, r, g, b, "" if a == 255 else ", 0x%02X" % a))
-    lines += ["", "	// Literals of Godot scenes (SCENE_COLOURS in the generator): the scene, the node, the property."]
-    for name, scene, node, prop in SCENE_COLOURS:
-        r, g, b, a = scene_colour(godot, scene, node, prop)
-        lines.append("	inline const FLinearColor %s = SrgbF(%s, %s, %s%s); // %s %s %s" % (name, r, g, b, "" if float(a) == 1.0 else ", " + a, scene, node, prop))
-    lines += ["", "	// Literals of Godot scripts (CODE_COLOURS in the generator): the script, the assignment."]
-    for name, script, lhs in CODE_COLOURS:
-        r, g, b, a = code_colour(godot, script, lhs)
-        lines.append("	inline const FLinearColor %s = SrgbF(%s, %s, %s%s); // %s %s" % (name, r, g, b, "" if float(a) == 1.0 else ", " + a, script, lhs))
+    lines += ["", "\t// Colours the palette has retired (gen_paw_tokens.py retired()): no baked asset may still hold one",
+              "\t// (Pawpocalypse.UI.Widgets.Palette; py tools/bake_widgets.py --run --recolour migrates them).",
+              "\tinline const TArray<uint32> PALETTE_RETIRED = { %s };" % ", ".join("0x%s" % h[1:] for h in retired())]
+    lines += ["", "\t// Colours Godot authored as literals in scenes and scripts (palette.py LITERALS)."]
+    for name, (r, g, b, a, where) in palette.LITERALS.items():
+        lines.append("\tinline const FLinearColor %s = SrgbF(%s, %s, %s%s); // %s" % (name, r, g, b, "" if a is None else ", " + a, where))
     lines += ["}", ""]
+    return "\n".join(lines)
+
+
+def flat(d, prefix=""):
+    """palette.as_dict() -> {path: "#RRGGBB"} for every colour in it (lists by index)."""
+    out = {}
+    items = d.items() if isinstance(d, dict) else enumerate(d)
+    for k, v in items:
+        path = "%s%s" % (prefix + "." if prefix else "", k)
+        if isinstance(v, str):
+            if re.fullmatch(r"#[0-9A-Fa-f]{6}", v):
+                out[path] = v.upper()
+        elif isinstance(v, (dict, list, tuple)):
+            out.update(flat(v, path))
+    return out
+
+
+def drawn(d):
+    """The palette's colours by path, without "stacklands" (the measured reference table: a record, not something drawn)."""
+    return flat({k: v for k, v in d.items() if k != "stacklands"})
+
+
+def colour_pairs(snapshot):
+    """[(old, new, paths)] for every palette colour that changed since the snapshot. Refuses an ambiguous map: one old
+    colour that became two different colours of ours would make a comparison (or a migration) unanswerable."""
+    then = drawn(json.loads(Path(snapshot).read_text(encoding="utf-8")))
+    now = drawn(palette.as_dict())
+    pairs = {}
+    for path, old in sorted(then.items()):
+        new = now.get(path)
+        if new is None:
+            continue
+        pairs.setdefault(old, {}).setdefault(new, []).append(path)
+    bad = []
+    rows = []
+    for old in sorted(pairs):
+        news = pairs[old]
+        if len(news) > 1:
+            bad.append("%s became %s" % (old, "; ".join("%s (%s)" % (n, ", ".join(p[:3])) for n, p in news.items())))
+            continue
+        (new, paths), = news.items()
+        if new != old:
+            rows.append((old, new, paths))
+    if bad:
+        raise SystemExit("gen_paw_tokens: the old -> new colour map is ambiguous:\n  " + "\n  ".join(bad))
+    return rows
+
+
+def retired():
+    """Colours the Godot palette or the widgets' last palette drew that today's palette no longer has anywhere: a baked asset
+    that still holds one missed a migration (Pawpocalypse.UI.Widgets.Palette)."""
+    old = set()
+    for snap in (SNAPSHOT, WIDGETS_SNAPSHOT):
+        old |= set(drawn(json.loads(snap.read_text(encoding="utf-8"))).values())
+    return sorted(old - set(drawn(palette.as_dict()).values()))
+
+
+def render_look():
+    """Godot's colour (the frozen snapshot) -> ours (today), for every colour that changed."""
+    rows = colour_pairs(SNAPSHOT)
+    lines = [
+        "#pragma once",
+        "",
+        "// GENERATED by tools/gen_paw_tokens.py. Do not edit. Test-only (PAWCORE_STANDALONE_TESTS).",
+        "// Godot's palette colour -> the project's, for every colour the restyle changed (docs/WORKLIST-RESTYLE-2026-11-07.md R0).",
+        "// A test that compares a Godot fixture's colour passes it through PcFromGodot(): the fixture still proves which palette",
+        "// colour is drawn where; this table says what that colour is now. An unchanged colour maps to itself.",
+        "",
+        "#include <cmath>",
+        "#include <cstdint>",
+        "",
+        "namespace Pc",
+        "{",
+        "\tstruct PcGodotLookPair",
+        "\t{",
+        "\t\tuint8_t From[3];",
+        "\t\tuint8_t To[3];",
+        "\t};",
+        "\tinline constexpr int PcGodotLookCount = %d;" % len(rows),
+        "\tinline constexpr PcGodotLookPair PcGodotLook[PcGodotLookCount > 0 ? PcGodotLookCount : 1] = {",
+    ]
+    if rows:
+        for old, new, paths in rows:
+            o = tuple(int(old[i:i + 2], 16) for i in (1, 3, 5))
+            n = tuple(int(new[i:i + 2], 16) for i in (1, 3, 5))
+            lines.append("\t\t{ { %d, %d, %d }, { %d, %d, %d } }, // %s -> %s: %s" % (o + n + (old, new, ", ".join(paths[:4]))))
+    else:
+        lines.append("\t\t{ { 0, 0, 0 }, { 0, 0, 0 } }, // none changed yet")
+    lines += [
+        "\t};",
+        "",
+        "\t// One channel set (0-1 sRGB floats, as the fixtures write them): if it is a Godot palette colour that changed, write",
+        "\t// ours into it. Alpha is never touched (Godot draws Color(INK, 0.55) and the like).",
+        "\tinline void PcFromGodot(double& R, double& G, double& B)",
+        "\t{",
+        "\t\tconst int r = static_cast<int>(std::lround(R * 255.0)), g = static_cast<int>(std::lround(G * 255.0)),",
+        "\t\t\tb = static_cast<int>(std::lround(B * 255.0));",
+        "\t\tfor (int I = 0; I < PcGodotLookCount; ++I)",
+        "\t\t{",
+        "\t\t\tconst PcGodotLookPair& P = PcGodotLook[I];",
+        "\t\t\tif (P.From[0] == r && P.From[1] == g && P.From[2] == b)",
+        "\t\t\t{",
+        "\t\t\t\tR = P.To[0] / 255.0;",
+        "\t\t\t\tG = P.To[1] / 255.0;",
+        "\t\t\t\tB = P.To[2] / 255.0;",
+        "\t\t\t\treturn;",
+        "\t\t\t}",
+        "\t\t}",
+        "\t}",
+        "}",
+        "",
+    ]
     return "\n".join(lines)
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--godot", default="C:/Games/pawpocalypse")
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args()
-    text = render(args.godot)
+    problems = palette.check()
+    if problems:
+        print("gen_paw_tokens: the palette fails %d rule(s) (py tools/art/palette.py):" % len(problems))
+        for p in problems:
+            print("  " + p)
+        return 1
+    src = palette.gdscript()
+    outputs = ((OUT, render(src)), (TONES, render_tones(src)), (LOOK, render_look()))
     if args.check:
-        current = OUT.read_text(encoding="utf-8") if OUT.exists() else ""
-        if current != text:
-            print("PawTokens.h is not what tools/gen_paw_tokens.py writes: re-run it")
+        bad = [f.name for f, want in outputs if (f.read_text(encoding="utf-8") if f.exists() else "") != want]
+        if bad:
+            print("%s not what tools/gen_paw_tokens.py writes: re-run it" % " and ".join(bad))
             return 1
-        print("PawTokens.h current")
+        print("PawTokens.h, PcBackdropTones.h and PcGodotLook.h current")
         return 0
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_bytes(text.encode("utf-8"))
-    print("wrote %s (%d tokens)" % (OUT.relative_to(ROOT), text.count("inline const")))
+    for f, text in outputs:
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_bytes(text.encode("utf-8"))
+    print("wrote %s (%d tokens), %s and %s" % (OUT.relative_to(ROOT), outputs[0][1].count("inline const"),
+                                               TONES.relative_to(ROOT), LOOK.relative_to(ROOT)))
     return 0
 
 

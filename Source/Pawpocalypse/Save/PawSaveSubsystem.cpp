@@ -13,6 +13,7 @@
 #include "Misc/ScopeLock.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "Save/PawSaveStorage.h"
+#include "Save/PawSettingsSubsystem.h"
 
 #include <atomic>
 #include <string>
@@ -127,34 +128,17 @@ void UPawSaveSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	Collection.InitializeDependency<UPawGameSubsystem>();
+	Collection.InitializeDependency<UPawSettingsSubsystem>();
 	Stats = MakeShared<FPawSaveWriteStats>();
-	const TCHAR* Cmd = FCommandLine::Get();
-	FString Folder;
-	if (FParse::Param(Cmd, TEXT("NoSave")))
-	{
-		bEnabled = false;
-		UE_LOG(LogPaw, Log, TEXT("Save: off (-NoSave)"));
-	}
-	else if (FParse::Value(Cmd, TEXT("PawSaveDir="), Folder) && !Folder.IsEmpty())
-	{
-		Storage = MakeShared<FPawFolderSaveStorage>(Folder);
-		bEnabled = true;
-	}
-	else if (GIsAutomationTesting || FApp::IsUnattended())
-	{
-		// An automated run never touches the real slots (docs/09 §1 rule 4): a test hands in its own storage.
-		bEnabled = false;
-		UE_LOG(LogPaw, Log, TEXT("Save: off (an automated run with no -PawSaveDir)"));
-	}
-	else
-	{
-		Storage = MakeShared<FPawPlatformSaveStorage>();
-		bEnabled = true;
-	}
+	// An automated run never touches the real slots (docs/09 §1 rule 4): a test hands in its own storage.
+	FString Why;
+	Storage = PawStorageForThisRun(Why);
+	bEnabled = Storage.IsValid();
+	UE_LOG(LogPaw, Log, TEXT("Save: %s"), *Why);
 	bInitialized = true;
+	StartOnLastSlot();
 	if (bEnabled)
 	{
-		UE_LOG(LogPaw, Log, TEXT("Save: %s"), *Storage->Describe());
 		RecoverInterruptedSaves();
 		// Godot's SaveManager loads the last slot at startup; the title's Continue then simply plays it.
 		LoadGame(ActiveSlot);
@@ -424,8 +408,9 @@ void UPawSaveSubsystem::SaveGame(int32 Slot)
 	}
 	if (Slot >= 0)
 	{
-		// Saving somewhere is the clearest statement about where the next autosave belongs.
+		// Saving somewhere is the clearest statement about where the next autosave belongs (and the last slot used).
 		ActiveSlot = FMath::Clamp(Slot, 0, SlotCount - 1);
+		RememberSlot();
 	}
 	const Pc::PcSaveState S = Pc::CaptureSave(G->Data(), G->Progress(), G->Slot(), UnixNow());
 	const std::string File = Pc::WriteSaveFile(S, TCHAR_TO_UTF8(FApp::GetBuildVersion()));
@@ -527,8 +512,10 @@ EPawLoadOutcome UPawSaveSubsystem::LoadGame(int32 Slot)
 		Outcome = EPawLoadOutcome::LoadedFromBackup;
 	}
 	ActiveSlot = Which;
+	RememberSlot();
 	const Pc::PcLoadResult R = Pc::ApplySave(G->Data(), G->Progress(), S, G->Slot());
 	G->Slot() = R.Extras;
+	G->MarkProgressReplaced();
 	if (R.bTreeMigrated)
 	{
 		UE_LOG(LogPaw, Warning, TEXT("Save: migrated the skill tree to the v6 unlock / ladder shape"));
@@ -544,6 +531,25 @@ EPawLoadOutcome UPawSaveSubsystem::LoadGame(int32 Slot)
 	return LastLoad;
 }
 
+void UPawSaveSubsystem::StartOnLastSlot()
+{
+	// save_manager.gd _ready(): active_slot = clampi(SettingsManager.last_slot, 0, SLOT_COUNT - 1).
+	ActiveSlot = 0;
+	if (const UPawSettingsSubsystem* Settings = GetGameInstance()->GetSubsystem<UPawSettingsSubsystem>())
+	{
+		ActiveSlot = static_cast<int32>(FMath::Clamp<int64>(Settings->Get().LastSlot, 0, SlotCount - 1));
+	}
+}
+
+void UPawSaveSubsystem::RememberSlot()
+{
+	// SettingsManager.set_last_slot(): a machine preference, not progression; it belongs with the volume.
+	if (UPawSettingsSubsystem* Settings = GetGameInstance()->GetSubsystem<UPawSettingsSubsystem>())
+	{
+		Settings->SetLastSlot(ActiveSlot);
+	}
+}
+
 // --- the tests' sandbox --------------------------------------------------------------------------------------------------
 
 void UPawSaveSubsystem::UseStorageForTest(TSharedPtr<IPawSaveStorage> InStorage)
@@ -552,7 +558,7 @@ void UPawSaveSubsystem::UseStorageForTest(TSharedPtr<IPawSaveStorage> InStorage)
 	Storage = InStorage;
 	bEnabled = Storage.IsValid();
 	Stats = MakeShared<FPawSaveWriteStats>();
-	ActiveSlot = 0;
+	StartOnLastSlot(); // as at startup (a test hands the settings their storage first)
 	AutosaveClock = 0.0;
 	bSaveRequested = false;
 	LastLoad = EPawLoadOutcome::NotTried;

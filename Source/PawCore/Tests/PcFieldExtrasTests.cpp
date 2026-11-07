@@ -182,6 +182,7 @@ TEST_CASE("Extras: Riddle arms on a crit and the NEXT swing finishes the mouse (
 	const std::vector<Pc::PcFieldEvent> S = Swings(A, 1);
 	CHECK((S[0].Flags & Pc::FieldFlag::Crit) != 0);
 	CHECK((S[0].Flags & Pc::FieldFlag::Execute) == 0);
+	CHECK((S[0].Flags & Pc::FieldFlag::Riddle) != 0); // the arming swing says so (its red burst, phase 6)
 	CHECK(A.F.Active[static_cast<size_t>(M)]); // a 1e12 mouse survives the swing that armed it
 	CHECK(A.F.bRiddleArmed);
 	A.F.RhythmCharge = 0.0; // no forced crit on the next swing: it only answers the riddle
@@ -189,6 +190,8 @@ TEST_CASE("Extras: Riddle arms on a crit and the NEXT swing finishes the mouse (
 	REQUIRE(S2.size() == 2);
 	CHECK((S2[1].Flags & Pc::FieldFlag::Crit) == 0);
 	CHECK((S2[1].Flags & Pc::FieldFlag::Execute) != 0);
+	CHECK((S2[1].Flags & Pc::FieldFlag::Riddle) == 0);    // spending it arms nothing
+	CHECK((S2[1].Flags & Pc::FieldFlag::Threshold) == 0); // and is not Execute's threshold (no shards in Godot)
 	CHECK_FALSE(A.F.Active[static_cast<size_t>(M)]); // gone on the next
 	CHECK_FALSE(A.F.bRiddleArmed);
 
@@ -510,6 +513,7 @@ TEST_CASE("Extras: a beam kill pays Spectrum and makes a shard; Critical Mass de
 		A.Steps(1);
 		const std::vector<Pc::PcFieldEvent> K = A.Of(Pc::PcFieldEventKind::Killed);
 		REQUIRE(K.size() == 1);
+		CHECK((K[0].Flags & Pc::FieldFlag::Beam) != 0); // the beam's kill (the Spectrum pop, phase 6)
 		CHECK(A.F.PrismShards == 1.0);
 		// What the kill credited is the reward x Spectrum's multiplier when owned, through AddCurrency (which rounds).
 		CHECK(K[0].Value == doctest::Approx(Credited(D, Before, Base * Pc::PrismKillMultiplier(D, Before))));

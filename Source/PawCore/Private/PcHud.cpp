@@ -94,7 +94,8 @@ namespace Pc
 		{
 			Row.Kind = PcShopRowKind::Price;
 			Row.Price = UpgradeCostById(D, P, UpgradeId);
-			Row.bEnabled = !(P.Catnip < Row.Price);
+			// The purchase's own test, epsilon included (F30, designer 2026-11-04; hud.gd 1678).
+			Row.bEnabled = !(P.Catnip + D.Code.CurrencyEpsilon < Row.Price);
 			return Row;
 		}
 		const PcBulkPreview Bulk = PreviewBulkPurchase(D, P, UpgradeId, BuyMultiplier);
@@ -680,5 +681,60 @@ namespace Pc
 		Out.S = Total % 60;
 		Out.bHours = Out.H > 0;
 		return Out;
+	}
+
+	int64_t DockTickNav(PcDockRepeat& R, bool bUpHeld, bool bDownHeld, double Dt)
+	{
+		int64_t Dir = 0;
+		if (bUpHeld)
+		{
+			Dir -= 1;
+		}
+		if (bDownHeld)
+		{
+			Dir += 1;
+		}
+		if (Dir == 0)
+		{
+			R.NavDir = 0;
+			return 0;
+		}
+		if (Dir != R.NavDir)
+		{
+			R.NavDir = Dir;
+			R.NavHeld = 0.0;
+			R.NavNext = DockNavRepeatDelay;
+			return Dir;
+		}
+		R.NavHeld += Dt;
+		if (R.NavHeld >= R.NavNext)
+		{
+			R.NavNext = R.NavHeld + 1.0 / DockNavRepeatHz;
+			return Dir;
+		}
+		return 0;
+	}
+
+	PcDockPress DockTickPress(PcDockRepeat& R, bool bJustPressed, bool bHeld, bool bSelection, bool bRepeatRow, double Dt)
+	{
+		if (bJustPressed)
+		{
+			R.PressHeld = 0.0;
+			R.PressNext = DockPressRepeatDelay;
+			return bSelection ? PcDockPress::Press : PcDockPress::ShowSelection;
+		}
+		if (!bHeld || !bSelection || !bRepeatRow)
+		{
+			return PcDockPress::None;
+		}
+		R.PressHeld += Dt;
+		if (R.PressHeld < R.PressNext)
+		{
+			return PcDockPress::None;
+		}
+		// lerpf(start, max, ramp), the ramp held to 0 .. 1.
+		const double Ramp = std::clamp((R.PressHeld - DockPressRepeatDelay) / DockPressRampSec, 0.0, 1.0);
+		R.PressNext = R.PressHeld + 1.0 / (DockPressStartHz + (DockPressMaxHz - DockPressStartHz) * Ramp);
+		return PcDockPress::Press;
 	}
 }

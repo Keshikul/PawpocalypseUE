@@ -1,0 +1,22 @@
+# Godot 4.7.1 Controls page ground truth (scripts/systems/controls_panel.gd in the real settings_dialog.tscn, with the
+# real SettingsManager, InputDevice and InputBindings; scratch copy, sandboxed user://), generated 2026-10-28 by
+# The page's words (English).
+what	text
+row_pounce	Pounce
+row_tab_prev	Previous tab
+row_tab_next	Next tab
+row_up	Up
+row_down	Down
+row_press	Press
+row_buy_amount	Buy amount
+row_skill_tree	Skill tree
+row_recentre	Re-centre
+row_pause	Pause
+reset	Reset
+reset_all	Reset all controls
+check_show_prompts	Show button prompts
+check_tutorial_tips	Tutorial tips
+check_swap_confirm_back	Swap confirm and back
+check_swap_sticks	Swap sticks: steer with the left, menu with the right
+check_invert_x	Invert stick left and right
+check_invert_y	Invert stick up and down

@@ -34,8 +34,8 @@
    `Knowledge/2D/02` (as `[Verified]` with date); delete spike code. **Status 2026-10-28: S1 DONE: exact colour proven (21
    swatches within 1-2 offscreen and on screen, exposure 0 EV, negative-tested); AA = FXAA. S2 DONE: renderer = instanced quads (13 draw calls, 0.6 ms game thread; Slate the fallback). S3 DONE: 2x
    rasters, BC7, 2048 pages; render resolution fixed at 100 %; no AA vs FXAA is designer question Q9. S4 DONE: the doc 05
-   UI structure passed 1,193 pad/keyboard focus checks. All four spikes recorded; spike code still to delete (after a
-   commit keeps it in history).**
+   UI structure passed 1,193 pad/keyboard focus checks. All four spikes recorded; the spike code was deleted 2026-11-04
+   (it lives on in commit `10c118e`).**
 
 **Exit criteria**: editor and Game targets build from the command line; Shipping builds; settings diff reviewed; spike decisions
 written: AA method, renderer, raster scale and compression, dock/tree widget structure; the colour readback within +/-2 proven on
@@ -170,8 +170,18 @@ fixture `save`; the file: header + JSON, every double exact, checksum; `PcJson`)
 atomic write and startup recovery, backup fallback, newer builds never touched, the end-of-frame save, autosave every 30 s of
 unpaused play, focus loss, suspend and quit; the sandbox: `-NoSave`, `-PawSaveDir=`, automation never touches real slots); the
 per-slot automations moved onto `UPawGameSubsystem::Slot()` (and the tree's Auto-Travel / Auto-Card now switch them on, a port
-bug fixed); `Pawpocalypse.Save.*` (8 tests). Next: slice 3, the title screen (slots with summaries, New Game / Continue / Load /
-delete, the garden, Report a bug, Discord) on L_Title; then the pause menu, the settings popup (and the last slot used). Q3 decided: no Godot save importer. F24 decided and done (the run's cards
+bug fixed); `Pawpocalypse.Save.*` (8 tests). Slice 3 DONE 2026-11-04 (HANDOFF-LOG (37)): the title screen on L_Title
+(`UPawMainMenu`; its rules `PcTitle`, exact against the real main_menu.tscn, fixture `title`; `Pawpocalypse.UI.Title.*`, 6 tests,
+the words equal Godot's on 300 rows; a -game run from L_Title through a new game into L_Realm). Waiting on later phases: the
+garden, Boba's photo and cameo, the cluster's icons, the music (6), the Language list (7). Every UI class became an editable
+Widget Blueprint 2026-11-04 (HANDOFF-LOG (38)). The pause menu DONE 2026-11-04 (HANDOFF-LOG (39)): `UPawPauseMenu` /
+`WBP_PauseMenu` (its rules `PcPause`, exact against the real pause_menu.tscn, fixture `pause`; `Pawpocalypse.UI.Pause.*`, 6
+tests, the words equal Godot's on 300 rows); the HUD opens it on Esc / Start. The settings popup DONE 2026-11-04 (HANDOFF-LOG
+(40)): `UPawSettingsDialog` / `WBP_SettingsDialog` over `UPawSettingsSubsystem` (`PcSettings`: Godot's settings.cfg, exact
+against the real settings_manager.gd and settings_dialog.tscn, fixture `settings`; `Pawpocalypse.UI.Settings.*`, 6 tests),
+opened by the pause menu and the title; the last slot used, the menu side and ask-before-Reawaken are settings now. Every
+step of this phase is built. Next: the phase's exit review (each criterion below against the tests that prove it) and its
+packaged-build gate (needs the designer's go: packaging). Q3 decided: no Godot save importer. F24 decided and done (the run's cards
 and XP are saved, a hand on screen comes back up); F23 fixed with every other open finding (the second job is saved). The nightly `-Full` after it: HANDOFF-LOG (33).
 
 **Steps**: save container (doc 08 §2) with temp/backup/CRC/queue/async, five slots + metadata, autosave rules, request-save
@@ -181,7 +191,60 @@ video, controls placeholders). (No Godot save importer: Q3 = no, 2026-11-03.)
 **Exit criteria**: round trip of every field; corrupt-slot fallback; crash-between-renames recovery; busy-state saves (card hand,
 boss engaged, ceremony); previous-version load test; designer's save dir untouched by every test (sandbox check).
 
+**Exit review, 2026-11-04 (HANDOFF-LOG (41))**: each criterion and what proves it (every one also sabotaged):
+- Round trip of every field: `PcSaveTests` (Godot's save_game() / load_game() on 3,000 states, field for field; the file
+  bit for bit) and `Pawpocalypse.Save.RoundTrip` (every saved field through the container).
+- Corrupt-slot fallback: `Pawpocalypse.Save.CorruptFallback` (the backup loads; both bad: nothing loaded, nothing lost) and
+  `PcSaveTests` (a damaged file is refused, never half-read).
+- Crash-between-renames recovery: `Pawpocalypse.Save.Atomic` and `.CrashRecovery` (every crash point of the temp / backup
+  / rename sequence).
+- Busy-state saves: the card hand `Pawpocalypse.UI.CardPick.SavedHand` (a hand on screen comes back up, F24); the ceremony
+  `Pawpocalypse.UI.Ceremony.Resumes` (a Reawaken in progress resumes at the spend step, F29); a boss engaged
+  `Pawpocalypse.Save.MidFight` (new: the save loads, the boss not beaten, nothing up; the Bait paid stays spent: F36).
+- Previous-version load: `Pawpocalypse.Save.Versions` (v5 resets as Godot does and is written back; a newer build's file is
+  never read or overwritten).
+- The designer's files untouched: `Pawpocalypse.Save.Sandbox`; the settings share the slots' sandbox
+  (`PawStorageForThisRun`; every `Pawpocalypse.UI.Settings.*` test asserts an automated run has no storage of its own);
+  check_all's "Godot repo untouched".
+- The packaged gate, PASS 2026-11-04 (packaged Development, 382 MB): 320 mice + 20 kittens at 1280x800 (RTX 5070), the
+  field running every measured frame; game thread 1.30 ms mean / 2.58 ms p99 (budget 4), render thread 1.35 / 2.00 ms, GPU
+  0.36 / 0.38 ms, 34.6 draw calls (budget 50; 13.6 at phase 2, before the HUD's screens); the packaged title screen seen.
+  Found by it: the game target did not compile (editor-only API in a test since (38); `check_all` now builds the game target
+  too), and the bench had been measuring a field held by the card pick (now Auto-Card on, and a FAIL when the field is held).
+
+**Phase 4 CLOSED 2026-11-04 (HANDOFF-LOG (41)).** The build: `G:\My Drive\Games\Pawpocalypse\Pawpocalypse-UE-phase4-Development-2026-11-04.zip`.
+
 ## Phase 5 - pad and keyboard parity
+
+**Status 2026-11-04 (HANDOFF-LOG (42))**: started, in slices: (1) the input map as data and Enhanced Input assets; (2) the game
+and every screen reading the actions (pounce, steer, the dock, the tree, the menus' Back / Pause / sections), Common UI's
+Click / Back from the same actions; (3) the device subsystem (family, cursor source, toasts, the warp echo, the stick dead zone
+setting) and the glyphs; (4) remapping (InputBindings' rules in PawCore, against the real input_bindings.gd) and the Controls
+page; (5) the focus tours, the pad-only playthrough tour, the paw cursors, the unfocused throttle, the AZERTY check. Slice 1
+DONE: `Data/InputMap.csv` (Godot's 72 events), `IA_*` / `IMC_Pawpocalypse` generated from it, `UPawHalfAxis` (Godot's axis
+dead zone, measured: fixture `input_axis`), `Pawpocalypse.Input.*` (2 tests). Slice 2 DONE (HANDOFF-LOG (43)): the field's
+pounce on `IA_Pounce`, every screen's keys through the map (`PawInput::KeyIs`), the menus' navigation from Godot's `ui_*`
+(`FPawNavigationConfig`: WASD, keypad Enter), the tree's pan through Godot's `get_vector` (measured), `Pawpocalypse.Input.*`
+(7 tests). Slice 3 DONE but the glyphs (HANDOFF-LOG (44)): PawCore `PcDevice` (exact against input_device.gd, fixture
+`input_device`), `UPawInputDeviceSubsystem` (every Slate event, the hidden pointer, the toast `WBP_Toast`, the stick dead
+zone), the stick-steered cat with `recentre` (`stick_velocity` measured), `Pawpocalypse.Input.*` (11 tests). Slice 3b DONE
+(HANDOFF-LOG (45)): the glyphs (Godot's 65 SVGs rasterised and imported as UI textures, `tools/raster_svg.py` /
+`tools/import_art.py`), `UI/PawGlyphs` exact against InputGlyphs (fixture `input_glyphs`), `UPawPromptIcon` /
+`UPawPromptText` (Widget Blueprints) in Godot's places (the dock's tab keys, legend and Pounce key, the title's hint, the
+tree's legend and tooltip, the press prompt on the focused button), grafted into the existing screen assets
+(`bake_widgets.py --graft`); `Pawpocalypse.Input.*` (13 tests). Slice 4 in three parts (HANDOFF-LOG (47)): **4a DONE**,
+the rules (`PcBindings`, exact against input_bindings.gd, fixture `input_bindings`; settings.cfg's `[bindings]` as Godot
+writes it); **4b DONE**, the map (`PawInput::ApplyBindings`: the live mapping context every key question and the field read,
+the Godot <-> Unreal key table, the generated defaults `PawInputDefaults.h`, the settings' Controls setters, the prompts and
+the menus following a remap; `Pawpocalypse.Input.*` 16 tests). **4c DONE** (HANDOFF-LOG (48)): the Controls page
+(`UPawControlsPanel` / `WBP_ControlsPanel` over PawCore `PcControls`, exact against controls_panel.gd in the real dialog, fixture
+`controls`). **Slice 4 DONE.** Slice 5 (HANDOFF-LOG (49)) in two parts: **5a DONE**, keys by POSITION on any keyboard layout
+(`FKey`s are the layout's, not positions: AZERTY and the designer's Turkish Q were wrong before), the dock's held keys
+(`PcDockRepeat`, exact against dock_navigator.gd; hold-to-buy on Space / A / LT; the dock takes its keys before Common UI),
+the paw cursors, pads ignored in the background; **5b DONE**, the pad-only playthrough with the focus tours
+(`py tools/padplay_tour.py`, 41 checks, nightly). Not ported: the unfocused frame cap (not in Godot: doc 01 Q10).
+**Phase 5's exit criteria**: met but the hand-checks on a real Xbox pad and a PlayStation pad through Steam Input, the paw
+cursor in a packaged build, and the AZERTY test on a real AZERTY keyboard (injected here); those wait for the designer.
 
 **Steps**: every Godot action in Enhanced Input (doc 05 §3) with both devices; device subsystem (family, cursor source, connect toast,
 warp echo); glyph families and prompt text/icons; dock navigation; every screen's focus wiring; tree navigation; remapping UI and
@@ -192,9 +255,49 @@ real Xbox pad and a PlayStation pad through Steam Input; the AZERTY test.
 
 ## Phase 6 - presentation
 
+**Status 2026-11-05 (HANDOFF-LOG (50))**: started, in slices: (1) the field's art: the generators in `tools/art`, the atlas,
+the creatures drawn as Godot draws them; (2) the backdrops (the 12 tiling floors and their props, `biome_backdrop.gd`, seams
+at 16:9 to 32:9); (3) the VFX (aura ring, poop zone, telegraph, swipe, slam, beam, the Lone Hunter halo; bursts, shards,
+edge fire, the golden sparkle; the effects setting; planned as `M_FxShape` + Niagara, built as Godot's draw calls); (4) audio (the event table, buses, music crossfades, rate
+limits, pruning both ways); (5) the UI art (card, skill, job, achievement and currency icons) and UI motion (`ui_juice.gd`,
+rainbow bar and frame, the tree's sky); (6) the ceremonies (unicorn), Boba in the menus, the tutorial overlay; then the exit
+tours (12 biomes x 7 stages x 5 bosses against Godot, the colour gate packaged). **Slice 1 DONE** (HANDOFF-LOG (50)):
+`tools/art` byte-identical to Godot's `assets/art` (`py tools/art/build_art.py --check`), the field atlas
+(`py tools/pack_atlas.py`, `DA_FieldAtlas`), `M_Sprite` / `M_SpriteSoft`, `UPawSpriteRenderer::AddSprite`, and the view's
+creatures in Godot's look and draw order (`Realm/PawFieldLook.h`; `Pawpocalypse.Realm.Look.*`). Not done in slice 1 and owned
+by later ones: the Lone Hunter's halo (a placeholder soft disc until the VFX slice), the golden sparkle (VFX), the per-creature
+visual definition assets (doc 07 §4: the look reads the data's CSV columns and Godot's code constants; an editable
+`UPawVisualDefinition` waits until a slice needs it). **Slice 2 DONE** (HANDOFF-LOG (51)): PawCore `PcBackdrop` exact against
+the real biome_backdrop.gd (fixture `backdrop`), the floors (`T_backdrop_tier_N`, `M_Floor`), the patches and puddles (one
+procedural mesh, `M_BackdropFill`), the props in the atlas, the title's garden (`UPawGarden`); the biome tour beside Godot
+(`py tools/godot_tour.py --set biomes`). The seam test across aspects is the generator's own (`build_art.py --check`) plus
+the exact layout at 4:3 to 32:9 in the fixture. **Slice 3 DONE** (HANDOFF-LOG (52)): the effects (`FPawFxCanvas`, `FPawVfx`; doc 04
+§7 as built), the Lone Hunter's halo and the golden sparkle owed from slice 1 included; `Pawpocalypse.Realm.Vfx.*`; F39.
+**Slice 4 DONE** (HANDOFF-LOG (53)): the sound (doc 07 §6 as built; `Pawpocalypse.Audio.*`; F40); open from it:
+`boba_cameo` / `unicorn_neigh` (slice 6). The Output device choice and the pad-audio toast DONE 2026-11-05 (HANDOFF-LOG (55)). The nightly `-Full` ran 2026-11-05/06,
+every failure fixed (HANDOFF-LOG (56)). **Slice 5a DONE 2026-11-06** (HANDOFF-LOG (58)): the theme's nine-patch chrome
+where Godot's theme draws it (`PawUi::Chrome`; buttons, settings lists, the WindowPanel, the theme bars, the separators: F41),
+the selection ring painted over the plate (hover, or keys / pad focus), `Pawpocalypse.UI.Chrome`, 13 sabotages CAUGHT, the
+tour beside Godot. **Slice 5b DONE 2026-11-06** (HANDOFF-LOG (59)): the icons by constructed name and icon_path (`DA_Icons`,
+`PawUi::Icon`), the dock's quick bar, `Pawpocalypse.UI.Icons`, 17 sabotages CAUGHT, the tour beside Godot. The nightly `-Full`
+after it: every gate green. **Slice 5c DONE 2026-11-06** (HANDOFF-LOG (60)): the motion, UiJuice (`PcJuice` exact against
+Godot's Tween and the real ui_juice.gd, fixture `juice`; `FPawJuice` at Godot's call sites; the Reawaken tab's glow; F42),
+`Pawpocalypse.UI.Juice.*`, 19 PawCore + 19 realm sabotages CAUGHT. **Slice 5d DONE 2026-11-07** (HANDOFF-LOG (62)): the
+rainbow bar, the zone plate's rainbow frame and the tree's sky (`PcRainbow`, `PcSky` exact against the real scripts, fixture
+`rainbow`; `UPawRainbowBar`, `UPawRainbowFrame`, `UPawTreeSky` painted in Slate) and every bar filled Godot's way (caps kept,
+the Range's step), `Pawpocalypse.UI.Rainbow.*`, 26 PawCore + 17 realm sabotages CAUGHT. **Slice 6 started 2026-11-07** (HANDOFF-LOG (63)): the plan in
+`docs/WORKLIST-SLICE6-2026-11-07.md` (6a the Unicorn ceremony, 6b the Reawaken banner, 6c Boba, 6d the tutorial). **6a DONE**:
+`PcTween` + `PcUnicornCeremony` exact against the real unicorn_ceremony.gd (fixture `unicorn`), `UPawUnicornCeremony` over
+the tree, `Pawpocalypse.UI.Unicorn.*`, 19 PawCore + 8 realm sabotages CAUGHT, the tour's `unicorn` shot beside Godot.
+**Next: 6b, the Reawaken banner**; then Boba, the tutorial; then the exit tours.
+
+**Exit criteria progress (2026-11-05)**: the 12 biomes + the title seen beside Godot (`--set biomes`; one stage, no bosses side
+by side yet); pruned audio both ways (`Pawpocalypse.Audio.Bank`); not yet: the colour gate on a package, every audio event
+in a logged tour, the 7 stages x 5 bosses tour, the tutorial gate.
+
 **Steps**: copy the art generators into `tools/art/`, raster + atlas + headless import for all 377 SVGs; backdrops for 12 biomes
 (tiling floors, props); visual definitions; cat stages with weapons and hats; signature glow, golden sparkle, flashes, pulses; VFX
-primitives (SDF shapes + Niagara bursts) with the effects setting; audio event table, buses, music crossfades, rate limits; ceremonies;
+primitives (planned SDF shapes + Niagara; built as Godot's draw calls) with the effects setting; audio event table, buses, music crossfades, rate limits; ceremonies;
 Boba cameo in menus; tutorial overlay (eleven cues); UI motion.
 
 **Exit criteria**: colour gate green on the packaged build; screenshot tour of all 12 biomes x 7 stages x 5 bosses reviewed against

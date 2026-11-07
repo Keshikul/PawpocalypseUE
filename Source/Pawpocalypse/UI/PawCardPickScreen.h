@@ -63,8 +63,11 @@ public:
 		FText Body;
 		bool bCosts = false;
 		bool bBanish = false;
+		FString ArtPath; // the card's icon_path: its picture, when it has one (phase 6 slice 5b)
 	};
 	void SetLook(const FLook& Look);
+	// The picture drawn (its texture's name), or empty when the card has none.
+	FString GetArtName() const;
 
 	// Hovered by the mouse (anywhere on the card, Take and Banish included) or Take / Banish selected: the card lifts.
 	bool IsLifted() const;
@@ -88,23 +91,26 @@ protected:
 	virtual void NativeTick(const FGeometry& Geometry, float DeltaSeconds) override;
 
 private:
-	UPROPERTY()
+	void OnFaceReady();
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> Plate;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> Band;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> FlavourText;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> NameText;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> RankText;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> Art;
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> BodyText;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> WarnText;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> Take;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> Banish;
 	float LiftScale = 1.0f;
 };
@@ -169,17 +175,18 @@ private:
 	void Close();
 	bool CanTakeFocus() const;
 	void ShowReroll(int64 Rerolls);
+	void OnLayoutReady();
 	UPawRealmSubsystem* Realm() const;
 
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> Dim;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Title;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Subtitle;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UHorizontalBox> Row;
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> RerollButton;
 	UPROPERTY()
 	TArray<TObjectPtr<UPawCardFace>> Faces; // pooled: a deal reuses them and hides the rest (screens are pooled too, rule 5)

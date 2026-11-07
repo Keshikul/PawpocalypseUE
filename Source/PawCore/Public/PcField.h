@@ -109,20 +109,24 @@ namespace Pc
 
 	namespace FieldFlag
 	{
-		constexpr uint16_t Golden = 1 << 0;
-		constexpr uint16_t Signature = 1 << 1;
-		constexpr uint16_t Crit = 1 << 2;
-		constexpr uint16_t Bounty = 1 << 3;    // the Overkill bounty paid
-		constexpr uint16_t Toyed = 1 << 4;     // Play With Food paid
-		constexpr uint16_t Shielded = 1 << 5;
-		constexpr uint16_t Auto = 1 << 6;      // a Reflex pounce (drawn dimmer)
-		constexpr uint16_t Earned = 1 << 7;    // a crit a counter decided (Butcher's Rhythm, Inscrutable), not luck
-		constexpr uint16_t Echo = 1 << 8;      // Anvil Paw's second blow (drawn wider)
-		constexpr uint16_t Execute = 1 << 9;   // Execute or Riddle finished the mouse (the red burst)
-		constexpr uint16_t Boss = 1 << 10;     // the paw's swipe landed on the boss
-		constexpr uint16_t New = 1 << 11;      // a boss's first-ever clear
-		constexpr uint16_t Final = 1 << 12;    // the last boss of the game
-		constexpr uint16_t Victory = 1 << 13;  // the ending comes up (PcProgress RaisesVictory: boss_defeated for the last boss)
+		constexpr uint32_t Golden = 1 << 0;
+		constexpr uint32_t Signature = 1 << 1;
+		constexpr uint32_t Crit = 1 << 2;
+		constexpr uint32_t Bounty = 1 << 3;    // the Overkill bounty paid
+		constexpr uint32_t Toyed = 1 << 4;     // Play With Food paid
+		constexpr uint32_t Shielded = 1 << 5;
+		constexpr uint32_t Auto = 1 << 6;      // a Reflex pounce (drawn dimmer)
+		constexpr uint32_t Earned = 1 << 7;    // a crit a counter decided (Butcher's Rhythm, Inscrutable), not luck
+		constexpr uint32_t Echo = 1 << 8;      // Anvil Paw's second blow (drawn wider)
+		constexpr uint32_t Execute = 1 << 9;   // Execute or Riddle finished the mouse (the red burst)
+		constexpr uint32_t Boss = 1 << 10;     // the paw's swipe landed on the boss
+		constexpr uint32_t New = 1 << 11;      // a boss's first-ever clear
+		constexpr uint32_t Final = 1 << 12;    // the last boss of the game
+		constexpr uint32_t Victory = 1 << 13;  // the ending comes up (PcProgress RaisesVictory: boss_defeated for the last boss)
+		// Phase 6's effects (tier_controller.gd draws each differently):
+		constexpr uint32_t Riddle = 1 << 14;   // this crit armed Riddle for the next swing (a red burst on the target)
+		constexpr uint32_t Threshold = 1 << 15; // Execute's threshold claimed the mouse (red shards and a burst; Riddle's spend does not)
+		constexpr uint32_t Beam = 1 << 16;     // the Prism's beam dealt the killing blow (the Spectrum pop when its multiplier pays)
 	}
 
 	struct PcFieldEvent
@@ -131,7 +135,7 @@ namespace Pc
 		int32_t Slot = -1;
 		double X = 0.0, Y = 0.0, ToX = 0.0, ToY = 0.0;
 		double Value = 0.0;
-		uint16_t Flags = 0;
+		uint32_t Flags = 0;
 	};
 
 	// What the game hands the field every step.

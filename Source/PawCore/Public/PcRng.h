@@ -41,5 +41,11 @@ namespace Pc
 		constexpr uint64_t BossPlaceY = 0x42504C59ull; // "BPLY" and down
 		constexpr uint64_t BossWobbleX = 0x42574258ull; // "BWBX" the boss's idle drift around its anchor, across
 		constexpr uint64_t BossWobbleY = 0x42574259ull; // "BWBY" and down
+		// The UI (PcJuice): a jittering control's next lean.
+		constexpr uint64_t Jitter = 0x4A495454ull;     // "JITT"
+		// The UI (PcRainbow): the rainbow bar's sparks (where, which way, which hue).
+		constexpr uint64_t RainbowSpark = 0x53504B52ull; // "SPKR"
+		// The UI (PcUnicorn): the Unicorn ceremony's confetti and stars.
+		constexpr uint64_t UnicornFiesta = 0x46494553ull; // "FIES"
 	}
 }

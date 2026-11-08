@@ -41,20 +41,23 @@ namespace PawTokens
 	inline const FLinearColor CREAM_HEADER = Srgb(0xEE, 0xE2, 0xAC);
 	inline const FLinearColor BLACK_FACE = Srgb(0x2A, 0x1A, 0x33);
 	inline const FLinearColor BLACK_HEADER = Srgb(0x3E, 0x2A, 0x4A);
-	inline const FLinearColor UI_PANEL = Srgb(0xFF, 0xF9, 0xE3);
-	inline const FLinearColor UI_PANEL_BAND = Srgb(0xFF, 0xF6, 0xCF);
-	inline const FLinearColor UI_PANEL_FRAME = Srgb(0x2A, 0x1A, 0x33);
-	inline const FLinearColor UI_TEXT = Srgb(0x2A, 0x1A, 0x33);
-	inline const FLinearColor UI_TEXT_MUTED = Srgb(0x8F, 0x88, 0x6F);
-	inline const FLinearColor UI_TEXT_DISABLED = Srgb(0xC7, 0xC1, 0xAB);
-	inline const FLinearColor UI_BUTTON = Srgb(0xFF, 0xFD, 0xED);
-	inline const FLinearColor UI_BUTTON_HOVER = Srgb(0xFF, 0xF6, 0xCF);
-	inline const FLinearColor UI_BUTTON_PRESSED = Srgb(0xEE, 0xE2, 0xAC);
-	inline const FLinearColor UI_BUTTON_DISABLED = Srgb(0xEB, 0xE5, 0xCF);
-	inline const FLinearColor UI_BUTTON_FRAME = Srgb(0x2A, 0x1A, 0x33);
-	inline const FLinearColor UI_SLOT = Srgb(0xEE, 0xE2, 0xAC);
+	inline const FLinearColor UI_PANEL = Srgb(0x2A, 0x1A, 0x33);
+	inline const FLinearColor UI_PANEL_BAND = Srgb(0x56, 0x43, 0x61);
+	inline const FLinearColor UI_PANEL_FRAME = Srgb(0x12, 0x0A, 0x17);
+	inline const FLinearColor UI_TEXT = Srgb(0xF6, 0xEE, 0xF8);
+	inline const FLinearColor UI_TEXT_MUTED = Srgb(0xDC, 0xCF, 0xE4);
+	inline const FLinearColor UI_TEXT_DISABLED = Srgb(0xB8, 0xAB, 0xC1);
+	inline const FLinearColor UI_BUTTON = Srgb(0x3E, 0x2A, 0x4A);
+	inline const FLinearColor UI_BUTTON_HOVER = Srgb(0x56, 0x43, 0x61);
+	inline const FLinearColor UI_BUTTON_PRESSED = Srgb(0x12, 0x0A, 0x17);
+	inline const FLinearColor UI_BUTTON_DISABLED = Srgb(0x34, 0x22, 0x3E);
+	inline const FLinearColor UI_BUTTON_FRAME = Srgb(0x12, 0x0A, 0x17);
+	inline const FLinearColor UI_SLOT = Srgb(0x12, 0x0A, 0x17);
+	inline const FLinearColor UI_SHADOW = Srgb(0x12, 0x0A, 0x17);
 	inline const FLinearColor UI_BADGE = Srgb(0xFF, 0x70, 0x55);
-	inline const FLinearColor UI_FOCUS = Srgb(0xFF, 0x70, 0x55);
+	inline const FLinearColor UI_FOCUS = Srgb(0xFF, 0xD2, 0x3F);
+	inline const FLinearColor UI_SELECTED = Srgb(0xFF, 0xD2, 0x3F);
+	inline const FLinearColor UI_SELECTED_TEXT = Srgb(0x2A, 0x1A, 0x33);
 	inline const FLinearColor UI_CATNIP = Srgb(0xF2, 0xC6, 0x5B);
 	inline const FLinearColor UI_STARDUST = Srgb(0x85, 0x96, 0xC3);
 	inline const FLinearColor UI_TAB_UPGRADES = Srgb(0xF4, 0xA9, 0x68);
@@ -62,11 +65,13 @@ namespace PawTokens
 	inline const FLinearColor UI_TAB_REALMS = Srgb(0x70, 0x95, 0x4F);
 	inline const FLinearColor UI_TAB_CATCHES = Srgb(0xF2, 0xC6, 0x5B);
 	inline const FLinearColor UI_TAB_AWARDS = Srgb(0xF8, 0xA0, 0x8C);
-	inline const FLinearColor UI_BOSS_BANNER = Srgb(0xD8, 0x60, 0x61);
-	inline const FLinearColor UI_BOSS_BANNER_TEXT = Srgb(0xFF, 0xF9, 0xE3);
-	inline const FLinearColor UI_DANGER = Srgb(0xD8, 0x60, 0x61);
+	inline const FLinearColor UI_BOSS_BANNER = Srgb(0xD2, 0x26, 0x3F);
+	inline const FLinearColor UI_BOSS_BANNER_TEXT = Srgb(0xF6, 0xEE, 0xF8);
+	inline const FLinearColor UI_FIELD_LABEL = Srgb(0xF6, 0xEE, 0xF8);
+	inline const FLinearColor UI_DANGER = Srgb(0xD2, 0x26, 0x3F);
 	inline const FLinearColor UI_GOOD = Srgb(0x70, 0x95, 0x4F);
-	inline const FLinearColor UI_CARD_PLATE = Srgb(0xF8, 0xF1, 0xDE);
+	inline const FLinearColor UI_CARD_PLATE = Srgb(0xF6, 0xEE, 0xF8);
+	inline const FLinearColor UI_CARD_INK = Srgb(0x2A, 0x1A, 0x33);
 	inline const FLinearColor UI_CARD_SWARM = Srgb(0x70, 0x95, 0x4F);
 	inline const FLinearColor UI_CARD_POUNCE = Srgb(0xEC, 0x7B, 0x7B);
 	inline const FLinearColor UI_CARD_AURA = Srgb(0x85, 0x96, 0xC3);
@@ -91,7 +96,7 @@ namespace PawTokens
 
 	// Colours the palette has retired (gen_paw_tokens.py retired()): no baked asset may still hold one
 	// (Pawpocalypse.UI.Widgets.Palette; py tools/bake_widgets.py --run --recolour migrates them).
-	inline const TArray<uint32> PALETTE_RETIRED = { 0x1A1A1A };
+	inline const TArray<uint32> PALETTE_RETIRED = { 0x1A1A1A, 0x8F886F, 0xEBE5CF, 0xFFF6CF, 0xFFFDED };
 
 	// Colours Godot authored as literals in scenes and scripts (palette.py LITERALS).
 	inline const FLinearColor CEREMONY_FLASH = SrgbF(0.972, 0.949, 1); // reawaken_ceremony.tscn Flash color

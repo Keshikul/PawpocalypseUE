@@ -431,6 +431,9 @@ bool FPawSettingsLookTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("LB: back to Controls"), D->IsPageShown(Pc::PcSettingsSection::Controls));
 	D->PressSection(Pc::PcSettingsSection::Video);
 	TestTrue(TEXT("a section button"), D->IsPageShown(Pc::PcSettingsSection::Video));
+	// R4a: the open section is "the selected thing", on the Butter plate; the others are not.
+	TestTrue(TEXT("the open section wears the call look"), D->GetCheck(TEXT("SectionVideo"))->HasCallLook()
+		&& !D->GetCheck(TEXT("SectionAudio"))->HasCallLook() && !D->GetCheck(TEXT("SectionControls"))->HasCallLook());
 	D->PressClose();
 	TestFalse(TEXT("Close closes"), D->IsActivated());
 	W.Close();

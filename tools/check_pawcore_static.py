@@ -128,7 +128,7 @@ def check_generated():
     # The game's DataTable row structs, from the Data/*.csv headers (tools/gen_paw_rows.py).
     for script, args in (("gen_paw_rows.py", ["--check"]), ("gen_paw_tokens.py", ["--check"]),
                          ("gen_data_strings.py", ["--check"]), ("gen_tree_tables.py", ["--godot", GODOT, "--check"]),
-                         ("gen_input_defaults.py", ["--check"])):
+                         ("gen_input_defaults.py", ["--check"]), ("fonts.py", ["--check"])):
         r = subprocess.run([sys.executable, str(ROOT / "tools" / script)] + args, capture_output=True, text=True)
         if r.returncode != 0:
             bad.append("%s --check: %s" % (script, (r.stdout + r.stderr).strip()[-300:]))
@@ -157,6 +157,12 @@ def check_ui(ui_dir, st_ui):
             # Godot prints numbers with str() / "%d" / "%.Nf": never grouped, never localised (PawText Count, Fixed).
             if re.search(r"FText::As(?:Number|Percent|Currency)\s*\(", line):
                 bad.append("%s:%d formats a number the engine's way (Godot's is PawText::Count / Fixed)" % (path.name, n))
+            # The restyle's font (R2): text is F_Paw (PawUi::PawFont, UMG's default); never the engine's Roboto.
+            if "GetDefaultFontStyle" in line:
+                bad.append("%s:%d uses the engine's default font (use PawUi::PawFont)" % (path.name, n))
+        for n, line in enumerate(raw.splitlines(), 1):
+            if "/Engine/EngineFonts" in line and not line.lstrip().startswith("//"):
+                bad.append("%s:%d names an engine font (use PawUi::PawFont)" % (path.name, n))
     # The string tables load loose at run time: one saved with CRLF doubles every line break inside a quoted value
     # (measured 2026-11-06: a cell's CR LF reads as two breaks). LF only.
     for table_csv in sorted(st_ui.parent.glob("ST_*.csv")):
@@ -248,7 +254,7 @@ def self_test():
     finally:
         tokens.write_bytes(original)
 
-    for planted in (UI / "PawTreeTables.h", CORE / "Public" / "PcTreeWording.h",
+    for planted in (UI / "PawTreeTables.h", UI / "PawFontSpec.h", CORE / "Public" / "PcTreeWording.h",
                     ROOT / "Content" / "Pawpocalypse" / "Localization" / "Strings" / "ST_Tree.csv"):
         original = planted.read_bytes()
         try:
@@ -278,6 +284,14 @@ def self_test():
     with open(u / "PawUiKit.cpp", "a", encoding="utf-8") as f:
         f.write('\nstatic FText Planted(int64 N) { return FText::AsNumber(N); }\n')
     caught["ui-rules: engine number format"] = bool(check_ui(u, s))
+    u, s = fresh_ui()
+    with open(u / "PawUiKit.cpp", "a", encoding="utf-8") as f:
+        f.write('\nstatic FSlateFontInfo Planted() { return FCoreStyle::GetDefaultFontStyle("Bold", 10); }\n')
+    caught["ui-rules: engine default font"] = bool(check_ui(u, s))
+    u, s = fresh_ui()
+    with open(u / "PawUiKit.cpp", "a", encoding="utf-8") as f:
+        f.write('\nstatic const TCHAR* Planted = TEXT("/Engine/EngineFonts/Roboto");\n')
+    caught["ui-rules: engine font path"] = bool(check_ui(u, s))
     u, s = fresh_ui()
     with open(u / "PawUiKit.cpp", "a", encoding="utf-8") as f:
         f.write('\nstatic const TCHAR* Planted = TEXT("SHOP_no_such_line");\n')

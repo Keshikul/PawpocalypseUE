@@ -73,7 +73,7 @@ int32 UPawPounceClock::NativePaint(const FPaintArgs& Args, const FGeometry& Geom
 		Disc(Out, Layer, Geometry, C, R + PawUi::PounceRing + Width, Gold);
 	}
 	Disc(Out, Layer + 1, Geometry, C, R + PawUi::PounceRing, PawTokens::INK);
-	Disc(Out, Layer + 2, Geometry, C, R, PawTokens::UI_PANEL);
+	Disc(Out, Layer + 2, Geometry, C, R, PawTokens::UI_CARD_PLATE); // a light dial under the ink hand (R3: the panel went plum)
 	// The paw on the disc (pounce_gauge.gd: skill_pounce.svg, r * 1.3 square, centred).
 	static const FSlateBrush Paw = PawUi::IconBrush(TEXT("skill_pounce"), 64.0);
 	if (Paw.GetResourceObject())

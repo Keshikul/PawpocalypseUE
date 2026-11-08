@@ -1,0 +1,143 @@
+"""The game's font, F_Paw: one table read by the importer, the coverage gate and the game (restyle R2, 2026-11-07).
+
+    py tools/fonts.py            writes Source/Pawpocalypse/UI/PawFontSpec.h from the table below
+    py tools/fonts.py --check    the header equals what the table makes (L0)
+
+D1 (designer, 2026-11-07): M PLUS Rounded 1c, ExtraBold for text, Black for titles and numbers. It covers Latin, Latin
+Extended, Cyrillic, Vietnamese and Japanese (measured: KB U/09 §5). Korean, Chinese and Thai come from the Noto faces the
+Godot game ships (scripts/systems/fonts.gd): THE CJK FACE IS CHOSEN BY LANGUAGE (the same code point is drawn differently
+in Korea, China and Taiwan), SC for everyone else, which only matters for a language's own name in the picker.
+
+How Slate picks a face for a character (FCompositeFontCache::GetFontDataForCodepoint, UE 5.8): the first sub-font whose
+CHARACTER RANGE holds it, those whose Cultures include the current language first, then those with no Cultures; that
+face if it has the glyph, else the default typeface if it has it, else the FALLBACK typeface with no check (a box if it
+lacks it too). tools/check_font_coverage.py models exactly this.
+
+Typefaces: UMG's text widgets default to "Bold" (UTextBlock's constructor), the prompts' keycaps ask for "Bold" and the
+rich text "Regular": all three are the TEXT weight, so the switch changes no weight anyone chose. "Black" is asked for
+by name (titles and numbers).
+"""
+
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+SOURCE = ROOT / "SourceArt" / "fonts"
+HEADER = ROOT / "Source" / "Pawpocalypse" / "UI" / "PawFontSpec.h"
+FOLDER = "/Game/Pawpocalypse/Fonts"
+FONT = "F_Paw"
+
+# Face assets: asset name -> (source file, loading policy). A .ttc is ONE asset; a sub-font picks its face by index.
+# LazyLoad keeps an 18 MB collection out of memory until a character needs it; the text faces load with the font.
+FACES = {
+    "FF_MPlusRounded1c_ExtraBold": ("MPLUSRounded1c-ExtraBold.ttf", "LazyLoad"),
+    "FF_MPlusRounded1c_Black": ("MPLUSRounded1c-Black.ttf", "LazyLoad"),
+    "FF_NotoSansCJK_Medium": ("NotoSansCJK-Medium.ttc", "LazyLoad"),
+    "FF_NotoSansThai_Medium": ("NotoSansThai-Medium.ttf", "LazyLoad"),
+}
+
+# NotoSansCJK-Medium.ttc's faces (measured with fontTools: JP, KR, SC, TC, HK; Godot's fonts.gd CJK_FACE agrees).
+CJK_JP, CJK_KR, CJK_SC, CJK_TC = 0, 1, 2, 3
+
+TEXT = ("FF_MPlusRounded1c_ExtraBold", 0)
+BLACK = ("FF_MPlusRounded1c_Black", 0)
+
+# The default typeface: name -> face. The first is the primary (what a name the font lacks gets).
+DEFAULT = [("Regular", TEXT), ("Bold", TEXT), ("Black", BLACK)]
+
+HANGUL = [(0x1100, 0x11FF), (0x3130, 0x318F), (0xA960, 0xA97F), (0xAC00, 0xD7AF), (0xD7B0, 0xD7FF)]
+# Han and the CJK punctuation and full-width forms a Chinese or Korean text sets in its own face (the full stop and comma
+# sit differently than in Japanese).
+HAN = [(0x2E80, 0x2FDF), (0x3000, 0x303F), (0x3400, 0x4DBF), (0x4E00, 0x9FFF), (0xF900, 0xFAFF), (0xFF00, 0xFFEF),
+       (0x20000, 0x2FA1F)]
+THAI = [(0x0E00, 0x0E7F)]
+KANA = [(0x3040, 0x30FF), (0x31F0, 0x31FF)]
+
+# DEFAULT_FACES as a sub-font's face: the default typeface's own faces, name by name (Japanese keeps M PLUS's two weights).
+DEFAULT_FACES = None
+
+# Sub-fonts, in order: (name, cultures ';'-joined or "" for every language, ranges, face (asset, sub-face index) or
+# DEFAULT_FACES).
+# Han outside Japanese, Korean and Chinese is Noto SC WHOLE (Godot's rule): M PLUS has the Japanese kanji but not the
+# simplified ones, so the picker's 简体中文 drew 简 thin from the fallback and 体中文 heavy from M PLUS (seen in the game's
+# font sheets, 2026-11-07). Japanese claims Han and kana first, for M PLUS.
+SUBFONTS = [
+    ("Japanese", "ja", HAN + KANA, DEFAULT_FACES),
+    ("Korean", "ko", HANGUL + HAN, ("FF_NotoSansCJK_Medium", CJK_KR)),
+    ("ChineseSimplified", "zh-Hans;zh-CN;zh-SG", HAN, ("FF_NotoSansCJK_Medium", CJK_SC)),
+    ("ChineseTraditional", "zh-Hant;zh-TW;zh-HK", HAN, ("FF_NotoSansCJK_Medium", CJK_TC)),
+    ("Hangul", "", HANGUL, ("FF_NotoSansCJK_Medium", CJK_KR)),
+    ("Han", "", HAN, ("FF_NotoSansCJK_Medium", CJK_SC)),
+    ("Thai", "", THAI, ("FF_NotoSansThai_Medium", 0)),
+]
+
+# What a character neither the sub-fonts nor the text face draw gets (Godot's DEFAULT_FACE: SC).
+FALLBACK = ("FF_NotoSansCJK_Medium", CJK_SC)
+
+# Godot locale -> Unreal culture (the port's language list follows Godot's, locales.gd ORDER).
+CULTURES = {"zh_Hans": "zh-Hans", "zh_Hant": "zh-Hant", "es_MX": "es-MX", "pt_BR": "pt-BR"}
+
+
+def culture(godot_locale: str) -> str:
+    return CULTURES.get(godot_locale, godot_locale)
+
+
+def asset(name: str) -> str:
+    return "%s/%s.%s" % (FOLDER, name, name)
+
+
+def header() -> str:
+    def face(f):
+        # An empty face: the default typeface's faces, name by name (DEFAULT_FACES).
+        return 'TEXT(""), -1' if f is DEFAULT_FACES else 'TEXT("%s"), %d' % (asset(f[0]), f[1])
+
+    lines = [
+        "#pragma once",
+        "",
+        "// GENERATED by tools/fonts.py from its table (restyle R2): the composite font F_Paw. Never edit; run",
+        "// `py tools/fonts.py` (L0 checks it). Read by the editor's font builder (PawpocalypseEditor) and the test",
+        "// Pawpocalypse.UI.Fonts.Composite.",
+        "",
+        '#include "CoreMinimal.h"',
+        "",
+        "namespace PawFontSpec",
+        "{",
+        "\tstruct FFace { const TCHAR* Name; const TCHAR* File; const TCHAR* LoadingPolicy; };",
+        "\tstruct FTypeface { const TCHAR* Name; const TCHAR* Face; int32 SubFace; };",
+        "\tstruct FRange { int32 First; int32 Last; };",
+        "\tstruct FSubFont { const TCHAR* Name; const TCHAR* Cultures; const TCHAR* Face; int32 SubFace; TArray<FRange> Ranges; };",
+        "",
+        '\tinline const TCHAR* Folder = TEXT("%s");' % FOLDER,
+        '\tinline const TCHAR* Font = TEXT("%s");' % asset(FONT),
+        "",
+        "\tinline const TArray<FFace> Faces = {",
+    ]
+    for name, (file, policy) in FACES.items():
+        lines.append('\t\t{ TEXT("%s"), TEXT("%s"), TEXT("%s") },' % (name, file, policy))
+    lines += ["\t};", "", "\tinline const TArray<FTypeface> Default = {"]
+    for name, f in DEFAULT:
+        lines.append('\t\t{ TEXT("%s"), %s },' % (name, face(f)))
+    lines += ["\t};", "", "\tinline const TArray<FSubFont> SubFonts = {"]
+    for name, cultures, ranges, f in SUBFONTS:
+        r = ", ".join("{ 0x%04X, 0x%04X }" % rg for rg in ranges)
+        lines.append('\t\t{ TEXT("%s"), TEXT("%s"), %s, { %s } },' % (name, cultures, face(f), r))
+    lines += ["\t};", "", "\tinline const FTypeface Fallback = { TEXT(\"Fallback\"), %s };" % face(FALLBACK), "}", ""]
+    return "\n".join(lines)
+
+
+def main(argv):
+    text = header()
+    if "--check" in argv:
+        have = HEADER.read_text(encoding="utf-8") if HEADER.exists() else ""
+        if have.replace("\r\n", "\n") != text:
+            print("fonts: %s is stale; run py tools/fonts.py" % HEADER.relative_to(ROOT))
+            return 1
+        print("fonts: PawFontSpec.h is current")
+        return 0
+    HEADER.write_text(text, encoding="utf-8", newline="\n")
+    print("fonts: wrote %s" % HEADER.relative_to(ROOT))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

@@ -18,6 +18,7 @@
 #include "Input/PawInputDeviceSubsystem.h"
 #include "Input/PawInputMap.h"
 #include "Misc/AutomationTest.h"
+#include "Components/Border.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Realm/PawRealmSubsystem.h"
@@ -294,14 +295,19 @@ bool FPawInputPromptsTest::RunTest(const FString& Parameters)
 		return false;
 	}
 	Tip->bHideWithPrompts = false; // set where it is built, as the tree's code layout and asset do
+	// R4c/R4f: a line on its own plum plate (the title's hint, the tree's legend) takes the plate with it.
+	UBorder* Plate = NewObject<UBorder>(Line->GetOuter());
+	Plate->SetContent(Line);
 	Held.Add(Line->TakeWidget());
 	Held.Add(Tip->TakeWidget());
 	Line->SetTemplate(FText::FromString(TEXT("{press} Buy")));
 	Tip->SetTemplate(FText::FromString(TEXT("{press} Buy")));
 	TestTrue(TEXT("prompts off: the line hidden"), Line->GetVisibility() == ESlateVisibility::Collapsed);
+	TestTrue(TEXT("prompts off: its plate with it, no empty pill"), Plate->GetVisibility() == ESlateVisibility::Collapsed);
 	TestTrue(TEXT("a tooltip's line is its owner's to hide"), Tip->GetVisibility() != ESlateVisibility::Collapsed);
 	W.Settings->SetShowPrompts(true);
 	TestTrue(TEXT("prompts on: shown"), Line->GetVisibility() != ESlateVisibility::Collapsed);
+	TestTrue(TEXT("prompts on: its plate too"), Plate->GetVisibility() != ESlateVisibility::Collapsed);
 	TestEqual(TEXT("the keys"), Line->GetNeutral(), FString(TEXT("<k:Space> Buy")));
 	W.UsePad();
 	TestEqual(TEXT("a pad: redrawn unasked"), Line->GetNeutral(), FString(TEXT("<g:input_xbox_face_down> Buy")));

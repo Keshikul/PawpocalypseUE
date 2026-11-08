@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
 <g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
 <rect x="18.9" y="16.9" width="90.2" height="106.2" rx="33.1" fill="#2A1A33" stroke="none"/>
-<rect x="22.0" y="20.0" width="84.0" height="100.0" rx="30.0" fill="#FFFDED" stroke="none"/>
+<rect x="22.0" y="20.0" width="84.0" height="100.0" rx="30.0" fill="#F6EEF8" stroke="none"/>
 <rect x="39.0" y="27.0" width="50.0" height="6.0" rx="3.0" fill="#E5D4B7" stroke="none"/>
 <polyline points="36.8,59.0 36.8,93.0 58.7,93.0" fill="none" stroke="#2A1A33" stroke-width="7.5"/>
 <polyline points="68.6,69.2 69.0,66.6 70.1,64.2 71.9,62.1 74.2,60.5 76.9,59.4 79.8,59.0 82.8,59.2 85.6,60.1 88.0,61.6 90.0,63.6 91.3,65.9 91.9,68.4 91.7,71.0 90.8,73.5 68.9,93.0 92.4,93.0" fill="none" stroke="#2A1A33" stroke-width="7.5"/>

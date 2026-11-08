@@ -50,4 +50,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Pawpocalypse")
 	static FString Recolour(const FString& Pairs);
 
+	// THE ROLE-AWARE MIGRATION (restyle R3): as Recolour, with one map for TEXT colours and one for SURFACES
+	// (PawUi::ForEachColourRole), because the plum flip turns one old colour into two (ink text -> Bone, ink frames kept).
+	// KeepInk: asset names (';'-joined) whose text sits on a light surface and keeps its colour (a card's bone body).
+	UFUNCTION(BlueprintCallable, Category = "Pawpocalypse")
+	static FString RecolourByRole(const FString& TextPairs, const FString& SurfacePairs, const FString& EdgePairs, const FString& KeepInk);
+
+	// THE FONT MIGRATION (restyle R2): every baked asset saved its fonts as values too (the engine's Roboto, UTextBlock's
+	// default at bake time). Every font of every baked asset's look (PawUi::ForEachFont) that is an ENGINE font (or none)
+	// becomes F_Paw; its typeface name, size, outline and everything else are kept (F_Paw's "Regular" and "Bold" are both
+	// the text weight: tools/fonts.py). A font the designer chose from the project is untouched. Returns one line per asset.
+	UFUNCTION(BlueprintCallable, Category = "Pawpocalypse")
+	static FString Refont();
+
+	// THE TEXT FLOOR (restyle R4b): every font and piece text size of every baked asset under PawUi::TextFloorPx (16 px =
+	// 12 pt) rises to it (PawUi::UnderTextFloor; a keycap's label exempt). Returns one line per asset.
+	UFUNCTION(BlueprintCallable, Category = "Pawpocalypse")
+	static FString TextFloor();
+
 };

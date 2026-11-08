@@ -344,30 +344,47 @@ void UPawHudScreen::BuildOverlay(UOverlay* Root)
 	CurrencyBar = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("CurrencyBar"));
 	CurrencyBar->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	StatusRow->AddChildToVerticalBox(CurrencyBar);
-	auto AddCurrency = [&](const TCHAR* Kind, const TCHAR* IconName, TObjectPtr<UImage>& Icon, TObjectPtr<UTextBlock>& Label, const TCHAR* Name)
+	// R4d: each currency a plum pill, its number heavy Bone on the plate (no outline: it no longer stands on the field).
+	auto AddCurrency = [&](const TCHAR* Kind, const TCHAR* IconName, TObjectPtr<UImage>& Icon, TObjectPtr<UTextBlock>& Label, const TCHAR* Name,
+		const TCHAR* PillName, bool bFirst)
 	{
+		UBorder* Pill = T->ConstructWidget<UBorder>(UBorder::StaticClass(), PillName);
+		Pill->SetBrush(PawUi::Chrome(PawUi::EPawChrome::PlateSmall));
+		Pill->SetPadding(PawUi::PlatePadding(FMargin(PawUi::R4PillPadX, PawUi::R4PillPadY), PawUi::EPawChrome::PlateSmall));
+		Pill->SetVisibility(ESlateVisibility::HitTestInvisible);
+		UHorizontalBoxSlot* PS = CurrencyBar->AddChildToHorizontalBox(Pill);
+		PS->SetVerticalAlignment(VAlign_Center);
+		PS->SetPadding(FMargin(bFirst ? 0.0f : static_cast<float>(PawUi::R4PillGap), 0.0f, 0.0f, 0.0f));
+		// Named: an auto-name collides with one the asset already holds when the pill is grafted in (add:).
+		UHorizontalBox* Line = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), FName(FString(Kind) + TEXT("Line")));
+		Pill->SetContent(Line);
 		Icon = CurrencyIcon(T, Kind, IconName);
-		UHorizontalBoxSlot* S = CurrencyBar->AddChildToHorizontalBox(Icon);
+		UHorizontalBoxSlot* S = Line->AddChildToHorizontalBox(Icon);
 		S->SetVerticalAlignment(VAlign_Center);
-		S->SetPadding(FMargin(0.0f, 0.0f, 10.0f, 0.0f));
-		USizeBox* Box = T->ConstructWidget<USizeBox>();
+		S->SetPadding(FMargin(0.0f, 0.0f, 8.0f, 0.0f));
+		USizeBox* Box = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), FName(FString(Kind) + TEXT("Box")));
 		Box->SetMinDesiredWidth(PawUi::CurrencyLabelWidth);
 		Box->SetVisibility(ESlateVisibility::HitTestInvisible);
-		Label = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, true, Name);
+		Label = PawUi::Heavy(PawUi::MakeText(T, PawUi::R4CurrencyPx, PawTokens::UI_TEXT, false, Name));
 		Box->SetContent(Label);
-		UHorizontalBoxSlot* LS = CurrencyBar->AddChildToHorizontalBox(Box);
+		UHorizontalBoxSlot* LS = Line->AddChildToHorizontalBox(Box);
 		LS->SetVerticalAlignment(VAlign_Center);
-		LS->SetPadding(FMargin(0.0f, 0.0f, 10.0f, 0.0f));
 	};
-	AddCurrency(TEXT("catnip"), TEXT("CatnipIcon"), CatnipIcon, CatnipText, TEXT("CatnipText"));
-	AddCurrency(TEXT("stardust"), TEXT("StardustIcon"), StardustIcon, StardustText, TEXT("StardustText"));
+	AddCurrency(TEXT("catnip"), TEXT("CatnipIcon"), CatnipIcon, CatnipText, TEXT("CatnipText"), TEXT("CatnipPill"), true);
+	AddCurrency(TEXT("stardust"), TEXT("StardustIcon"), StardustIcon, StardustText, TEXT("StardustText"), TEXT("StardustPill"), false);
 
 	// The wave line, above the zone plate: "is anything happening where I stand".
+	// R4d: on its plum plate (it stood on the field, outlined, over the bushes).
+	UBorder* WavePlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("WavePlate"));
+	WavePlate->SetBrush(PawUi::Chrome(PawUi::EPawChrome::PlateSmall));
+	WavePlate->SetPadding(PawUi::PlatePadding(FMargin(PawUi::R4WavePadX, PawUi::R4WavePadY), PawUi::EPawChrome::PlateSmall));
+	WavePlate->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	StatusRow->AddChildToVerticalBox(WavePlate)->SetPadding(FMargin(0.0f, 6.0f, 0.0f, 0.0f));
 	WaveBox = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("WaveBox"));
 	WaveBox->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	StatusRow->AddChildToVerticalBox(WaveBox)->SetPadding(FMargin(0.0f, 6.0f, 0.0f, 0.0f));
+	WavePlate->SetContent(WaveBox);
 	// hud.gd: the Bait icon before the wave line (wrap_label "bait").
-	WaveLine = IconLine(T, TEXT("bait"), PawUi::SmallPx, PawTokens::UI_TEXT, 0.0f, TEXT("WaveLine"), true);
+	WaveLine = IconLine(T, TEXT("bait"), PawUi::SmallPx, PawTokens::UI_TEXT, 0.0f, TEXT("WaveLine"), false);
 	WaveBox->AddChildToVerticalBox(WaveLine);
 	WaveBar = PawUi::MakeThemeBar(T, TEXT("WaveBar")); // a theme ProgressBar (hud.gd: no override)
 	USizeBox* WaveBarBox = T->ConstructWidget<USizeBox>();
@@ -376,19 +393,17 @@ void UPawHudScreen::BuildOverlay(UOverlay* Root)
 	WaveBarBox->SetVisibility(ESlateVisibility::HitTestInvisible);
 	WaveBox->AddChildToVerticalBox(WaveBarBox)->SetPadding(FMargin(0.0f, 2.0f, 0.0f, 0.0f));
 
-	// The zone plate: "when do I get somewhere new" (a paper plate, ink text).
+	// The zone plate: "when do I get somewhere new" (the small plum plate since R3's shapes; Godot's was paper at 0.92).
 	ZonePlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("ZonePlate"));
-	FLinearColor Paper = PawTokens::UI_PANEL;
-	Paper.A = 0.92f;
-	ZonePlate->SetBrush(PawUi::Rounded(Paper, PawTokens::INK, 2.0f, 6.0f));
-	ZonePlate->SetPadding(FMargin(PawUi::ZonePlatePadX, PawUi::ZonePlatePadY));
+	ZonePlate->SetBrush(PawUi::Chrome(PawUi::EPawChrome::PlateSmall));
+	ZonePlate->SetPadding(PawUi::PlatePadding(FMargin(PawUi::ZonePlatePadX, PawUi::ZonePlatePadY), PawUi::EPawChrome::PlateSmall));
 	ZonePlate->SetVisibility(ESlateVisibility::HitTestInvisible);
 	StatusRow->AddChildToVerticalBox(ZonePlate)->SetPadding(FMargin(0.0f, 6.0f, 0.0f, 0.0f));
 	UVerticalBox* ZoneBody = T->ConstructWidget<UVerticalBox>();
 	ZonePlate->SetContent(ZoneBody);
-	ZoneText = PawUi::MakeText(T, PawUi::SmallPx, PawTokens::INK, false, TEXT("ZoneText"));
+	ZoneText = PawUi::MakeText(T, PawUi::SmallPx, PawTokens::UI_TEXT, false, TEXT("ZoneText"));
 	ZoneBody->AddChildToVerticalBox(ZoneText);
-	ZoneBar = PawUi::MakeBar(T, PawTokens::UI_SLOT, PawTokens::GOLD, PawTokens::INK, 1.0f, 4.0f, TEXT("ZoneBar"));
+	ZoneBar = PawUi::MakeBar(T, PawTokens::UI_SLOT, PawTokens::GOLD, PawTokens::UI_PANEL_FRAME, PawUi::R4BarEdge, 4.0f, TEXT("ZoneBar"));
 	USizeBox* ZoneBarBox = T->ConstructWidget<USizeBox>();
 	ZoneBarBox->SetHeightOverride(PawUi::ZoneBarHeight);
 	ZoneBarBox->SetContent(ZoneBar);
@@ -403,14 +418,15 @@ void UPawHudScreen::BuildOverlay(UOverlay* Root)
 		USizeBox* Box = T->ConstructWidget<USizeBox>();
 		Box->SetWidthOverride(PawUi::XpLevelWidth);
 		Box->SetVisibility(ESlateVisibility::HitTestInvisible);
-		Label = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, true, Name);
+		Label = PawUi::Heavy(PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, true, Name));
 		Label->SetJustification(Justify);
 		Box->SetContent(Label);
 		UHorizontalBoxSlot* S = XpRow->AddChildToHorizontalBox(Box);
 		S->SetVerticalAlignment(VAlign_Center);
 	};
 	LevelBox(XpNow, ETextJustify::Right, TEXT("XpNow"));
-	XpBar = PawUi::MakeBar(T, PawTokens::UI_SLOT, PawTokens::GOLD, PawTokens::INK, 3.0f, 6.0f, TEXT("XpBar"));
+	// R4d: a raised track with a Deep Plum edge, the fill Butter (the board's level bar).
+	XpBar = PawUi::MakeBar(T, PawTokens::UI_BUTTON, PawTokens::UI_SELECTED, PawTokens::UI_PANEL_FRAME, 3.0f, 6.0f, TEXT("XpBar"));
 	USizeBox* XpBarBox = T->ConstructWidget<USizeBox>();
 	XpBarBox->SetHeightOverride(PawUi::XpBarHeight);
 	XpBarBox->SetContent(XpBar);
@@ -436,8 +452,8 @@ void UPawHudScreen::BuildOverlay(UOverlay* Root)
 	BossBox->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	BossSlot = Root->AddChildToOverlay(BossBox);
 	BossPanel = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("BossPanel"));
-	BossPanel->SetBrush(PawUi::Rounded(PawTokens::UI_PANEL, PawTokens::INK, 3.0f, 6.0f));
-	BossPanel->SetPadding(FMargin(14.0f, 10.0f));
+	BossPanel->SetBrush(PawUi::Chrome(PawUi::EPawChrome::Window)); // R3: the plum plate
+	BossPanel->SetPadding(PawUi::PlatePadding(FMargin(14.0f, 10.0f), PawUi::EPawChrome::Window));
 	BossPanel->SetVisibility(ESlateVisibility::Collapsed);
 	BossBox->SetContent(BossPanel);
 	UVerticalBox* BossBody = T->ConstructWidget<UVerticalBox>();
@@ -473,8 +489,8 @@ void UPawHudScreen::BuildDock(UOverlay* Root)
 	DockBox->SetWidthOverride(PawUi::DockWidth);
 	DockSlot = Root->AddChildToOverlay(DockBox);
 	UBorder* Panel = T->ConstructWidget<UBorder>();
-	Panel->SetBrush(PawUi::Rounded(PawTokens::UI_PANEL, PawTokens::UI_PANEL_FRAME, 3.0f, 8.0f));
-	Panel->SetPadding(FMargin(18.0f, 14.0f, 16.0f, 14.0f)); // the theme's DockPanel content margins
+	Panel->SetBrush(PawUi::Chrome(PawUi::EPawChrome::Window)); // R3: the plum plate
+	Panel->SetPadding(PawUi::PlatePadding(FMargin(18.0f, 14.0f, 16.0f, 14.0f), PawUi::EPawChrome::Window)); // DockPanel's margins
 	DockBox->SetContent(Panel);
 	UVerticalBox* Body = T->ConstructWidget<UVerticalBox>();
 	Panel->SetContent(Body);
@@ -622,7 +638,9 @@ void UPawHudScreen::BuildShopRows()
 		UPawButton* Row = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>());
 		Row->Index = I;
 		Row->bRepeats = true;
-		Row->SetMinDimensions(0, static_cast<int32>(PawUi::RowHeight));
+		Row->SetMinDimensions(0, static_cast<int32>(PawUi::R4RowHeight)); // R4e: the board's taller rows, words on the left
+		Row->SetAlignLeft(true);
+		Row->SetLabelSize(PawUi::R4RowPx);
 		// A row buys on the PRESS (a held press repeats, dock_navigator.gd), not on the release.
 		Row->SetPressMethod(EButtonPressMethod::ButtonPress);
 		Row->SetClickMethod(EButtonClickMethod::MouseDown);
@@ -1702,7 +1720,7 @@ void UPawHudScreen::RefreshStatus()
 	XpKept = PawUi::SetBarValue(XpBar, Xp.Fraction, PawUi::XpBarStep, 0.0); // hud.tscn: step 0.0001, a flat fill
 
 	const Pc::PcWaveLine Wave = Pc::WaveLine(D, P);
-	SetShown(WaveBox, Wave.bVisible);
+	SetShown(WaveShown(), Wave.bVisible); // R4d: the plate goes with its line (an empty plum pill otherwise)
 	if (Wave.bVisible)
 	{
 		FFormatNamedArguments Args;
@@ -1912,7 +1930,7 @@ void UPawHudScreen::BuildReawakenPage(UVerticalBox* Page)
 	PayoutIcon->SetBrush(PawUi::IconBrush(PawUi::CurrencyIconName(TEXT("stardust")), 24.0)); // LABEL_ICON_PX
 	PayoutIcon->SetVisibility(ESlateVisibility::HitTestInvisible);
 	Payout->AddChildToHorizontalBox(PayoutIcon)->SetVerticalAlignment(VAlign_Center);
-	PayoutText = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, false, TEXT("PayoutText"));
+	PayoutText = PawUi::Heavy(PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, false, TEXT("PayoutText")));
 	UHorizontalBoxSlot* PayoutSlot = Payout->AddChildToHorizontalBox(PayoutText);
 	PayoutSlot->SetVerticalAlignment(VAlign_Center);
 	PayoutSlot->SetPadding(FMargin(8.0f, 0.0f, 0.0f, 0.0f));
@@ -2009,10 +2027,8 @@ void UPawHudScreen::RefreshRealms()
 		// hud.gd: the Bait icon, or Catnip's where Catnip is what is missing (decorate_button: 26 px).
 		BaitButton->SetIcon(PawUi::CurrencyIconName(Bait.Kind == Pc::PcBaitKind::CatnipShort ? TEXT("catnip") : TEXT("bait")), ButtonIconPx);
 		BaitButton->SetLocked(!Bait.bEnabled);
-		// Ready, and the boss still stands in the way: it warms, as the zone plate does.
-		FLinearColor Warm = PawTokens::GOLD;
-		Warm.A = 0.45f;
-		BaitButton->SetPlate(Bait.bCalling, Warm);
+		// Ready, and the boss still stands in the way: it calls (Godot warms it GOLD at 45 %; R4a: the Butter call plate).
+		BaitButton->SetCallLook(Bait.bCalling);
 		Juice.Jitter(BaitButton, Bait.bCalling, FPawJuice::EffectsOn(this)); // _bait_is_calling()
 	}
 	AutoTravelButton->SetCheck(true, Game() && Game()->Slot().bAutoTravel);
@@ -2066,10 +2082,9 @@ void UPawHudScreen::RefreshRealms()
 		Row->SetIcon(S.Kind == Pc::PcRealmRowKind::NeedsCatnip ? PawUi::CurrencyIconName(TEXT("catnip")) : FString(), ButtonIconPx);
 		Row->SetLocked(!S.bEnabled);
 		Row->SetLabelColour(bColour, Colour, bColourLocked);
-		// A biome that has JUST become reachable warms up (BIOME_READY_TINT): exactly one thing on screen does this.
-		FLinearColor Warm = PawTokens::GOLD;
-		Warm.A = 0.45f;
-		Row->SetPlate(S.bNew, Warm);
+		// A biome that has JUST become reachable warms up (BIOME_READY_TINT): exactly one thing on screen does this. R4a: the
+		// Butter call plate with ink words (a 45 % GOLD tint over plum read khaki).
+		Row->SetCallLook(S.bNew);
 		Juice.Jitter(Row, S.bNew, FPawJuice::EffectsOn(this));
 	}
 }
@@ -2710,7 +2725,18 @@ FText UPawHudScreen::GetXpText(bool bNext) const
 }
 bool UPawHudScreen::IsZoneVisible() const { return ZonePlate && ZonePlate->GetVisibility() != ESlateVisibility::Collapsed; }
 UWidget* UPawHudScreen::GetZonePlate() const { return ZonePlate; }
-bool UPawHudScreen::IsWaveVisible() const { return WaveBox && WaveBox->GetVisibility() != ESlateVisibility::Collapsed; }
+UWidget* UPawHudScreen::WaveShown() const
+{
+	// R4d: the wave line sits on WavePlate; an asset the plate was never grafted into shows WaveBox itself.
+	UPanelWidget* Parent = WaveBox ? WaveBox->GetParent() : nullptr;
+	return Parent && Parent->GetFName() == TEXT("WavePlate") ? static_cast<UWidget*>(Parent) : static_cast<UWidget*>(WaveBox.Get());
+}
+
+bool UPawHudScreen::IsWaveVisible() const
+{
+	const UWidget* Shown = WaveShown();
+	return Shown && Shown->GetVisibility() != ESlateVisibility::Collapsed;
+}
 bool UPawHudScreen::IsBossPanelVisible() const { return BossPanel && BossPanel->GetVisibility() != ESlateVisibility::Collapsed; }
 bool UPawHudScreen::IsBossTimerVisible() const { return BossTimer && BossTimer->GetVisibility() != ESlateVisibility::Collapsed; }
 

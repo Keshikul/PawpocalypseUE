@@ -4,6 +4,6 @@
 <rect x="22.0" y="22.0" width="84.0" height="84.0" rx="8.0" fill="#8596C3" stroke="none"/>
 <rect x="42.0" y="25.0" width="44.0" height="26.0" rx="3.0" fill="#6A7198" stroke="#2A1A33"/>
 <rect x="36.0" y="78.0" width="56.0" height="32.0" rx="3.0" fill="#C0C6D8" stroke="#2A1A33"/>
-<rect x="70.0" y="29.0" width="12.0" height="18.0" rx="2.0" fill="#FFF9E3" stroke="none"/>
+<rect x="70.0" y="29.0" width="12.0" height="18.0" rx="2.0" fill="#2A1A33" stroke="none"/>
 </g>
 </svg>

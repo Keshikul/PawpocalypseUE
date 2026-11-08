@@ -5,6 +5,196 @@ and the exact next step. Read `docs/00-START-HERE.md` first, then the newest ent
 
 ---
 
+## 2026-11-08 (69) - Restyle R4 nearly done: Butter focus, the text floor, the title, the HUD, the dock, the tree, the titles; 150 % open
+
+### Where the project is
+- The restyle: R0-R3 done; **R4: R4a-R4g done** as far as they go without new art and words (the worklist's "R4
+  progress"); **R4h's checks ran**: the pad tours (41 checks) and the 1280x800 tour pass; **at 150 % four screens
+  overflow (open, the next step)**.
+- Everyday `check_all` **exit 0 on the final state** (`build/check_all_r4_session1.log`, every gate; the run before it
+  failed twice on my own leftovers: `PawTokens.h` stale after the R4e recolour rewrote the widgets' snapshot, and the
+  sabotage `prompt_line_ignores_setting` aimed at a line R4f rewrote: regenerated, retargeted, CAUGHT).
+- **Nothing committed since `f6a16b3`**: R2, R3 and R4 wait for the designer's review.
+
+### What happened (designer: "Do r4")
+1. **R4's steps** written into the worklist from the canvas boards' sources (`MainMenu`, `PlumMenus`, `SkillTree`,
+   `LevelUp`, read with the Artifact tool) and the tour. Kept on purpose, not the canvas: the dock stays left; no new
+   player-facing words without the designer.
+2. **R4a**: the ring and "the selected thing" Butter (tokens `focus`, `selected`, `selected_text`; chrome
+   `ui_button_selected`; `UPawButton::SetCallLook`; the call plate on the plate's face only, `ButtonFacePadding`).
+3. **R4b**: the 16 px floor (`PawUi::UnderTextFloor`, `--textfloor`, `.Widgets.TextFloor`), nine constants raised.
+4. **R4c**: the title after "Main menu (plum)"; graft ops `slot:`, `text:`, `remove:`; `.Title.Plum`.
+5. **R4d**: HUD pills, the wave plate, the bars. **Found and fixed**: a failed graft once saved the HUD asset without its
+   currencies (put back the same session): grafts are all or nothing now.
+6. **R4e**: the shop rows (taller, words left, 18 px); locked text legible (4.5:1).
+6b. **R4f**: round skill nodes, rounded-square unlocks; the tree's Stardust and legend on pills; a prompt line takes its
+   plate with it when prompts are off. **R4g**: `PawUi::ButterTitle` on the card pick (tilted), job picker and victory;
+   `.Widgets.Parity` compares text colours now and caught a stale code colour (the card pick's subtitle).
+6c. **R4h**: `godot_tour.py --res` / `--uiscale` (shots in their own folder) and `paw.UiScale` (UMG's ApplicationScale:
+   Slate's does not reach the viewport, KB U/09 §6); the findings in the worklist.
+7. **Found**: the tour never retook the title, pause and settings shots; R3's review of those three screens looked at
+   last night's pictures. Fixed in `godot_tour.py`; the screens since seen fresh (they were on the plum plates).
+8. Sabotages: 13 new, each CAUGHT alone (477 realm sabotages); `butter_title_bone` first MISSED (it was aimed at a test
+   that reads the asset), retargeted. Docs: worklist, 00, 05 §7, 09, 12 (five rows), CLAUDE.md. KB `Unreal/09` §2.3 (moving
+   a part in a saved asset; all-or-nothing grafts) and §6 (testing 150 %), both indexes.
+
+### Open
+- **150 % overflows** (`build/look/r4h_150.png`): the title (logo under the menu; Boba and the version off screen), the
+  dock's shop page (does not scroll; rows under the quick bar), the settings window (taller than the screen), the tree
+  (drawn off centre at that scale). Then R4's exit review beside the boards.
+- For the designer: the tree opening zoomed in (the board's big nodes); words for the dock's second lines, price pills and
+  kittens strip; R6 art for the dock's icon tiles.
+- The designer: review and commit R2-R4; the title / numbers shadow size (66); the hardware check (55).
+
+### Next step
+*"Read docs/00-START-HERE.md and docs/HANDOFF-LOG.md, then fix R4h's four 150 % overflows (worklist R4 progress) and
+close R4 of docs/WORKLIST-RESTYLE-2026-11-07.md."*
+If the designer says go for the night: `docs/WORKLIST-NIGHT-2026-11-08.md` (R4's close, plus a draft of short UI text: the
+designer, 2026-11-08, "make sure all text is simple and concise in the ui", now in CLAUDE.md's register rule).
+
+---
+
+## 2026-11-08 (68) - Restyle R3 done: Deep Plum edges, one solid shadow, the pressed button sinks
+
+### Where the project is
+- The restyle (`docs/WORKLIST-RESTYLE-2026-11-07.md`): **R0-R3 DONE**. Next R4 (screens and layout). Slice 6's 6b-6d after.
+- Everyday `check_all` exit 0 on this state (`build/check_all_r3_shapes.log`, 18 of 18). `Pawpocalypse.UI` 77 tests PASS.
+- **Nothing committed since `f6a16b3`**: R2, R3's colour flip and R3's shapes all wait for the designer's review.
+
+### What happened (designer: "Do r3")
+1. **The plates** (`tools/art/sweet_ui.py`, `plate()`): a 3 px Deep Plum edge, ONE solid Deep Plum shadow straight down
+   inside the bottom margin (buttons 4 px, panel and window 8, a new `ui_plate_small` 4). The pressed button sinks onto its
+   shadow; the silhouette check now says three states share one box and pressed is that box moved down by the shadow
+   (measured at half alpha: the resampling's halo reaches the canvas edge). Margins read off the drawings, each corner and
+   the shadow inside the cut, the shortest-control rule kept: `PawUi::ChromeTable` (+ a `Shadow` column, `ChromeGap`).
+2. **A rounded box cannot cast a shadow** (KB U/09 §4), so every plate the code drew flat now wears the chrome: the dock,
+   the boss panel, the zone plate (small), the title's menu, windows and Boba badge, the pause and settings windows, the
+   tree's warning and tip, the toast (small). `PawUi::PlatePadding` lifts content off the shadow; buttons' content margins
+   16 / 4 / 16 / 8 (Common UI writes one padding into both normal and pressed: a pressed label cannot sink, KB U/09 §4). The
+   title's cluster wears the theme's buttons. Grafted with `restyle:`; **found:** the HUD's dock panel is `Border_0` in the
+   code layout but `Border_2` in the asset (auto-names drift): new graft ops `names:` / `codenames:` (each widget with its
+   parent) and `restyle:Code>Asset` (refused when the class or the parent's class differs). The title's `Border_0-6` were
+   checked to line up parent for parent before trusting them.
+3. **Palette**: `panel_frame` / `button_frame` Deep Plum; new `shadow` (Deep Plum) and `card_ink` (the card's ink, rule 7's
+   card pair). **The migration's third role, EDGE** (a brush's outline, `PawUi::IsEdgeColour`; a font's outline is not):
+   `EPawColourRole`, `ui_role_pairs` text / surface / edge, `RecolourByRole(..., EdgePairs, ...)`; `--recolour` moved the ink
+   frames left in the assets (#2A1A33 -> #120A17; WBP_CardFace's kept) and updated the widgets' snapshot.
+4. **Found and fixed**: the quick bar's gear and door, the catches tab's cards and the boss / kitten badges were drawn in the
+   button colour (cream once, Plum Raised since last night's flip): nearly invisible on plum. `sweet_ui.LIGHT` = Bone.
+5. Tests: `Pawpocalypse.UI.Chrome` seen to FAIL first (the small plate not imported; 9 plates in the assets and 2 in code
+   not the chrome; the job picker's and victory's saved margins old), then PASS; it now checks 7 more plates (code and
+   asset) and that every plate's padding lifts content off its shadow. `.ColourRoles` covers the edge role. Sabotages
+   `plate_shadow_ignored`, `colour_role_edge_lost`, `plate_flat_again` new, `chrome_margin_not_godots` retargeted,
+   `colour_role_text_lost` and `palette_walker_blind` re-run: all 6 CAUGHT alone (464 realm sabotages).
+6. Seen: the tour (`godot_tour.py --skip-godot`): title, HUD, pause, settings, tree, job picker, victory, card pick all on
+   the plum plates; `build/look/r3s_screens.png`, `build/look/r3s_zoom.png` (1:1 x2: edges, shadows, the sunk tab).
+7. Docs: worklist R3 DONE note, 00, 01, 05 §7, 09, 11, 12 (two rows), CLAUDE.md (graft ops). KB `Unreal/09` §2.3 (auto-name
+   drift; colour roles) and §4 (no shadow on a rounded box; Common UI's pressed padding), both indexes, two symptom rows.
+
+### Open
+- R4: the focus ring and selection Butter (still coral), the title hint's plate, the dull Travel row; the layout pass.
+- The cards (Bone bodies, ink frames, no shadow yet) are R6's; the tree's node frames are painted at runtime (R4/R6).
+- The zone plate's rainbow frame hugs the plate's widget, so it now includes the 4 px shadow (looks fine; noted).
+- The designer: review and commit R2 + R3; the title / numbers shadow size (66); the hardware check (55).
+
+### Next step
+*"Read docs/00-START-HERE.md and docs/HANDOFF-LOG.md, then start R4 of docs/WORKLIST-RESTYLE-2026-11-07.md."*
+
+---
+
+## 2026-11-08 (67) - Docs brought up to date with R2 and R3
+
+### Where the project is
+- Unchanged from (66): R0-R2 done, R3's colour flip done; R2 and R3 NOT committed (the designer reviews them). No code,
+  asset or test changed in this session: docs only.
+
+### What happened (designer: "Make sure all docs are up to date")
+- Every doc read against the code for claims the night made stale; fixed:
+  - `00`: date, phase 6's "next" (6b-6d wait for the restyle), the last everyday run (66).
+  - `01` D14's status.
+  - `02` the paper look marked as Godot's.
+  - `03` the font builder.
+  - `05` the cream panels, keycaps and card plate (now the plum tokens and Bone, values from `PawTokens.h`), the font plan
+    (the `.ttc` is one face, no split).
+  - `07` the fonts row, "the restyle plan's D1", the OFL texts' place.
+  - `11` the restyle before 6b-6d, phase 7's fonts done early.
+  - `12` four rows: headless font import, mixed-weight Han, Transient rich-text style, the colour split by role.
+  - The restyle worklist: the proposed R3 values marked as differing from what was built.
+- **Measured:** F_Paw (M PLUS Rounded 1c) HAS ★ ☆ ◆ and the arrows (fontTools cmap). doc 05's "the font has no star /
+  arrow glyph" was Godot's font. The drawn discs and arrow images stay; using the real marks is open (an R4 candidate).
+- Appendices B and C regenerated to scratch: identical to the committed ones. A is Godot's data, unchanged.
+
+### Open
+- As (66): R3's shapes, R4's items, Boba's photo; the designer's review and commit of R2 + R3; the shadow size.
+- New: the row marks and the badge star could use F_Paw's ★ ◆ ☆ instead of drawn discs (decide in R4).
+
+### Next step
+*"Read docs/00-START-HERE.md and docs/HANDOFF-LOG.md, then finish R3 (the plates' shadows and edges) of
+docs/WORKLIST-RESTYLE-2026-11-07.md."*
+
+---
+
+## 2026-11-08 (66) - The night: R0-R1 committed; R2 fonts done; R3's colour flip done (plum panels, bone text)
+
+### Where the project is
+- The restyle (`docs/WORKLIST-RESTYLE-2026-11-07.md`): **R0, R1, R2 done; R3's colour flip done**. Left of R3: the plates'
+  solid drop shadows and Deep Plum edges (`sweet_ui.py` shapes). Then R4. Phase 6 slice 6 (6b-6d) after the restyle.
+- Everyday `check_all` exit 0 on the final state (`build/check_all_night_r3.log`, 18 of 18 PASS; the R2 state's too,
+  `build/check_all_night_r2.log`).
+- **Committed `f6a16b3`** (local, not pushed): everything since `98e3a4f` (the port through slice 6a, R0, R1), on the
+  designer's "Do all of it" to the night plan's question A. **R2 and R3 are NOT committed** (the night's changes:
+  `git status`; the pre-R3 state is backed up in `build/night_20261107/backup/r2_state`).
+- The game today: every text in M PLUS Rounded 1c (`F_Paw`), titles and numbers in Black; plum panels and rows, bone text,
+  lilac secondary text; cards keep Bone bodies with ink text; labels over the field Bone with an ink outline.
+
+### What happened (night plan `docs/WORKLIST-NIGHT-2026-11-07.md`, closed)
+1. **R2a, the font.** `tools/fonts.py` (the table) -> `UI/PawFontSpec.h`; `tools/import_fonts.py --run` -> `FF_*` faces +
+   composite `F_Paw` (`/Game/Pawpocalypse/Fonts`) via `UPawFontBuilder` (PawpocalypseEditor). **Found:** the font import
+   factory asserts headless (`UFontFace::PostEditChangeProperty` flushes Slate's font cache unchecked): faces made with
+   `InitializeFromBulkData`. The Noto CJK `.ttc` is one face asset, sub-faces by index. Sources + OFL texts in
+   `SourceArt/fonts`. Test `Pawpocalypse.UI.Fonts.Composite`; sabotages `font_thai_face_wrong`, `font_umg_default_lost`.
+2. **R2b, the gate** `tools/check_font_coverage.py`: models Slate's face choice; 22 languages, 6300 characters per weight,
+   PASS; self-test fails both ways. Everyday gate; self-test in `-Full`; `fonts.py --check` in L0.
+3. **R2c, the switch.** `[SlateStyle] DefaultFontName=/Game/Pawpocalypse/Fonts/F_Paw` (DefaultEngine.ini). **Measured:** the
+   baked assets did not save Roboto (their fonts equalled the default): 97 of 99 moved with no asset change;
+   `bake_widgets.py --refont` wrote the 2 left (a rich text's style override). Walker `PawUi::ForEachFont`, skips Transient
+   properties. Test `.Widgets.Fonts` (failed 99, then 2); sabotage `font_walker_blind`. L0 `ui-rules`: no engine font.
+4. **R2d, titles and numbers**: `PawUi::Heavy` (Black; a Deep Plum shadow 3 px on outlined text) at 21 parts, grafted
+   (`restyle:` now copies a text's typeface, outline, shadow); the parity test compares every named text's look; sabotage
+   `heavy_typeface_lost`. Size sheet `build/look/night_20261107/heavy_sizes.png`.
+5. **Language sheets** (the port has no translations or UI-size option until phase 7): `paw.FontSheet <culture>`,
+   `godot_tour.py --set fonts` -> `build/look/fonts_in_game.png`, 22 of 22. **Found:** 简体中文 mixed weights (M PLUS has
+   体中文, not 简): culture-less Han sub-font -> Noto SC, `ja` sub-font keeps M PLUS. `godot_tour.py --res`: 1280x800 clean.
+6. **R3 colour flip**: `palette.py` UI plum values + `field_label`; rule 7 (13 UI pairs). The migration by ROLE (one old
+   ink, two new colours): `PawUi::ForEachColourRole` / `IsTextColour`, `UPawWidgetBaker::RecolourByRole`,
+   `gen_paw_tokens.ui_role_pairs`, `bake_widgets.py --recolour` (KEEP_INK: WBP_CardFace). 221 colours in 12 assets.
+   Godot maps leave the UI table out. Code: ink text -> `UI_TEXT` (13 sites), `UI_FIELD_LABEL`, Pounce dial Bone,
+   `UPawIconText::bOverField` now applied (it never was), the logo outlined, the title hint ink, checkboxes, glyph keys
+   Bone (`sweet_input.py`). Tests: Palette failed with 76 retired creams before the migration; new `.ColourRoles`
+   (sabotage `colour_role_text_lost`). All 9 new sabotages seen CAUGHT alone.
+7. Knowledge: `Unreal/09` §5.1 (new), `Unreal/24` two gotchas, both indexes. Docs: 00, 07 §5, 09, CLAUDE.md tools.
+
+### For the designer (morning)
+- `build/look/night_20261107/plum_after.png` (every screen now), `build/look/fonts_in_game.png` (22 languages),
+  `build/look/night_20261107/heavy_sizes.png`: pick the shadow size (tonight 3 px; seen: on plum panels the shadow and
+  outline barely show).
+- Review and commit R2 + R3 when ready (not committed).
+- Still yours from earlier: the hardware check from (55).
+
+### Open
+- R3's shapes: plate drop shadows, Deep Plum panel edges (frames are INK, invisible on plum).
+- R4 items seen tonight: the highlighted Travel row is a dull khaki (Butter selection with the focus pass; focus ring still
+  coral `ALERT`); the title's hint line crosses the bushes (a plate); the HUD wave line over bushes.
+- Boba's photo on the title badge is still the empty placeholder (slice 6c).
+
+### Next step
+*"Read docs/00-START-HERE.md and docs/HANDOFF-LOG.md, then finish R3 (the plates' shadows and edges) of
+docs/WORKLIST-RESTYLE-2026-11-07.md."* After any palette change: `gen_paw_tokens.py`, `build_art.py`, `raster_svg.py`,
+`pack_atlas.py`, `import_art.py --run`, `bake_widgets.py --run --recolour` (by role), `check_all`. After a font change:
+`fonts.py`, `import_fonts.py --run`, `check_font_coverage.py`.
+
+---
+
 ## 2026-11-07 (65) - Restyle R0 and R1: the look unhooked from Godot; the ink is plum
 
 ### Where the project is

@@ -34,7 +34,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 SVG = ROOT / "SourceArt" / "svg"
 CHROME = ("ui_button_normal", "ui_button_hover", "ui_button_pressed", "ui_button_disabled", "ui_panel", "ui_window",
-          "ui_bar_track", "ui_bar_fill", "ui_separator")
+          "ui_bar_track", "ui_bar_fill", "ui_separator", "ui_plate_small", "ui_button_selected")
 # Paths under SourceArt/svg (globs): the icons Godot draws.
 ICONS = ("ui/ui_tab_*.svg", "ui/ui_icon_*.svg", "ui/ui_quick_*.svg", "ui/ui_menu_*.svg", "ui/ui_tick.svg",
          "ui/achievement_*.svg", "cards/*.svg", "skills/*.svg", "jobs/job_*.svg")

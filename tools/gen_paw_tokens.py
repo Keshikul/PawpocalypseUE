@@ -149,11 +149,15 @@ def drawn(d):
     return flat({k: v for k, v in d.items() if k != "stacklands"})
 
 
-def colour_pairs(snapshot):
+def colour_pairs(snapshot, ui=True):
     """[(old, new, paths)] for every palette colour that changed since the snapshot. Refuses an ambiguous map: one old
-    colour that became two different colours of ours would make a comparison (or a migration) unanswerable."""
+    colour that became two different colours of ours would make a comparison (or a migration) unanswerable.
+    ui=False leaves the UI table out: since R3 (plum panels) one old ink is two new colours there, told apart only by ROLE
+    (ui_role_pairs); the field, the sky and the art (the Godot fixtures, the tree's branches) never draw the UI table."""
     then = drawn(json.loads(Path(snapshot).read_text(encoding="utf-8")))
     now = drawn(palette.as_dict())
+    if not ui:
+        then = {p: v for p, v in then.items() if not p.startswith("ui.")}
     pairs = {}
     for path, old in sorted(then.items()):
         new = now.get(path)
@@ -175,6 +179,52 @@ def colour_pairs(snapshot):
     return rows
 
 
+# The UI tokens that colour TEXT (restyle R3). Every other UI token is a surface: a panel, a button, a frame, a well.
+UI_TEXT_KEYS = ("text", "text_muted", "text_disabled", "boss_banner_text", "field_label")
+# R3's shapes: the UI keys a brush's OUTLINE is drawn in (PawUi::IsEdgeColour): the plates' and buttons' frames.
+UI_EDGE_KEYS = ("panel_frame", "button_frame")
+# R4a: UI keys no asset ever saves: the focus ring is painted at run time (UPawButton::NativePaint, the tree node's style
+# from its native defaults). Left out of the maps, or coral -> Butter would collide with the badge's coral, which stays.
+UI_PAINTED_KEYS = ("focus",)
+
+
+def ui_role_pairs(snapshot):
+    """({old: new} for text colours, {old: new} for surfaces, {old: new} for edges), "#RRGGBB", from the UI table against the
+    snapshot's. One old colour may become several new ones ACROSS the roles (ink text -> Bone, ink panels kept, ink frames
+    -> Deep Plum), never within one: refused."""
+    then = json.loads(Path(snapshot).read_text(encoding="utf-8")).get("ui", {})
+    now = palette.UI
+    roles = ({}, {}, {})
+    for key, old in sorted(then.items()):
+        if key not in now or key in UI_PAINTED_KEYS:
+            continue
+        role = roles[0] if key in UI_TEXT_KEYS else roles[2] if key in UI_EDGE_KEYS else roles[1]
+        role.setdefault(old.upper(), {}).setdefault(now[key].upper(), []).append(key)
+    out, bad = [], []
+    for name, role in zip(("text", "surface", "edge"), roles):
+        m = {}
+        for old, news in role.items():
+            if len(news) > 1:
+                bad.append("%s %s became %s" % (name, old, "; ".join("%s (%s)" % (n, ", ".join(k)) for n, k in news.items())))
+                continue
+            (new, _keys), = news.items()
+            if new != old:
+                m[old] = new
+        out.append(m)
+    if bad:
+        raise SystemExit("gen_paw_tokens: the UI colour map is ambiguous within a role:\n  " + "\n  ".join(bad))
+    # A text colour also drawn as a surface (a slider's bar in the muted text colour) moves with the text, unless a surface
+    # token owns that old colour (the ink: text Bone, frames kept).
+    for old, new in out[0].items():
+        if old not in roles[1]:
+            out[1].setdefault(old, new)
+    # An edge drawn in a colour no edge token owns (a frame in a surface's colour) moves as that surface does.
+    for old, new in out[1].items():
+        if old not in roles[2]:
+            out[2].setdefault(old, new)
+    return out[0], out[1], out[2]
+
+
 def retired():
     """Colours the Godot palette or the widgets' last palette drew that today's palette no longer has anywhere: a baked asset
     that still holds one missed a migration (Pawpocalypse.UI.Widgets.Palette)."""
@@ -186,7 +236,7 @@ def retired():
 
 def render_look():
     """Godot's colour (the frozen snapshot) -> ours (today), for every colour that changed."""
-    rows = colour_pairs(SNAPSHOT)
+    rows = colour_pairs(SNAPSHOT, ui=False)
     lines = [
         "#pragma once",
         "",

@@ -36,9 +36,11 @@ import palette as PAL
 import sweet_shapes as S
 
 INK = S.INK
-PAPER = PAL.UI["button"]
+# The glyphs are the platforms' own conventions: a light key with an ink legend, whatever the panels are (restyle R3:
+# the UI buttons went plum, the keys stay Bone, their wells Lilac).
+PAPER = PAL.PLUM["bone"]
 PAPER_DIM = PAL.STACKLANDS["sand_detail"]
-SLOT = PAL.UI["slot"]
+SLOT = PAL.PLUM["lilac"]
 GOLD = PAL.GOLD
 
 # Xbox's four colours, as the nearest card families: green A, red B, blue X,

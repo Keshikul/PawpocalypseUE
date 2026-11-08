@@ -382,21 +382,32 @@ BIOME_CREATURES = {
 # scans for; disabled is the grey text the reference uses for a finished quest.
 # Each tab is a card family so the five read apart at a glance.
 
+# PLUM EVERYWHERE (restyle R3, designer 2026-11-07): the panels are Plum, the text Bone, the rows and buttons Plum Raised,
+# the wells and the pressed state Deep Plum. R3's shapes (2026-11-08): the plates' edges and their one solid shadow, straight
+# down, are Deep Plum (spec: docs/WORKLIST-RESTYLE-2026-11-07.md §4; the chrome in sweet_ui.py, the frames the walker's
+# EDGE role). The ink stays the ink of letters, the outline of labels over the field and a card's frame. The tab
+# families, the currencies and the card families keep their colours; a card's body is Bone with ink text on it (WBP_CardFace keeps its ink: bake_widgets.py
+# --recolour, KEEP_INK). Rule 7 checks every pair the plum screens draw.
+PLUM_HOVER = mix(PLUM["raised"], PLUM["lilac"], 0.15)
+
 UI = {
-    "panel":           STACKLANDS["paper"],
-    "panel_band":      STACKLANDS["paper_band"],
-    "panel_frame":     INK,
-    "text":            INK,
-    "text_muted":      hsv(47, 22, 56),           # disabled grey darkened until it passes on cream
-    "text_disabled":   DISABLED,
-    "button":          STACKLANDS["paper_bright"],
-    "button_hover":    STACKLANDS["paper_band"],
-    "button_pressed":  header("cream"),
-    "button_disabled": mix(STACKLANDS["paper"], DISABLED, 0.35),
-    "button_frame":    INK,
-    "slot":            header("cream"),           # a recessed well on a panel
+    "panel":           PLUM["base"],
+    "panel_band":      PLUM_HOVER,                # (shares the hover tone: one old cream, one new plum)
+    "panel_frame":     PLUM["deep"],              # a plate's edge (R3's shapes)
+    "text":            PLUM["bone"],
+    "text_muted":      PLUM["lilac"],
+    "text_disabled":   mix(PLUM["lilac"], PLUM["base"], 0.2),   # R4e: a row it cannot pay is still READ (the board's)
+    "button":          PLUM["raised"],
+    "button_hover":    PLUM_HOVER,
+    "button_pressed":  PLUM["deep"],
+    "button_disabled": mix(PLUM["base"], PLUM["raised"], 0.5),
+    "button_frame":    PLUM["deep"],
+    "slot":            PLUM["deep"],              # a recessed well on a panel
+    "shadow":          PLUM["deep"],              # the plates' one solid shadow, straight down (R3's shapes)
     "badge":           ALERT,
-    "focus":           ALERT,                     # the keyboard/pad selection ring
+    "focus":           PLUM["butter"],            # the keyboard/pad selection ring (R4a)
+    "selected":        PLUM["butter"],            # the selected thing: the open tab, a settings section, a call (R4a)
+    "selected_text":   INK,                       # a label on the selected plate
     "catnip":          GOLD,
     "stardust":        STARDUST,
     "tab_upgrades":    header("orange"),
@@ -404,11 +415,13 @@ UI = {
     "tab_realms":      header("green"),
     "tab_catches":     header("yellow"),
     "tab_awards":      header("coral"),
-    "boss_banner":     face("red"),
-    "boss_banner_text": STACKLANDS["paper"],
-    "danger":          face("red"),
+    "boss_banner":     PLUM["crimson"],
+    "boss_banner_text": PLUM["bone"],
+    "field_label":     PLUM["bone"],              # the fill of a label over the live field (its outline is INK)
+    "danger":          PLUM["crimson"],
     "good":            header("green"),
-    "card_plate":      face("cream"),
+    "card_plate":      PLUM["bone"],
+    "card_ink":        INK,                       # a card's text and frame on its Bone body (WBP_CardFace keeps the ink)
     "card_swarm":      header("green"),
     "card_pounce":     header("red"),
     "card_aura":       header("blue"),
@@ -554,6 +567,12 @@ def check():
 
     # 6. The plum screens are readable (WCAG 2), focus shows, buy and threat differ in lightness.
     problems += plum_problems()
+
+    # 7. The UI on plum (R3): every text on every ground the screens draw it on.
+    for fg, bg, need, why in UI_PAIRS:
+        r = contrast(UI[fg], UI[bg])
+        if r < need:
+            problems.append("LOW CONTRAST: ui %s %s on %s %s is %.2f:1, %s needs %.1f" % (fg, UI[fg], bg, UI[bg], r, why, need))
     return problems
 
 
@@ -583,6 +602,27 @@ PLUM_PAIRS = [
     ("bone", "crimson", MIN_TEXT_CONTRAST, "a boss banner's text"),
     ("butter", "base", MIN_LARGE_CONTRAST, "the focus ring on a panel"),
     ("butter", "raised", MIN_LARGE_CONTRAST, "the focus ring on a row"),
+]
+
+
+# (text, ground, minimum, why): the UI pairs on plum (rule 7). Disabled text is meant to recede: large-text contrast.
+UI_PAIRS = [
+    ("text", "panel", MIN_TEXT_CONTRAST, "text on a panel"),
+    ("text", "button", MIN_TEXT_CONTRAST, "a button's label"),
+    ("text", "button_hover", MIN_TEXT_CONTRAST, "a hovered button's label"),
+    ("text", "button_pressed", MIN_TEXT_CONTRAST, "a pressed button's label"),
+    ("text", "slot", MIN_TEXT_CONTRAST, "a keycap's label"),
+    ("text_muted", "panel", MIN_TEXT_CONTRAST, "secondary text"),
+    ("text_muted", "button", MIN_TEXT_CONTRAST, "a row's second line"),
+    ("text_disabled", "button_disabled", MIN_TEXT_CONTRAST, "a locked row: dimmer than a live one, still read (R4e)"),
+    ("good", "panel", MIN_LARGE_CONTRAST, "a good status line"),
+    ("boss_banner_text", "boss_banner", MIN_TEXT_CONTRAST, "the boss banner"),
+    ("card_ink", "card_plate", MIN_TEXT_CONTRAST, "a card's ink text on its body"),
+    ("selected_text", "selected", MIN_TEXT_CONTRAST, "a label on the selected plate"),
+    ("focus", "panel", MIN_LARGE_CONTRAST, "the focus ring on a panel"),
+    ("focus", "button", MIN_LARGE_CONTRAST, "the focus ring beside a row"),
+    ("catnip", "panel", MIN_LARGE_CONTRAST, "a Catnip amount"),
+    ("stardust", "panel", MIN_LARGE_CONTRAST, "a Stardust amount"),
 ]
 
 

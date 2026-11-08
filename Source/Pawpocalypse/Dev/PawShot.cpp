@@ -20,6 +20,9 @@
 //   paw.Boss                 bring the biome's boss out now (as the bait does; the look tours, phase 6)
 //   paw.Travel <n>           travel to biome n (1-based, tier_n), as the Realms page does (the backdrop tours, phase 6)
 //   paw.Buy <branch>         in the spend step, press a node as a click does (the Unicorn's ceremony tour, phase 6)
+//   paw.FontSheet <culture>  the font check (restyle R2): the culture made current, and over the screen the lines of
+//                            Saved/PawShots/fontsheet_<culture>.txt (UTF-8) in F_Paw, bone on plum: the first in Black, the rest
+//                            in the text weight; `paw.FontSheet off` takes it away (tools/godot_tour.py --set fonts)
 //   paw.Fx                   one of each effect round the cat: a burst, a slam, a swipe and a crit swipe, a beam, shards
 //                            (the effect looks, phase 6 slice 3; the effects setting decides as in play)
 // e.g. -ExecCmds="paw.Cheat.Catnip 300,paw.Tab 3,paw.Shot realms,paw.Tab 2,paw.Shot reawaken quit"
@@ -31,6 +34,7 @@
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
 #include "Framework/Application/SlateApplication.h"
+#include "Engine/UserInterfaceSettings.h"
 #include "Save/PawSettingsSubsystem.h"
 #include "HAL/IConsoleManager.h"
 #include "Misc/Paths.h"
@@ -53,6 +57,15 @@
 #include "UI/PawSettingsDialog.h"
 #include "UI/PawSkillTreeScreen.h"
 #include "UnrealClient.h"
+#include "Internationalization/Internationalization.h"
+#include "Engine/Font.h"
+#include "Misc/FileHelper.h"
+#include "Styling/CoreStyle.h"
+#include "UI/PawTokens.h"
+#include "UI/PawWidgets.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Text/STextBlock.h"
 
 #if !UE_BUILD_SHIPPING
 
@@ -78,6 +91,7 @@ namespace
 		Travel,
 		Fx,
 		Buy,
+		FontSheet,
 	};
 	struct FStep
 	{
@@ -98,6 +112,52 @@ namespace
 	int32 GFramesLeft = 0;
 	int32 GQuitIn = -1;
 	FTSTicker::FDelegateHandle GHandle;
+	TSharedPtr<SWidget> GFontSheet;
+
+	void ShowFontSheet(const FString& Culture)
+	{
+		UGameViewportClient* Viewport = GEngine ? GEngine->GameViewport : nullptr;
+		if (!Viewport)
+		{
+			return;
+		}
+		if (GFontSheet.IsValid())
+		{
+			Viewport->RemoveViewportWidgetContent(GFontSheet.ToSharedRef());
+			GFontSheet.Reset();
+		}
+		if (Culture == TEXT("off"))
+		{
+			return;
+		}
+		if (!FInternationalization::Get().SetCurrentCulture(Culture))
+		{
+			UE_LOG(LogPaw, Warning, TEXT("paw.FontSheet: no culture %s"), *Culture);
+		}
+		TArray<FString> Lines;
+		FFileHelper::LoadFileToStringArray(Lines, *(FPaths::ProjectSavedDir() / TEXT("PawShots") / (TEXT("fontsheet_") + Culture + TEXT(".txt"))));
+		TSharedRef<SVerticalBox> Box = SNew(SVerticalBox);
+		for (int32 I = 0; I < Lines.Num(); ++I)
+		{
+			const bool bTitle = I == 0;
+			Box->AddSlot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, bTitle ? 14.0f : 6.0f)
+			[
+				SNew(STextBlock)
+					.Text(FText::FromString(Lines[I]))
+					.Font(FSlateFontInfo(PawUi::PawFont(), bTitle ? 28 : 17, bTitle ? TEXT("Black") : TEXT("Regular")))
+					.ColorAndOpacity(FSlateColor(bTitle ? PawTokens::PLUM_BUTTER : PawTokens::PLUM_BONE))
+					.AutoWrapText(true)
+			];
+		}
+		GFontSheet = SNew(SBorder)
+			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+			.BorderBackgroundColor(FSlateColor(PawTokens::PLUM_BASE))
+			.Padding(FMargin(48.0f, 40.0f))
+			[
+				Box
+			];
+		Viewport->AddViewportWidgetContent(GFontSheet.ToSharedRef(), 1000);
+	}
 
 	UPawHudScreen* Hud()
 	{
@@ -126,6 +186,11 @@ namespace
 		if (Step.Kind == EStep::Wait)
 		{
 			GFramesLeft = FMath::Max(0, Step.Frames);
+			return true;
+		}
+		if (Step.Kind == EStep::FontSheet)
+		{
+			ShowFontSheet(Step.Press);
 			return true;
 		}
 		if (Step.Kind == EStep::Press)
@@ -555,6 +620,24 @@ namespace
 			Step.Kind = EStep::Settings;
 			Step.Press = Args.Num() > 0 ? Args[0] : FString(TEXT("audio"));
 			Queue(Step);
+		}));
+
+	FAutoConsoleCommand FontSheetCommand(TEXT("paw.FontSheet"), TEXT("paw.FontSheet <culture|off>: the culture's font sheet over the screen (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::FontSheet;
+			Step.Press = Args.Num() > 0 ? Args[0] : FString(TEXT("off"));
+			Queue(Step);
+		}));
+
+	// Restyle R4h: the UI at a size the game has no option for yet (phase 7): UMG's ApplicationScale, on top of the DPI
+	// curve (FSlateApplication::SetApplicationScale does not reach the game viewport: measured, the shots identical).
+	FAutoConsoleCommand UiScaleCommand(TEXT("paw.UiScale"), TEXT("paw.UiScale <scale>: UMG's application scale (1.5 = the 150 % check)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			GetMutableDefault<UUserInterfaceSettings>()->ApplicationScale = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 1.0f;
 		}));
 
 	FAutoConsoleCommand TabCommand(TEXT("paw.Tab"), TEXT("paw.Tab <1-6>: open a dock tab on the HUD (queued with paw.Shot)."),

@@ -65,7 +65,7 @@ bool UPawJobPicker::Initialize()
 		Panel->SetContent(Body);
 		const FMargin Gap(0.0f, 0.0f, 0.0f, static_cast<float>(JobBodySeparation));
 
-		Title = MakeText(T, JobTitlePx, PawTokens::INK, false, TEXT("Title"));
+		Title = ButterTitle(MakeText(T, JobTitlePx, PawTokens::UI_TEXT, false, TEXT("Title")), ButterTitleOutline); // R4g
 		Title->SetJustification(ETextJustify::Center);
 		Title->SetText(PawText::Ui(TEXT("JOBPICK_title")));
 		UVerticalBoxSlot* TitleSlot = Body->AddChildToVerticalBox(Title);

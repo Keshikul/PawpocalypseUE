@@ -1,6 +1,7 @@
 # The restyle: the plum look (plan, 2026-11-07)
 
-**Status (2026-11-07, HANDOFF-LOG (65)): R0 and R1 DONE; next R2 (fonts).** D1 answered: M PLUS Rounded 1c. D2 answered: the
+**Status (2026-11-08, HANDOFF-LOG (68)): R0, R1, R2, R3 DONE (the colour flip, then the shapes: Deep Plum edges, one solid
+shadow, the pressed button sinking); next R4.** D1 answered: M PLUS Rounded 1c. D2 answered: the
 cat stays grey. Designer: restyle now, before slice 6's 6b-6d. Written after a design review of the concept in the browser (§3).
 
 ## 1. What was decided, and what it changes
@@ -112,6 +113,12 @@ exist yet. Each phase below ends as every slice does: everyday `check_all` exit 
 - Exit: rules green, tokens regenerated, the Style board updated, a tour of every screen (still old chrome) looks no worse.
 
 ### R2: fonts (2 sessions; replaces phase 7's font work)
+
+> **DONE 2026-11-07 night (WORKLIST-NIGHT-2026-11-07, HANDOFF-LOG (66))**: as built in docs/07 §5. F_Paw (M PLUS Rounded
+> 1c + Noto CJK `.ttc` by sub-face + Noto Thai), coverage gate (22 languages, self-test fails both ways), every text in
+> F_Paw (UMG's default font; the assets followed: their fonts equalled the default), titles and numbers in Black
+> (`PawUi::Heavy`, grafted by `restyle:`). Not done here: the pseudo-locale / 150 % tour (the port has neither translations
+> nor a UI-size option until phase 7: the language sheets `godot_tour.py --set fonts` stand in; R4 does 150 %).
 - Fetch D1's faces (OFL) into the repo, instance variable fonts to static weights (fontTools), import as `UFontFace`,
   one composite `F_Paw` with Noto CJK / Thai sub-fonts per culture (doc 07 §5, KB U/09 §5).
 - **Gate `tools/check_font_coverage.py`** (from the 2026-11-07 test): every character of every language's strings against
@@ -120,12 +127,63 @@ exist yet. Each phase below ends as every slice does: everyday `check_all` exit 
 - Exit: coverage gate green and seen to fail; the pseudo-locale tour shows no overflow at 1280x800 / 150 %.
 
 ### R3: chrome (2 sessions)
+
+> **Colour flip DONE 2026-11-08 night (WORKLIST-NIGHT-2026-11-07 item 8, HANDOFF-LOG (66))**: `palette.py` UI = the plum
+> values below (rule 7: thirteen UI pairs, all pass; tightest the boss banner 4.52:1); a new `field_label` token (Bone, the
+> fill of labels over the field). The migration is ROLE-AWARE: `PawUi::ForEachColourRole` / `IsTextColour` (a text
+> widget's or text style's ColorAndOpacity, a piece's TextColour = text; shadows, outlines, tints, brushes = surfaces),
+> `UPawWidgetBaker::RecolourByRole`, `gen_paw_tokens.ui_role_pairs` (refuses ambiguity within a role; a text colour no
+> surface token owns moves as a surface too: the sliders' bars), `bake_widgets.py --recolour` (KEEP_INK: WBP_CardFace,
+> ink text on the Bone card body). 221 colours migrated in 12 assets (204, then 17 once text colours used as surfaces moved too). The Godot maps (`PcGodotLook.h`, the tree's
+> branches) leave the UI table out; the tree tooltip's text goes through the text role (its two Godot literals -> Butter
+> and Lilac). Code: 13 text call sites ink -> `UI_TEXT`; over-field labels `UI_FIELD_LABEL`; the Pounce clock's dial
+> Bone; `UPawIconText` now APPLIES its `bOverField` (outline + light fill: it never did, ink text hid it); the title's
+> logo over-field with a 4 px outline; the title's hint line ink (on the lawn); checkboxes bone / lilac frame; the input
+> glyphs keep light keys (`sweet_input.py`: Bone, Lilac wells). Tests: `Pawpocalypse.UI.Widgets.Palette` failed with 76
+> retired creams before the migration; new `.ColourRoles` (sabotage `colour_role_text_lost` CAUGHT). **Not done (R3's
+> shapes):** the plates' solid drop shadows and Deep Plum edges in `sweet_ui.py` (frames are still INK, invisible on
+> plum); the highlighted Travel row is a dull khaki (R4: Butter selection with the focus pass); the title's hint line
+> crosses the bushes (R4: a plate).
+> **Shapes DONE 2026-11-08 (HANDOFF-LOG (68))**: `sweet_ui.py`'s `plate()`: a Deep Plum edge (3 px) and ONE solid Deep
+> Plum shadow straight down inside the bottom margin (buttons 4 px, panel and window 8, a new small plate 4); the pressed
+> button SINKS onto its shadow (the silhouette check: three states one box, pressed the same box moved down by the
+> shadow). Margins read off the drawings (`PawUi::ChromeTable`: buttons 16 all round; panel 16/16/16/24; window 24/24/24/32;
+> `ui_plate_small` 64x48, 12/12/12/16) with each piece's shadow. **Decided per piece: nine-patch for every plate that casts
+> a shadow** (a rounded box cannot draw one, KB U/09 §4): the code's flat plates (the dock, the boss panel, the zone plate,
+> the title's menu, windows and Boba badge, the pause and settings windows, the tree's warning and tip, the toast) now wear
+> the Window or the small plate, restyled into the assets (`restyle:`; the HUD's dock panel by `restyle:Border_0>Border_2`,
+> its auto-name differs between code and asset). `PawUi::PlatePadding` lifts content off the shadow; buttons' content
+> margins 16/4/16/8 (Common UI cannot move a pressed label, KB U/09 §4). The title's cluster buttons wear the theme's
+> buttons. Palette: `panel_frame` / `button_frame` Deep Plum, new `shadow` and `card_ink` (a card keeps its ink). The
+> migration gained a third ROLE, the EDGE (a brush's outline: `PawUi::IsEdgeColour`; `ui_role_pairs` text / surface / edge;
+> `--recolour` moved the ink frames left in the assets to Deep Plum, KEEP_INK's card frame kept). Found: the quick bar's gear
+> and door, the catches tab's cards and the boss / kitten badges were drawn in the button colour (cream once, Plum Raised
+> since the flip: they vanished on plum): `sweet_ui.LIGHT` (Bone). Not here: the focus ring (coral) and the cards (R6).
 - `sweet_ui.py`: plum plates with the solid drop shadow; the nine-patch rules in its header still hold (four states, one
   silhouette; radius under the margin; flat middle). Or, where cheaper, rounded-box brushes with outline (KB U/09 §4: crisp
   at 4K, no texture); decide per piece and record it.
 - Re-import under the same asset names; find the Widget Blueprint parts that hold copied brushes or colours and restyle
   them with `bake_widgets.py --graft "Class=restyle:Part"` (never re-bake).
 - Exit: `Pawpocalypse.UI.Chrome` asserts the new brushes; every screen in the tour wears plum chrome.
+
+**Inventory (night 2026-11-07, item 7 of `WORKLIST-NIGHT-2026-11-07.md`; read from the sources):**
+- **The flip is data, three ways.** The `UI` tokens in `palette.py` reach (a) the code through `PawTokens.h`, (b) the
+  nine-patch chrome through `sweet_ui.py` (buttons x 4 states, panel, window, dock, slot, card frame, bar track and fill:
+  re-rastered, re-imported under the same names), (c) the Widget Blueprints' saved colour values through `--recolour`.
+  Mechanism per piece: unchanged. Nine-patch stays nine-patch (crisp at 1x, the pipeline exists), and the 46 `PawUi::Rounded`
+  brushes (14 files) stay rounded boxes; their fill and frame colours are values the walker recolours.
+- **The blocker: one old colour, two new ones.** Today `#2A1A33` is both the text and the frames. Plum everywhere
+  splits it: text Bone, frames Deep Plum. `colour_pairs` refuses an ambiguous map (by design), so the recolour must
+  become ROLE-AWARE: a colour inside a text's `ColorAndOpacity` (UTextBlock, FTextBlockStyle) maps through the text map,
+  every other colour through the surface map.
+- **Code.** `PawTokens::INK` is a text colour at 12 call sites (titles, slot titles, tooltips, the job picker): they become
+  `UI_TEXT`. INK stays INK where it is an outline or a frame (47 uses in 11 UI files, each looked at). `UI_PANEL` (18 uses)
+  is also the fill of every label over the field (`MakeText` bOverField): that needs its own token (Bone), or the
+  counters turn plum on the lawn.
+- **Proposed values** (as built differs: frames stayed INK and focus coral, left for R3's shapes and R4; the built values are in `palette.py` and the DONE note above) (rule 6 decides; each pair added to `PLUM_PAIRS`): panel = Plum; panel_band and button = Plum Raised;
+  panel_frame, button_frame, slot and button_pressed = Deep Plum; text = Bone; text_muted = Lilac; focus = Butter; good =
+  Catnip; danger = Crimson; card_plate = Bone (card bodies Bone, their text stays ink); the five tab colours kept (pastel
+  tabs on plum); catnip and stardust kept.
 
 ### R4: screens and layout (4-6 sessions)
 - In the Widget Blueprints (the asset owns the layout): the HUD (pill counters, the plum plaque, the Pounce clock, the next
@@ -136,6 +194,69 @@ exist yet. Each phase below ends as every slice does: everyday `check_all` exit 
 - **Text floor:** nothing under 16 px at 1080p and 100 % UI size; secondary text in Lilac, never below 4.5:1.
 - Pad focus: the Butter ring on every focusable thing; `padplay_tour.py` focus tours pass.
 - Exit: each screen beside its canvas board (§6) passes review; the focus tours pass; no overflow at 150 %.
+
+**R4's steps (2026-11-08, read off the canvas boards' sources and the tour):**
+- **R4a focus and selection.** The ring Butter (4 px, 4 px out); the held toggle (the open tab) a Butter plate sunk like
+  the pressed one; "the selected thing" (a settings section, a biome just reachable, the Bait calling) a Butter plate with
+  ink text, never a tint (any translucent yellow over plum is khaki). Tokens `focus`, `selected`, `selected_text`.
+- **R4b the text floor.** 16 px at 1080p = 12 pt (`PawUi::FontPt`): a test walks every asset and code layout; the
+  constants under 16 rise; the assets' saved sizes migrate. Exempt, by name: the keycap label inside a glyph (part of the
+  icon) and the tree's captions (they scale with the player's zoom).
+- **R4c the title**, **R4d the HUD**, **R4e the dock**, **R4f the skill tree**, **R4g the rest** (card pick, pause,
+  settings, controls, job picker, victory, ceremonies, toasts, prompts): each against its board. Layout moves go into the
+  assets by graft (`slot:Part` copies a part's slot from the code layout). Kept on purpose, not the canvas: the dock stays on
+  the LEFT (Godot's layout, the field's framing and every focus tour); no new player-facing words (the concept's tagline,
+  "Biome 1 of 12", the kittens strip's lines) without the designer.
+- **R4h the checks**: `padplay_tour.py` focus tours; the tour at 1280x800 and at 150 % (Slate's application scale); the
+  sheets beside the boards.
+
+**R4 progress (2026-11-08):**
+- **R4a DONE**: tokens `focus` / `selected` Butter, `selected_text` ink (rule 7 pairs); chrome `ui_button_selected` (the
+  pressed shape in Butter; the silhouette check covers it); the open tab on it, its label and count ink; `UPawButton::
+  SetCallLook` (the Butter face under ink words, never a tint) for a biome just reachable, the Bait calling, the open settings
+  section; the ring 4 px Butter, 4 px out (`FocusRingWidth`); the call plate fills the plate's FACE only
+  (`ButtonFacePadding`, grafted `slot:Plate` into WBP_Button). The focus colour is painted, never saved
+  (`gen_paw_tokens.UI_PAINTED_KEYS`). Sabotages `selected_plate_pressed_again`, `call_label_not_ink`, `focus_ring_thin`.
+- **R4b DONE**: `PawUi::UnderTextFloor`, `Pawpocalypse.UI.Widgets.TextFloor` (failed on 11 texts in 5 assets, then passed),
+  `bake_widgets.py --textfloor`; nine constants raised to 16 (Godot's values in their comments). Sabotages
+  `text_floor_blind`, `small_text_again`.
+- **R4c DONE (the title)**: the logo Butter 112 px, outlined, shadowed, tilted, top left; the menu on the left, words left at
+  the board's sizes, Continue the Butter call while it can continue; the hint on a small plum plate bottom left; Boba's card
+  on the right, tilted, a photo well, the name a Butter title; the cluster and the version (ink on the lawn) bottom right.
+  New graft ops: `slot:` (a part's slot and tilt), `text:` (a text's whole look), `remove:`; `restyle:` on a border also
+  copies its content alignment; `props:` a button's minimum size; `swap:` refuses a part with children (it lost the
+  hint's prompts once: put back by `remove:HintPlate;add:HintPlate`). Test `Pawpocalypse.UI.Title.Plum`; sabotages
+  `title_logo_centred`, `continue_not_called`. **Found:** `godot_tour.py` never shot the title, pause or settings (the copies
+  in build/tour/ue were last night's; R3's review of those three looked at stale shots): it shoots them now and deletes a
+  shot before retaking it.
+- **R4d DONE (the HUD over the field)**: the currencies as plum pills (heavy Bone numbers, no outline); the wave line on its
+  plum plate (`WavePlate`; the plate hides with it: `UPawHudScreen::WaveShown`); the XP bar a raised track, Deep Plum edge,
+  Butter fill; the zone bar's edge Deep Plum. Kept on purpose: the counters top right, away from the dock (the board's
+  top left is where our dock is). **Found:** a graft `add:` failed on an auto-name the asset already held
+  (`HorizontalBox_0`) after a `remove:` had run, and the asset was saved without the currencies: a graft is now ALL OR
+  NOTHING (an op FAILED saves nothing); grafted parts' inner widgets are named. Sabotages `wave_plate_flat`,
+  `wave_plate_left_behind`.
+- **R4e DONE as far as it goes without art and words (the dock)**: shop rows 56 px tall, the words on the left at 18 px;
+  `text_disabled` now 4.5:1 on a locked row (`#B8ABC1`, was 3.8:1: a row the player cannot pay is still READ; rule 7
+  raised; 13 asset colours recoloured). Open: the board's icon tiles (R6 art), price pills and second lines (new words: the
+  designer), the kittens strip (words). Sabotage `shop_rows_centred`.
+- **R4f DONE as far as the fit-all tree allows**: skills ROUND, unlocks rounded squares (`UPawTreeNode::GetFrameRadius`);
+  the Stardust readout and the legend on plum pills (grafted `remove:` + `add:`); a prompt line on its own plate takes the
+  plate with it when prompts are off (`UPawPromptText`; the title's hint too). Not done: the board's bigger nodes need the
+  tree to open zoomed in (a behaviour change: the designer's call), and its detail panel (the tooltip stays). Sabotages
+  `tree_nodes_square`, `prompt_plate_left_behind`.
+- **R4g DONE (titles)**: `PawUi::ButterTitle` (Butter, Black, ink outline, the solid shadow): the card pick's title (tilted
+  -2°, outline 4), the job picker's, the victory's headline. **Found:** the parity test now compares a text's COLOUR too,
+  and caught the card pick's subtitle coded in Stacklands' old `DISABLED` grey while the asset held a plum one (code now
+  `UI_TEXT_MUTED`, grafted). Sabotage `butter_title_bone` (first MISSED against the Victory test, which reads the asset:
+  now aimed at `.Widgets.Parity`, CAUGHT). Pause, settings, ceremonies, toasts, prompts: seen, already plum since R3 / R4a.
+- **R4h (checks) run**: `padplay_tour.py` 41 checks PASS (Butter focus everywhere); the tour at 1280x800
+  (`--res 1280x800`, shots in `build/tour/ue_1280x800_1`): every screen fits. **At 150 %** (`godot_tour.py --uiscale 1.5`,
+  `paw.UiScale`: UMG's `UUserInterfaceSettings::ApplicationScale`; Slate's own application scale does not reach the game
+  viewport, measured) **four overflows, OPEN** (they matter once phase 7's UI-size option exists): the title (the logo
+  under the menu, Boba's card and the version off screen), the dock's shop page (rows under the quick bar: that page does
+  not scroll), the settings window (taller than the screen: Controls runs into Close), the tree (drawn off centre).
+  Sheets: `build/look/r4h_150.png`, `build/look/r4h_1280.png`.
 
 ### R5: the field (4-6 sessions)
 - Regenerate every creature (46 enemies, 7 bosses, the cat's 7 stages and base, 6 weapons, the kitten), the 36 props and

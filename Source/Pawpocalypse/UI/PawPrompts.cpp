@@ -9,6 +9,7 @@
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Engine/GameInstance.h"
+#include "Engine/Font.h"
 #include "Engine/Texture2D.h"
 #include "Framework/Text/SlateTextRun.h"
 #include "Input/PawInputDeviceSubsystem.h"
@@ -246,7 +247,7 @@ void UPawPromptText::ApplyStyle()
 	FSlateFontInfo Font = Style.Font;
 	if (!Font.FontObject)
 	{
-		Font = FCoreStyle::GetDefaultFontStyle("Regular", 10);
+		Font = FSlateFontInfo(PawUi::PawFont(), 10, TEXT("Regular")); // a rich text's default style names no font
 	}
 	Font.Size = PawUi::FontPt(TextPx);
 	Style.SetFont(Font);
@@ -305,7 +306,14 @@ void UPawPromptText::Refresh()
 	// A tooltip's line is shown and hidden by its owner.
 	if (bHideWithPrompts)
 	{
-		SetVisibility(PawPrompt::PromptsShown(this) ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		const bool bShown = PawPrompt::PromptsShown(this);
+		SetVisibility(bShown ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		// R4c/R4f: a line on its own plate (a UBorder holding only it: the title's hint, the tree's legend) takes the plate
+		// with it, or an empty plum pill stays behind.
+		if (UBorder* Plate = Cast<UBorder>(GetParent()))
+		{
+			Plate->SetVisibility(bShown ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
+		}
 	}
 	const TArray<PawGlyphs::FPart> Parts = PawGlyphs::Parts(Template.ToString(), PawPrompt::FamilyFor(this, -1));
 	Neutral = PawGlyphs::Neutral(Parts);

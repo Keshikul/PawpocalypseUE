@@ -32,10 +32,15 @@ namespace PawUi
 	constexpr double MultiplierButtonHeight = 34.0;
 	constexpr double LabelPx = 17.0;                 // theme Label/font_sizes
 	constexpr double ButtonPx = 16.0;                // theme Button/font_sizes
-	constexpr double SmallPx = 15.0;                 // the zone and wave labels
+	constexpr double SmallPx = 16.0;                 // the zone and wave labels (Godot 15; R4b: the 16 px floor)
 	constexpr double OverFieldOutline = 2.0;         // _outline_over_playfield's 5 (Godot units): Slate's OutlineSize 5 drew
 	                                                 // the 17 px labels as solid ink blocks (seen 2026-11-01); 2 reads alike
 	constexpr double TabStarPx = 18.0;               // _set_tab_star
+	// The restyle's titles and numbers (R2, the plum spec: "titles and numbers in the heavy weight with a Plum outline and a
+	// solid drop shadow"): the shadow straight down, Deep Plum, on text that has an outline (light text: over the field now,
+	// on the plum panels from R3). Sized by eye at 1080p; the morning sheet (build/look/night_20261107) shows 2, 3, 4.
+	constexpr double HeavyShadowPx = 3.0;
+	constexpr double TitleNameOutline = 4.0;     // the title screen's PAWPOCALYPSE over the lawn (R3), by eye
 
 	// dock_navigator.gd: hold-to-buy on shop rows only
 	constexpr double PressRepeatDelay = 0.35;        // PRESS_REPEAT_DELAY
@@ -55,7 +60,7 @@ namespace PawUi
 	constexpr double TabPromptPx = 26.0;             // TabPrevPrompt / TabNextPrompt icon_px
 	constexpr double TabPromptGap = 4.0;             // the tab bar's separation beside them
 	constexpr double DockLegendPromptPx = 22.0;      // dock_legend.icon_px
-	constexpr double DockLegendPx = 14.0;            // dock_legend normal_font_size / bold_font_size
+	constexpr double DockLegendPx = 16.0;            // dock_legend normal_font_size / bold_font_size (Godot 14; R4b: the 16 px floor)
 	constexpr double PouncePromptPx = 28.0;          // pounce_prompt.icon_px
 	constexpr double PouncePromptGap = 8.0;          // _place_pounce_gauge: -p.x - 8 / size.x + 8
 	constexpr double RowPromptPx = 26.0;             // dock_navigator.gd _row_prompt.icon_px
@@ -87,14 +92,14 @@ namespace PawUi
 	constexpr double CardInnerPadX = 18.0;           // inner margin_left/right
 	constexpr double CardBottomPad = 16.0;           // style.content_margin_bottom
 	constexpr double CardSeparation = 10.0;          // box / body_box separation
-	constexpr double CardFlavourPx = 13.0;
+	constexpr double CardFlavourPx = 16.0; // R4b: the 16 px text floor (Godot 13)
 	constexpr double CardNamePx = 25.0;
-	constexpr double CardRankPx = 13.0;
+	constexpr double CardRankPx = 16.0; // R4b: the 16 px text floor (Godot 13)
 	constexpr double CardBodyPx = 17.0;
-	constexpr double CardWarnPx = 14.0;
+	constexpr double CardWarnPx = 16.0; // R4b: the 16 px text floor (Godot 14)
 	constexpr double CardTakeHeight = 42.0;          // take custom_minimum_size.y
 	constexpr double CardBanishHeight = 28.0;        // burn custom_minimum_size.y
-	constexpr double CardBanishPx = 13.0;
+	constexpr double CardBanishPx = 16.0; // R4b: the 16 px text floor (Godot 13)
 
 	// reawaken_ceremony.gd / reawaken_ceremony.tscn
 	constexpr double CeremonyFlashInSec = 0.35;      // FLASH_IN_SEC: the flash and the headline fade in
@@ -121,7 +126,7 @@ namespace PawUi
 	constexpr double JobListSeparation = 6.0;        // _list separation
 	constexpr double JobTitlePx = 24.0;              // title font_size
 	constexpr double JobRowHeight = 62.0;            // btn.custom_minimum_size.y
-	constexpr double JobBlurbPx = 14.0;              // desc font_size
+	constexpr double JobBlurbPx = 16.0;              // desc font_size (Godot 14; R4b: the 16 px floor)
 
 	// victory_screen.gd (the game theme on its own root since F21; the column on a WindowPanel; Tests/Data/victory_look_godot.txt)
 	constexpr double VictoryPanelWidth = 640.0;      // panel.custom_minimum_size.x
@@ -191,12 +196,56 @@ namespace PawUi
 	constexpr double BobaBadgePad = 8.0;             // plate content margin
 	constexpr double BobaBadgeRadius = 12.0;
 	constexpr double BobaPhotoSize = 120.0;
-	constexpr double BobaCaptionPx = 13.0;
+	constexpr double BobaCaptionPx = 16.0; // R4b: the 16 px text floor (Godot 13)
 	constexpr double BobaClusterGap = 14.0;          // the cluster starts 14 right of the badge
 	constexpr double ClusterButtonSize = 56.0;       // CLUSTER_PX
 	constexpr double ClusterGap = 10.0;              // CLUSTER_GAP
 	constexpr double ClusterRadius = 10.0;
 	constexpr double ClusterPad = 7.0;
+
+	// RESTYLE R4c (2026-11-08): the title after the canvas board "Main menu (plum)" (1600 x 900, drawn here x 1.2 at 1080p).
+	// Godot's numbers above stay for what they still size; these place and size the plum title.
+	constexpr double R4TitleMargin = 64.0;          // the logo's and the menu's left edge, the corners' margins
+	constexpr double R4NameTop = 40.0;              // the logo: top left, tilted, Butter with an ink outline and a shadow
+	constexpr double R4NameWidth = 1100.0;
+	constexpr double R4NameHeight = 150.0;
+	constexpr double R4NamePx = 112.0;
+	constexpr double R4NameOutline = 8.0;
+	constexpr double R4NameShadow = 8.0;
+	constexpr double R4NameAngle = -3.0;            // degrees
+	constexpr double R4PanelTop = -290.0;           // the menu: from the middle's height, on the left
+	constexpr double R4PanelWidth = 460.0;
+	constexpr double R4PanelHeight = 530.0;
+	constexpr double R4ContinueHeight = 66.0;       // Continue, the call: the board's 32 px x 1.2
+	constexpr double R4ContinuePx = 36.0;
+	constexpr double R4MenuButtonHeight = 50.0;     // the rest: the board's 24 px
+	constexpr double R4MenuButtonPx = 26.0;
+	constexpr double R4MenuSeparation = 10.0;
+	constexpr double R4BobaRight = 72.0;            // Boba's card: on the right, tilted the other way
+	constexpr double R4BobaTop = 40.0;              // from the middle's height
+	constexpr double R4BobaWidth = 300.0;
+	constexpr double R4BobaHeight = 360.0;
+	constexpr double R4BobaPhoto = 220.0;
+	constexpr double R4BobaNamePx = 34.0;
+	constexpr double R4BobaAngle = 4.0;
+	constexpr double R4HintPadX = 18.0;             // the hint's plate (the small plum plate, a pill on the lawn)
+	constexpr double R4HintPadY = 6.0;
+	constexpr double R4VersionAbove = 12.0;         // the version: right, above the cluster
+
+	// RESTYLE R4d (2026-11-08): the HUD over the field, after the board "Original, plum menus": the currencies as plum pills
+	// (a heavy Bone number on plum), the wave line on its plum plate, the bars with a raised track and a Deep Plum edge.
+	constexpr double R4PillPadX = 12.0;
+	constexpr double R4PillPadY = 4.0;
+	constexpr double R4PillGap = 10.0;             // between the two pills
+	constexpr double R4CurrencyPx = 24.0;          // the pills' numbers (the board's 32 px is its 1600-wide mock-up's)
+	constexpr double R4WavePadX = 12.0;
+	constexpr double R4WavePadY = 6.0;
+	constexpr double R4BarEdge = 2.0;              // a bar's Deep Plum edge
+
+	// RESTYLE R4e (2026-11-08): the dock's shop rows after the board: taller, the words on the left, a little bigger. The
+	// board's icon tiles and price pills wait for art (R6) and words (the designer): Godot's one line stays.
+	constexpr double R4RowHeight = 56.0;           // Godot 46; twelve rows and the header now fill the dock, no void
+	constexpr double R4RowPx = 18.0;
 
 	// pause_menu.tscn
 	constexpr double PauseWindowWidth = 560.0;       // Window offsets -280 .. 280, -230 .. 230
@@ -229,7 +278,7 @@ namespace PawUi
 	constexpr double ControlsCellWidth = 132.0;      // CELL_SIZE
 	constexpr double ControlsCellHeight = 40.0;
 	constexpr double ControlsResetWidth = 92.0;      // RESET_WIDTH
-	constexpr double ControlsSmallPx = 14.0;         // the column heads' and Reset's font_size
+	constexpr double ControlsSmallPx = 16.0;         // the column heads' and Reset's font_size (Godot 14; R4b: the 16 px floor)
 	constexpr int32 ControlsIconPx = 26;             // a cell's prompt (PromptIcon icon_px)
 	// Godot's panel is a ScrollContainer that fills what the page leaves (size_flags_vertical EXPAND_FILL); here a box that
 	// high, which is what the 980 px window leaves under the prompt and menu-side rows (the asset owns it).

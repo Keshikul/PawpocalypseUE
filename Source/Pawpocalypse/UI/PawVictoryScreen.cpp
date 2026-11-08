@@ -70,14 +70,14 @@ bool UPawVictoryScreen::Initialize()
 		Box->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		Panel->SetContent(Box);
 
-		Headline = BoxLabel(T, Box, VictoryHeadlinePx, true, TEXT("Headline"));
+		Headline = ButterTitle(BoxLabel(T, Box, VictoryHeadlinePx, true, TEXT("Headline")), ButterTitleOutline); // R4g
 		Headline->SetText(PawText::Ui(TEXT("VICTORY_headline")));
 		Flavour = BoxLabel(T, Box, LabelPx, false, TEXT("Flavour"));
 		// AUTOWRAP_WORD_SMART at the column's width, the panel's less its margins (a fixed wrap width: KB U/09 §3).
 		Flavour->SetAutoWrapText(false);
 		Flavour->SetWrapTextAt(static_cast<float>(VictoryPanelWidth - 2.0 * WindowPadX));
 		Flavour->SetText(PawText::Ui(TEXT("VICTORY_flavour")));
-		Time = BoxLabel(T, Box, VictoryTimePx, false, TEXT("Time"));
+		Time = Heavy(BoxLabel(T, Box, VictoryTimePx, false, TEXT("Time")));
 
 		Ok = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("Ok"));
 		Ok->SetMinDimensions(static_cast<int32>(VictoryOkWidth), static_cast<int32>(VictoryOkHeight));

@@ -283,9 +283,9 @@ re-applies the desired focus target when a modal closes: `UPawPauseMenu::ReturnF
   in a template only names that ARE actions are replaced (`{n}` passes), and an action with nothing on the device leaves
   nothing.
 - **The widgets** (Widget Blueprints, `PawUi::BakedClasses`): `UPawPromptIcon` (`WBP_PromptIcon`: a glyph, or a keycap:
-  paper, ink frame 2 with a 4 bottom edge, corners 5) and `UPawPromptText` (`WBP_PromptText`: a rich text block whose
+  a Plum Raised key with a Bone label (restyle R3; Godot's was paper), ink frame 2 with a 4 bottom edge, corners 5) and `UPawPromptText` (`WBP_PromptText`: a rich text block whose
   decorator `UPawPromptDecorator` draws `<prompt g="stem" px="22"/>` as a glyph and `<prompt k="Space"/>` as Godot's inline
-  keycap, bold ink on the slot colour). Both redraw on `OnFamilyChanged` and on any settings change (Button prompts, Show
+  keycap, bold Bone on the slot colour, Deep Plum since R3). Both redraw on `OnFamilyChanged` and on any settings change (Button prompts, Show
   button prompts); a prompt line hides whole with Show button prompts off, a tooltip's line never does (Godot's tooltip
   calls `InputGlyphs.bbcode` directly).
 - **Where they are** (Godot's places): the HUD's tab keys flanking the tab strip (26 px), the dock legend at its foot
@@ -319,7 +319,7 @@ re-applies the desired focus target when a modal closes: `UPawPauseMenu::ReturnF
   `tools/raster_svg.py`, as built above) per family, named by POSITION (`face_down` is
   A on Xbox, Cross on PlayStation): import them as one texture set per family into `CommonInputBaseControllerData` assets.
   **Keyboard keys are keycaps drawn at runtime around the key's live display name** (remaps and AZERTY read right); only
-  arrows and mouse buttons are images (the font has no arrow glyphs).
+  arrows and mouse buttons are images (Godot's font had no arrow glyphs; F_Paw has them, measured 2026-11-08).
 - **No hardcoded prompt text**. Strings carry action tokens (`"a burst on {pounce}"`); a `UPawPromptText` (rich text
   decorator that resolves `{action}` to the current glyph) and `UPawPromptIcon` redraw on device, language or binding change
   and on **`ControlMappingsRebuiltDelegate`** (a legend built before contexts apply shows no glyphs) `[KB U/08 §4]`.
@@ -337,7 +337,7 @@ screen): six tabs with badges and Jobs hidden until a job is held, the Upgrades 
 the Kitten lines locked until a kitten), side flip (`SetDockOnLeft`), the dock's rect reported to the realm
 (`UPawRealmSubsystem::SetDock`), which measures the field beside it and refuses a Pounce press over it. What each readout says
 is PawCore's `PcHud` (the decisions of hud.gd, L1-tested); the widget turns it into `ST_UI` / `ST_Data` text. Placeholders:
-the badge star is a drawn disc (the font has no star glyph); the tab icons, currency icons and the Pounce clock's paw
+the badge star is a drawn disc (Godot's font had no star glyph; F_Paw has ★ ☆ ◆ since restyle R2, so the real marks are possible: open); the tab icons, currency icons and the Pounce clock's paw
 since phase 6 slice 5b (§7); every page is built since slice 3; the dock's keys (tabs, buy
 amount, 1-6) are read in `NativeOnPreviewKeyDown` through the input map since phase 5 slice 2 (`PawInput::KeyIs`, §3); the quick bar (settings, tree, save, quit)
 since phase 6 slice 5b (§7); the fps readout, tooltips and the tutorial overlay are not built.
@@ -366,8 +366,8 @@ progress; each Claim and Claim all pays once; the selection moves when the press
 blurb; one row per job in `all_jobs()` order: held = description, the text colour when worn (the run's job), muted when only
 owned; else the step in the way: no node / closed by a rival / beat a boss / Reawaken n times / ready at the node's price; a
 Worn / Owned / Locked button that is a statement, always locked). The decisions are `PcHud` `CatchesPage`,
-`AchievementsPage`, `JobRows` (L1 + sabotages). Placeholders: Godot's row marks ★ ◆ ☆ are drawn discs (the font has no
-star glyph); the job icons since phase 6 slice 5b; the hover tooltips (every card row, the quick bar) are not built; the tabs
+`AchievementsPage`, `JobRows` (L1 + sabotages). Placeholders: Godot's row marks ★ ◆ ☆ are drawn discs (Godot's font had
+no star glyph; F_Paw has them since R2: open); the job icons since phase 6 slice 5b; the hover tooltips (every card row, the quick bar) are not built; the tabs
 are icons since slice 5b (the Achievements tab's count beside the trophy: whether Godot shows it is open, HANDOFF-LOG (59)). **Achievements are earned by the realm** (found by the
 screenshot tour: nothing evaluated them): `FPawRealmSim` re-scans after every fixed step (Godot re-scans on every kill and
 currency change) and `UPawRealmSubsystem` after a progress change, a summon and a Reawaken; the earned ids queue in
@@ -386,7 +386,7 @@ currency change) and `UPawRealmSubsystem` after a progress change, a summon and 
   that takes a card is never a Pounce; the port polls the button, and the field's edge detector would otherwise see the still-held
   button as a fresh press on the first step after the pick closes.
 - **Hold-to-buy stops** while the pick is up (Godot's paused tree stops the dock); the held row starts over after it.
-- **The cards**: `UPawCardFace` (a Common button that is never focusable: the whole-card click) around a cream plate with a 3 px
+- **The cards**: `UPawCardFace` (a Common button that is never focusable: the whole-card click) around a Bone plate (cream until restyle R3; its text stays ink) with a 3 px
   ink frame (the alert red when the card costs something), the flavour word on a band in the flavour's colour, the name, NEW (alert
   colour) or "LEVEL n of max" (muted), the description at the level taking it gives (`{v}` / `{c}`, `PawText::CardNumber`), "This
   one costs you something.", Take, and Banish under it while a banish is held (smaller, alert-coloured). A hovered card, or one
@@ -565,14 +565,23 @@ ceremonies, the tutorial overlay (`HitTestInvisible`, never focusable), cheat ov
 
 - **`PawTokens.h`** generated (as built: `tools/gen_paw_tokens.py` from `tools/art/palette.py` since R0, 2026-11-07; before that Godot's `palette.gd`) (colours, the UI panel/button/text/focus colours, radii, frame width,
   font sizes). Screens never hold a hex value; a test greps for `FLinearColor(` / `FColor(` literals outside the generated header.
-- **Panels and buttons are `FSlateRoundedBoxBrush`**s with an outline (cream `#FFF9E3`, 3 px `#1A1A1A`, radius 6-8) where
-  Godot draws a `StyleBoxFlat`. **Where Godot's theme draws its nine-patch art, the port draws the same art (phase 6 slice 5a,
+- **Panels and buttons are `FSlateRoundedBoxBrush`**s with an outline where Godot draws a `StyleBoxFlat` (Godot's: cream `#FFF9E3`, 3 px `#1A1A1A`, radius 6-8;
+  **since restyle R3, 2026-11-08, the plum tokens**: panels Plum `#2A1A33`, buttons Plum Raised `#3E2A4A`, pressed and
+  slots Deep Plum `#120A17`, text Bone `#F6EEF8`, muted text Lilac `#DCCFE4`, labels over the field Bone with an ink
+  outline (`UI_FIELD_LABEL`), card plates Bone with ink text; **since R4a the focus ring is Butter** (4 px, 4 px out) and
+  "the selected thing" is a Butter plate with ink words (the open tab: chrome `ui_button_selected`; a call:
+  `UPawButton::SetCallLook`); since R4b no text under 16 px (`PawUi::UnderTextFloor`): `docs/WORKLIST-RESTYLE-2026-11-07.md`). **R3's shapes (2026-11-08)**: every plate casts one solid Deep Plum shadow
+  straight down and has a Deep Plum edge, so the code's flat plates (the dock, the boss panel, the zone plate, the title's
+  menu, windows and badge, the pause and settings windows, the tree's warning and tip, the toast) wear the chrome's Window
+  or small plate (`EPawChrome::PlateSmall`), and `PawUi::PlatePadding` keeps content off the shadow. The pressed button
+  sinks onto its shadow; buttons' content margins 16 / 4 / 16 / 8 (the label centred on the plate). **Where Godot's theme draws its nine-patch art, the port draws the same art (phase 6 slice 5a,
   2026-11-06)**: `PawUi::Chrome(EPawChrome)`, a Box brush over the SVG rasterised at its own size (`tools/raster_svg.py`
   group `chrome`, `tools/import_art.py chrome` -> `/Game/Pawpocalypse/Art/UI/Chrome`), `ImageSize` = the SVG's size,
   `Margin` = Godot's `texture_margin` / size, so the corners draw 1:1 as Godot's. Worn by: the theme's Button (BP_ButtonStyle's
   four states; a locked row = Godot's disabled plate in every state), the settings lists (OptionButton plates, PopupMenu panel
   and hover), the WindowPanel (job picker, victory), the theme ProgressBar (the wave bar; the Reawaken bar's track), the
-  HSeparators (dock tabs, settings: invisible, as in Godot, finding F41). NOT worn where Godot overrides the theme with a flat
+  HSeparators (dock tabs, settings: invisible, as in Godot, finding F41). (Until R3's shapes, 2026-11-08: since then the
+  plates below wear it too, see the bullet above.) NOT worn where Godot overrides the theme with a flat
   style: the dock (`hud.tscn` overrides `DockPanel`, so `ui_dock.svg` is drawn nowhere), the title's, pause and settings
   windows, the toast, the boss panel, the zone plate and bar, the XP bar. **Focus is a ring** (`PawUi::FocusRing`: SBF_focus,
   3 px `UI_FOCUS`, radius 12, 3 px outside), painted OVER the plate by `UPawButton::NativePaint` (and the settings dialog
@@ -626,9 +635,11 @@ ceremonies, the tutorial overlay (`HitTestInvisible`, never focusable), cheat ov
   cat `player_cat_stage_4` from `DA_FieldAtlas`, mirrored, turned about the middle of its foot). Tests
   `Pawpocalypse.UI.Unicorn.*`, L1 `Unicorn` and `Tween`.
 - A widget kit (panel, row, price label with currency icon, badge, bar, tab button) keeps screens short.
-- **Fonts**: the Godot game's Latin font + Noto Sans CJK Medium (`.ttc` must be split into per-language `.otf`/`.ttf` faces:
-  Slate composite fonts take font faces, and variable fonts do not work in Slate) + Noto Sans Thai, in one composite font
-  with sub-font ranges per script `[KB U/09 §5]`. Licences: OFL (already in the Godot repo).
+- **Fonts** (as built, restyle R2, 2026-11-07; doc 07 §5): one composite `F_Paw`: M PLUS Rounded 1c (ExtraBold text,
+  Black titles and numbers through `PawUi::Heavy`) with Noto Sans CJK Medium (the `.ttc` is ONE face asset, its faces
+  picked by sub-face index: no split) and Noto Sans Thai Medium as sub-fonts per culture and script `[KB U/09 §5]`.
+  It is UMG's default font (`[SlateStyle] DefaultFontName`), so no widget names a font (L0 forbids engine fonts in UI
+  code). Static faces only (Slate has no variable fonts). Licences: OFL, the texts in `SourceArt/fonts`.
 - Text sizes: body ~24-26 px at 1080p, never under 18 px; Deck floor 12 px at 1280x800 `[KB U/09 §7]`.
 - UI motion (`UiJuice`: press squash, hover lift, badge pop) as cheap widget transforms/tweens, not Sequencer animations
   (as built: the Motion bullet above).

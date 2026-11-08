@@ -87,6 +87,10 @@ public:
 	FText GetLabel() const;
 	// A fill drawn under the label (a tab's own colour); cleared with bShow = false.
 	void SetPlate(bool bShow, const FLinearColor& Fill);
+	// R4a: "the selected thing" (a settings section, a biome just reachable, the Bait calling): the Butter plate under an ink
+	// label. Never a tint: translucent yellow over plum reads khaki.
+	void SetCallLook(bool bCall);
+	bool HasCallLook() const { return bCallLook; }
 	// The badge: a star in the corner, with an optional count beside the label (Achievements).
 	void SetBadge(bool bShow, int64 Count = 0);
 	bool HasBadge() const { return bBadge; }
@@ -116,7 +120,7 @@ public:
 	void SetIcon(const FString& Stem, double Px);
 	const FString& GetIconName() const { return IconName; }
 	bool IsIconShown() const;
-	// The theme's pressed plate held (a toggle Button's button_pressed: the open tab).
+	// The selected plate held (a toggle Button's button_pressed: the open tab): Butter, sunk (R4a), its label and count ink.
 	void SetActiveLook(bool bActive);
 	bool HasActiveLook() const { return bActiveLook; }
 	// Whether the selection ring is painted: hovered, or focused by keys or a pad (RingRule).
@@ -145,6 +149,7 @@ private:
 	FString IconName;
 	float IconPx = 26.0f;
 	bool bActiveLook = false;
+	bool bCallLook = false;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Label;

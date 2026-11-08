@@ -75,14 +75,14 @@ bool UPawPauseMenu::Initialize()
 		SizeSlot->SetHorizontalAlignment(HAlign_Center);
 		SizeSlot->SetVerticalAlignment(VAlign_Center);
 		Window = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Window"));
-		Window->SetBrush(Rounded(PawTokens::UI_PANEL, PawTokens::INK, static_cast<float>(PauseFrame), static_cast<float>(PauseRadius)));
-		Window->SetPadding(FMargin(static_cast<float>(PausePadX), static_cast<float>(PausePadY)));
+		Window->SetBrush(Chrome(EPawChrome::Window)); // R3: the plum plate
+		Window->SetPadding(PlatePadding(FMargin(static_cast<float>(PausePadX), static_cast<float>(PausePadY)), EPawChrome::Window));
 		Window->SetVisibility(ESlateVisibility::Visible);
 		Size->SetContent(Window);
 		UVerticalBox* Body = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("Body"));
 		Window->SetContent(Body);
 
-		Title = MakeText(T, LabelPx, PawTokens::INK, false, TEXT("Title"));
+		Title = Heavy(MakeText(T, LabelPx, PawTokens::UI_TEXT, false, TEXT("Title")));
 		Title->SetJustification(ETextJustify::Center);
 		Title->SetText(PawText::Ui(TEXT("PAUSE_title")));
 		Body->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Center);

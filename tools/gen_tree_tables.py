@@ -215,7 +215,26 @@ def restyled():
     today's value of that palette colour. Keys and values are "RRGGBB"."""
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import gen_paw_tokens
-    return {old[1:].upper(): new[1:].upper() for old, new, _ in gen_paw_tokens.colour_pairs(gen_paw_tokens.SNAPSHOT)}
+    return {old[1:].upper(): new[1:].upper() for old, new, _ in gen_paw_tokens.colour_pairs(gen_paw_tokens.SNAPSHOT, ui=False)}
+
+
+# The tooltip's text sits on the plum panel since R3: its palette colours go through the UI's TEXT role first (Godot's ink
+# text -> Bone), and the two literals Godot wrote (the gold "Next" line, the grey reason) become their plum roles (Butter:
+# numbers; Lilac: secondary text), or they would not read on plum.
+TIP_LITERALS = {"B8860B": "butter", "8F836F": "lilac"}
+
+
+def tip_colour(hexcode, table):
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import gen_paw_tokens
+    key = hexcode.upper()
+    if key in TIP_LITERALS:
+        return gen_paw_tokens.palette.PLUM[TIP_LITERALS[key]][1:].upper()
+    text, surface, _edges = gen_paw_tokens.ui_role_pairs(gen_paw_tokens.SNAPSHOT)
+    for role in (text, surface):
+        if "#" + key in role:
+            return role["#" + key][1:].upper()
+    return table.get(key, key)
 
 
 def ours_bytes(rgba, table):
@@ -299,7 +318,7 @@ def render(godot):
     ui.write("\t// The tooltip's colours (_on_node_hovered's bbcode, two of them not in the palette): the blurb, \"Fully bought.\", the\n")
     ui.write("\t// Next line, why it cannot be bought, and \"You have n.\".\n")
     for name, hexcode in tips:
-        hexcode = table.get(hexcode.upper(), hexcode)
+        hexcode = tip_colour(hexcode, table)
         ui.write("\tinline const FLinearColor %s = PawTokens::Srgb(0x%s, 0x%s, 0x%s);\n" % (name, hexcode[0:2], hexcode[2:4], hexcode[4:6]))
     ui.write("\n\t// %s DIM (a link not walked) and SHUT (the road not taken); %s SHINE_COLOR, a self_modulate MULTIPLIER\n" % (LINKS_SCRIPT, SCRIPT))
     ui.write("\t// (above 1: the node brightens), not a colour.\n")

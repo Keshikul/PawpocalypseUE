@@ -36,13 +36,15 @@ UPawButtonStyle::UPawButtonStyle()
 	NormalBase = Chrome(EPawChrome::ButtonNormal);
 	NormalHovered = Chrome(EPawChrome::ButtonHover);
 	NormalPressed = Chrome(EPawChrome::ButtonPressed);
-	// Selected = a toggle held down (SetActiveLook: the open tab): the pressed plate in every state.
-	SelectedBase = NormalPressed;
-	SelectedHovered = NormalPressed;
-	SelectedPressed = NormalPressed;
+	// Selected = a toggle held down (SetActiveLook: the open tab): R4a's Butter plate, sunk like the pressed one, in every
+	// state.
+	SelectedBase = Chrome(EPawChrome::ButtonSelected);
+	SelectedHovered = SelectedBase;
+	SelectedPressed = SelectedBase;
 	Disabled = Chrome(EPawChrome::ButtonDisabled);
-	// theme Button content margins: 16 x 6
-	ButtonPadding = FMargin(16.0f, 6.0f);
+	// theme Button content margins: 16 x 6; since R3's shapes the plate stands 4 px above its widget's bottom (its shadow),
+	// so the label moves up 2 to sit on the plate's middle, the height unchanged.
+	ButtonPadding = ButtonContentPadding();
 	CustomPadding = FMargin(0.0f);
 }
 
@@ -57,7 +59,7 @@ UPawLockedButtonStyle::UPawLockedButtonStyle()
 	SelectedHovered = NormalBase;
 	SelectedPressed = NormalBase;
 	Disabled = NormalBase;
-	ButtonPadding = FMargin(16.0f, 6.0f);
+	ButtonPadding = ButtonContentPadding();
 	CustomPadding = FMargin(0.0f);
 }
 
@@ -109,7 +111,7 @@ void UPawButton::BuildLayout()
 	UOverlaySlot* PlateSlot = Root->AddChildToOverlay(Plate);
 	PlateSlot->SetHorizontalAlignment(HAlign_Fill);
 	PlateSlot->SetVerticalAlignment(VAlign_Fill);
-	PlateSlot->SetPadding(FMargin(-14.0f, -4.0f)); // under the label, inside the frame
+	PlateSlot->SetPadding(PawUi::ButtonFacePadding()); // under the label, the plate's face exactly (R4a: inside its edge)
 
 	Line = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("Line"));
 	Line->SetVisibility(ESlateVisibility::HitTestInvisible);
@@ -321,6 +323,7 @@ void UPawButton::SetActiveLook(bool bActive)
 		return;
 	}
 	bActiveLook = bActive;
+	ApplyLabelColour(); // R4a: ink on the Butter plate
 	// Still pressable and hoverable while held down (Common UI would switch a selected button's interaction off).
 	SetIsInteractableWhenSelected(true);
 	SetIsSelectable(bActive);
@@ -415,8 +418,12 @@ void UPawButton::SetLocked(bool bInLocked)
 void UPawButton::ApplyLabelColour()
 {
 	// A locked row reads disabled; a coloured one keeps its colour when it can be pressed.
+	// R4a: on the Butter plate (the open tab, a call) every word is ink, whatever colour the row asked for.
+	const bool bOnSelected = bActiveLook || bCallLook;
 	const bool bOverrideShows = bColourOverride && (!bLockedState || bColourWhenLocked);
-	PawUi::SetTextColour(Label, bOverrideShows ? OverrideColour : bLockedState ? PawTokens::UI_TEXT_DISABLED : PawTokens::UI_TEXT);
+	PawUi::SetTextColour(Label, bOnSelected ? PawTokens::UI_SELECTED_TEXT
+		: bOverrideShows ? OverrideColour : bLockedState ? PawTokens::UI_TEXT_DISABLED : PawTokens::UI_TEXT);
+	PawUi::SetTextColour(CountText, bOnSelected ? PawTokens::UI_SELECTED_TEXT : PawTokens::UI_TEXT);
 }
 
 void UPawButton::SetCheck(bool bShowBox, bool bTicked)
@@ -425,7 +432,7 @@ void UPawButton::SetCheck(bool bShowBox, bool bTicked)
 	if (CheckBox)
 	{
 		CheckBox->SetVisibility(bShowBox ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
-		CheckBox->SetBrush(PawUi::Rounded(bTicked ? PawTokens::INK : PawTokens::UI_SLOT, PawTokens::INK, 2.0f, 4.0f));
+		CheckBox->SetBrush(PawUi::Rounded(bTicked ? PawTokens::UI_TEXT : PawTokens::UI_SLOT, PawTokens::UI_TEXT_MUTED, 2.0f, 4.0f)); // R3: shows on plum
 	}
 }
 
@@ -433,8 +440,19 @@ void UPawButton::SetPlate(bool bShow, const FLinearColor& Fill)
 {
 	if (Plate)
 	{
-		Plate->SetBrush(bShow ? PawUi::Rounded(Fill, Fill, 0.0f, Radius - 2.0f) : PawUi::NoBrush());
+		Plate->SetBrush(bShow ? PawUi::Rounded(Fill, Fill, 0.0f, PawUi::ButtonFaceRadius) : PawUi::NoBrush());
 	}
+}
+
+void UPawButton::SetCallLook(bool bCall)
+{
+	if (bCallLook == bCall)
+	{
+		return;
+	}
+	bCallLook = bCall;
+	SetPlate(bCall, PawTokens::UI_SELECTED);
+	ApplyLabelColour();
 }
 
 void UPawButton::SetBadge(bool bShow, int64 Count)

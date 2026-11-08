@@ -203,6 +203,8 @@ public:
 	// The dock's motion (UiJuice, phase 6 slice 5c): Pump steps it; the tests read and drive it.
 	FPawJuice& GetJuice() { return Juice; }
 	bool IsWaveVisible() const;
+	// What shows and hides with the wave line: its plum plate (R4d), else the line's box.
+	UWidget* WaveShown() const;
 	bool IsBossPanelVisible() const;
 	bool IsBossTimerVisible() const;
 	// The dock's rect in field units, as last reported to the realm.

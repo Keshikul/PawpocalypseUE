@@ -339,7 +339,7 @@ The Litter King dies in the Litterbox Dimension, stage 7 is granted, the **victo
   pauses, never takes a click or focus. A step is DONE when the game state says the lesson was learned (old saves and
   fast players skip ahead). Progress in the save (`tutorial_done`). Switch: Settings > Controls > Tutorial tips. Off
   in the soak, trailer and store shots. The lines are a draft awaiting the designer.
-- **Paper look**: Stacklands colours; panels cream `#FFF9E3`, 3 px `#1A1A1A` frame, ink text, 6-8 px radius. **An
+- **Paper look** (Godot's; the Unreal build has its own look since 2026-11-07, D14: plum panels, bone text, M PLUS Rounded 1c; the button and focus rules below still hold): Stacklands colours; panels cream `#FFF9E3`, 3 px `#1A1A1A` frame, ink text, 6-8 px radius. **An
   enabled button is the brightest thing in its panel**; disabled dims. All four button states share one silhouette.
   Focus draws a ring, not a plate. Dimming text on paper is a colour change, never a multiply (it makes ink blacker).
   Every colour from the palette, generated (doc 07 §3).

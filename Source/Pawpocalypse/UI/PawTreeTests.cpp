@@ -601,6 +601,9 @@ bool FPawTreePaintTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("a ladder's counter"), S(Claws->GetCounter()), FString::Printf(TEXT("1/%lld"),
 		static_cast<long long>(Pc::BranchMaxLevel(*D.FindBranch(TCHAR_TO_UTF8(PawTree::BranchColours[0].Id))))));
 	TestTrue(TEXT("an unlock has no counter"), Tree->GetNode(TEXT("unlock_aura"))->GetCounter().IsEmpty());
+	// R4f (the board "Skill tree (plum)"): a skill is round, an unlock a rounded square.
+	TestEqual(TEXT("a skill node is round"), Claws ? Claws->GetFrameRadius() : 0.0f, static_cast<float>(Pc::TreeLayout::NodeSize * 0.5));
+	TestEqual(TEXT("an unlock node is a rounded square"), Tree->GetNode(TEXT("unlock_aura"))->GetFrameRadius(), 14.0f);
 	W.Close();
 	return true;
 }

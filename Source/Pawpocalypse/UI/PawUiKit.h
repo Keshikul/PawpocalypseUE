@@ -35,6 +35,10 @@ namespace PawUi
 	// Margin = texture_margin / size per side. Only what Godot's theme draws wears it: a screen that overrides the theme with
 	// a StyleBoxFlat (the dock, the title's and the pause menu's windows, the toast, the boss panel) keeps its Rounded brush.
 	// ui_dock.svg has no entry: hud.tscn's DockPanel overrides it, so Godot draws it nowhere.
+	// RESTYLE R3's shapes (2026-11-08): the pieces are tools/art/sweet_ui.py's plum plates (a Deep Plum edge, one solid shadow
+	// straight down INSIDE the bottom margin, the pressed button sunk onto it), the margins read off those drawings, and the
+	// plates the code drew as flat rounded boxes (the dock, the windows, the boss panel, the tree's plates, the title's, the
+	// toast, the zone plate) wear them too: a rounded box cannot carry a shadow. PlatePadding keeps content off the shadow.
 	enum class EPawChrome : uint8
 	{
 		ButtonNormal, ButtonHover, ButtonPressed, ButtonDisabled, // Button / OptionButton (and PopupMenu's hover)
@@ -42,6 +46,8 @@ namespace PawUi
 		Window,                                                   // the WindowPanel variation (the job picker, the victory)
 		BarTrack, BarFill,                                        // ProgressBar background / fill
 		Separator,                                                // HSeparator
+		PlateSmall,                                               // R3: the small plate (the toast, the zone plate)
+		ButtonSelected,                                           // R4a: the held toggle (the open tab), Butter, sunk
 		Count
 	};
 	struct FPawChromeSpec
@@ -49,16 +55,36 @@ namespace PawUi
 		const TCHAR* Name;        // the SVG's stem; the texture is T_<Name>
 		int32 Width, Height;      // the SVG's size, px
 		int32 Left, Top, Right, Bottom; // texture_margin_*, px
+		int32 Shadow;             // R3: the solid shadow drawn below the plate, inside the bottom margin, px
 	};
+	// R3: the transparent gap the plates keep all round inside their texture, px; the Deep Plum edge's width inside it.
+	inline constexpr int32 ChromeGap = 1;
+	inline constexpr int32 ChromeEdge = 3; // sweet_ui.EDGE_W
 	const FPawChromeSpec& ChromeSpec(EPawChrome Which);
 	FString ChromeTexturePath(EPawChrome Which); // the object path of T_<Name>
 	// The Box brush for a piece of chrome; its texture loaded once (a missing texture leaves the brush empty: the
 	// Pawpocalypse.UI.Chrome test names it).
 	FSlateBrush Chrome(EPawChrome Which);
-	// The theme's focus ring (SBF_focus): no fill, 3 px UI_FOCUS, corner radius 12, drawn FocusRingExpand px outside the
-	// control (expand_margin 3). A button paints it over its plate when selected (UPawButton::NativePaint).
+	// Content margins measured from a plate's EDGE -> a border's padding on that plate: the gap on every side and the shadow
+	// below added, so the content sits centred on the plate and never on its shadow (R3).
+	FMargin PlatePadding(const FMargin& Content, EPawChrome Which);
+	// The theme button's content margins on its plate (16 x 6, the label raised by half the 4 px shadow: 16 / 4 / 16 / 8).
+	inline FMargin ButtonContentPadding() { return FMargin(16.0f, 4.0f, 16.0f, 8.0f); }
+	// R4a: a fill laid over a button's content (its Plate: the call's Butter) reaches out to the plate's FACE exactly: the
+	// content margins less the gap and the edge (and the 4 px shadow below), so the Deep Plum edge stays round it.
+	inline FMargin ButtonFacePadding()
+	{
+		const FMargin C = ButtonContentPadding();
+		const float In = static_cast<float>(ChromeGap + ChromeEdge);
+		return FMargin(In - C.Left, In - C.Top, In - C.Right, In + 4.0f - C.Bottom);
+	}
+	inline constexpr float ButtonFaceRadius = 6.0f; // the plate's radius 9 less its edge
+	// The focus ring: no fill, FocusRingWidth px of UI_FOCUS (Butter since R4a; Godot's SBF_focus was 3 px coral), corner
+	// radius 12, drawn FocusRingExpand px outside the control. A button paints it over its plate when selected
+	// (UPawButton::NativePaint).
 	FSlateBrush FocusRing();
-	inline constexpr float FocusRingExpand = 3.0f;
+	inline constexpr float FocusRingWidth = 4.0f;
+	inline constexpr float FocusRingExpand = 4.0f;
 
 	// Godot's Color.from_hsv(h, s, v) (sRGB, as every Godot colour), in Slate's linear space.
 	FLinearColor FromHsv(double H, double S, double V);
@@ -72,6 +98,12 @@ namespace PawUi
 	// Name: the widget's name (a bound part carries its property's name, so a Widget Blueprint binds it: PawWidgets.h).
 	UTextBlock* MakeText(UWidgetTree* Tree, double GodotPx, const FLinearColor& Colour, bool bOverField = false, FName Name = NAME_None);
 	void SetTextColour(UTextBlock* Text, const FLinearColor& Colour);
+	// A title or a number (the plum spec): the font's Black weight; with a solid Deep Plum shadow straight down when the text
+	// wears an outline (light text). Its words, size and colour stay. Returns the text, for chaining at the call site.
+	UTextBlock* Heavy(UTextBlock* Text);
+	// R4g: a screen's title as the boards draw it: Butter, Black, an ink outline of Outline px and the solid shadow.
+	UTextBlock* ButterTitle(UTextBlock* Text, int32 Outline);
+	inline constexpr int32 ButterTitleOutline = 3;
 
 	// A bar: a framed track and a rounded fill. Never takes input.
 	UProgressBar* MakeBar(UWidgetTree* Tree, const FLinearColor& Track, const FLinearColor& Fill, const FLinearColor& Frame,

@@ -28,8 +28,8 @@ bool UPawToast::Initialize()
 		UOverlay* Root = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("Root"));
 		WidgetTree->RootWidget = Root;
 		Plate = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Plate"));
-		Plate->SetBrush(PawUi::Rounded(PawTokens::UI_PANEL, PawTokens::UI_PANEL_FRAME, FrameWidth, Radius));
-		Plate->SetPadding(FMargin(PadX, PadY));
+		Plate->SetBrush(PawUi::Chrome(PawUi::EPawChrome::PlateSmall)); // R3: the small plum plate
+		Plate->SetPadding(PawUi::PlatePadding(FMargin(PadX, PadY), PawUi::EPawChrome::PlateSmall));
 		UOverlaySlot* S = Root->AddChildToOverlay(Plate);
 		S->SetHorizontalAlignment(HAlign_Center);
 		S->SetVerticalAlignment(VAlign_Top);

@@ -54,6 +54,7 @@ Invoke-Gate 'art generators reproduce' 'py tools\art\build_art.py --check'
 Invoke-Gate 'art rasters reproduce' 'py tools\raster_svg.py --check'
 Invoke-Gate 'field atlas reproduces' 'py tools\pack_atlas.py --check'
 Invoke-Gate 'audio export reproduces' 'py tools\export_audio.py --check'
+Invoke-Gate 'font coverage' 'py tools\check_font_coverage.py'
 # Every sabotage's target still in its source (seconds, nothing built): a target a later slice rewrote otherwise stays unseen
 # until the nightly's sabotage gate refuses to start (2026-11-06: one stale since slice 3 cost a whole night's realm gate).
 Invoke-Gate 'sabotage targets current' 'py tools\sabotage_pawcore.py --list && py tools\sabotage_realm.py --list'
@@ -99,6 +100,7 @@ if ($Full) {
 	# --- every gate's own negative test ---------------------------------------------------------------------------
 	Invoke-Gate 'L0 self-test' 'py tools\check_pawcore_static.py --self-test'
 	Invoke-Gate 'mirror self-test' 'py tools\check_mirror.py --self-test'
+	Invoke-Gate 'font coverage self-test' 'py tools\check_font_coverage.py --self-test'
 	Invoke-Gate 'Unreal guard self-test' 'py tools\unreal_procs.py --self-test'
 	Invoke-Gate 'PawCore sabotage' 'py tools\sabotage_pawcore.py'
 	Invoke-EngineGate 'DataTable parity self-test' 'py tools\import_data.py --self-test' -NeedsBuild

@@ -82,15 +82,15 @@ namespace
 		return S;
 	}
 
-	// StyleBoxFlat_panel: paper, a 3 px ink frame, radius 10, content margins 28 / 24 (the menu and the three windows).
+	// StyleBoxFlat_panel (the menu and the three windows): content margins 28 / 24; since R3's shapes the plum plate.
 	FSlateBrush TitlePanelBrush()
 	{
-		return Rounded(PawTokens::UI_PANEL, PawTokens::INK, static_cast<float>(TitlePanelFrame), static_cast<float>(TitlePanelRadius));
+		return Chrome(EPawChrome::Window);
 	}
 
 	FMargin TitlePanelPadding()
 	{
-		return FMargin(static_cast<float>(TitlePanelPadX), static_cast<float>(TitlePanelPadY));
+		return PlatePadding(FMargin(static_cast<float>(TitlePanelPadX), static_cast<float>(TitlePanelPadY)), EPawChrome::Window);
 	}
 
 	void SetEnabledLook(UPawButton* B, bool bEnabled)
@@ -108,16 +108,17 @@ namespace
 
 UPawPlateButtonStyle::UPawPlateButtonStyle()
 {
-	const float Frame = static_cast<float>(TitlePanelFrame);
-	const float Radius = static_cast<float>(ClusterRadius);
-	NormalBase = Rounded(PawTokens::UI_PANEL, PawTokens::INK, Frame, Radius);
-	NormalHovered = Rounded(PawTokens::UI_PANEL_BAND, PawTokens::INK, Frame, Radius);
-	NormalPressed = Rounded(PawTokens::UI_SLOT, PawTokens::INK, Frame, Radius);
+	// R3's shapes: the theme's plum buttons (the pressed plate sinks onto its shadow), the content lifted off the shadow.
+	NormalBase = Chrome(EPawChrome::ButtonNormal);
+	NormalHovered = Chrome(EPawChrome::ButtonHover);
+	NormalPressed = Chrome(EPawChrome::ButtonPressed);
 	SelectedBase = NormalBase;
 	SelectedHovered = NormalHovered;
 	SelectedPressed = NormalPressed;
-	Disabled = Rounded(PawTokens::UI_BUTTON_DISABLED, PawTokens::UI_TEXT_DISABLED, Frame, Radius);
-	ButtonPadding = FMargin(static_cast<float>(ClusterPad));
+	Disabled = Chrome(EPawChrome::ButtonDisabled);
+	const float Pad = static_cast<float>(ClusterPad);
+	const float Half = 0.5f * static_cast<float>(ChromeSpec(EPawChrome::ButtonNormal).Shadow);
+	ButtonPadding = FMargin(Pad, Pad - Half, Pad, Pad + Half);
 	CustomPadding = FMargin(0.0f);
 }
 
@@ -129,7 +130,7 @@ UPawButton* UPawMainMenu::MakeMenuButton(UVerticalBox* Box, int32 Index, const T
 	B->SetMinDimensions(0, static_cast<int32>(Height));
 	UVerticalBoxSlot* S = Box->AddChildToVerticalBox(B);
 	S->SetHorizontalAlignment(HAlign_Fill);
-	S->SetPadding(FMargin(0.0f, bFirst ? 0.0f : static_cast<float>(TitleMenuSeparation), 0.0f, 0.0f));
+	S->SetPadding(FMargin(0.0f, bFirst ? 0.0f : static_cast<float>(R4MenuSeparation), 0.0f, 0.0f));
 	return B;
 }
 
@@ -183,25 +184,38 @@ bool UPawMainMenu::Initialize()
 		NameBox->SetHorizontalAlignment(HAlign_Center);
 		NameBox->SetVerticalAlignment(VAlign_Center);
 		NameBox->SetVisibility(ESlateVisibility::HitTestInvisible);
-		NameText = MakeText(T, TitleNamePx, PawTokens::INK, false, TEXT("NameText"));
-		NameText->SetJustification(ETextJustify::Center);
+		// R4c: Butter, an ink outline and a solid shadow, top left and tilted (the board "Main menu (plum)").
+		NameText = Heavy(MakeText(T, R4NamePx, PawTokens::UI_SELECTED, true, TEXT("NameText")));
+		{
+			FSlateFontInfo Font = NameText->GetFont();
+			Font.OutlineSettings.OutlineSize = static_cast<int32>(R4NameOutline);
+			NameText->SetFont(Font);
+			NameText->SetShadowOffset(FVector2D(0.0, R4NameShadow));
+			SetTextColour(NameText, PawTokens::UI_SELECTED); // over the field, yet Butter (MakeText gives labels there Bone)
+		}
+		NameText->SetJustification(ETextJustify::Left);
 		NameText->SetText(PawText::Ui(TEXT("TITLE_name")));
+		NameBox->SetHorizontalAlignment(HAlign_Left);
 		NameBox->SetContent(NameText);
-		Place(Canvas, NameBox, 0.5f, 0.0f, -TitleNameWidth * 0.5, TitleNameTop, TitleNameWidth * 0.5, TitleNameTop + TitleNameHeight);
+		NameBox->SetRenderTransformPivot(FVector2D(0.0, 0.5));
+		NameBox->SetRenderTransformAngle(static_cast<float>(R4NameAngle));
+		Place(Canvas, NameBox, 0.0f, 0.0f, R4TitleMargin, R4NameTop, R4TitleMargin + R4NameWidth, R4NameTop + R4NameHeight);
 
 		// The version, bottom right.
-		VersionText = MakeText(T, LabelPx, PawTokens::UI_TEXT_MUTED, false, TEXT("VersionText"));
+		VersionText = MakeText(T, LabelPx, PawTokens::INK, false, TEXT("VersionText")); // R4c: on the lawn: ink (lilac vanished there)
 		VersionText->SetJustification(ETextJustify::Right);
 		VersionText->SetText(PawText::Version());
 		VersionText->SetVisibility(ESlateVisibility::HitTestInvisible);
-		Place(Canvas, VersionText, 1.0f, 1.0f, -TitleVersionMargin - TitleVersionWidth, -TitleVersionMargin - TitleVersionHeight,
-			-TitleVersionMargin, -TitleVersionMargin);
+		const double VersionBottom = TitleCornerMargin + ClusterButtonSize + R4VersionAbove; // R4c: above the cluster
+		Place(Canvas, VersionText, 1.0f, 1.0f, -TitleCornerMargin - TitleVersionWidth, -VersionBottom - TitleVersionHeight,
+			-TitleCornerMargin, -VersionBottom);
 
 		// The menu: a paper panel 460 x 440 whose top sits 110 above the middle.
 		USizeBox* PanelSize = T->ConstructWidget<USizeBox>();
-		PanelSize->SetWidthOverride(static_cast<float>(TitlePanelWidth));
-		PanelSize->SetHeightOverride(static_cast<float>(TitlePanelHeight));
-		Place(Canvas, PanelSize, 0.5f, 0.5f, TitlePanelLeft, TitlePanelTop, TitlePanelLeft + TitlePanelWidth, TitlePanelTop + TitlePanelHeight);
+		PanelSize->SetWidthOverride(static_cast<float>(R4PanelWidth));
+		PanelSize->SetHeightOverride(static_cast<float>(R4PanelHeight));
+		// R4c: on the left under the logo (Godot: centred, its top 110 above the middle).
+		Place(Canvas, PanelSize, 0.0f, 0.5f, R4TitleMargin, R4PanelTop, R4TitleMargin + R4PanelWidth, R4PanelTop + R4PanelHeight);
 		UBorder* Panel = T->ConstructWidget<UBorder>();
 		Panel->SetBrush(TitlePanelBrush());
 		Panel->SetPadding(TitlePanelPadding());
@@ -215,40 +229,63 @@ bool UPawMainMenu::Initialize()
 			TEXT("TITLE_settings"), TEXT("TITLE_credits"), TEXT("TITLE_exit") };
 		for (int32 I = 0; I < 7; ++I)
 		{
-			MenuButtons.Add(MakeMenuButton(Menu, I, Keys[I], I == 0 ? TitleContinueHeight : TitleButtonHeight,
-				I == 0 ? TitleContinuePx : ButtonPx, I == 0));
+			// R4c: the board's sizes, the words on the left; Continue the call (Refresh: Butter while it can continue).
+			MenuButtons.Add(MakeMenuButton(Menu, I, Keys[I], I == 0 ? R4ContinueHeight : R4MenuButtonHeight,
+				I == 0 ? R4ContinuePx : R4MenuButtonPx, I == 0));
+			MenuButtons.Last()->SetAlignLeft(true);
 		}
 		StatusText = MakeText(T, LabelPx, PawTokens::UI_TEXT_MUTED, false, TEXT("StatusText"));
-		StatusText->SetJustification(ETextJustify::Center);
+		StatusText->SetJustification(ETextJustify::Left);
 		StatusText->SetAutoWrapText(false);
-		StatusText->SetWrapTextAt(static_cast<float>(TitlePanelWidth - 2.0 * TitlePanelPadX));
+		StatusText->SetWrapTextAt(static_cast<float>(R4PanelWidth - 2.0 * TitlePanelPadX));
 		Body->AddChildToVerticalBox(StatusText)->SetPadding(FMargin(0.0f, static_cast<float>(TitleBodySeparation), 0.0f, 0.0f));
 
 		// The in-game keys as prompts (controller plan 9; main_menu.gd _build_hint: a PromptLabel, prompts 24 px).
 		HintPrompts = T->ConstructWidget<UPawPromptText>(PawUi::Resolve<UPawPromptText>(), TEXT("HintPrompts"));
 		HintPrompts->IconPx = static_cast<int32>(TitleHintPromptPx);
 		HintPrompts->TextPx = static_cast<float>(LabelPx);
-		HintPrompts->TextColour = PawTokens::UI_TEXT_MUTED;
-		Place(Canvas, HintPrompts, 0.5f, 1.0f, -TitleHintWidth * 0.5, -TitleHintBottom - TitleHintHeight, TitleHintWidth * 0.5, -TitleHintBottom);
+		HintPrompts->TextColour = PawTokens::UI_TEXT; // R4c: on its plum plate (until then ink on the lawn, crossing the bushes)
+		UBorder* HintPlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("HintPlate"));
+		HintPlate->SetBrush(Chrome(EPawChrome::PlateSmall));
+		HintPlate->SetPadding(PlatePadding(FMargin(static_cast<float>(R4HintPadX), static_cast<float>(R4HintPadY)), EPawChrome::PlateSmall));
+		HintPlate->SetVisibility(ESlateVisibility::HitTestInvisible);
+		HintPlate->SetContent(HintPrompts);
+		UCanvasPanelSlot* HintSlot = Place(Canvas, HintPlate, 0.0f, 1.0f, TitleCornerMargin, -TitleCornerMargin - TitleHintHeight,
+			TitleCornerMargin + TitleHintWidth, -TitleCornerMargin);
+		HintSlot->SetAutoSize(true);
+		HintSlot->SetAlignment(FVector2D(0.0, 1.0));
 
 		// Boba's badge, bottom left: the frame and the caption at Godot's size; the photo (and the cameo a click summons)
 		// arrive with the art (phase 6).
 		UBorder* Badge = T->ConstructWidget<UBorder>();
-		Badge->SetBrush(Rounded(PawTokens::UI_PANEL, PawTokens::INK, static_cast<float>(TitlePanelFrame), static_cast<float>(BobaBadgeRadius)));
-		Badge->SetPadding(FMargin(static_cast<float>(BobaBadgePad)));
+		Badge->SetBrush(Chrome(EPawChrome::Window)); // R3: the plum plate
+		Badge->SetPadding(PlatePadding(FMargin(static_cast<float>(BobaBadgePad)), EPawChrome::Window));
 		Badge->SetToolTipText(PawText::Ui(TEXT("TITLE_boba_tooltip")));
 		Badge->SetVisibility(ESlateVisibility::Visible);
-		Place(Canvas, Badge, 0.0f, 1.0f, TitleCornerMargin, -TitleCornerMargin - BobaBadgeHeight, TitleCornerMargin + BobaBadgeWidth,
-			-TitleCornerMargin);
+		// R4c: on the right, tilted the other way (the board's pinned card).
+		Badge->SetRenderTransformPivot(FVector2D(0.5, 0.5));
+		Badge->SetRenderTransformAngle(static_cast<float>(R4BobaAngle));
+		Place(Canvas, Badge, 1.0f, 0.5f, -R4BobaRight - R4BobaWidth, R4BobaTop, -R4BobaRight, R4BobaTop + R4BobaHeight);
 		UVerticalBox* BadgeColumn = T->ConstructWidget<UVerticalBox>();
 		Badge->SetContent(BadgeColumn);
 		USizeBox* Photo = T->ConstructWidget<USizeBox>();
-		Photo->SetWidthOverride(static_cast<float>(BobaPhotoSize));
-		Photo->SetHeightOverride(static_cast<float>(BobaPhotoSize));
+		Photo->SetWidthOverride(static_cast<float>(R4BobaPhoto));
+		Photo->SetHeightOverride(static_cast<float>(R4BobaPhoto));
 		BadgeColumn->AddChildToVerticalBox(Photo)->SetHorizontalAlignment(HAlign_Center);
+		// R4c: the photo's well (the board's raised frame), so the card waits for the photo instead of showing a hole.
+		UBorder* Well = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("BobaPhotoWell"));
+		Well->SetBrush(Rounded(PawTokens::UI_BUTTON, PawTokens::UI_PANEL_FRAME, static_cast<float>(ChromeEdge), 14.0f));
+		Well->SetVisibility(ESlateVisibility::HitTestInvisible);
+		Photo->SetContent(Well);
 		for (const TCHAR* Key : { TEXT("TITLE_boba_name"), TEXT("TITLE_boba_role") })
 		{
-			UTextBlock* Line = MakeText(T, BobaCaptionPx, PawTokens::INK);
+			// R4c: the name a Butter title, the role lilac.
+			const bool bName = FCString::Strcmp(Key, TEXT("TITLE_boba_name")) == 0;
+			UTextBlock* Line = MakeText(T, bName ? R4BobaNamePx : BobaCaptionPx, bName ? PawTokens::UI_SELECTED : PawTokens::UI_TEXT_MUTED);
+			if (bName)
+			{
+				Heavy(Line);
+			}
 			Line->SetJustification(ETextJustify::Center);
 			Line->SetText(PawText::Ui(Key));
 			BadgeColumn->AddChildToVerticalBox(Line)->SetHorizontalAlignment(HAlign_Center);
@@ -256,9 +293,10 @@ bool UPawMainMenu::Initialize()
 
 		// The cluster: Report a bug, Discord, Language, square plates right of the badge, bottom-aligned with it. Mouse only.
 		UHorizontalBox* Cluster = T->ConstructWidget<UHorizontalBox>();
-		const double ClusterLeft = TitleCornerMargin + BobaBadgeWidth + BobaClusterGap;
-		Place(Canvas, Cluster, 0.0f, 1.0f, ClusterLeft, -TitleCornerMargin - ClusterButtonSize,
-			ClusterLeft + 3.0 * ClusterButtonSize + 2.0 * ClusterGap, -TitleCornerMargin);
+		// R4c: bottom right (Godot: right of the badge, bottom left).
+		const double ClusterWidth = 3.0 * ClusterButtonSize + 2.0 * ClusterGap;
+		Place(Canvas, Cluster, 1.0f, 1.0f, -TitleCornerMargin - ClusterWidth, -TitleCornerMargin - ClusterButtonSize,
+			-TitleCornerMargin, -TitleCornerMargin);
 		const TCHAR* ClusterKeys[] = { TEXT("TITLE_bug"), TEXT("TITLE_discord"), TEXT("TITLE_language") };
 		for (int32 I = 0; I < 3; ++I)
 		{
@@ -328,7 +366,7 @@ bool UPawMainMenu::Initialize()
 		SlotsLayer->SetContent(SlotBodySize);
 		UVerticalBox* SlotBody = T->ConstructWidget<UVerticalBox>();
 		SlotBodySize->SetContent(SlotBody);
-		UTextBlock* SlotTitle = MakeText(T, TitleSlotTitlePx, PawTokens::INK);
+		UTextBlock* SlotTitle = MakeText(T, TitleSlotTitlePx, PawTokens::UI_TEXT);
 		SlotTitle->SetJustification(ETextJustify::Center);
 		SlotTitle->SetText(PawText::Ui(TEXT("TITLE_slots_title")));
 		SlotBody->AddChildToVerticalBox(SlotTitle)->SetHorizontalAlignment(HAlign_Center);
@@ -377,7 +415,7 @@ bool UPawMainMenu::Initialize()
 			DeleteSlot->SetVerticalAlignment(VAlign_Bottom);
 			DeleteSlot->SetPadding(FMargin(M, 0.0f, M, static_cast<float>(SlotDeleteHeight - SlotDeleteButtonHeight)));
 			// The slot NUMBER underneath, large.
-			UTextBlock* Number = MakeText(T, SlotNumberPx, PawTokens::UI_TEXT, false, PawUi::Numbered(TEXT("SlotNumber"), I));
+			UTextBlock* Number = Heavy(MakeText(T, SlotNumberPx, PawTokens::UI_TEXT, false, PawUi::Numbered(TEXT("SlotNumber"), I)));
 			Number->SetJustification(ETextJustify::Center);
 			FFormatNamedArguments Args;
 			Args.Add(TEXT("n"), PawText::Count(I + 1));
@@ -564,6 +602,10 @@ void UPawMainMenu::Refresh()
 	Pc::PcProgress Empty;
 	const Pc::PcTitleMenu M = Pc::TitleMenu(bOnDisk, G && G->IsDataReady() ? G->Progress() : Empty);
 	SetEnabledLook(GetMenuButton(0), M.bContinue);
+	if (UPawButton* Continue = GetMenuButton(0))
+	{
+		Continue->SetCallLook(M.bContinue); // R4c: the board's Butter Continue, while there is something to continue
+	}
 	SetEnabledLook(GetMenuButton(2), M.bLoad);
 	if (M.bSaveFound)
 	{

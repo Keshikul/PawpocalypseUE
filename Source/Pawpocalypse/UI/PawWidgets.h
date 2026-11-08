@@ -69,10 +69,43 @@ namespace PawUi
 	// A repeated part's name: Name(TEXT("SlotCard"), 2) = "SlotCard2".
 	PAWPOCALYPSE_API FName Numbered(const TCHAR* Prefix, int32 Index);
 	// Every colour an object holds in its own properties (FLinearColor and FColor, inside structs and arrays of structs, e.g. a
-	// text block's FSlateColor, a font's outline, a brush's tint; never through an object reference), as sRGB bytes with alpha.
+	// text block's FSlateColor, a font's outline, a brush's tint; never through an object reference, never a Transient
+	// property: not saved, so not the asset's look), as sRGB bytes with alpha.
 	// Visit returns true to write its (changed) colour back; a linear colour keeps its own alpha. Returns how many it wrote.
 	// The restyle's palette migration (tools/bake_widgets.py --recolour) and its test (Pawpocalypse.UI.Widgets.Palette).
 	PAWPOCALYPSE_API int32 ForEachColour(UObject* Object, TFunctionRef<bool(FColor& Srgb)> Visit);
+	// A colour's ROLE in a widget (restyle R3): one old colour may become several new ones, told apart by what it colours.
+	// The plum flip turned ink TEXT bone and kept the ink surfaces; R3's shapes turn the ink EDGES of plates Deep Plum while
+	// the plum panels (the same old value) stay (tools/bake_widgets.py --recolour; gen_paw_tokens.ui_role_pairs).
+	enum class EPawColourRole : uint8
+	{
+		Surface, // a brush's fill, a shadow, a text's outline, an image's tint
+		Text,    // under a text's colour (IsTextColour)
+		Edge,    // a brush's outline (IsEdgeColour): a plate's or a button's frame
+	};
+	// The same walk, telling each colour's role.
+	PAWPOCALYPSE_API int32 ForEachColourRole(UObject* Object, TFunctionRef<bool(FColor& Srgb, EPawColourRole Role)> Visit);
+	// A property holding a text's colour: ColorAndOpacity on a text widget (UTextLayoutWidget) or an FTextBlockStyle, or a
+	// piece's TextColour. Shadows and outlines are not (they stay with the surfaces).
+	PAWPOCALYPSE_API bool IsTextColour(const UStruct* Owner, const FProperty* Property);
+	// A property holding a brush's outline colour (FSlateBrushOutlineSettings::Color): an edge. A FONT's outline is not (the
+	// ink outline of a label over the field stays a surface).
+	PAWPOCALYPSE_API bool IsEdgeColour(const UStruct* Owner, const FProperty* Property);
+	// Every font an object holds in its own properties (FSlateFontInfo, inside structs and arrays of structs: a text block's
+	// font, a rich text's default style), the same walk. Visit returns true when it changed the font. Returns how many changed.
+	// The restyle's font migration (tools/bake_widgets.py --refont) and its test (Pawpocalypse.UI.Widgets.Fonts).
+	PAWPOCALYPSE_API int32 ForEachFont(UObject* Object, TFunctionRef<bool(FSlateFontInfo& Font)> Visit);
+	// The game's font, F_Paw (tools/fonts.py; the composite import_fonts.py builds), loaded once. Null before its import.
+	PAWPOCALYPSE_API class UFont* PawFont();
+	// A font the restyle replaces: none, or one of the engine's (/Engine/..., Roboto: what UMG gave every text before F_Paw).
+	PAWPOCALYPSE_API bool IsEngineFont(const UObject* FontObject);
+	// R4b, THE TEXT FLOOR (docs/WORKLIST-RESTYLE-2026-11-07.md R4): nothing under 16 px at 1080p and 100 % UI size, so a
+	// TV at 3 m reads it: a font at least PawUi::FontPt(16) = 12 pt, a piece's TextPx / LabelPx (Godot px) at least 16.
+	// Exempt, by name: a keycap's label (UPawPromptIcon's KeyLabel: part of the glyph, sized to its cap).
+	inline constexpr double TextFloorPx = 16.0;
+	// What of Object is under the floor ("Name.Font 9.75 pt"); bRaise lifts each to the floor (the asset migration,
+	// tools/bake_widgets.py --textfloor). Pawpocalypse.UI.Widgets.TextFloor walks every asset and code layout with it.
+	PAWPOCALYPSE_API TArray<FString> UnderTextFloor(UObject* Object, bool bRaise);
 	// The objects a baked asset saves its look in: a Widget Blueprint's tree widgets and its generated class's default object
 	// (a style Blueprint: just the latter).
 	PAWPOCALYPSE_API TArray<UObject*> LookObjects(UBlueprint* Asset);

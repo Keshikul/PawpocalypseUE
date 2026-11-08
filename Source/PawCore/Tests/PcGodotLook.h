@@ -17,7 +17,7 @@ namespace Pc
 	};
 	inline constexpr int PcGodotLookCount = 1;
 	inline constexpr PcGodotLookPair PcGodotLook[PcGodotLookCount > 0 ? PcGodotLookCount : 1] = {
-		{ { 26, 26, 26 }, { 42, 26, 51 } }, // #1A1A1A -> #2A1A33: ink, ui.button_frame, ui.card_take, ui.panel_frame
+		{ { 26, 26, 26 }, { 42, 26, 51 } }, // #1A1A1A -> #2A1A33: ink
 	};
 
 	// One channel set (0-1 sRGB floats, as the fixtures write them): if it is a Godot palette colour that changed, write

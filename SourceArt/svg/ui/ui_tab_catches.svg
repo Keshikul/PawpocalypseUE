@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
 <g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
 <rect x="14.9" y="41.9" width="50.2" height="68.2" rx="9.1" fill="#2A1A33" stroke="none"/>
-<rect x="18.0" y="45.0" width="44.0" height="62.0" rx="6.0" fill="#FFFDED" stroke="none"/>
+<rect x="18.0" y="45.0" width="44.0" height="62.0" rx="6.0" fill="#F6EEF8" stroke="none"/>
 <rect x="38.9" y="33.9" width="50.2" height="68.2" rx="9.1" fill="#2A1A33" stroke="none"/>
-<rect x="42.0" y="37.0" width="44.0" height="62.0" rx="6.0" fill="#FFFDED" stroke="none"/>
+<rect x="42.0" y="37.0" width="44.0" height="62.0" rx="6.0" fill="#F6EEF8" stroke="none"/>
 <rect x="62.9" y="41.9" width="50.2" height="68.2" rx="9.1" fill="#2A1A33" stroke="none"/>
-<rect x="66.0" y="45.0" width="44.0" height="62.0" rx="6.0" fill="#FFFDED" stroke="none"/>
+<rect x="66.0" y="45.0" width="44.0" height="62.0" rx="6.0" fill="#F6EEF8" stroke="none"/>
 <ellipse cx="64.0" cy="64.0" rx="13.0" ry="13.0" fill="#8596C3" stroke="none"/>
 </g>
 </svg>

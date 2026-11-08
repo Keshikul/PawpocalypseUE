@@ -5,6 +5,7 @@
 #include "Components/TextBlock.h"
 #include "Components/Widget.h"
 #include "Engine/Texture2D.h"
+#include "Engine/Font.h"
 #include "Framework/Application/SlateApplication.h"
 #include "PcRainbow.h"
 #include "Render/PawFxCanvas.h"
@@ -13,6 +14,7 @@
 #include "Styling/CoreStyle.h"
 #include "UI/PawTokens.h"
 #include "UI/PawUiConstants.h"
+#include "UI/PawWidgets.h"
 
 namespace PawUi
 {
@@ -44,17 +46,20 @@ namespace PawUi
 
 	namespace
 	{
-		// pawpocalypse_theme.tres (the SBT_* StyleBoxTextures) and the SVGs' sizes, 2026-11-06.
+		// pawpocalypse_theme.tres (the SBT_* StyleBoxTextures) and the SVGs' sizes, 2026-11-06; since R3's shapes (2026-11-08)
+		// the plates' margins and shadows are tools/art/sweet_ui.py's (corners and shadow inside the cut).
 		const FPawChromeSpec ChromeTable[] = {
-			{ TEXT("ui_button_normal"), 256, 64, 16, 16, 16, 16 },
-			{ TEXT("ui_button_hover"), 256, 64, 16, 16, 16, 16 },
-			{ TEXT("ui_button_pressed"), 256, 64, 16, 16, 16, 16 },
-			{ TEXT("ui_button_disabled"), 256, 64, 16, 16, 16, 16 },
-			{ TEXT("ui_panel"), 128, 128, 20, 20, 20, 20 },
-			{ TEXT("ui_window"), 256, 256, 48, 48, 48, 48 },
-			{ TEXT("ui_bar_track"), 64, 16, 8, 4, 8, 4 },
-			{ TEXT("ui_bar_fill"), 64, 16, 8, 4, 8, 4 },
-			{ TEXT("ui_separator"), 64, 8, 8, 2, 8, 2 },
+			{ TEXT("ui_button_normal"), 256, 64, 16, 16, 16, 16, 4 },
+			{ TEXT("ui_button_hover"), 256, 64, 16, 16, 16, 16, 4 },
+			{ TEXT("ui_button_pressed"), 256, 64, 16, 16, 16, 16, 4 }, // sunk: the plate on its shadow's place
+			{ TEXT("ui_button_disabled"), 256, 64, 16, 16, 16, 16, 4 },
+			{ TEXT("ui_panel"), 128, 128, 16, 16, 16, 24, 8 },
+			{ TEXT("ui_window"), 256, 256, 24, 24, 24, 32, 8 },
+			{ TEXT("ui_bar_track"), 64, 16, 8, 4, 8, 4, 0 },
+			{ TEXT("ui_bar_fill"), 64, 16, 8, 4, 8, 4, 0 },
+			{ TEXT("ui_separator"), 64, 8, 8, 2, 8, 2, 0 },
+			{ TEXT("ui_plate_small"), 64, 48, 12, 12, 12, 16, 4 },
+			{ TEXT("ui_button_selected"), 256, 64, 16, 16, 16, 16, 4 }, // R4a: Butter, sunk like the pressed plate
 		};
 		static_assert(UE_ARRAY_COUNT(ChromeTable) == static_cast<int32>(EPawChrome::Count), "one row per EPawChrome");
 
@@ -86,9 +91,16 @@ namespace PawUi
 		return B;
 	}
 
+	FMargin PlatePadding(const FMargin& Content, EPawChrome Which)
+	{
+		const float Gap = static_cast<float>(ChromeGap);
+		return FMargin(Content.Left + Gap, Content.Top + Gap, Content.Right + Gap,
+			Content.Bottom + Gap + static_cast<float>(ChromeSpec(Which).Shadow));
+	}
+
 	FSlateBrush FocusRing()
 	{
-		return Rounded(FLinearColor::Transparent, PawTokens::UI_FOCUS, 3.0f, 12.0f);
+		return Rounded(FLinearColor::Transparent, PawTokens::UI_FOCUS, FocusRingWidth, 12.0f);
 	}
 
 	FSlateBrush WindowBrush()
@@ -118,13 +130,17 @@ namespace PawUi
 
 	FMargin WindowPadding()
 	{
-		return FMargin(static_cast<float>(WindowPadX), static_cast<float>(WindowPadY));
+		return PlatePadding(FMargin(static_cast<float>(WindowPadX), static_cast<float>(WindowPadY)), EPawChrome::Window);
 	}
 
 	UTextBlock* MakeText(UWidgetTree* Tree, double GodotPx, const FLinearColor& Colour, bool bOverField, FName Name)
 	{
 		UTextBlock* T = Tree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), Name);
 		FSlateFontInfo Font = T->GetFont();
+		if (UFont* Paw = PawFont())
+		{
+			Font.FontObject = Paw; // F_Paw is also UMG's default ([SlateStyle] DefaultFontName); set here so code never depends on it
+		}
 		Font.Size = FontPt(GodotPx);
 		if (bOverField)
 		{
@@ -132,9 +148,40 @@ namespace PawUi
 			Font.OutlineSettings.OutlineColor = PawTokens::INK;
 		}
 		T->SetFont(Font);
-		T->SetColorAndOpacity(FSlateColor(bOverField ? PawTokens::UI_PANEL : Colour));
+		T->SetColorAndOpacity(FSlateColor(bOverField ? PawTokens::UI_FIELD_LABEL : Colour));
 		T->SetVisibility(ESlateVisibility::HitTestInvisible);
 		return T;
+	}
+
+	UTextBlock* ButterTitle(UTextBlock* Text, int32 Outline)
+	{
+		if (!Text)
+		{
+			return Text;
+		}
+		FSlateFontInfo Font = Text->GetFont();
+		Font.OutlineSettings.OutlineSize = Outline;
+		Font.OutlineSettings.OutlineColor = PawTokens::INK;
+		Text->SetFont(Font);
+		Text->SetColorAndOpacity(FSlateColor(PawTokens::UI_SELECTED));
+		return Heavy(Text);
+	}
+
+	UTextBlock* Heavy(UTextBlock* Text)
+	{
+		if (!Text)
+		{
+			return Text;
+		}
+		FSlateFontInfo Font = Text->GetFont();
+		Font.TypefaceFontName = TEXT("Black");
+		Text->SetFont(Font);
+		if (Font.OutlineSettings.OutlineSize > 0)
+		{
+			Text->SetShadowOffset(FVector2D(0.0, HeavyShadowPx));
+			Text->SetShadowColorAndOpacity(PawTokens::PLUM_DEEP);
+		}
+		return Text;
 	}
 
 	void SetTextColour(UTextBlock* Text, const FLinearColor& Colour)

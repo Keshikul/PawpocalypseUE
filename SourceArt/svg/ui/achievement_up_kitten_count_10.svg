@@ -30,14 +30,14 @@
 <ellipse cx="44.0" cy="74.0" rx="21.1" ry="19.3" fill="#2A1A33" stroke="none"/>
 <polygon points="26.6,68.6 34.7,42.4 46.3,63.6" fill="#2A1A33" stroke="none"/>
 <polygon points="41.7,63.6 53.3,42.4 61.4,68.6" fill="#2A1A33" stroke="none"/>
-<ellipse cx="44.0" cy="74.0" rx="18.0" ry="16.2" fill="#FFFDED" stroke="none"/>
-<polygon points="29.6,65.0 35.0,47.0 42.2,61.4" fill="#FFFDED" stroke="none"/>
-<polygon points="45.8,61.4 53.0,47.0 58.4,65.0" fill="#FFFDED" stroke="none"/>
+<ellipse cx="44.0" cy="74.0" rx="18.0" ry="16.2" fill="#F6EEF8" stroke="none"/>
+<polygon points="29.6,65.0 35.0,47.0 42.2,61.4" fill="#F6EEF8" stroke="none"/>
+<polygon points="45.8,61.4 53.0,47.0 58.4,65.0" fill="#F6EEF8" stroke="none"/>
 <ellipse cx="82.0" cy="68.0" rx="23.1" ry="21.1" fill="#2A1A33" stroke="none"/>
 <polygon points="63.0,61.6 71.7,33.4 84.1,56.2" fill="#2A1A33" stroke="none"/>
 <polygon points="79.9,56.2 92.3,33.4 101.0,61.6" fill="#2A1A33" stroke="none"/>
-<ellipse cx="82.0" cy="68.0" rx="20.0" ry="18.0" fill="#FFFDED" stroke="none"/>
-<polygon points="66.0,58.0 72.0,38.0 80.0,54.0" fill="#FFFDED" stroke="none"/>
-<polygon points="84.0,54.0 92.0,38.0 98.0,58.0" fill="#FFFDED" stroke="none"/>
+<ellipse cx="82.0" cy="68.0" rx="20.0" ry="18.0" fill="#F6EEF8" stroke="none"/>
+<polygon points="66.0,58.0 72.0,38.0 80.0,54.0" fill="#F6EEF8" stroke="none"/>
+<polygon points="84.0,54.0 92.0,38.0 98.0,58.0" fill="#F6EEF8" stroke="none"/>
 </g>
 </svg>

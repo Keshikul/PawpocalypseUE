@@ -24,7 +24,13 @@
 #include "UI/PawTokens.h"
 #include "UI/PawWidgets.h"
 #include "UI/PawGarden.h"
+#include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
+#include "Components/BorderSlot.h"
+#include "Components/CanvasPanelSlot.h"
+#include "Components/TextBlock.h"
+#include "UI/PawUiConstants.h"
+#include "UI/PawUiKit.h"
 #include "Components/PanelWidget.h"
 #include "PcBackdrop.h"
 
@@ -309,6 +315,84 @@ bool FPawTitleLookTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("the menu is wired without the disabled rows (New Game, Leaderboard, Settings, Credits, Exit)"), M->GetWired().Num(), 5);
 	M->PressContinue();
 	TestEqual(TEXT("a disabled Continue plays nothing"), W.Plays, 0);
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTitlePlumTest, "Pawpocalypse.UI.Title.Plum", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// Restyle R4c: the title after the canvas board "Main menu (plum)", in what ships (the Widget Blueprint, grafted) and in the
+// code layout it was grafted from: the logo Butter, big and tilted at the top left; the menu on the left, its words on the
+// left at the board's sizes; the hint on its plum plate; Continue the Butter call only while there is something to continue.
+bool FPawTitlePlumTest::RunTest(const FString& Parameters)
+{
+	FTitleWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	auto CanvasSlotOf = [](UWidget* Wd) -> UCanvasPanelSlot*
+	{
+		for (UWidget* At = Wd; At; At = At->GetParent())
+		{
+			if (UCanvasPanelSlot* S = Cast<UCanvasPanelSlot>(At->Slot))
+			{
+				return S;
+			}
+		}
+		return nullptr;
+	};
+	UPawMainMenu* FromCode = nullptr;
+	PawUi::SetCodeLayoutForced(true);
+	FromCode = CreateWidget<UPawMainMenu>(W.GI, UPawMainMenu::StaticClass());
+	PawUi::SetCodeLayoutForced(false);
+	for (UPawMainMenu* M : { W.Menu, FromCode })
+	{
+		if (!TestNotNull(TEXT("a title"), M))
+		{
+			continue;
+		}
+		const FString Where = M == W.Menu ? TEXT("WBP_MainMenu") : TEXT("the code layout");
+		const UTextBlock* Name = Cast<UTextBlock>(M->WidgetTree->FindWidget(TEXT("NameText")));
+		if (TestNotNull(Where + TEXT(": the logo"), Name))
+		{
+			TestTrue(Where + TEXT(": the logo is Butter"), Name->GetColorAndOpacity().GetSpecifiedColor().Equals(PawTokens::UI_SELECTED));
+			TestEqual(Where + TEXT(": the logo's size"), Name->GetFont().Size, PawUi::FontPt(PawUi::R4NamePx));
+			const UWidget* Box = Name->GetParent();
+			TestTrue(Where + TEXT(": the logo tilted"), Box && FMath::IsNearlyEqual(Box->GetRenderTransform().Angle, static_cast<float>(PawUi::R4NameAngle)));
+			const UBorderSlot* InBox = Cast<UBorderSlot>(Name->Slot);
+			TestTrue(Where + TEXT(": the logo starts at its box's left edge (graft slot:NameText)"), InBox && InBox->GetHorizontalAlignment() == HAlign_Left);
+			const UCanvasPanelSlot* S = CanvasSlotOf(const_cast<UTextBlock*>(Name));
+			TestTrue(Where + TEXT(": the logo at the top left"), S && S->GetAnchors().Minimum == FVector2D(0.0, 0.0)
+				&& FMath::IsNearlyEqual(S->GetOffsets().Left, static_cast<float>(PawUi::R4TitleMargin)));
+		}
+		UPawButton* Continue = M->GetMenuButton(0);
+		if (TestNotNull(Where + TEXT(": Continue"), Continue))
+		{
+			const UCanvasPanelSlot* S = CanvasSlotOf(Continue);
+			TestTrue(Where + TEXT(": the menu on the left"), S && S->GetAnchors().Minimum == FVector2D(0.0, 0.5)
+				&& FMath::IsNearlyEqual(S->GetOffsets().Left, static_cast<float>(PawUi::R4TitleMargin)));
+			for (int32 I = 0; I < 7; ++I)
+			{
+				const UPawButton* B = M->GetMenuButton(I);
+				TestTrue(FString::Printf(TEXT("%s: menu button %d's words on the left, at the board's size"), *Where, I), B && B->bAlignLeft
+					&& FMath::IsNearlyEqual(B->LabelPx, static_cast<float>(I == 0 ? PawUi::R4ContinuePx : PawUi::R4MenuButtonPx)));
+			}
+		}
+		const UBorder* Hint = Cast<UBorder>(M->WidgetTree->FindWidget(TEXT("HintPlate")));
+		TestTrue(Where + TEXT(": the hint on the small plum plate"), Hint && Hint->Background.GetResourceObject()
+			== PawUi::Chrome(PawUi::EPawChrome::PlateSmall).GetResourceObject()
+			&& Hint->GetContent() && Hint->GetContent()->GetFName() == TEXT("HintPrompts"));
+	}
+	// A fresh install: Continue cannot open, and is not the call.
+	TestFalse(TEXT("no save: Continue is not the call"), W.Menu->GetMenuButton(0)->HasCallLook());
+	W.Game->Progress().ReawakenCount = 1;
+	W.Save->SaveGame(0);
+	W.Save->Flush();
+	W.Menu->Refresh();
+	TestTrue(TEXT("a save: Continue opens"), W.Menu->GetMenuButton(0)->GetIsEnabled());
+	TestTrue(TEXT("a save: Continue is the Butter call"), W.Menu->GetMenuButton(0)->HasCallLook());
 	W.Close();
 	return true;
 }

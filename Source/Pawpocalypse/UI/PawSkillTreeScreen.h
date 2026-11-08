@@ -90,6 +90,7 @@ public:
 	FText GetCounter() const;
 	FLinearColor GetFrameFill() const;
 	FLinearColor GetFrameEdge() const;
+	float GetFrameRadius() const; // R4f: a skill round, an unlock a rounded square
 	bool IsShining() const { return bShine; }
 
 	FString BranchId;

@@ -289,7 +289,7 @@ the Range's step), `Pawpocalypse.UI.Rainbow.*`, 26 PawCore + 17 realm sabotages 
 `docs/WORKLIST-SLICE6-2026-11-07.md` (6a the Unicorn ceremony, 6b the Reawaken banner, 6c Boba, 6d the tutorial). **6a DONE**:
 `PcTween` + `PcUnicornCeremony` exact against the real unicorn_ceremony.gd (fixture `unicorn`), `UPawUnicornCeremony` over
 the tree, `Pawpocalypse.UI.Unicorn.*`, 19 PawCore + 8 realm sabotages CAUGHT, the tour's `unicorn` shot beside Godot.
-**Next: 6b, the Reawaken banner**; then Boba, the tutorial; then the exit tours.
+**The restyle (D14) runs before 6b-6d** (designer, 2026-11-07; `docs/WORKLIST-RESTYLE-2026-11-07.md`): R0-R3 DONE 2026-11-08 (HANDOFF-LOG (66), (68)). **Next: R4** (screens and layout), then R5-R7; then 6b, the Reawaken banner; Boba; the tutorial; the exit tours.
 
 **Exit criteria progress (2026-11-05)**: the 12 biomes + the title seen beside Godot (`--set biomes`; one stage, no bosses side
 by side yet); pruned audio both ways (`Pawpocalypse.Audio.Bank`); not yet: the colour gate on a package, every audio event
@@ -306,10 +306,10 @@ Godot; every audio event plays once in a tour (logged); pruned audio both direct
 ## Phase 7 - localisation
 
 **Steps**: string tables for every player-facing string (doc 08 §4); the text checker; `tools/port_po.py`; Dashboard import;
-composite fonts with CJK/Thai; pseudo-locale tour; language menu.
+composite fonts with CJK/Thai (DONE early in restyle R2: `F_Paw`, doc 07 §5); pseudo-locale tour; language menu.
 
 **Exit criteria**: 20 cultures complete (or a reviewed exception list of strings new to the port); placeholder sets identical;
-font coverage test green; no overflow in the pseudo-locale tour at 1280x800 and 150% UI scale.
+font coverage test green (`tools/check_font_coverage.py`, everyday since R2); no overflow in the pseudo-locale tour at 1280x800 and 150% UI scale.
 
 ## Phase 8 - hardening and packaging
 

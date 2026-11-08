@@ -196,7 +196,9 @@ bool FPawVictoryEndingTest::RunTest(const FString& Parameters)
 		TestEqual(TEXT("OK"), S(V->GetOkButton()->GetLabel()), FString(TEXT("OK")));
 		// The game theme (F21, designer 2026-11-03): the theme's button, ink text, on the paper WindowPanel.
 		TestTrue(TEXT("OK wears the game theme's button"), V->GetOkButton()->HasThemeLook());
-		TestTrue(TEXT("ink text"), V->GetHeadline()->GetColorAndOpacity().GetSpecifiedColor().Equals(PawTokens::UI_TEXT));
+		// R4g: the headline a Butter title (outlined in ink), as the plum boards draw titles.
+		TestTrue(TEXT("a Butter headline"), V->GetHeadline()->GetColorAndOpacity().GetSpecifiedColor().Equals(PawTokens::UI_SELECTED)
+			&& V->GetHeadline()->GetFont().OutlineSettings.OutlineSize == PawUi::ButterTitleOutline);
 		// The theme's WindowPanel: ui_window.svg's nine-patch (phase 6 slice 5a; Pawpocalypse.UI.Chrome checks every brush).
 		const FSlateBrush& Plate = V->GetPanel()->Background;
 		TestTrue(TEXT("on the window plate"), Plate.DrawAs == ESlateBrushDrawType::Box && Plate.GetResourceObject() != nullptr

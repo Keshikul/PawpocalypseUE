@@ -62,6 +62,17 @@
 | Machine stays remapped after a test | Enhanced Input user settings saved | Reset in tests |
 | White box drawn | Default `FSlateBrush` | No-draw brush |
 | Variable font renders wrong | Slate does not support variable fonts | Static faces |
+| Headless font import asserts `CurrentApplication.IsValid()` | `UFontFace::PostEditChangeProperty` flushes Slate's font cache with no Slate app | Make the face in C++: `NewObject<UFontFace>` + `InitializeFromBulkData` (`UPawFontBuilder`, KB U/09 §5.1) |
+| One language's name drawn in two weights (简体中文) | Its culture's sub-font covers some characters (M PLUS has 体中文, not 简); the rest fall to another face | A culture-less Han sub-font sends every Han character to one face; `check_font_coverage.py` models Slate's choice |
+| A font walker reports a rich text's engine font after the migration | The rich text's `DefaultTextStyle` is Transient, rebuilt from its style set | Walkers skip `CPF_Transient` properties |
+| A graft `swap:` leaves a panel EMPTY in the asset (R4c: the title's hint plate without its prompts) | The copy is the part alone; its children stay in the code layout | `swap:` now refuses a part with children: `remove:Old;add:New` (add copies the subtree) |
+| A graft `add:` fails "the asset already has HorizontalBox_0" | An unnamed inner widget's auto-name collides with one the asset holds | Name every widget a graft will add; a graft is all or nothing (one FAILED op saves nothing) |
+| `paw.UiScale` / a UI-size test changes nothing on screen | `FSlateApplication::SetApplicationScale` does not reach the game viewport | UMG's `UUserInterfaceSettings::ApplicationScale` (on top of the DPI curve); `godot_tour.py --uiscale 1.5` |
+| A code change to a text's colour never shows, and its test passes | The test reads the shipped asset, which saved the colour as a value | `.Widgets.Parity` compares each named text's colour between asset and code; graft `text:Part` |
+| A layout tweak "worked" in the tour but the screen did not change | `build/tour/ue` held old shots the tour never retook (title, pause, settings until R4c) | `godot_tour.py` deletes every shot before retaking it and shoots the menus |
+| A recolour turns frames light, or text dark | One old colour became two (the ink: text Bone, frames ink); a map by value is ambiguous | Migrate by ROLE: `PawUi::IsTextColour`, `PawUi::IsEdgeColour` (R3's shapes), `bake_widgets.py --recolour` (text, surface and edge maps) |
+| `restyle:Border_2` fails ("the code layout has no Border_2") or restyles the wrong plate | An unnamed part's auto-name in code drifted from the one it was baked with (the HUD's dock panel: `Border_0` in code, `Border_2` in the asset) | List both: `--graft "Class=names:x;codenames:x"` (each widget with its parent), then `restyle:CodeName>AssetName` (refused when the class or the parent's class differs) |
+| A plate's shadow cannot be drawn | A rounded-box brush draws inside its geometry only | The nine-patch chrome with the shadow inside the bottom margin, `PawUi::PlatePadding` (KB U/09 §4) |
 | Asset null only in packaged build | Referenced only from C++ defaults/ini/soft refs | Always-cooked root, Asset Manager types |
 | `{Name}` placeholder raw in packaged build | FName arg names change case | `FString` arg names |
 | "Unknown cook failure" | A Blueprint with compile errors | Compile all BPs before packaging |

@@ -1,5 +1,8 @@
 #include "PawWidgetBaker.h"
 
+#include "Engine/Font.h"
+#include "UI/PawFontSpec.h"
+
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetTree.h"
@@ -8,6 +11,7 @@
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Components/SizeBox.h"
+#include "Components/TextBlock.h"
 #include "Components/PanelSlot.h"
 #include "Components/Widget.h"
 #include "Engine/Blueprint.h"
@@ -333,6 +337,13 @@ namespace
 		{
 			return TEXT("kept (the asset has it)");
 		}
+		// The copy takes the part alone: a panel's children would be left behind in the code layout (R4c: the title's hint
+		// plate lost its prompts so). A part with children goes in with add:, after remove: of the old one.
+		if (const UPanelWidget* AsPanel = Cast<UPanelWidget>(Part); AsPanel && AsPanel->GetChildrenCount() > 0)
+		{
+			return TEXT("FAILED: ") + NewName.ToString() + TEXT(" has children: remove:") + OldName.ToString() + TEXT(" then add:")
+				+ NewName.ToString();
+		}
 		UWidget* Old = BP->WidgetTree->FindWidget(OldName);
 		if (!Old)
 		{
@@ -356,19 +367,29 @@ namespace
 namespace
 {
 	// restyle: the part's LOOK copied from the code layout into the asset's part of the same name: a border's brush and
-	// padding (the padding is the stylebox's content margins), an image's brush, a bar's style, a size box's overrides.
+	// padding (the padding is the stylebox's content margins), an image's brush, a bar's style, a size box's overrides, a
+	// text's typeface, outline and shadow (restyle R2: titles and numbers; its words, size and colour stay the asset's).
 	// Nothing else of it (its slot, its children, its visibility) changes.
-	FString RestylePart(UUserWidget* Source, UWidgetBlueprint* BP, const FName Name)
+	// "Code>Asset" names an unnamed part whose auto-name differs between the code layout and the asset (R3: the HUD's dock
+	// panel, Border_0 in code, Border_2 in the asset; see them with names: / codenames:).
+	FString RestylePart(UUserWidget* Source, UWidgetBlueprint* BP, const FString& Arg)
 	{
-		UWidget* Part = Source->WidgetTree->FindWidget(Name);
+		FString CodeName = Arg, AssetName = Arg;
+		Arg.Split(TEXT(">"), &CodeName, &AssetName);
+		UWidget* Part = Source->WidgetTree->FindWidget(FName(*CodeName));
 		if (!Part)
 		{
-			return TEXT("FAILED: the code layout has no ") + Name.ToString();
+			return TEXT("FAILED: the code layout has no ") + CodeName;
 		}
-		UWidget* Mine = BP->WidgetTree->FindWidget(Name);
+		UWidget* Mine = BP->WidgetTree->FindWidget(FName(*AssetName));
 		if (!Mine)
 		{
-			return TEXT("FAILED: the asset has no ") + Name.ToString();
+			return TEXT("FAILED: the asset has no ") + AssetName;
+		}
+		if (Mine->GetClass() != Part->GetClass() || (Mine->GetParent() && Part->GetParent()
+			&& Mine->GetParent()->GetClass() != Part->GetParent()->GetClass()))
+		{
+			return TEXT("FAILED: not the same part (class or parent's class differs)");
 		}
 		Mine->Modify();
 		if (UBorder* From = Cast<UBorder>(Part))
@@ -380,7 +401,10 @@ namespace
 			}
 			To->SetBrush(From->Background);
 			To->SetPadding(From->GetPadding());
-			return TEXT("restyled (brush, padding)");
+			// R4c: where it holds its content (the title's logo, left in its box).
+			To->SetHorizontalAlignment(From->GetHorizontalAlignment());
+			To->SetVerticalAlignment(From->GetVerticalAlignment());
+			return TEXT("restyled (brush, padding, alignment)");
 		}
 		if (UImage* From = Cast<UImage>(Part))
 		{
@@ -413,6 +437,21 @@ namespace
 			if (From->IsWidthOverride()) { To->SetWidthOverride(From->GetWidthOverride()); } else { To->ClearWidthOverride(); }
 			if (From->IsHeightOverride()) { To->SetHeightOverride(From->GetHeightOverride()); } else { To->ClearHeightOverride(); }
 			return TEXT("restyled (size)");
+		}
+		if (UTextBlock* From = Cast<UTextBlock>(Part))
+		{
+			UTextBlock* To = Cast<UTextBlock>(Mine);
+			if (!To)
+			{
+				return TEXT("FAILED: the asset's part is not a text");
+			}
+			FSlateFontInfo Font = To->GetFont();
+			Font.TypefaceFontName = From->GetFont().TypefaceFontName;
+			Font.OutlineSettings = From->GetFont().OutlineSettings;
+			To->SetFont(Font);
+			To->SetShadowOffset(From->GetShadowOffset());
+			To->SetShadowColorAndOpacity(From->GetShadowColorAndOpacity());
+			return TEXT("restyled (typeface, outline, shadow)");
 		}
 		return TEXT("FAILED: no look to copy from a ") + Part->GetClass()->GetName();
 	}
@@ -447,15 +486,122 @@ namespace
 				Copied.Add(It->GetName());
 			}
 		}
+		// A Common button's minimum size (R4c: the title's taller menu buttons): the engine class's, set by SetMinDimensions.
+		for (const TCHAR* Name : { TEXT("MinWidth"), TEXT("MinHeight") })
+		{
+			if (const FProperty* P = FindFProperty<FProperty>(Native, Name))
+			{
+				P->CopyCompleteValue_InContainer(Mine, Part);
+				Copied.Add(Name);
+			}
+		}
 		Mine->SynchronizeProperties();
 		return TEXT("restyled (props: ") + FString::Join(Copied, TEXT(", ")) + TEXT(")");
 	}
 
-	// names: the asset's widgets, "Name(Class)" (to find a part baked without a name of its own).
-	FString AssetNames(UWidgetBlueprint* BP)
+	// slot: a part's place in its parent (restyle R4's layout pass: its slot's padding, alignment, size, a canvas slot's
+	// anchors and offsets) copied from the code layout's part to the asset's part of the same name; "Code>Asset" as restyle:.
+	// Refused when the two slots are not the same kind (the parents differ). Nothing else of the part changes.
+	FString CopySlot(UUserWidget* Source, UWidgetBlueprint* BP, const FString& Arg)
+	{
+		FString CodeName = Arg, AssetName = Arg;
+		Arg.Split(TEXT(">"), &CodeName, &AssetName);
+		UWidget* Part = Source->WidgetTree->FindWidget(FName(*CodeName));
+		UWidget* Mine = BP->WidgetTree->FindWidget(FName(*AssetName));
+		if (!Part || !Mine)
+		{
+			return FString::Printf(TEXT("FAILED: %s has no %s"), !Part ? TEXT("the code layout") : TEXT("the asset"),
+				!Part ? *CodeName : *AssetName);
+		}
+		UPanelSlot* From = Part->Slot;
+		UPanelSlot* To = Mine->Slot;
+		if (!From || !To || From->GetClass() != To->GetClass())
+		{
+			return TEXT("FAILED: not the same kind of slot (the parents differ)");
+		}
+		To->Modify();
+		TArray<FString> Copied;
+		for (TFieldIterator<FProperty> It(From->GetClass()); It; ++It)
+		{
+			// The slot's own settings: never the links to its parent and content (UPanelSlot's), nor UVisual's.
+			if (It->GetOwnerClass() && It->GetOwnerClass()->IsChildOf(UPanelSlot::StaticClass())
+				&& It->GetOwnerClass() != UPanelSlot::StaticClass())
+			{
+				It->CopyCompleteValue_InContainer(To, From);
+				Copied.Add(It->GetName());
+			}
+		}
+		To->SynchronizeProperties();
+		// Its tilt too (R4c: the title's logo and Boba's card): the place a part is drawn at.
+		Mine->Modify();
+		Mine->SetRenderTransform(Part->GetRenderTransform());
+		Mine->SetRenderTransformPivot(Part->GetRenderTransformPivot());
+		return TEXT("restyled (slot: ") + FString::Join(Copied, TEXT(", ")) + TEXT("; render transform)");
+	}
+
+	// text: a text's whole look (R4c): its font (face, typeface, SIZE, outline), colour, shadow and justification, copied
+	// from the code layout's text to the asset's of the same name ("Code>Asset" as restyle:). Its words stay the asset's.
+	FString CopyTextLook(UUserWidget* Source, UWidgetBlueprint* BP, const FString& Arg)
+	{
+		FString CodeName = Arg, AssetName = Arg;
+		Arg.Split(TEXT(">"), &CodeName, &AssetName);
+		UTextBlock* From = Cast<UTextBlock>(Source->WidgetTree->FindWidget(FName(*CodeName)));
+		UTextBlock* To = Cast<UTextBlock>(BP->WidgetTree->FindWidget(FName(*AssetName)));
+		if (!From || !To)
+		{
+			return FString::Printf(TEXT("FAILED: %s has no text %s"), !From ? TEXT("the code layout") : TEXT("the asset"),
+				!From ? *CodeName : *AssetName);
+		}
+		To->Modify();
+		To->SetFont(From->GetFont());
+		To->SetColorAndOpacity(From->GetColorAndOpacity());
+		To->SetShadowOffset(From->GetShadowOffset());
+		To->SetShadowColorAndOpacity(From->GetShadowColorAndOpacity());
+		// Justification has no getter (UTextLayoutWidget's protected property): copied as a property.
+		if (const FProperty* J = FindFProperty<FProperty>(UTextBlock::StaticClass(), TEXT("Justification")))
+		{
+			J->CopyCompleteValue_InContainer(To, From);
+			To->SynchronizeProperties();
+		}
+		return TEXT("restyled (text: font, size, colour, shadow, justification)");
+	}
+
+	// remove: a part of the asset, and everything under it (R4c: to put a part back with add:, which copies its children).
+	FString RemovePart(UWidgetBlueprint* BP, const FName Name)
+	{
+		UWidget* Mine = BP->WidgetTree->FindWidget(Name);
+		if (!Mine)
+		{
+			return TEXT("FAILED: the asset has no ") + Name.ToString();
+		}
+		TArray<UWidget*> Gone;
+		Gone.Add(Mine);
+		if (UPanelWidget* AsPanel = Cast<UPanelWidget>(Mine))
+		{
+			UWidgetTree::GetChildWidgets(AsPanel, Gone);
+		}
+		if (!BP->WidgetTree->RemoveWidget(Mine))
+		{
+			return TEXT("FAILED: could not take ") + Name.ToString() + TEXT(" out");
+		}
+		for (UWidget* W : Gone)
+		{
+			BP->WidgetVariableNameToGuidMap.Remove(W->GetFName());
+			W->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_DoNotDirty);
+		}
+		return FString::Printf(TEXT("removed (%d widgets)"), Gone.Num());
+	}
+
+	// names: the asset's widgets, "Name(Class)<Parent" (to find a part baked without a name of its own); codenames: the code
+	// layout's, the same way (R3: an unnamed part's auto-name in code can differ from the one the asset was baked with).
+	FString WidgetNames(UWidgetTree* Tree)
 	{
 		TArray<FString> Out;
-		BP->WidgetTree->ForEachWidget([&Out](UWidget* W) { Out.Add(FString::Printf(TEXT("%s(%s)"), *W->GetName(), *W->GetClass()->GetName())); });
+		Tree->ForEachWidget([&Out](UWidget* W)
+		{
+			Out.Add(FString::Printf(TEXT("%s(%s)<%s"), *W->GetName(), *W->GetClass()->GetName(),
+				W->GetParent() ? *W->GetParent()->GetName() : TEXT("root")));
+		});
 		return FString::Join(Out, TEXT(" "));
 	}
 }
@@ -491,6 +637,7 @@ FString UPawWidgetBaker::GraftParts(const FString& ClassName, const FString& Ops
 	BP->Modify();
 	TArray<FString> Lines;
 	bool bChanged = false;
+	bool bFailed = false;
 	TArray<FString> List;
 	Ops.ParseIntoArray(List, TEXT(";"));
 	for (const FString& Op : List)
@@ -508,24 +655,47 @@ FString UPawWidgetBaker::GraftParts(const FString& ClassName, const FString& Ops
 		}
 		else if (Kind == TEXT("restyle"))
 		{
-			Result = RestylePart(Source, BP, FName(*Arg));
+			Result = RestylePart(Source, BP, Arg);
 		}
 		else if (Kind == TEXT("props"))
 		{
 			Result = CopyPieceProps(Source, BP, FName(*Arg));
 		}
+		else if (Kind == TEXT("remove"))
+		{
+			Result = RemovePart(BP, FName(*Arg));
+		}
+		else if (Kind == TEXT("text"))
+		{
+			Result = CopyTextLook(Source, BP, Arg);
+		}
+		else if (Kind == TEXT("slot"))
+		{
+			Result = CopySlot(Source, BP, Arg);
+		}
 		else if (Kind == TEXT("names"))
 		{
-			Result = AssetNames(BP);
+			Result = WidgetNames(BP->WidgetTree);
+		}
+		else if (Kind == TEXT("codenames"))
+		{
+			Result = WidgetNames(Source->WidgetTree);
 		}
 		else
 		{
 			Result = TEXT("FAILED: not an op");
 		}
-		bChanged |= Result.StartsWith(TEXT("added")) || Result.StartsWith(TEXT("swapped")) || Result.StartsWith(TEXT("restyled"));
+		bChanged |= Result.StartsWith(TEXT("added")) || Result.StartsWith(TEXT("swapped")) || Result.StartsWith(TEXT("restyled"))
+			|| Result.StartsWith(TEXT("removed"));
 		Lines.Add(FString::Printf(TEXT("%s %s: %s"), *PawUi::AssetNameFor(Native), *Op, *Result));
+		bFailed |= Result.StartsWith(TEXT("FAILED"));
 	}
-	if (bChanged)
+	// All or nothing (R4d: a failed add: after a remove: once saved the asset without the part): a FAILED op saves nothing.
+	if (bFailed && bChanged)
+	{
+		Lines.Add(TEXT("FAILED: nothing saved (an op failed; the asset on disk is as it was)"));
+	}
+	else if (bChanged)
 	{
 		FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(BP);
 		FKismetEditorUtilities::CompileBlueprint(BP);
@@ -537,6 +707,56 @@ FString UPawWidgetBaker::GraftParts(const FString& ClassName, const FString& Ops
 	}
 	PawUi::ResetResolver();
 	return FString::Join(Lines, TEXT("\n"));
+}
+
+namespace
+{
+	// A look migration over every baked asset: the editable tree (what the designer edits and the compile copies) and the
+	// default object; Rewrite returns how many values it changed in one object. Compiles and saves only a changed asset.
+	FString MigrateLook(const TCHAR* Verb, TFunctionRef<int32(UObject*)> Rewrite)
+	{
+		TArray<FString> Lines;
+		for (UClass* Native : PawUi::BakedClasses())
+		{
+			const FString Name = PawUi::AssetNameFor(Native);
+			UBlueprint* BP = LoadObject<UBlueprint>(nullptr, *(PawUi::AssetPathFor(Native) + TEXT(".") + Name));
+			if (!BP)
+			{
+				Lines.Add(Name + TEXT(" FAILED: no asset"));
+				continue;
+			}
+			TArray<UObject*> Objects;
+			if (UWidgetBlueprint* WBP = Cast<UWidgetBlueprint>(BP))
+			{
+				if (WBP->WidgetTree)
+				{
+					WBP->WidgetTree->ForEachWidget([&Objects](UWidget* W) { Objects.Add(W); });
+				}
+			}
+			if (BP->GeneratedClass)
+			{
+				Objects.Add(BP->GeneratedClass->GetDefaultObject());
+			}
+			int32 Written = 0;
+			for (UObject* O : Objects)
+			{
+				O->Modify();
+				Written += Rewrite(O);
+			}
+			if (Written == 0)
+			{
+				Lines.Add(Name + TEXT(" unchanged"));
+				continue;
+			}
+			FBlueprintEditorUtils::MarkBlueprintAsModified(BP);
+			FKismetEditorUtilities::CompileBlueprint(BP);
+			FString Error;
+			Lines.Add(SaveAsset(BP, BP->GetOutermost(), Error) ? FString::Printf(TEXT("%s %d %s"), *Name, Written, Verb)
+				: Name + TEXT(" FAILED: ") + Error);
+		}
+		PawUi::ResetResolver();
+		return FString::Join(Lines, TEXT("\n"));
+	}
 }
 
 FString UPawWidgetBaker::Recolour(const FString& Pairs)
@@ -554,57 +774,106 @@ FString UPawWidgetBaker::Recolour(const FString& Pairs)
 		const FColor From = FColor::FromHex(Old), To = FColor::FromHex(New);
 		Map.Add((From.R << 16) | (From.G << 8) | From.B, To);
 	}
-	TArray<FString> Lines;
-	for (UClass* Native : PawUi::BakedClasses())
+	return MigrateLook(TEXT("recoloured"), [&Map](UObject* O)
 	{
-		const FString Name = PawUi::AssetNameFor(Native);
-		UBlueprint* BP = LoadObject<UBlueprint>(nullptr, *(PawUi::AssetPathFor(Native) + TEXT(".") + Name));
-		if (!BP)
+		return PawUi::ForEachColour(O, [&Map](FColor& C)
 		{
-			Lines.Add(Name + TEXT(" FAILED: no asset"));
-			continue;
-		}
-		// The editable tree (what the designer edits and the compile copies) and the default object.
-		TArray<UObject*> Objects;
-		if (UWidgetBlueprint* WBP = Cast<UWidgetBlueprint>(BP))
-		{
-			if (WBP->WidgetTree)
+			const FColor* To = Map.Find((C.R << 16) | (C.G << 8) | C.B);
+			if (!To)
 			{
-				WBP->WidgetTree->ForEachWidget([&Objects](UWidget* W) { Objects.Add(W); });
+				return false;
+			}
+			C = FColor(To->R, To->G, To->B, C.A);
+			return true;
+		});
+	});
+}
+
+FString UPawWidgetBaker::RecolourByRole(const FString& TextPairs, const FString& SurfacePairs, const FString& EdgePairs, const FString& KeepInk)
+{
+	auto Parse = [](const FString& Pairs, TMap<uint32, FColor>& Map) -> FString
+	{
+		TArray<FString> List;
+		Pairs.ParseIntoArray(List, TEXT(";"));
+		for (const FString& Pair : List)
+		{
+			FString Old, New;
+			if (!Pair.Split(TEXT(">"), &Old, &New) || Old.Len() != 6 || New.Len() != 6)
+			{
+				return TEXT("FAILED: not a pair: ") + Pair;
+			}
+			const FColor From = FColor::FromHex(Old), To = FColor::FromHex(New);
+			Map.Add((From.R << 16) | (From.G << 8) | From.B, To);
+		}
+		return FString();
+	};
+	TMap<uint32, FColor> Text, Surface, Edge;
+	FString Error = Parse(TextPairs, Text);
+	Error += Parse(SurfacePairs, Surface);
+	Error += Parse(EdgePairs, Edge);
+	if (!Error.IsEmpty())
+	{
+		return Error;
+	}
+	TArray<FString> Keep;
+	KeepInk.ParseIntoArray(Keep, TEXT(";"));
+	return MigrateLook(TEXT("recoloured"), [&](UObject* O)
+	{
+		// An asset whose text sits on a light surface (a card's bone body) keeps its ink: its text and its frame.
+		const bool bKeepInk = Keep.ContainsByPredicate([O](const FString& Name) { return O->GetOutermost()->GetName().EndsWith(Name); });
+		return PawUi::ForEachColourRole(O, [&](FColor& C, PawUi::EPawColourRole Role)
+		{
+			if (bKeepInk && Role != PawUi::EPawColourRole::Surface)
+			{
+				return false;
+			}
+			const TMap<uint32, FColor>& Map = Role == PawUi::EPawColourRole::Text ? Text : Role == PawUi::EPawColourRole::Edge ? Edge : Surface;
+			const FColor* To = Map.Find((C.R << 16) | (C.G << 8) | C.B);
+			if (!To)
+			{
+				return false;
+			}
+			C = FColor(To->R, To->G, To->B, C.A);
+			return true;
+		});
+	});
+}
+
+FString UPawWidgetBaker::Refont()
+{
+	UFont* Paw = PawUi::PawFont();
+	if (!Paw)
+	{
+		return FString(TEXT("FAILED: no ")) + PawFontSpec::Font + TEXT(" (run py tools/import_fonts.py --run first)");
+	}
+	return MigrateLook(TEXT("refonted"), [Paw](UObject* O)
+	{
+		return PawUi::ForEachFont(O, [Paw](FSlateFontInfo& F)
+		{
+			if (!PawUi::IsEngineFont(F.FontObject))
+			{
+				return false;
+			}
+			F.FontObject = Paw;
+			return true;
+		});
+	});
+}
+
+FString UPawWidgetBaker::TextFloor()
+{
+	return MigrateLook(TEXT("raised to the text floor"), [](UObject* O)
+	{
+		const int32 Raised = PawUi::UnderTextFloor(O, true).Num();
+		if (Raised > 0)
+		{
+			if (UWidget* W = Cast<UWidget>(O))
+			{
+				W->SynchronizeProperties();
 			}
 		}
-		if (BP->GeneratedClass)
-		{
-			Objects.Add(BP->GeneratedClass->GetDefaultObject());
-		}
-		int32 Written = 0;
-		for (UObject* O : Objects)
-		{
-			O->Modify();
-			Written += PawUi::ForEachColour(O, [&Map](FColor& C)
-			{
-				const FColor* To = Map.Find((C.R << 16) | (C.G << 8) | C.B);
-				if (!To)
-				{
-					return false;
-				}
-				C = FColor(To->R, To->G, To->B, C.A);
-				return true;
-			});
-		}
-		if (Written == 0)
-		{
-			Lines.Add(Name + TEXT(" unchanged"));
-			continue;
-		}
-		FBlueprintEditorUtils::MarkBlueprintAsModified(BP);
-		FKismetEditorUtilities::CompileBlueprint(BP);
-		FString Error;
-		Lines.Add(SaveAsset(BP, BP->GetOutermost(), Error) ? FString::Printf(TEXT("%s %d recoloured"), *Name, Written)
-			: Name + TEXT(" FAILED: ") + Error);
-	}
-	PawUi::ResetResolver();
-	return FString::Join(Lines, TEXT("\n"));
+		return Raised;
+	});
 }
 
 FString UPawWidgetBaker::BakeWidgets()

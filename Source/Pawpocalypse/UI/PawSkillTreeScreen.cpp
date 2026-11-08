@@ -218,7 +218,7 @@ UPawTreeNodeStyle::UPawTreeNodeStyle()
 {
 	// The frame is the node's own border; the button draws only the selection ring (focus = selection, docs/05 §2 rule 10).
 	NormalBase = NoBrush();
-	NormalHovered = Rounded(FLinearColor::Transparent, PawTokens::UI_FOCUS, 3.0f, 6.0f);
+	NormalHovered = Rounded(FLinearColor::Transparent, PawTokens::UI_FOCUS, FocusRingWidth, 6.0f);
 	NormalPressed = NormalHovered;
 	SelectedBase = NormalBase;
 	SelectedHovered = NormalHovered;
@@ -257,7 +257,7 @@ bool UPawTreeNode::Initialize()
 		IS->SetHorizontalAlignment(HAlign_Center);
 		IS->SetVerticalAlignment(VAlign_Center);
 		// Ladders carry "3/10" in the bottom right; unlocks carry nothing.
-		CounterText = MakeText(WidgetTree, CounterPx, FLinearColor::White, false, TEXT("CounterText"));
+		CounterText = Heavy(MakeText(WidgetTree, CounterPx, FLinearColor::White, false, TEXT("CounterText")));
 		UOverlaySlot* CS = Root->AddChildToOverlay(CounterText);
 		CS->SetHorizontalAlignment(HAlign_Right);
 		CS->SetVerticalAlignment(VAlign_Bottom);
@@ -326,8 +326,9 @@ void UPawTreeNode::SetLook(PcTreeNodeState InState, const FLinearColor& Trunk, b
 	State = InState;
 	FLinearColor Fill, Edge;
 	FrameColours(InState, Trunk, Fill, Edge);
-	// Unlocks keep their heavier border and rounder corners in every state.
-	Frame->SetBrush(Rounded(Fill, Edge, bUnlock ? 5.0f : 3.0f, bUnlock ? 14.0f : 4.0f));
+	// Unlocks keep their heavier border, a rounded square (the board's jobs); a skill is ROUND (restyle R4f, the board
+	// "Skill tree (plum)"; Godot drew both as squares, the unlocks rounder).
+	Frame->SetBrush(Rounded(Fill, Edge, bUnlock ? 5.0f : 3.0f, bUnlock ? 14.0f : static_cast<float>(NodePx * 0.5)));
 	CounterText->SetText(Counter);
 	const double CounterAlpha = InState == PcTreeNodeState::Owned ? 0.95 : InState == PcTreeNodeState::Ready ? 0.72 : 0.45;
 	SetTextColour(CounterText, WithAlpha(FLinearColor::White, CounterAlpha));
@@ -354,6 +355,7 @@ void UPawTreeNode::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 FText UPawTreeNode::GetCounter() const { return CounterText ? CounterText->GetText() : FText::GetEmpty(); }
 FLinearColor UPawTreeNode::GetFrameFill() const { return Frame ? Frame->Background.TintColor.GetSpecifiedColor() : FLinearColor::Transparent; }
 FLinearColor UPawTreeNode::GetFrameEdge() const { return Frame ? Frame->Background.OutlineSettings.Color.GetSpecifiedColor() : FLinearColor::Transparent; }
+float UPawTreeNode::GetFrameRadius() const { return Frame ? static_cast<float>(Frame->Background.OutlineSettings.CornerRadii.X) : 0.0f; }
 
 // --- the screen -----------------------------------------------------------------------------------------------------------
 
@@ -454,9 +456,14 @@ void UPawSkillTreeScreen::OnLayoutReady()
 void UPawSkillTreeScreen::BuildChrome(UOverlay* Root)
 {
 	UWidgetTree* T = WidgetTree;
-	// The balance on the sky, not on a panel: paper, not ink.
-	StardustText = MakeText(T, LabelPx, PawTokens::SKY_STAR, false, TEXT("StardustText"));
-	UOverlaySlot* SS = Root->AddChildToOverlay(StardustText);
+	// The balance: R4f on a plum pill (the board's Stardust pill; Godot's stood on the sky).
+	UBorder* StardustPill = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("StardustPill"));
+	StardustPill->SetBrush(Chrome(EPawChrome::PlateSmall));
+	StardustPill->SetPadding(PlatePadding(FMargin(static_cast<float>(R4PillPadX), static_cast<float>(R4PillPadY)), EPawChrome::PlateSmall));
+	StardustPill->SetVisibility(ESlateVisibility::HitTestInvisible);
+	StardustText = Heavy(MakeText(T, LabelPx, PawTokens::SKY_STAR, false, TEXT("StardustText")));
+	StardustPill->SetContent(StardustText);
+	UOverlaySlot* SS = Root->AddChildToOverlay(StardustPill);
 	SS->SetHorizontalAlignment(HAlign_Right);
 	SS->SetVerticalAlignment(VAlign_Top);
 	SS->SetPadding(FMargin(0.0f, 20.0f, 20.0f, 0.0f));
@@ -480,17 +487,23 @@ void UPawSkillTreeScreen::BuildChrome(UOverlay* Root)
 	LegendPrompts->IconPx = static_cast<int32>(TreePromptPx);
 	LegendPrompts->TextPx = static_cast<float>(LabelPx);
 	LegendPrompts->TextColour = PawTokens::SKY_STAR;
-	UOverlaySlot* LS = Root->AddChildToOverlay(LegendPrompts);
+	// R4f: on a plum pill (the board's legend bar).
+	UBorder* LegendPlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("LegendPlate"));
+	LegendPlate->SetBrush(Chrome(EPawChrome::PlateSmall));
+	LegendPlate->SetPadding(PlatePadding(FMargin(static_cast<float>(R4HintPadX), static_cast<float>(R4HintPadY)), EPawChrome::PlateSmall));
+	LegendPlate->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	LegendPlate->SetContent(LegendPrompts);
+	UOverlaySlot* LS = Root->AddChildToOverlay(LegendPlate);
 	LS->SetHorizontalAlignment(HAlign_Center);
 	LS->SetVerticalAlignment(VAlign_Bottom);
 	LS->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 12.0f));
 
 	// The unspent warning, in the middle (playtest 2026-10-01 #32: the caption change at the bottom went unseen on a pad).
 	WarningPlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("WarningPlate"));
-	WarningPlate->SetBrush(Rounded(PawTokens::UI_PANEL, PawTokens::INK, 3.0f, 8.0f));
-	WarningPlate->SetPadding(FMargin(18.0f));
+	WarningPlate->SetBrush(Chrome(EPawChrome::Window)); // R3: the plum plate
+	WarningPlate->SetPadding(PlatePadding(FMargin(18.0f), EPawChrome::Window));
 	WarningPlate->SetVisibility(ESlateVisibility::Collapsed);
-	WarningText = MakeText(T, WarnPx, PawTokens::INK, false, TEXT("WarningText"));
+	WarningText = MakeText(T, WarnPx, PawTokens::UI_TEXT, false, TEXT("WarningText"));
 	WarningText->SetJustification(ETextJustify::Center);
 	WarningPlate->SetContent(WarningText);
 	UOverlaySlot* WS = Root->AddChildToOverlay(WarningPlate);
@@ -508,12 +521,12 @@ void UPawSkillTreeScreen::BuildChrome(UOverlay* Root)
 	TL->SetHorizontalAlignment(HAlign_Fill);
 	TL->SetVerticalAlignment(VAlign_Fill);
 	TipPanel = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("TipPanel"));
-	TipPanel->SetBrush(Rounded(PawTokens::UI_PANEL, PawTokens::INK, 3.0f, 8.0f));
-	TipPanel->SetPadding(FMargin(16.0f, 12.0f));
+	TipPanel->SetBrush(Chrome(EPawChrome::Window)); // R3: the plum plate
+	TipPanel->SetPadding(PlatePadding(FMargin(16.0f, 12.0f), EPawChrome::Window));
 	TipPanel->SetVisibility(ESlateVisibility::Collapsed);
 	UVerticalBox* TipBox = T->ConstructWidget<UVerticalBox>();
 	TipPanel->SetContent(TipBox);
-	TipTitle = MakeText(T, TipTitlePx, PawTokens::INK, false, TEXT("TipTitle"));
+	TipTitle = Heavy(MakeText(T, TipTitlePx, PawTokens::UI_TEXT, false, TEXT("TipTitle")));
 	TipBox->AddChildToVerticalBox(TipTitle)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
 	for (int32 I = 0; I < 7; ++I)
 	{
@@ -522,7 +535,7 @@ void UPawSkillTreeScreen::BuildChrome(UOverlay* Root)
 		UPawPromptText* Line = T->ConstructWidget<UPawPromptText>(PawUi::Resolve<UPawPromptText>(), PawUi::Numbered(TEXT("TipPrompt"), I));
 		Line->IconPx = static_cast<int32>(TreePromptPx);
 		Line->TextPx = static_cast<float>(LabelPx);
-		Line->TextColour = PawTokens::INK;
+		Line->TextColour = PawTokens::UI_TEXT;
 		Line->bCentred = false;
 		Line->bHideWithPrompts = false;
 		Line->WrapAt = static_cast<float>(TipWidth - 32.0);
@@ -885,7 +898,7 @@ void UPawSkillTreeScreen::ShowTip(const FString& Id, bool bDocked)
 	if (Tip.bMaxed)
 	{
 		Lines.Add({ PawText::Ui(TEXT("TREE_fully")), PawTree::TipFully });
-		Lines.Add({ Effect(Tip.Owned), PawTokens::INK });
+		Lines.Add({ Effect(Tip.Owned), PawTokens::UI_TEXT });
 	}
 	else
 	{
@@ -893,14 +906,14 @@ void UPawSkillTreeScreen::ShowTip(const FString& Id, bool bDocked)
 		{
 			FFormatNamedArguments A;
 			A.Add(TEXT("effect"), Effect(Tip.Owned));
-			Lines.Add({ PawText::Ui(TEXT("TREE_now"), A), PawTokens::INK });
+			Lines.Add({ PawText::Ui(TEXT("TREE_now"), A), PawTokens::UI_TEXT });
 		}
 		FFormatNamedArguments A;
 		A.Add(TEXT("effect"), Effect(Tip.Next));
 		Lines.Add({ PawText::Ui(TEXT("TREE_next"), A), PawTree::TipNext });
 		FFormatNamedArguments C;
 		C.Add(TEXT("n"), PawText::Count(Tip.Cost));
-		Lines.Add({ PawText::Ui(TEXT("TREE_cost"), C), PawTokens::INK });
+		Lines.Add({ PawText::Ui(TEXT("TREE_cost"), C), PawTokens::UI_TEXT });
 		FFormatNamedArguments R;
 		switch (Tip.Reason)
 		{
@@ -929,7 +942,7 @@ void UPawSkillTreeScreen::ShowTip(const FString& Id, bool bDocked)
 	}
 	if (Tip.bBuyPrompt)
 	{
-		Lines.Add({ PawText::Ui(TEXT("TREE_buy")), PawTokens::INK });
+		Lines.Add({ PawText::Ui(TEXT("TREE_buy")), PawTokens::UI_TEXT });
 	}
 	for (int32 I = 0; I < TipLines.Num(); ++I)
 	{

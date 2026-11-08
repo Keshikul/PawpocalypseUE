@@ -21,6 +21,15 @@ THE 9-PATCH RULES, which are not style choices and will break the game if broken
   * THE MIDDLE MUST BE FLAT. It is the part that repeats. Anything textured
     there tiles visibly across a wide button.
 
+PORT (Unreal, restyle R3's shapes, 2026-11-08): the plates are the plum spec's
+(docs/WORKLIST-RESTYLE-2026-11-07.md §4): a Deep Plum edge, one solid Deep Plum
+shadow straight down (panels 8 px, buttons 4), and a pressed button SINKS by its
+shadow. So the pressed state's silhouette is the others' moved down by the
+shadow (checked below), not the same box: the plate moving is the point. The
+shadow lives inside the nine-patch's bottom margin, so the margins (and
+PawUi::ChromeTable, which holds them) are read off these drawings now, not off
+Godot's files; every corner and the shadow's stay inside the cut.
+
 Sizes are READ OFF THE FILES BEING REPLACED, never chosen here - the theme's
 margins were authored against them.
 
@@ -70,7 +79,11 @@ CREAM = PAL.UI["button"]
 CREAM_HOVER = PAL.UI["button_hover"]
 CREAM_PRESS = PAL.UI["button_pressed"]
 CREAM_OFF = PAL.UI["button_disabled"]
+SELECTED = PAL.UI["selected"]          # R4a: the held toggle (the open tab), Butter, sunk like the pressed plate
 SLOT = PAL.UI["slot"]
+# The light that icons are drawn in ON A PANEL. It was CREAM (the button colour) while the buttons were cream; since the
+# plum flip the buttons are Plum Raised, and a gear or a door in that vanished on the plum panel (seen 2026-11-08).
+LIGHT = PAL.UI["text"]
 GOLD = PAL.GOLD
 GOLD_DARK = S.shade(PAL.GOLD, 0.32)
 TEAL = PAL.MATERIALS["aura"]
@@ -79,28 +92,51 @@ LEAF = PAL.MATERIALS["leaf_dark"]
 PLUM = PAL.header("blue")
 
 
-def panel_box(w, h, r, fill, edge=None):
-    """A rounded plate. THE ONE SHAPE 9-PATCH CHROME IS ALLOWED TO BE."""
-    parts = S.fuse([S.rect(w / 2.0, h / 2.0, w - 6, h - 6, fill, r=r)])
-    if edge is not None:
-        parts.append(S.rect(w / 2.0, 7.0, w - 22, 4, edge, r=2, s=False))
+EDGE = PAL.UI["panel_frame"]          # Deep Plum since R3's shapes
+BUTTON_EDGE = PAL.UI["button_frame"]
+SHADOW = PAL.UI["shadow"]
+EDGE_W = 3.0                            # one ink weight: the grammar's stroke, rounded
+GAP = 1.0                               # transparent all round, so the filtered edge never touches the cut
+
+
+def plate(w, h, r, fill, shadow, edge=EDGE, sink=False):
+    """A rounded plate with a Deep Plum edge and ONE solid shadow straight down. THE ONE SHAPE 9-PATCH CHROME IS ALLOWED
+    TO BE. `sink`: the pressed state, the plate moved down onto its shadow (the same footprint's bottom)."""
+    top = GAP + (shadow if sink else 0.0)
+    bottom = h - GAP - (0.0 if sink else shadow)
+    cx, cy, pw, ph = w / 2.0, (top + bottom) / 2.0, w - 2 * GAP, bottom - top
+    parts = []
+    if shadow and not sink:
+        parts.append(S.rect(cx, cy + shadow, pw, ph, SHADOW, r=r, s=False))
+    parts.append(S.rect(cx, cy, pw, ph, edge, r=r, s=False))
+    parts.append(S.rect(cx, cy, pw - 2 * EDGE_W, ph - 2 * EDGE_W, fill, r=max(r - EDGE_W, 0.0), s=False))
     return parts
+
+
+BUTTON_SHADOW = 4.0
+PANEL_SHADOW = 8.0
 
 
 # --------------------------------------------------------------- the chrome --
 
 def CHROME():
     c = {}
-    # Buttons: 256x64, theme margin 16, so radius 12 stays inside the cut.
+    # Buttons: 256x64, margins 16. Radius 9 + the 4 px shadow + the gap stay inside the bottom cut (64 - 16 = 48: the
+    # plate's corner starts at 59 - 9 = 50); the shortest button (34 px) still fits 16 + 16.
     for name, fill in (("normal", CREAM), ("hover", CREAM_HOVER),
                        ("pressed", CREAM_PRESS), ("disabled", CREAM_OFF)):
-        c["ui_button_%s" % name] = ((256, 64), (lambda f: (lambda: S.fuse(
-            [S.rect(128, 32, 246, 54, f, r=12)])))(fill))
+        c["ui_button_%s" % name] = ((256, 64), (lambda f, sink: (lambda: plate(
+            256, 64, 9, f, BUTTON_SHADOW, BUTTON_EDGE, sink)))(fill, name == "pressed"))
+    # R4a: the selected toggle (the open tab): the pressed plate's shape in Butter.
+    c["ui_button_selected"] = ((256, 64), lambda: plate(256, 64, 9, SELECTED, BUTTON_SHADOW, BUTTON_EDGE, True))
 
-    # Panel and window: margin 20, radius 16.
-    c["ui_panel"] = ((128, 128), lambda: panel_box(128, 128, 16, PANEL, PANEL_EDGE))
-    c["ui_window"] = ((256, 256), lambda: panel_box(256, 256, 16, PANEL, PANEL_EDGE))
-    c["ui_dock"] = ((128, 128), lambda: panel_box(128, 128, 16, S.shade(PAL.INK, 0.05)))
+    # Panel: margins 16 / 16 / 16 / 24 (the shortest wearer, a 42 px popup list, still fits), radius 12, the 8 px shadow.
+    # Window: margins 24 / 24 / 24 / 32, radius 16. The small plate (the toast, the zone plate): margins 12 / 12 / 12 / 16,
+    # radius 8, a 4 px shadow.
+    c["ui_panel"] = ((128, 128), lambda: plate(128, 128, 12, PANEL, PANEL_SHADOW))
+    c["ui_window"] = ((256, 256), lambda: plate(256, 256, 16, PANEL, PANEL_SHADOW))
+    c["ui_plate_small"] = ((64, 48), lambda: plate(64, 48, 8, PANEL, BUTTON_SHADOW))
+    c["ui_dock"] = ((128, 128), lambda: plate(128, 128, 12, PANEL, PANEL_SHADOW))
     c["ui_slot"] = ((96, 96), lambda: S.fuse([S.rect(48, 48, 88, 88, SLOT, r=12)]))
     c["ui_card_frame"] = ((160, 192), lambda: (
         S.fuse([S.rect(80, 96, 150, 182, CREAM, r=14)])
@@ -181,7 +217,7 @@ def _trophy(colour=GOLD):
             + [S.ell(64, 50, 16, 14, S.shade(colour, 0.3), s=False)])
 
 
-def _gear(colour=CREAM):
+def _gear(colour=LIGHT):
     out = [S.ell(64, 64, 34, 34, colour)]
     for i in range(8):
         a = i * (6.283 / 8)
@@ -197,7 +233,7 @@ def _floppy(colour=TEAL):
                S.rect(76, 38, 12, 18, PANEL, r=2, s=False)])
 
 
-def _door(colour=CREAM):
+def _door(colour=LIGHT):
     return (S.fuse([S.rect(64, 66, 72, 100, colour, r=8)])
             + [S.rect(64, 66, 52, 78, S.shade(colour, 0.14), r=5),
                S.ell(88, 70, 6, 6, GOLD_DARK)])
@@ -216,7 +252,7 @@ def _flag(colour=CLAW):
             + [S.ell(34, 114, 20, 8, S.shade("#B5793F", 0.2), s=False)])
 
 
-def _cards(colour=CREAM):
+def _cards(colour=LIGHT):
     out = []
     for dx, dy in ((-24, 8), (0, 0), (24, 8)):
         out += S.fuse([S.rect(64 + dx, 68 + dy, 44, 62, colour, r=6)])
@@ -237,7 +273,7 @@ def _whisker_face():
             parts.append(S.curve(64 + side * 12, 72 + dy * 0.3,
                                  64 + side * 34, 64 + dy,
                                  64 + side * 54, 58 + dy * 1.5,
-                                 w=5.0, colour=CREAM))
+                                 w=5.0, colour=LIGHT))
     return parts
 
 
@@ -256,8 +292,8 @@ def ICONS():
     i["ui_quick_save"] = lambda: _floppy()
     i["ui_quick_quit"] = lambda: _door()
     # Small marks.
-    i["ui_close"] = lambda: [S.line([(36, 36), (92, 92)], CREAM, 13.0),
-                             S.line([(92, 36), (36, 92)], CREAM, 13.0)]
+    i["ui_close"] = lambda: [S.line([(36, 36), (92, 92)], LIGHT, 13.0),
+                             S.line([(92, 36), (36, 92)], LIGHT, 13.0)]
     i["ui_tick"] = lambda: [S.line([(30, 68), (54, 92)], LEAF, 14.0),
                             S.line([(54, 92), (98, 36)], LEAF, 14.0)]
     i["ui_lock"] = lambda: _padlock_parts(64, 68, 34, CREAM_OFF)
@@ -404,7 +440,7 @@ FAMILIES = {
     "catnip": (lambda c: _leaf(c), GOLD),
     "reawaken": (lambda c: _ring(64, 64, 26, c, 12, 9) + _burst(64, 64, 15, c, 6), TEAL),
     "stage": (_crown, PLUM),
-    "boss": (_skull, CREAM),
+    "boss": (_skull, LIGHT),
     "br_ferocity": (lambda c: _claws(c), CLAW),
     "br_instinct": (_eye_mark, TEAL),
     "br_mystique": (lambda c: S.fuse([S.tri([(38, 92), (64, 32), (90, 92)], c)]), PLUM),
@@ -417,9 +453,9 @@ FAMILIES = {
                        + _arrow(64, 30, 30, c)
                        + _arrow(64, 116, 30, c), TEAL),
     "up_currency_find": (_coin, GOLD),
-    "up_kitten_count": (_kittens, CREAM),
-    "up_kitten_power": (lambda c: _kittens(c) + _burst(96, 34, 14, GOLD, 5), CREAM),
-    "up_kitten_speed": (lambda c: _kittens(c) + _arrow(100, 40, 34, TEAL), CREAM),
+    "up_kitten_count": (_kittens, LIGHT),
+    "up_kitten_power": (lambda c: _kittens(c) + _burst(96, 34, 14, GOLD, 5), LIGHT),
+    "up_kitten_speed": (lambda c: _kittens(c) + _arrow(100, 40, 34, TEAL), LIGHT),
     "up_overkill": (lambda c: _burst(64, 64, 36, c, 9), CLAW),
     "up_pounce_power": (lambda c: _paw(64, 80, 24, c) + _arrow(64, 34, 34, GOLD), CLAW),
     "up_shield_pierce": (_shield, TEAL),
@@ -520,13 +556,21 @@ def main():
     pieces = all_pieces()
     input_folders = {name: folder for name, (folder, _fn) in SI.INPUT().items()}
 
-    # THE SILHOUETTE RULE, checked here rather than discovered in the gate.
-    states = [S.to_image_wh(pieces["ui_button_%s" % n][1](), 256, 64).getbbox()
-              for n in ("normal", "hover", "pressed", "disabled")]
-    if len(set(states)) != 1:
-        print("BUTTON STATES DIFFER: %s" % states)
+    # THE SILHOUETTE RULE, checked here rather than discovered in the gate. Since R3's shapes the pressed plate sinks by
+    # its shadow: its box is the others' with the top moved down by the shadow, nothing else.
+    # At half alpha: the resampling leaves a faint halo to the canvas's edge.
+    states = {n: S.to_image_wh(pieces["ui_button_%s" % n][1](), 256, 64).getchannel("A")
+              .point(lambda a: 255 if a >= 128 else 0).getbbox()
+              for n in ("normal", "hover", "pressed", "disabled")}
+    rest = {states[n] for n in ("normal", "hover", "disabled")}
+    x0, y0, x1, y1 = states["normal"]
+    sunk = (x0, y0 + int(BUTTON_SHADOW), x1, y1)
+    selected = S.to_image_wh(pieces["ui_button_selected"][1](), 256, 64).getchannel("A") \
+        .point(lambda a: 255 if a >= 128 else 0).getbbox()
+    if len(rest) != 1 or states["pressed"] != sunk or selected != sunk:
+        print("BUTTON STATES DIFFER: %s, selected %s (pressed and selected should be %s)" % (states, selected, sunk))
         return 1
-    print("four button states share one silhouette: %s" % (states[0],))
+    print("three button states share one silhouette %s; pressed sinks by its shadow: %s" % (states["normal"], sunk))
 
     if args.write:
         OUT.mkdir(parents=True, exist_ok=True)

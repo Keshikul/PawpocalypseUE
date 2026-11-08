@@ -138,7 +138,7 @@ bool UPawCardFace::Initialize()
 		Band->SetContent(BandBox);
 		FlavourText = CardText(T, CardFlavourPx, PawTokens::INK, BandWrap, TEXT("FlavourText"));
 		BandBox->AddChildToVerticalBox(FlavourText);
-		NameText = CardText(T, CardNamePx, PawTokens::INK, BandWrap, TEXT("NameText"));
+		NameText = Heavy(CardText(T, CardNamePx, PawTokens::INK, BandWrap, TEXT("NameText")));
 		BandBox->AddChildToVerticalBox(NameText)->SetPadding(FMargin(0.0f, 2.0f, 0.0f, 0.0f));
 		UBorder* Rule = T->ConstructWidget<UBorder>();
 		Rule->SetBrush(Rounded(PawTokens::INK, PawTokens::INK, 0.0f, 0.0f));
@@ -301,12 +301,15 @@ bool UPawCardPickScreen::Initialize()
 		const FMargin Gap(0.0f, 0.0f, 0.0f, static_cast<float>(PickColumnGap));
 
 		// Paper text: the title sits on the dim, not on a card.
-		Title = MakeText(T, PickTitlePx, PawTokens::UI_PANEL, false, TEXT("Title"));
+		// R4g: the board "Level up": a Butter title, outlined, its shadow, tilted a little.
+		Title = ButterTitle(MakeText(T, PickTitlePx, PawTokens::UI_TEXT, false, TEXT("Title")), 4);
 		Title->SetJustification(ETextJustify::Center);
+		Title->SetRenderTransformPivot(FVector2D(0.5, 0.5));
+		Title->SetRenderTransformAngle(-2.0f);
 		UVerticalBoxSlot* TitleSlot = Column->AddChildToVerticalBox(Title);
 		TitleSlot->SetHorizontalAlignment(HAlign_Center);
 		TitleSlot->SetPadding(Gap);
-		Subtitle = MakeText(T, PickSubtitlePx, PawTokens::DISABLED, false, TEXT("Subtitle"));
+		Subtitle = MakeText(T, PickSubtitlePx, PawTokens::UI_TEXT_MUTED, false, TEXT("Subtitle")); // R4g: lilac (was Stacklands DISABLED)
 		Subtitle->SetJustification(ETextJustify::Center);
 		Subtitle->SetAutoWrapText(false);
 		Subtitle->SetWrapTextAt(SubtitleWrap);

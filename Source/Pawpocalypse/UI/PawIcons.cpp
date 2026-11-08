@@ -6,6 +6,8 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Engine/Texture2D.h"
+#include "UI/PawTokens.h"
+#include "UI/PawUiConstants.h"
 #include "UI/PawUiKit.h"
 #include "UI/PawWidgets.h"
 #include "Misc/Paths.h"
@@ -112,12 +114,17 @@ void UPawIconText::Apply()
 	if (Text)
 	{
 		FSlateFontInfo Font = Text->GetFont();
-		if (Font.Size != PawUi::FontPt(TextPx))
+		// Over the live field: the light fill and the ink outline (PawUi::MakeText bOverField). Until R3 the flag was never
+		// applied; ink text on the lawn read anyway, bone text does not.
+		const int32 Outline = bOverField ? static_cast<int32>(PawUi::OverFieldOutline) : 0;
+		if (Font.Size != PawUi::FontPt(TextPx) || Font.OutlineSettings.OutlineSize != Outline)
 		{
 			Font.Size = PawUi::FontPt(TextPx);
+			Font.OutlineSettings.OutlineSize = Outline;
+			Font.OutlineSettings.OutlineColor = PawTokens::INK;
 			Text->SetFont(Font);
 		}
-		PawUi::SetTextColour(Text, TextColour);
+		PawUi::SetTextColour(Text, bOverField ? PawTokens::UI_FIELD_LABEL : TextColour);
 		if (WrapAt > 0.0f)
 		{
 			Text->SetAutoWrapText(false);

@@ -9,16 +9,16 @@
 <ellipse cx="77.9" cy="40.5" rx="8.5" ry="8.5" fill="#2A1A33" stroke="none"/>
 <ellipse cx="82.2" cy="46.9" rx="8.5" ry="8.5" fill="#2A1A33" stroke="none"/>
 <ellipse cx="83.7" cy="54.4" rx="8.5" ry="8.5" fill="#2A1A33" stroke="none"/>
-<ellipse cx="44.3" cy="54.4" rx="5.4" ry="5.4" fill="#EBE5CF" stroke="none"/>
-<ellipse cx="45.8" cy="46.9" rx="5.4" ry="5.4" fill="#EBE5CF" stroke="none"/>
-<ellipse cx="50.1" cy="40.5" rx="5.4" ry="5.4" fill="#EBE5CF" stroke="none"/>
-<ellipse cx="56.5" cy="36.2" rx="5.4" ry="5.4" fill="#EBE5CF" stroke="none"/>
-<ellipse cx="64.0" cy="34.7" rx="5.4" ry="5.4" fill="#EBE5CF" stroke="none"/>
-<ellipse cx="71.5" cy="36.2" rx="5.4" ry="5.4" fill="#EBE5CF" stroke="none"/>
-<ellipse cx="77.9" cy="40.5" rx="5.4" ry="5.4" fill="#EBE5CF" stroke="none"/>
-<ellipse cx="82.2" cy="46.9" rx="5.4" ry="5.4" fill="#EBE5CF" stroke="none"/>
-<ellipse cx="83.7" cy="54.4" rx="5.4" ry="5.4" fill="#EBE5CF" stroke="none"/>
+<ellipse cx="44.3" cy="54.4" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
+<ellipse cx="45.8" cy="46.9" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
+<ellipse cx="50.1" cy="40.5" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
+<ellipse cx="56.5" cy="36.2" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
+<ellipse cx="64.0" cy="34.7" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
+<ellipse cx="71.5" cy="36.2" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
+<ellipse cx="77.9" cy="40.5" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
+<ellipse cx="82.2" cy="46.9" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
+<ellipse cx="83.7" cy="54.4" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
 <rect x="35.4" y="54.7" width="57.2" height="47.0" rx="7.1" fill="#2A1A33" stroke="none"/>
-<rect x="38.5" y="57.8" width="51.0" height="40.8" rx="4.0" fill="#EBE5CF" stroke="none"/>
+<rect x="38.5" y="57.8" width="51.0" height="40.8" rx="4.0" fill="#34223E" stroke="none"/>
 </g>
 </svg>

@@ -43,6 +43,7 @@
 #include "Realm/PawRealmSim.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "UI/PawButton.h"
+#include "UI/PawUiConstants.h"
 #include "UI/PawHudScreen.h"
 #include "UI/PawReawakenCeremony.h"
 #include "UI/PawPounceClock.h"
@@ -218,6 +219,11 @@ bool FPawHudReadoutsTest::RunTest(const FString& Parameters)
 	const int32 Exec = W.RowOf("execute");
 	TestTrue(TEXT("unaffordable: locked"), Pc::UpgradeCostById(W.D(), P, "execute") > P.Catnip && W.Hud->GetRowButton(Exec)->IsLocked());
 	TestTrue(TEXT("a locked row is still focusable (Slate-enabled)"), W.Hud->GetRowButton(Exec)->GetIsEnabled());
+	// R4e: the board's rows: the words on the left, a little bigger, taller.
+	TestTrue(TEXT("a shop row: words left, 18 px"), W.Hud->GetRowButton(Paw)->bAlignLeft
+		&& FMath::IsNearlyEqual(W.Hud->GetRowButton(Paw)->LabelPx, static_cast<float>(PawUi::R4RowPx)));
+	// R4d: the wave line's plate is what shows and hides with it.
+	TestTrue(TEXT("the wave line sits on its plum plate"), W.Hud->WaveShown() && W.Hud->WaveShown()->GetFName() == TEXT("WavePlate"));
 	const int32 Power = W.RowOf("kitten_power");
 	TestTrue(TEXT("Kitten Power waits for a kitten"), S(W.Hud->GetRowButton(Power)->GetLabel()).StartsWith(TEXT("Kitten Power — buy a Kitten first")));
 	TestTrue(TEXT("and is locked"), W.Hud->GetRowButton(Power)->IsLocked());

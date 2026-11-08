@@ -4,6 +4,11 @@
 
 #include "Blueprint/WidgetBlueprintGeneratedClass.h"
 #include "Engine/Blueprint.h"
+#include "Components/TextWidgetTypes.h"
+#include "Engine/Font.h"
+#include "Styling/SlateTypes.h"
+#include "UI/PawFontSpec.h"
+#include "UI/PawUiKit.h"
 #include "Core/PawLog.h"
 #include "HAL/IConsoleManager.h"
 #include "Misc/PackageName.h"
@@ -154,9 +159,51 @@ namespace PawUi
 
 	namespace
 	{
-		int32 ColoursIn(const UStruct* Type, void* Data, TFunctionRef<bool(FColor&)> Visit);
+		// A struct value the walk met: >= 0 = handled (that many written), -1 = not a leaf, walk into it. Role: what the value
+		// colours (a text's colour, a brush's outline, else a surface; the outermost text wins).
+		using FLeaf = TFunctionRef<int32(const UScriptStruct* Struct, void* Value, EPawColourRole Role)>;
 
-		// One value of a struct type: a colour itself, or a struct to walk into.
+		int32 StructsIn(const UStruct* Type, void* Data, FLeaf Leaf, EPawColourRole Role = EPawColourRole::Surface)
+		{
+			int32 Written = 0;
+			EPawColourRole RoleHere = Role;
+			auto One = [&](const UScriptStruct* Struct, void* Value)
+			{
+				const int32 N = Leaf(Struct, Value, RoleHere);
+				Written += N >= 0 ? N : StructsIn(Struct, Value, Leaf, RoleHere);
+			};
+			for (TFieldIterator<FProperty> It(Type); It; ++It)
+			{
+				if (It->HasAnyPropertyFlags(CPF_Transient))
+				{
+					continue; // never saved, rebuilt on load (a rich text's DefaultTextStyle): not the asset's look
+				}
+				const bool bText = Role == EPawColourRole::Text || IsTextColour(Type, *It);
+				RoleHere = bText ? EPawColourRole::Text
+					: Role == EPawColourRole::Edge || IsEdgeColour(Type, *It) ? EPawColourRole::Edge : EPawColourRole::Surface;
+				if (const FStructProperty* SP = CastField<FStructProperty>(*It))
+				{
+					for (int32 I = 0; I < SP->ArrayDim; ++I)
+					{
+						One(SP->Struct, SP->ContainerPtrToValuePtr<void>(Data, I));
+					}
+				}
+				else if (const FArrayProperty* AP = CastField<FArrayProperty>(*It))
+				{
+					if (const FStructProperty* Inner = CastField<FStructProperty>(AP->Inner))
+					{
+						FScriptArrayHelper Array(AP, AP->ContainerPtrToValuePtr<void>(Data));
+						for (int32 I = 0; I < Array.Num(); ++I)
+						{
+							One(Inner->Struct, Array.GetRawPtr(I));
+						}
+					}
+				}
+			}
+			return Written;
+		}
+
+		// One value of a struct type: a colour (1 when written, 0 when kept), or -1 to walk into it.
 		int32 ColourValue(const UScriptStruct* Struct, void* Value, TFunctionRef<bool(FColor&)> Visit)
 		{
 			if (Struct == TBaseStructure<FLinearColor>::Get())
@@ -186,40 +233,119 @@ namespace PawUi
 				C = FColor(S.R, S.G, S.B, C.A);
 				return 1;
 			}
-			return ColoursIn(Struct, Value, Visit);
-		}
-
-		int32 ColoursIn(const UStruct* Type, void* Data, TFunctionRef<bool(FColor&)> Visit)
-		{
-			int32 Written = 0;
-			for (TFieldIterator<FProperty> It(Type); It; ++It)
-			{
-				if (const FStructProperty* SP = CastField<FStructProperty>(*It))
-				{
-					for (int32 I = 0; I < SP->ArrayDim; ++I)
-					{
-						Written += ColourValue(SP->Struct, SP->ContainerPtrToValuePtr<void>(Data, I), Visit);
-					}
-				}
-				else if (const FArrayProperty* AP = CastField<FArrayProperty>(*It))
-				{
-					if (const FStructProperty* Inner = CastField<FStructProperty>(AP->Inner))
-					{
-						FScriptArrayHelper Array(AP, AP->ContainerPtrToValuePtr<void>(Data));
-						for (int32 I = 0; I < Array.Num(); ++I)
-						{
-							Written += ColourValue(Inner->Struct, Array.GetRawPtr(I), Visit);
-						}
-					}
-				}
-			}
-			return Written;
+			return -1;
 		}
 	}
 
 	int32 ForEachColour(UObject* Object, TFunctionRef<bool(FColor& Srgb)> Visit)
 	{
-		return Object ? ColoursIn(Object->GetClass(), Object, Visit) : 0;
+		return Object ? StructsIn(Object->GetClass(), Object, [&Visit](const UScriptStruct* S, void* V, EPawColourRole) { return ColourValue(S, V, Visit); }) : 0;
+	}
+
+	int32 ForEachColourRole(UObject* Object, TFunctionRef<bool(FColor& Srgb, EPawColourRole Role)> Visit)
+	{
+		if (!Object)
+		{
+			return 0;
+		}
+		return StructsIn(Object->GetClass(), Object, [&Visit](const UScriptStruct* S, void* V, EPawColourRole Role)
+		{
+			return ColourValue(S, V, [&Visit, Role](FColor& C) { return Visit(C, Role); });
+		});
+	}
+
+	bool IsEdgeColour(const UStruct* Owner, const FProperty* Property)
+	{
+		return Owner == FSlateBrushOutlineSettings::StaticStruct() && Property->GetFName() == TEXT("Color");
+	}
+
+	bool IsTextColour(const UStruct* Owner, const FProperty* Property)
+	{
+		const FName Name = Property->GetFName();
+		if (Name == TEXT("TextColour"))
+		{
+			return true; // the pieces' own text colour (UPawIconText, UPawPromptText)
+		}
+		if (Name != TEXT("ColorAndOpacity"))
+		{
+			return false; // a shadow, an outline, a tint: a surface
+		}
+		if (Owner == FTextBlockStyle::StaticStruct())
+		{
+			return true;
+		}
+		const UClass* Class = Cast<UClass>(Owner);
+		return Class && Class->IsChildOf(UTextLayoutWidget::StaticClass());
+	}
+
+	int32 ForEachFont(UObject* Object, TFunctionRef<bool(FSlateFontInfo& Font)> Visit)
+	{
+		if (!Object)
+		{
+			return 0;
+		}
+		return StructsIn(Object->GetClass(), Object, [&Visit](const UScriptStruct* Struct, void* Value, EPawColourRole) -> int32
+		{
+			if (Struct != FSlateFontInfo::StaticStruct())
+			{
+				return -1;
+			}
+			return Visit(*static_cast<FSlateFontInfo*>(Value)) ? 1 : 0;
+		});
+	}
+
+	bool IsEngineFont(const UObject* FontObject)
+	{
+		return !FontObject || FontObject->GetPathName().StartsWith(TEXT("/Engine/"));
+	}
+
+	UFont* PawFont()
+	{
+		static TWeakObjectPtr<UFont> Cached;
+		if (!Cached.IsValid())
+		{
+			Cached = LoadObject<UFont>(nullptr, PawFontSpec::Font);
+		}
+		return Cached.Get();
+	}
+
+	TArray<FString> UnderTextFloor(UObject* Object, bool bRaise)
+	{
+		TArray<FString> Out;
+		if (!Object || Object->GetFName() == TEXT("KeyLabel"))
+		{
+			return Out;
+		}
+		const float MinPt = FontPt(TextFloorPx);
+		ForEachFont(Object, [&](FSlateFontInfo& F)
+		{
+			if (F.Size + 0.01f >= MinPt)
+			{
+				return false;
+			}
+			Out.Add(FString::Printf(TEXT("%s font %.2f pt"), *Object->GetName(), F.Size));
+			if (bRaise)
+			{
+				F.Size = MinPt;
+			}
+			return bRaise;
+		});
+		for (const TCHAR* Name : { TEXT("TextPx"), TEXT("LabelPx") })
+		{
+			if (const FFloatProperty* P = FindFProperty<FFloatProperty>(Object->GetClass(), Name))
+			{
+				float* V = P->ContainerPtrToValuePtr<float>(Object);
+				if (*V + 0.01f < static_cast<float>(TextFloorPx))
+				{
+					Out.Add(FString::Printf(TEXT("%s %s %.1f px"), *Object->GetName(), Name, *V));
+					if (bRaise)
+					{
+						*V = static_cast<float>(TextFloorPx);
+					}
+				}
+			}
+		}
+		return Out;
 	}
 
 	TArray<UObject*> LookObjects(UBlueprint* Asset)

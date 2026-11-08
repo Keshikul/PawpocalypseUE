@@ -25,7 +25,7 @@ Source/
     Audio/                UPawAudioSubsystem (AudioManager) and the generated bank (doc 07 §6; built phase 6)
     Platform/             IPawPlatform: achievements, cloud, rich presence, store URL (Null + Steam impls, doc 10)
     Dev/                  cheat overlay, soak driver, screenshot tour, trailer director (compiled out of Shipping)
-  PawpocalypseEditor/   editor-only: DataTable/CSV importer, texture/atlas importer, validators, widget baker
+  PawpocalypseEditor/   editor-only: DataTable/CSV importer, texture/atlas importer, validators, widget baker, font builder
 ```
 
 **Three modules plus PawCore.** The KB's measured advice: more modules than that add build boundaries without a

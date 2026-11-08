@@ -14,7 +14,13 @@
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
 #include "UI/PawButton.h"
+#include "Components/Border.h"
+#include "Components/Image.h"
+#include "Components/RichTextBlock.h"
+#include "UI/PawIcons.h"
+#include "UI/PawPrompts.h"
 #include "UI/PawTokens.h"
+#include "UI/PawUiKit.h"
 #include "UI/PawWidgets.h"
 #include "UObject/UnrealType.h"
 
@@ -57,6 +63,8 @@ namespace
 	{
 		TMap<FString, int32> Classes;
 		TMap<FName, FString> Words;
+		// A text's look the restyle sets in code and grafts into the asset (restyle:Part): typeface, outline, shadow.
+		TMap<FName, FString> Looks;
 	};
 
 	FString ClassKey(const UWidget* W)
@@ -88,6 +96,11 @@ namespace
 			if (const UTextBlock* T = Cast<UTextBlock>(W))
 			{
 				Out.Words.Add(W->GetFName(), T->GetText().ToString());
+				const FSlateFontInfo& F = T->GetFont();
+				// R4g: and its colour (a code change to a title's colour must reach the asset: graft text:).
+				Out.Looks.Add(W->GetFName(), FString::Printf(TEXT("typeface %s, outline %d, shadow %.1f,%.1f, colour %s"), *F.TypefaceFontName.ToString(),
+					F.OutlineSettings.OutlineSize, T->GetShadowOffset().X, T->GetShadowOffset().Y,
+					*T->GetColorAndOpacity().GetSpecifiedColor().ToFColorSRGB().ToHex()));
 			}
 			else if (const UPawButton* B = Cast<UPawButton>(W))
 			{
@@ -165,6 +178,142 @@ bool FPawWidgetsPaletteTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawWidgetsColourRolesTest, "Pawpocalypse.UI.Widgets.ColourRoles", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// The plum flip's migration tells a text's colour from a surface's (restyle R3: ink text -> Bone, ink frames kept): which
+// properties are TEXT. A text widget's and a text style's ColorAndOpacity and a piece's TextColour are; a shadow, an outline
+// and an image's tint are not.
+bool FPawWidgetsColourRolesTest::RunTest(const FString& Parameters)
+{
+	struct FCase { const UStruct* Owner; const TCHAR* Property; bool bText; };
+	const FCase Cases[] = {
+		{ UTextBlock::StaticClass(), TEXT("ColorAndOpacity"), true },
+		{ UTextBlock::StaticClass(), TEXT("ShadowColorAndOpacity"), false },
+		{ URichTextBlock::StaticClass(), TEXT("DefaultTextStyleOverride"), false },
+		{ FTextBlockStyle::StaticStruct(), TEXT("ColorAndOpacity"), true },
+		{ FTextBlockStyle::StaticStruct(), TEXT("ShadowColorAndOpacity"), false },
+		{ UImage::StaticClass(), TEXT("ColorAndOpacity"), false },
+		{ UBorder::StaticClass(), TEXT("BrushColor"), false },
+		{ UPawIconText::StaticClass(), TEXT("TextColour"), true },
+		{ UPawPromptText::StaticClass(), TEXT("TextColour"), true },
+	};
+	for (const FCase& C : Cases)
+	{
+		const FProperty* P = FindFProperty<FProperty>(C.Owner, C.Property);
+		if (TestNotNull(FString::Printf(TEXT("%s.%s exists"), *C.Owner->GetName(), C.Property), P))
+		{
+			TestEqual(FString::Printf(TEXT("%s.%s is %s"), *C.Owner->GetName(), C.Property, C.bText ? TEXT("text") : TEXT("a surface")),
+				PawUi::IsTextColour(C.Owner, P), C.bText);
+		}
+	}
+	// R3's shapes: a brush's outline is an EDGE; a font's outline is not.
+	struct FEdgeCase { const UStruct* Owner; const TCHAR* Property; bool bEdge; };
+	const FEdgeCase Edges[] = {
+		{ FSlateBrushOutlineSettings::StaticStruct(), TEXT("Color"), true },
+		{ FFontOutlineSettings::StaticStruct(), TEXT("OutlineColor"), false },
+		{ FSlateBrush::StaticStruct(), TEXT("TintColor"), false },
+	};
+	for (const FEdgeCase& C : Edges)
+	{
+		const FProperty* P = FindFProperty<FProperty>(C.Owner, C.Property);
+		if (TestNotNull(FString::Printf(TEXT("%s.%s exists"), *C.Owner->GetName(), C.Property), P))
+		{
+			TestEqual(FString::Printf(TEXT("%s.%s is %s"), *C.Owner->GetName(), C.Property, C.bEdge ? TEXT("an edge") : TEXT("not an edge")),
+				PawUi::IsEdgeColour(C.Owner, P), C.bEdge);
+		}
+	}
+	// And the walk carries the role down: a text block's colour arrives as text, its shadow as a surface; a border's brush
+	// outline as an edge, its fill as a surface.
+	using PawUi::EPawColourRole;
+	UTextBlock* T = NewObject<UTextBlock>();
+	T->SetColorAndOpacity(FSlateColor(FLinearColor(FColor(0x11, 0x22, 0x33))));
+	T->SetShadowColorAndOpacity(FLinearColor(FColor(0x44, 0x55, 0x66)));
+	bool bTextSeen = false, bShadowSeen = false;
+	PawUi::ForEachColourRole(T, [&](FColor& Col, EPawColourRole Role)
+	{
+		bTextSeen |= Col == FColor(0x11, 0x22, 0x33, 255) && Role == EPawColourRole::Text;
+		bShadowSeen |= Col.R == 0x44 && Col.G == 0x55 && Col.B == 0x66 && Role == EPawColourRole::Surface;
+		return false;
+	});
+	TestTrue(TEXT("a text block's colour walks as text"), bTextSeen);
+	TestTrue(TEXT("a text block's shadow walks as a surface"), bShadowSeen);
+	UBorder* B = NewObject<UBorder>();
+	B->SetBrush(PawUi::Rounded(FLinearColor(FColor(0x21, 0x32, 0x43)), FLinearColor(FColor(0x54, 0x65, 0x76)), 3.0f, 8.0f));
+	bool bFillSeen = false, bEdgeSeen = false;
+	PawUi::ForEachColourRole(B, [&](FColor& Col, EPawColourRole Role)
+	{
+		bFillSeen |= Col.R == 0x21 && Col.G == 0x32 && Col.B == 0x43 && Role == EPawColourRole::Surface;
+		bEdgeSeen |= Col.R == 0x54 && Col.G == 0x65 && Col.B == 0x76 && Role == EPawColourRole::Edge;
+		return false;
+	});
+	TestTrue(TEXT("a border's fill walks as a surface"), bFillSeen);
+	TestTrue(TEXT("a border's brush outline walks as an edge"), bEdgeSeen);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawWidgetsTextFloorTest, "Pawpocalypse.UI.Widgets.TextFloor", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// R4b, the text floor: nothing under 16 px at 1080p (12 pt), in every baked asset (what the game draws) and every code layout
+// (what a new part grafts from); a keycap's label exempt (PawUi::UnderTextFloor). Also proves the walk sees small text: a
+// 10 pt text block and a piece at 13 px are both named, and raised.
+bool FPawWidgetsTextFloorTest::RunTest(const FString& Parameters)
+{
+	UTextBlock* Small = NewObject<UTextBlock>();
+	FSlateFontInfo F = Small->GetFont();
+	F.Size = 10.0f;
+	Small->SetFont(F);
+	TestEqual(TEXT("a 10 pt text is under the floor"), PawUi::UnderTextFloor(Small, false).Num(), 1);
+	PawUi::UnderTextFloor(Small, true);
+	TestEqual(TEXT("raised, it is 12 pt"), Small->GetFont().Size, 12.0f);
+	UPawIconText* Piece = NewObject<UPawIconText>();
+	Piece->TextPx = 13.0f;
+	TestEqual(TEXT("a piece at 13 px is under the floor"), PawUi::UnderTextFloor(Piece, false).Num(), 1);
+
+	int32 Fonts = 0;
+	for (UClass* Native : PawUi::BakedClasses())
+	{
+		UBlueprint* BP = LoadObject<UBlueprint>(nullptr, *(PawUi::AssetPathFor(Native) + TEXT(".") + PawUi::AssetNameFor(Native)));
+		if (!TestNotNull(FString::Printf(TEXT("%s has its asset"), *Native->GetName()), BP))
+		{
+			continue;
+		}
+		for (UObject* O : PawUi::LookObjects(BP))
+		{
+			Fonts += PawUi::ForEachFont(O, [](FSlateFontInfo&) { return true; }) > 0 ? 1 : 0;
+			for (const FString& Under : PawUi::UnderTextFloor(O, false))
+			{
+				AddError(FString::Printf(TEXT("%s: %s, under the 16 px floor (py tools/bake_widgets.py --run --textfloor)"),
+					*PawUi::AssetNameFor(Native), *Under));
+			}
+		}
+	}
+	TestTrue(FString::Printf(TEXT("the walk saw the assets' texts (%d)"), Fonts), Fonts > 50);
+
+	FWidgetsWorld W;
+	W.Open();
+	PawUi::SetCodeLayoutForced(true);
+	for (UClass* Native : PawUi::BakedClasses())
+	{
+		if (!Native->IsChildOf(UUserWidget::StaticClass()))
+		{
+			continue;
+		}
+		UUserWidget* FromCode = W.Make(Native);
+		if (FromCode && FromCode->WidgetTree)
+		{
+			FromCode->WidgetTree->ForEachWidget([&](UWidget* Part)
+			{
+				for (const FString& Under : PawUi::UnderTextFloor(Part, false))
+				{
+					AddError(FString::Printf(TEXT("%s's code layout: %s, under the 16 px floor"), *Native->GetName(), *Under));
+				}
+			});
+		}
+	}
+	W.Close();
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawWidgetsParityTest, "Pawpocalypse.UI.Widgets.Parity", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 // Each Widget Blueprint against its class's code layout: every bound part present in both, the same widgets, the same words.
@@ -220,6 +369,13 @@ bool FPawWidgetsParityTest::RunTest(const FString& Parameters)
 			if (const FString* Got = A.Words.Find(P.Key))
 			{
 				TestEqual(FString::Printf(TEXT("%s.%s says the same"), *Name, *P.Key.ToString()), *Got, P.Value);
+			}
+		}
+		for (const TPair<FName, FString>& P : C.Looks)
+		{
+			if (const FString* Got = A.Looks.Find(P.Key))
+			{
+				TestEqual(FString::Printf(TEXT("%s.%s looks the same (graft restyle:%s, or text: for its colour)"), *Name, *P.Key.ToString(), *P.Key.ToString()), *Got, P.Value);
 			}
 		}
 	}

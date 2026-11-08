@@ -34,6 +34,8 @@ never project names or design decisions.
   Open design questions are answered in Godot first, then re-exported
   (`py tools/export_godot_data.py ...`). A difference is either a port bug or a design change for after parity, never both.
 - The register is **mean and funny**: the cat is malevolent, never cute; keep the sparkly vocabulary. **Player-facing text is short.**
+  Designer, 2026-11-08: "make sure all text is simple and concise in the ui. Don't overexplain. Use short sentences."
+  New or changed UI words are drafted for the designer first (they also cost the string's 20 translations).
   "Prestige" is never used (it is Reawaken). Boba (the designer's cat) appears in menus only, never over the skill tree.
 
 ## Hard rules (docs/02 §14 has the full checklist)
@@ -63,6 +65,9 @@ py tools/export_godot_data.py --godot C:/Games/pawpocalypse --out Data --catalog
 py tools/list_godot_code_constants.py --godot C:/Games/pawpocalypse --out docs/appendix-c-code-constants.md
 py tools/gen_paw_rows.py                                                 # DataTable row structs from the Data/*.csv headers
 py tools/gen_paw_tokens.py                                               # UI/PawTokens.h, the colours, from tools/art/palette.py (+ PcBackdropTones.h, Tests/PcGodotLook.h)
+py tools/fonts.py [--check]                                              # UI/PawFontSpec.h: the font F_Paw's table (faces, typefaces, sub-fonts)
+py tools/import_fonts.py --run                                           # SourceArt/fonts -> FF_* faces + the composite F_Paw, headless (editor closed)
+py tools/check_font_coverage.py [--self-test]                            # every language's characters reach a face of F_Paw that has them
 py tools/gen_input_defaults.py [--check]                                 # Input/PawInputDefaults.h: Godot's input map (remapping's defaults)
 py tools/gen_data_strings.py                                             # ST_Data.csv: data names for the string tables
 py tools/import_data.py [--check | --self-test]                          # Data/*.csv -> DT_* (headless, editor closed) + parity
@@ -72,7 +77,7 @@ powershell -ExecutionPolicy Bypass -File tools\check_all.ps1             # every
 py tools/make_godot_fixtures.py [--only tree] [--check]                  # Godot ground truth (scratch copy, sandboxed)
 py tools/sabotage_pawcore.py [--only NAME]                               # one-line PawCore sabotages; each must be CAUGHT
 py tools/run_automation.py [--no-build] [Pawpocalypse.Realm]             # engine automation tests, headless (editor closed; builds first)
-py tools/bake_widgets.py --run [--graft "Class=add:Part;swap:Old>New"]  # Widget Blueprints for UI classes that have none (never over one); --graft puts NEW parts into an existing one (restyle:Part a part's look, props:Part a piece's settings; add: takes a panel with children)
+py tools/bake_widgets.py --run [--graft "Class=add:Part;swap:Old>New"]  # Widget Blueprints for UI classes that have none (never over one); --graft puts NEW parts into an existing one (restyle:Part a part's look, restyle:Code>Asset when an unnamed part's auto-name differs (names:x / codenames:x list both), props:Part a piece's settings, slot:Part its place and tilt, text:Part a text's whole look, remove:Part; add: takes a panel with children; all or nothing); --textfloor raises texts under 16 px; --recolour / --refont migrate the assets' saved colours / fonts
 py tools/art/build_art.py [--check]                                     # the art generators -> SourceArt/svg (--check: = the committed SourceArt/svg)
 py tools/raster_svg.py [--check]                                        # SourceArt/svg -> png (the glyphs: 56 px; the cursors; the chrome and icons 1:1)
 py tools/pack_atlas.py [--check]                                        # the field's sprites -> SourceArt/png/atlas (2 pages + field.csv)
@@ -82,7 +87,7 @@ py tools/import_audio.py --run                                          # Source
 py tools/create_input_assets.py --run                                    # IA_* / IMC_Pawpocalypse from Data/InputMap.csv (generated, never edited)
 py tools/sabotage_realm.py [--only NAME]                                 # game-module sabotages of the realm tests (UBT each, ~1 min)
 py tools/packaged_bench.py [--seconds 20]                                # L5: paw.Bench in the packaged build (build/package): frame gate
-py tools/godot_tour.py [--skip-godot] [--skip-ue] [--set biomes]          # the screenshot tour, both games -> build/tour/compare (opens windows)
+py tools/godot_tour.py [--skip-godot] [--skip-ue] [--set biomes|fonts] [--res WxH]   # the screenshot tour, both games -> build/tour/compare (opens windows)
 py tools/padplay_tour.py                                                 # L4: the pad-only playthrough + focus tours (-game window; sandboxed saves)
 UnrealEditor-Cmd.exe ... -run=pythonscript -script=C:/abs/tools/create_field_materials.py   # the field and sprite materials (then create_maps.py)
 py tools/trim_game_plugins.py                                            # rewrites the .uproject plugin list (doc 03 §7)

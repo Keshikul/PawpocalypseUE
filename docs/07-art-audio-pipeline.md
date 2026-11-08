@@ -12,7 +12,7 @@
 | Backdrops | `assets/art/backdrops/backdrop_tier_N.png` (flattened) + biome scenes | 12 | Re-flattened PNGs; floor tiles and props per §4 |
 | Boba photos | `content/boba/*.png` -> `tools/boba_prep.py` | menus only | Copied; same prep |
 | Audio | `assets/audio/music` (Abstraction loops, OGG), `assets/audio/sfx/kenney` (201 Kenney CC0 OGG), `unicorn_neigh` (synthesised by `make_neigh.py`) | 83 MB in the repo (pruned to what plays at release) | Copied to `SourceAudio/` (LFS), imported per §6 |
-| Fonts | `assets/fonts`: Noto Sans CJK Medium `.ttc`, Noto Sans Thai, the Latin face, OFL texts | | §5, doc 05 §7 |
+| Fonts | `assets/fonts`: Noto Sans CJK Medium `.ttc`, Noto Sans Thai, the Latin face, OFL texts | | Noto copied; the Latin face replaced by M PLUS Rounded 1c (D14); all in `SourceArt/fonts` with their OFL texts. §5, doc 05 §7 |
 | Credits | `assets/audio/CREDITS.md` | | Copied; in-game credits screen |
 
 `resvg_py` 0.5.0 and Pillow 12.3 are already installed on this machine (the Godot pipeline uses them).
@@ -139,11 +139,21 @@ to add; deleted with the spikes 2026-11-04: `git show 10c118e:tools/spikes/s3_ra
 
 ## 5. Fonts
 
-- Split `NotoSansCJK-Medium.ttc` into its faces (JP, KR, SC, TC) with fontTools; import each as a `UFontFace`; Thai and the
-  Latin face likewise. One composite font `F_Paw` with sub-fonts per script range (CJK per culture, Thai) `[KB U/09 §5]`.
-- Static faces only (Slate ignores variable fonts). OFL notices shipped in the credits.
-- The game's own Latin face must cover Latin Extended and Cyrillic (cs, hu, pl, tr, ru, uk, vi): check glyph coverage with a
-  script against every `.po` file's characters; any missing glyph falls to a fallback face, never a box.
+**As built (restyle R2, 2026-11-07; the restyle plan's D1: M PLUS Rounded 1c).** `tools/fonts.py` is the one table: the faces in
+`SourceArt/fonts` (M PLUS Rounded 1c ExtraBold and Black from Google Fonts; Noto Sans CJK Medium `.ttc` and Noto Sans Thai
+Medium copied from the Godot repo; their OFL texts beside them, for the credits), the typefaces (`Regular` and `Bold` = the
+text weight, ExtraBold; `Black` = titles and numbers), the sub-fonts and the fallback. It generates `UI/PawFontSpec.h`
+(L0 checks it). `py tools/import_fonts.py --run` makes the `FF_*` faces and the composite `F_Paw` under
+`/Game/Pawpocalypse/Fonts` through `UPawFontBuilder` (PawpocalypseEditor; the import factory crashes headless, KB U/09 §5.1).
+The `.ttc` is ONE face asset, its faces picked by index (JP 0, KR 1, SC 2, TC 3). Sub-fonts: `ja` keeps Han and kana on
+M PLUS; `ko`, `zh-Hans`, `zh-Hant` get their own Noto face for Han (and Hangul for ko); every other language gets Hangul from
+Noto KR, Han from Noto SC (Godot's rule: a language's own name in the picker) and Thai from Noto Thai; the fallback is SC.
+`[SlateStyle] DefaultFontName` makes F_Paw every UMG text's default; the baked assets follow (their fonts equalled the
+default; `bake_widgets.py --refont` rewrites any saved engine font). Titles and numbers: `PawUi::Heavy` (Black; a Deep
+Plum shadow on outlined text), grafted into the assets with `restyle:Part`. Gates: `tools/check_font_coverage.py` (every
+character of every language through Slate's own face choice; L0 everyday, its self-test in `-Full`), tests
+`Pawpocalypse.UI.Fonts.Composite`, `.Widgets.Fonts`, the parity test's text looks. The look in the game:
+`py tools/godot_tour.py --set fonts` (each culture's sheet, `paw.FontSheet`).
 
 ## 6. Audio
 
@@ -187,7 +197,7 @@ on again. Never in the editor. The pad-audio toast: doc 05 §3. Tests `Pawpocaly
   asserts both directions (every referenced file imported; nothing imported that nothing plays).
 - WASAPI is the 5.8 Windows backend: test a headset unplug/replug `[KB U/14 §1]`.
 - **Licences** (third-party register, `docs/third-party.md` to create in phase 6): Kenney CC0; Abstraction music (credit
-  required; author does not endorse AI-related use; designer's call, kept; never in the trailer); fonts OFL; the trailer music
+  required; author does not endorse AI-related use; designer's call, kept; never in the trailer); fonts OFL (the texts in `SourceArt/fonts`); the trailer music
   (Loyalty Freak Music, CC0) is trailer-only.
 
 ## 7. Animation and VFX art

@@ -13,6 +13,8 @@
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
+#include "Components/ScaleBox.h"
+#include "Components/ScaleBoxSlot.h"
 #include "Components/ScrollBox.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
@@ -72,6 +74,27 @@ namespace
 		S->SetOffsets(FMargin(static_cast<float>(Left), static_cast<float>(Top), static_cast<float>(Right - Left),
 			static_cast<float>(Bottom - Top)));
 		return S;
+	}
+
+	// R4h: a room for a fixed-size piece: Width wide at Left (from the left edge, or from the right with AnchorX 1), from Top
+	// down to Bottom above the screen's foot. The piece keeps its size while it fits and shrinks (never grows) when it does
+	// not: at 150 % UI the screen is 720 tall and the menu and Boba's card no longer fit at their 1080p places.
+	UScaleBox* Room(UWidgetTree* T, UCanvasPanel* Canvas, const TCHAR* Name, float AnchorX, double Left, double Width, double Top,
+		double Bottom, EHorizontalAlignment H, EVerticalAlignment V, UWidget* Piece)
+	{
+		UScaleBox* Box = T->ConstructWidget<UScaleBox>(UScaleBox::StaticClass(), Name);
+		Box->SetStretch(EStretch::ScaleToFit);
+		Box->SetStretchDirection(EStretchDirection::DownOnly);
+		UCanvasPanelSlot* S = Canvas->AddChildToCanvas(Box);
+		S->SetAnchors(FAnchors(AnchorX, 0.0f, AnchorX, 1.0f));
+		S->SetAlignment(FVector2D(0.0, 0.0));
+		S->SetOffsets(FMargin(static_cast<float>(Left), static_cast<float>(Top), static_cast<float>(Width), static_cast<float>(Bottom)));
+		if (UScaleBoxSlot* In = Cast<UScaleBoxSlot>(Box->AddChild(Piece)))
+		{
+			In->SetHorizontalAlignment(H);
+			In->SetVerticalAlignment(V);
+		}
+		return Box;
 	}
 
 	UCanvasPanelSlot* Fill(UCanvasPanel* Canvas, UWidget* W)
@@ -199,7 +222,15 @@ bool UPawMainMenu::Initialize()
 		NameBox->SetContent(NameText);
 		NameBox->SetRenderTransformPivot(FVector2D(0.0, 0.5));
 		NameBox->SetRenderTransformAngle(static_cast<float>(R4NameAngle));
-		Place(Canvas, NameBox, 0.0f, 0.0f, R4TitleMargin, R4NameTop, R4TitleMargin + R4NameWidth, R4NameTop + R4NameHeight);
+		// R4h: the logo and the menu share one column, in one room from the logo's top to above the hint: at 1080p exactly
+		// where R4c put them; at 150 % UI both shrink together (a menu shrunk alone came out smaller than at 100 %).
+		UVerticalBox* LeftColumn = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("LeftColumn"));
+		USizeBox* LogoSize = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("LogoSize"));
+		LogoSize->SetWidthOverride(static_cast<float>(R4NameWidth));
+		LogoSize->SetHeightOverride(static_cast<float>(R4NameHeight));
+		LogoSize->SetContent(NameBox);
+		LeftColumn->AddChildToVerticalBox(LogoSize)->SetHorizontalAlignment(HAlign_Left);
+		Room(T, Canvas, TEXT("LeftFit"), 0.0f, R4TitleMargin, R4NameWidth, R4NameTop, R4MenuBottom, HAlign_Left, VAlign_Top, LeftColumn);
 
 		// The version, bottom right.
 		VersionText = MakeText(T, LabelPx, PawTokens::INK, false, TEXT("VersionText")); // R4c: on the lawn: ink (lilac vanished there)
@@ -211,19 +242,22 @@ bool UPawMainMenu::Initialize()
 			-TitleCornerMargin, -VersionBottom);
 
 		// The menu: a paper panel 460 x 440 whose top sits 110 above the middle.
-		USizeBox* PanelSize = T->ConstructWidget<USizeBox>();
+		USizeBox* PanelSize = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("MenuSize"));
 		PanelSize->SetWidthOverride(static_cast<float>(R4PanelWidth));
 		PanelSize->SetHeightOverride(static_cast<float>(R4PanelHeight));
-		// R4c: on the left under the logo (Godot: centred, its top 110 above the middle).
-		Place(Canvas, PanelSize, 0.0f, 0.5f, R4TitleMargin, R4PanelTop, R4TitleMargin + R4PanelWidth, R4PanelTop + R4PanelHeight);
-		UBorder* Panel = T->ConstructWidget<UBorder>();
+		// R4c: on the left under the logo (Godot: centred, its top 110 above the middle). R4h: its top where 1080p puts it
+		// (the middle less 290), in a room down to the hint: at 150 % UI it shrinks to fit there.
+		UVerticalBoxSlot* MenuSlot = LeftColumn->AddChildToVerticalBox(PanelSize);
+		MenuSlot->SetHorizontalAlignment(HAlign_Left);
+		MenuSlot->SetPadding(FMargin(0.0f, static_cast<float>(540.0 + R4PanelTop - R4NameTop - R4NameHeight), 0.0f, 0.0f));
+		UBorder* Panel = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("MenuPanel"));
 		Panel->SetBrush(TitlePanelBrush());
 		Panel->SetPadding(TitlePanelPadding());
 		Panel->SetVisibility(ESlateVisibility::Visible);
 		PanelSize->SetContent(Panel);
-		UVerticalBox* Body = T->ConstructWidget<UVerticalBox>();
+		UVerticalBox* Body = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("MenuBody"));
 		Panel->SetContent(Body);
-		UVerticalBox* Menu = T->ConstructWidget<UVerticalBox>();
+		UVerticalBox* Menu = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("MenuList"));
 		Body->AddChildToVerticalBox(Menu);
 		const TCHAR* Keys[] = { TEXT("TITLE_continue"), TEXT("TITLE_new_game"), TEXT("TITLE_load"), TEXT("TITLE_leaderboard"),
 			TEXT("TITLE_settings"), TEXT("TITLE_credits"), TEXT("TITLE_exit") };
@@ -257,7 +291,7 @@ bool UPawMainMenu::Initialize()
 
 		// Boba's badge, bottom left: the frame and the caption at Godot's size; the photo (and the cameo a click summons)
 		// arrive with the art (phase 6).
-		UBorder* Badge = T->ConstructWidget<UBorder>();
+		UBorder* Badge = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("BobaCard"));
 		Badge->SetBrush(Chrome(EPawChrome::Window)); // R3: the plum plate
 		Badge->SetPadding(PlatePadding(FMargin(static_cast<float>(BobaBadgePad)), EPawChrome::Window));
 		Badge->SetToolTipText(PawText::Ui(TEXT("TITLE_boba_tooltip")));
@@ -265,10 +299,17 @@ bool UPawMainMenu::Initialize()
 		// R4c: on the right, tilted the other way (the board's pinned card).
 		Badge->SetRenderTransformPivot(FVector2D(0.5, 0.5));
 		Badge->SetRenderTransformAngle(static_cast<float>(R4BobaAngle));
-		Place(Canvas, Badge, 1.0f, 0.5f, -R4BobaRight - R4BobaWidth, R4BobaTop, -R4BobaRight, R4BobaTop + R4BobaHeight);
-		UVerticalBox* BadgeColumn = T->ConstructWidget<UVerticalBox>();
+		// R4h: its bottom where 1080p puts it (the middle + 40 + 360 = 140 above the foot), in a room from under the logo's row:
+		// at 150 % UI it rises (still above the version) instead of leaving the screen.
+		USizeBox* BadgeSize = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("BobaSize"));
+		BadgeSize->SetWidthOverride(static_cast<float>(R4BobaWidth));
+		BadgeSize->SetHeightOverride(static_cast<float>(R4BobaHeight));
+		BadgeSize->SetContent(Badge);
+		Room(T, Canvas, TEXT("BobaFit"), 1.0f, -R4BobaRight - R4BobaWidth, R4BobaWidth, R4BobaRoomTop, R4BobaBottom, HAlign_Right,
+			VAlign_Bottom, BadgeSize);
+		UVerticalBox* BadgeColumn = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("BobaColumn"));
 		Badge->SetContent(BadgeColumn);
-		USizeBox* Photo = T->ConstructWidget<USizeBox>();
+		USizeBox* Photo = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("BobaPhoto"));
 		Photo->SetWidthOverride(static_cast<float>(R4BobaPhoto));
 		Photo->SetHeightOverride(static_cast<float>(R4BobaPhoto));
 		BadgeColumn->AddChildToVerticalBox(Photo)->SetHorizontalAlignment(HAlign_Center);
@@ -281,6 +322,8 @@ bool UPawMainMenu::Initialize()
 		{
 			// R4c: the name a Butter title, the role lilac.
 			const bool bName = FCString::Strcmp(Key, TEXT("TITLE_boba_name")) == 0;
+			// Unnamed on purpose: the asset holds them as TextBlock_0 / _1, and naming them renumbers every later unnamed text
+			// of the code layout (.Widgets.Parity compares texts by name).
 			UTextBlock* Line = MakeText(T, bName ? R4BobaNamePx : BobaCaptionPx, bName ? PawTokens::UI_SELECTED : PawTokens::UI_TEXT_MUTED);
 			if (bName)
 			{

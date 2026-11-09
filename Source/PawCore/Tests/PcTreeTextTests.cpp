@@ -56,7 +56,32 @@ namespace
 		return Map;
 	}
 
-	// What the game shows: each phrase from the table with its argument filled, ", " between them.
+	// The lines whose English the port rewrote (Data/TextOverrides.csv, designer 2026-11-09): key -> Godot's English, which
+	// is what the Godot fixture shows. The generator proves the rewrite keeps the same {tokens}.
+	const std::map<std::string, std::string>& GodotWords()
+	{
+		static std::map<std::string, std::string> Map;
+		static bool bLoaded = false;
+		if (!bLoaded)
+		{
+			std::string Text, Error;
+			REQUIRE(Pc::ReadTextFile(DataDir() + "/TextOverrides.csv", Text));
+			Pc::CsvTable T;
+			REQUIRE(Pc::ParseCsv(Text, T, Error));
+			const int Table = T.Column("table"), K = T.Column("key"), G = T.Column("godot");
+			for (const auto& Row : T.Rows)
+			{
+				if (Row[static_cast<size_t>(Table)] == "ST_Tree")
+				{
+					Map[Row[static_cast<size_t>(K)]] = Row[static_cast<size_t>(G)];
+				}
+			}
+			bLoaded = true;
+		}
+		return Map;
+	}
+
+	// What Godot shows: each phrase (Godot's English) with its argument filled, ", " between them.
 	std::string Render(const std::vector<Pc::PcTreePhrase>& Parts)
 	{
 		std::string Out;
@@ -64,7 +89,8 @@ namespace
 		{
 			const auto It = TreeStrings().find(P.Key);
 			REQUIRE_MESSAGE(It != TreeStrings().end(), "ST_Tree has no " << P.Key);
-			std::string Text = It->second;
+			const auto Godot = GodotWords().find(P.Key);
+			std::string Text = Godot != GodotWords().end() ? Godot->second : It->second;
 			if (!P.Arg.empty())
 			{
 				const std::string Token = "{" + P.Arg + "}";

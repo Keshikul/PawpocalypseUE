@@ -72,7 +72,7 @@ namespace Pc
 		std::vector<std::string> Hand;                         // hand [card ids]: a hand on screen, offered again on load
 		std::vector<std::string> Promised;                     // promised [card ids]: Blueprint's cards for the next hand
 		std::string PrototypeCard;                             // prototype_card
-		int64_t CardsTakenThisRun = 0;                         // cards_taken_this_run (Grudge Ledger)
+		int64_t CardsTakenThisRun = 0;                         // cards_taken_this_run (Stacked Deck, grudge_ledger)
 		// Where the run stands (designer 2026-11-04, F26-F29; Godot first). Defaults = what a restart used to give.
 		int64_t DeepestBiomeIndex = 0;                         // deepest_biome_index (the per-floor caps; clamped on load)
 		double PendingSecondHelping = 0.0;                     // pending_second_helping (>= 0 on load)

@@ -362,6 +362,47 @@ namespace
 		Old->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_DoNotDirty);
 		return FString::Printf(TEXT("swapped into %s at %d (the old slot kept)"), *Into->GetName(), Index);
 	}
+
+	// wrap:Part>Wrapper (R4h, 2026-11-08: the settings pages into a scroll box): the code layout holds Part inside a new panel
+	// Wrapper; the asset's own Part (with everything under it, as the asset has it) moves into a copy of that panel, which
+	// takes Part's place. Wrapper's slot and Part's new slot come from the code layout.
+	FString WrapPart(UUserWidget* Source, UWidgetBlueprint* BP, const UClass* Native, const FName PartName, const FName WrapperName)
+	{
+		UPanelWidget* CodeWrapper = Cast<UPanelWidget>(Source->WidgetTree->FindWidget(WrapperName));
+		UWidget* CodePart = Source->WidgetTree->FindWidget(PartName);
+		if (!CodeWrapper || !CodePart)
+		{
+			return TEXT("FAILED: the code layout has no panel ") + WrapperName.ToString() + TEXT(" or no ") + PartName.ToString();
+		}
+		if (CodePart->GetParent() != CodeWrapper || CodeWrapper->GetChildrenCount() != 1)
+		{
+			return TEXT("FAILED: in the code layout ") + PartName.ToString() + TEXT(" is not the only child of ") + WrapperName.ToString();
+		}
+		if (BP->WidgetTree->FindWidget(WrapperName))
+		{
+			return TEXT("kept (the asset has it)");
+		}
+		UWidget* Mine = BP->WidgetTree->FindWidget(PartName);
+		UPanelWidget* Into = Mine ? Mine->GetParent() : nullptr;
+		if (!Mine || !Into)
+		{
+			return TEXT("FAILED: the asset has no ") + PartName.ToString() + TEXT(" under a panel");
+		}
+		if (Into->GetClass() != CodeWrapper->GetParent()->GetClass())
+		{
+			return TEXT("FAILED: the asset's parent is not the code's kind of panel");
+		}
+		const int32 Index = Into->GetChildIndex(Mine);
+		Into->Modify();
+		Mine->Modify();
+		Into->RemoveChildAt(Index);
+		UPanelWidget* Wrapper = Cast<UPanelWidget>(CopyEmptyPanel(CodeWrapper, BP, Native));
+		UPanelSlot* WrapperSlot = Into->InsertChildAt(Index, Wrapper);
+		CopySlot(CodeWrapper->Slot, WrapperSlot);
+		UPanelSlot* PartSlot = Wrapper->AddChild(Mine);
+		CopySlot(CodePart->Slot, PartSlot);
+		return FString::Printf(TEXT("wrapped %s into %s at %d of %s"), *PartName.ToString(), *WrapperName.ToString(), Index, *Into->GetName());
+	}
 }
 
 namespace
@@ -653,6 +694,10 @@ FString UPawWidgetBaker::GraftParts(const FString& ClassName, const FString& Ops
 		{
 			Result = SwapPart(Source, BP, Native, FName(*Old), FName(*New));
 		}
+		else if (Kind == TEXT("wrap") && Arg.Split(TEXT(">"), &Old, &New))
+		{
+			Result = WrapPart(Source, BP, Native, FName(*Old), FName(*New));
+		}
 		else if (Kind == TEXT("restyle"))
 		{
 			Result = RestylePart(Source, BP, Arg);
@@ -686,7 +731,7 @@ FString UPawWidgetBaker::GraftParts(const FString& ClassName, const FString& Ops
 			Result = TEXT("FAILED: not an op");
 		}
 		bChanged |= Result.StartsWith(TEXT("added")) || Result.StartsWith(TEXT("swapped")) || Result.StartsWith(TEXT("restyled"))
-			|| Result.StartsWith(TEXT("removed"));
+			|| Result.StartsWith(TEXT("removed")) || Result.StartsWith(TEXT("wrapped"));
 		Lines.Add(FString::Printf(TEXT("%s %s: %s"), *PawUi::AssetNameFor(Native), *Op, *Result));
 		bFailed |= Result.StartsWith(TEXT("FAILED"));
 	}

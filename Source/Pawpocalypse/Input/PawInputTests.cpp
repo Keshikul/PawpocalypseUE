@@ -50,6 +50,7 @@
 #include "Misc/AutomationTest.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "UI/PawTextTesting.h"
 
 #include <cstdlib>
 
@@ -1026,6 +1027,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawInputPadAudioTest, "Pawpocalypse.Input.PadA
 
 bool FPawInputPadAudioTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	// input_device.gd _watch_for_pad_audio: a pad connected after the boot window, the output devices read then and 2 s later;
 	// one that appeared while the game follows the system's: the toast says where to fix it (playtest 2026-10-01, #31).
 	FInputWorld W;

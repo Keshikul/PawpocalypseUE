@@ -89,7 +89,7 @@ namespace Pc
 		int64_t NewLevel = 0;
 	};
 	// choose(): only a card in the hand. The level is one up plus Prototype's bonus, capped at the card's max; the hand
-	// closes; Grudge Ledger counts it; the deck cards (reroll, extra choice, Fixation, banish) apply here.
+	// closes; Stacked Deck (grudge_ledger) counts it; the deck cards (reroll, extra choice, Fixation, banish) apply here.
 	PAWCORE_API PcTake ChooseCard(const PcGameData& D, PcProgress& P, const std::string& CardId);
 
 	// banish(): out of this run's deck.

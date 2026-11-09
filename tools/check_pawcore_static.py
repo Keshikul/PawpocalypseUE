@@ -184,8 +184,10 @@ def check_data_export(data_dir):
     if r.returncode != 0:
         return ["export_godot_data.py failed: " + (r.stdout + r.stderr).strip()[-300:]]
     bad = []
-    # CodeConstantsMap.csv is the reviewed SOURCE of the CodeConstants export (tools/export_code_constants.py), not output.
-    names = sorted(({p.name for p in out.glob("*.csv")} | {p.name for p in data_dir.glob("*.csv")}) - {"CodeConstantsMap.csv"})
+    # CodeConstantsMap.csv is the reviewed SOURCE of the CodeConstants export (tools/export_code_constants.py), not output;
+    # TextOverrides.csv is the port's own English (tools/text_overrides.py), not exported either.
+    names = sorted(({p.name for p in out.glob("*.csv")} | {p.name for p in data_dir.glob("*.csv")})
+                   - {"CodeConstantsMap.csv", "TextOverrides.csv"})
     for name in names:
         a, b = out / name, data_dir / name
         if not (a.exists() and b.exists() and filecmp.cmp(a, b, shallow=False)):

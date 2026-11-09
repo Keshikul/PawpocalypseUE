@@ -49,6 +49,7 @@
 #include "UI/PawPounceClock.h"
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
+#include "UI/PawTextTesting.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -199,6 +200,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawHudReadoutsTest, "Pawpocalypse.UI.Hud.Reado
 
 bool FPawHudReadoutsTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FHudWorld W;
 	if (!W.Open(*this))
 	{
@@ -571,6 +575,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawHudReawakenTest, "Pawpocalypse.UI.Hud.Reawa
 
 bool FPawHudReawakenTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FHudWorld W;
 	if (!W.Open(*this))
 	{
@@ -728,6 +735,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawHudCatchesTest, "Pawpocalypse.UI.Hud.Catche
 
 bool FPawHudCatchesTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FHudWorld W;
 	if (!W.Open(*this))
 	{
@@ -898,6 +908,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawHudJobsTest, "Pawpocalypse.UI.Hud.Jobs", EA
 
 bool FPawHudJobsTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FHudWorld W;
 	if (!W.Open(*this))
 	{

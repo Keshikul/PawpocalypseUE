@@ -680,6 +680,10 @@ void UPawSkillTreeScreen::SetViewSize(const FVector2D& Size)
 	{
 		ViewSize = Size;
 		StyleClose();
+		if (!bViewTouched)
+		{
+			FitAndCentre(); // R4h: fitted to the size the player sees, not the last one
+		}
 	}
 }
 
@@ -714,6 +718,7 @@ void UPawSkillTreeScreen::ZoomBy(double Delta)
 	const FVector2D Focus = (Centre - Pan) / Before;
 	Pan = Centre - Focus * Zoom;
 	bFollowing = false;
+	bViewTouched = true;
 	ApplyTransform();
 }
 
@@ -743,6 +748,7 @@ void UPawSkillTreeScreen::Follow(const FString& Id, bool bInstant)
 		return;
 	}
 	const FVector2D Target = Pan + ((BoxMin + BoxMax) * 0.5 - At);
+	bViewTouched = true;
 	if (bInstant)
 	{
 		Pan = Target;
@@ -1139,6 +1145,7 @@ void UPawSkillTreeScreen::NativeOnActivated()
 	WarningPlate->SetVisibility(ESlateVisibility::Collapsed);
 	ShowTip(FString(), false);
 	// Recentred on every open: a player who dragged the canvas somewhere odd still finds the tree where they expect it.
+	bViewTouched = false;
 	FitAndCentre();
 	RefreshAll();
 	if (const UWidget* Target = NativeGetDesiredFocusTarget())
@@ -1186,6 +1193,7 @@ void UPawSkillTreeScreen::NativeTick(const FGeometry& Geometry, float DeltaSecon
 	if (!Stick.IsZero())
 	{
 		bFollowing = false;
+		bViewTouched = true;
 		Pan -= Stick * PanPxPerSec * DeltaSeconds;
 		ApplyTransform();
 	}
@@ -1367,6 +1375,7 @@ FReply UPawSkillTreeScreen::NativeOnMouseMove(const FGeometry& Geometry, const F
 		const FVector2D Here = Geometry.AbsoluteToLocal(Event.GetScreenSpacePosition());
 		Pan += Here - DragLast;
 		DragLast = Here;
+		bViewTouched = true;
 		ApplyTransform();
 		return FReply::Handled();
 	}

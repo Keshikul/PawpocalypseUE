@@ -18,4 +18,5 @@
 
 # Text stays text (C++, CSV, ini, Python, JSON, SVG, Markdown): diffable and editable by agents
 *.svg text
-*.csv text
+# CSVs stay LF on every checkout: a string table with CRLF doubles its line breaks, and Data/ is compared byte for byte
+*.csv text eol=lf

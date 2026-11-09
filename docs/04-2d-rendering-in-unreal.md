@@ -62,7 +62,7 @@ shade off its token is a bug.
    chromatic aberration, bloom, lens flare, motion blur, local exposure. Do NOT use `ShowFlag.Tonemapper 0` (kills the
    sRGB output path and other post-processing; Epic warning).
 4. **Textures**: sRGB on for colour art; compression chosen by spike S3 (BC7 vs uncompressed `UserInterface2D`).
-5. **The colour gate** (doc 09): a test map renders one flat swatch per palette entry (from `tools/palette.py`) through
+5. **The colour gate** (doc 09): a test map renders one flat swatch per palette entry (from `tools/art/palette.py`) through
    the real sprite material and the real post-process, reads the pixels back, and asserts every swatch within +/-2 per
    channel of the palette value. Negative-test it by enabling Tone Curve Amount 1 and watching it fail.
    **Readback, as proven by spike S1 (§10):** a `USceneCaptureComponent2D` on the game camera, `SCS_FinalColorLDR`,

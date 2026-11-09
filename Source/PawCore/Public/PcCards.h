@@ -41,10 +41,10 @@ namespace Pc
 	enum class PcCardHintKind : uint8_t
 	{
 		None,
-		Banished,         // "Removed from this run."
-		MaxLevel,         // "Already at its highest level."
+		Banished,         // "Banished this run."
+		MaxLevel,         // "At max level."
 		Requirement,      // REQUIREMENT_TEXT[Requirement]: its effect's, else its cost's, requirement is unmet
-		NotEnoughKittens, // "You do not have enough kittens to pay its price yet."
+		NotEnoughKittens, // "Needs more kittens."
 	};
 	struct PcCardHint
 	{

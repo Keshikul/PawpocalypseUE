@@ -44,7 +44,7 @@ namespace Pc
 			return 1.0 + Per * static_cast<double>(P.ReawakenCount);
 		}
 
-		// Reputation, Grudge Ledger and Body Count: ADDITIVE with each other and MULTIPLICATIVE with everything else. Three
+		// Reputation, Stacked Deck (grudge_ledger) and Body Count: ADDITIVE with each other and MULTIPLICATIVE with everything else. Three
 		// compounding terms multiplying each other would square and cube a long run.
 		double CompoundingMultiplier(const PcGameData& D, const PcProgress& P)
 		{

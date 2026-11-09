@@ -34,7 +34,11 @@ public:
 	//                   (phase 6 slice 5a: the chrome reaching assets baked before it);
 	//   props:Name      a piece's own settings (its native class's EditAnywhere properties: a button's label, its size)
 	//                   from the code layout into the asset's piece of that name (phase 6 slice 5b: the tabs' words gone);
+	//   slot:Name       its slot and tilt; text:Name a text's whole look; remove:Name the part and all under it (R4c);
+	//   wrap:Part>New   the asset's Part, with everything under it as the asset has it, moves into a copy of the code layout's
+	//                   panel New, which takes Part's place (R4h: the settings pages into a scroll box);
 	//   names:          lists the asset's widgets, Name(Class): changes nothing.
+	// All or nothing: one FAILED op and nothing is saved (R4d).
 	// A panel with children goes in too when the asset has none of them: made empty, then each child added into it (5b).
 	// A piece is a user widget: its properties go in, its own Blueprint draws it. Never touches anything
 	// not named. Returns one line per op ("added", "swapped", "restyled", "kept" when the asset already has it, "FAILED ...").

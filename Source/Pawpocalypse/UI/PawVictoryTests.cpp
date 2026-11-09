@@ -39,6 +39,7 @@
 #include "UI/PawUiKit.h"
 #include "UI/PawVictoryScreen.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
+#include "UI/PawTextTesting.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -165,6 +166,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawVictoryEndingTest, "Pawpocalypse.UI.Victory
 
 bool FPawVictoryEndingTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FVictoryWorld W;
 	if (!W.Open(*this))
 	{
@@ -190,7 +194,8 @@ bool FPawVictoryEndingTest::RunTest(const FString& Parameters)
 	if (V)
 	{
 		TestEqual(TEXT("headline"), S(V->GetHeadlineText()), FString(TEXT("THE VOID IS QUIET")));
-		TestEqual(TEXT("flavour"), S(V->GetFlavourText()), FString(TEXT("You have killed the last thing that moved.\nThe cat is unimpressed.")));
+		// Designer 2026-11-08: no "unimpressed" cat (Godot still has the second line: port finding F43).
+		TestEqual(TEXT("flavour"), S(V->GetFlavourText()), FString(TEXT("You have killed the last thing that moved.")));
 		TestEqual(TEXT("the run time"), S(V->GetTimeText()), FString(TEXT("Cleared in 1h 10m 00s")));
 		TestTrue(TEXT("OK takes the focus"), V->GetDesiredFocusTarget() == V->GetOkButton());
 		TestEqual(TEXT("OK"), S(V->GetOkButton()->GetLabel()), FString(TEXT("OK")));

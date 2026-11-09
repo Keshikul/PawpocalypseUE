@@ -41,6 +41,7 @@
 #include "UI/PawSettingsDialog.h"
 #include "UI/PawWidgets.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
+#include "UI/PawTextTesting.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -344,6 +345,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawControlsGodotTest, "Pawpocalypse.UI.Control
 
 bool FPawControlsGodotTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FControlsWorld W;
 	if (!W.Open(*this))
 	{
@@ -538,6 +542,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawControlsDialogTest, "Pawpocalypse.UI.Contro
 
 bool FPawControlsDialogTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FControlsWorld W;
 	if (!W.Open(*this))
 	{

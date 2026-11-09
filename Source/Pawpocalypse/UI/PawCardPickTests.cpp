@@ -39,6 +39,7 @@
 #include "UI/PawTokens.h"
 #include "UI/PawUiConstants.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
+#include "UI/PawTextTesting.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -141,6 +142,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawPickOpensTest, "Pawpocalypse.UI.CardPick.Op
 
 bool FPawPickOpensTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FPickWorld W;
 	if (!W.Open(*this))
 	{
@@ -253,6 +257,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawPickLookTest, "Pawpocalypse.UI.CardPick.Loo
 
 bool FPawPickLookTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FPickWorld W;
 	if (!W.Open(*this))
 	{

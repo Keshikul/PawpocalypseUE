@@ -1,0 +1,284 @@
+table,key,text,godot,note
+ST_UI,SHOP_kitten_power_locked,Kitten Power — buy Kitten Count first\nIncreases kitten damage,"Kitten Power — buy a Kitten first
+it multiplies kittens you own",
+ST_UI,SHOP_kitten_speed_locked,Kitten Speed — buy Kitten Count first,Kitten Speed — buy a Kitten first,
+ST_UI,BOSS_shielded,SHIELDED: damage blocked,"SHIELDED, damage is not landing",
+ST_UI,BOSS_out_of_time,{boss} — OUT OF TIME. It left and your Bait is spent.,"{boss} — OUT OF TIME. It leaves, and so does your bait.",
+ST_UI,BOSS_defeated_first,{boss} DEFEATED\nEvolution Stage {n}: new biomes unlocked.,"{boss} DEFEATED
+Evolution Stage {n} — new realms are open.",
+ST_UI,REALMS_hint,"5 biomes have a boss. Buy its Bait to summon it. If the timer runs out, it leaves and the Bait is spent.","Five biomes hold a boss. Buy its Bait and it comes to you — if the timer runs out it leaves, and the Bait is spent.",
+ST_UI,REAWAKEN_blurb,Resets Catnip and upgrades. Stardust increases damage permanently. Spend it in the skill tree after you Reawaken.,Reawakening ends this life. Catnip and every base upgrade reset. Stardust raises your permanent damage multiplier and buys skill branches — and the tree can only be bought from in the screen that follows a Reawaken.,
+ST_UI,REAWAKEN_progress_first,{earned} / {required} to your first Reawaken,{earned} / {required} earned toward your first Reawaken,
+ST_UI,REAWAKEN_progress_later,{earned} / {required} suggested. You can Reawaken now.,{earned} / {required} — suggested point to Reawaken (you may go now),
+ST_UI,REAWAKEN_multiplier,Damage multiplier x{now}  →  x{after},Damage multiplier {now}x  →  {after}x,
+ST_UI,REAWAKEN_unicorn,Unicorn unlocked: Rainbow Poop active,The Unicorn has awakened — Rainbow Poop active,
+ST_UI,REAWAKEN_button_confirm,Confirm: reset this run,Confirm — this resets your life,
+ST_UI,REAWAKEN_button_early,Reawaken early: +{amount},Reawaken early — cash out +{amount},
+ST_UI,REAWAKEN_button_not_yet,Too early: only +{amount},Not worth it yet — only +{amount},
+ST_UI,CATCHES_none,No cards taken this run. Kill enemies to level up.,No cards taken yet this life. Catch mice to fill Catches.,
+ST_UI,CATCHES_taken_one,{n} card taken this run.,{n} card taken this life.,
+ST_UI,CATCHES_taken,{n} cards taken this run.,{n} cards taken this life.,
+ST_UI,CATCHES_hint_banished,Banished this run.,Removed from this run.,
+ST_UI,CATCHES_hint_max,At max level.,Already at its highest level.,
+ST_UI,CATCHES_hint_kittens,Needs more kittens.,You do not have enough kittens to pay its price yet.,
+ST_UI,CATCHES_hint_aura,Needs the Aura skill.,Buy the Aura branch in the skill tree.,
+ST_UI,CATCHES_hint_pounce,Needs the Pounce skill.,Buy the Pounce branch in the skill tree.,
+ST_UI,CATCHES_hint_overkill,Needs the Overkill skill.,Buy the Overkill branch in the skill tree.,
+ST_UI,CATCHES_hint_poop,Needs the Rainbow Poop skill.,Buy the Rainbow Poop branch in the skill tree.,
+ST_UI,CATCHES_hint_kitten,Needs 1 kitten.,Have at least one kitten.,
+ST_UI,CATCHES_hint_kitten_pounce,Needs 1 kitten and the Pounce skill.,Have at least one kitten and the Pounce branch.,
+ST_UI,JOBS_blurb,Wear 1 job at a time. Most jobs have a downside.,One at a time. Every one of them costs you something.,
+ST_UI,JOBS_no_node,Locked — no skill unlocks this yet.,Locked — no skill tree node grants this yet.,
+ST_UI,JOBS_closed,Locked — you took {branch}.,Closed — you took {branch} instead.,
+ST_UI,JOBS_boss_gate,Locked — defeat the boss in {biome} first.,"Locked — beat the boss in {biome}, then buy it in the skill tree.",
+ST_UI,PICK_subtitle,Take 1 card.,Take one. You are not owed a good hand.,
+ST_UI,PICK_foresight,{subtitle}\nNext hand: {cards},"{subtitle}
+Next hand will hold: {cards}",
+ST_UI,PICK_costs,This card has a downside.,This one costs you something.,
+ST_UI,PICK_flavour_zone,FIELD,GROUND,
+ST_UI,PICK_flavour_fortune,CATNIP,SPOILS,
+ST_UI,PICK_flavour_deck,CARDS,THE DECK,
+ST_UI,TREE_warn_unspent,You have unspent Stardust.\nPress again to leave.,"You still have Stardust to spend.
+Press again to leave anyway.",
+ST_UI,TREE_closed,Locked — you took {branch}.,Closed — you took {branch}.,
+ST_UI,JOBPICK_note,Fixed for this run. Change it at your next Reawaken.,Locked for this run. You may change it at your next Reawaken.,
+ST_UI,JOBPICK_none_blurb,No effect.,A bare neck. Every trade in the list is measured against this.,
+ST_UI,JOBPICK_no_second_blurb,Wear 1 job only.,"Wear one and only one. Union Rules is an option, not an obligation.",
+ST_UI,VICTORY_headline,VICTORY,THE VOID IS QUIET,
+ST_UI,VICTORY_flavour,You defeated the final boss.,You have killed the last thing that moved.,Replaces last night's interim line (the 'unimpressed' fix).
+ST_UI,TITLE_status_found,"Save found — {n} Reawakens, {mice} enemies killed.","Save found — {n} Reawakens, {mice} mice caught.",
+ST_UI,TITLE_status_found_one,"Save found — {n} Reawaken, {mice} enemies killed.","Save found — {n} Reawaken, {mice} mice caught.",
+ST_UI,TITLE_leaderboard_rank,Ranked by time to defeat the final boss. Only your first win counts.,"Runs will be ranked by time to the final boss — the clock stops the moment the last boss falls, and only a first clear counts. A rematch is not a faster run.",
+ST_UI,TITLE_leaderboard_offline,The leaderboard is not online yet. Your time is saved on this PC.,"The board is not connected yet, so nothing here leaves your machine. Your time is already being recorded against that day.",
+ST_UI,TITLE_leaderboard_before_clock,No time recorded: you won before the run clock was added.,"You cleared the final boss before the run clock existed, so there is no time to show for it.",
+ST_UI,TITLE_leaderboard_not_yet,You have not defeated the final boss yet.,You have not cleared the final boss yet.,
+ST_UI,TITLE_delete_prompt,Delete slot {slot}?\n\nReawaken {n} · {time} played\nCannot be undone.,"Delete slot {slot}?\n\nReawaken {n}, {time} played.\nThis cannot be undone.",
+ST_UI,SETTINGS_master,Master volume  {n}%,Master Volume: {n}%,Matches Music and Sound Effects (no colon).
+ST_UI,SETTINGS_video_note,The interface keeps its size at every resolution. Resolution applies in windowed mode.,"The game renders at a fixed internal resolution and scales to the window, so the interface stays the same size at every setting. Resolution applies in windowed mode.",
+ST_UI,SETTINGS_prompts_note,Auto shows the buttons of the device you used last.,"Auto shows the buttons of whatever you touched last: keyboard and mouse, or a controller.",
+ST_UI,SETTINGS_dock_note,Put the menu on the side of your free hand.,"Put the menu on the side of your free hand, the one that is not on the mouse.",
+ST_UI,CONTROLS_line_nothing,Nothing changed.,"Nothing pressed, nothing changed.",
+ST_UI,CONTROLS_line_taken,Already in use.,That one is taken.,
+ST_UI,INPUT_toast_pad_audio,"Controller added a sound device.\nIf there is no sound, set Settings > Audio > Output.","The controller added a sound device. No sound? Pick your speakers in Settings, Audio, Output.",
+ST_UI,TITLE_mice_m,{n}M kills,{n}M mice,mice -> enemies (designer 2026-11-09); was: {n}M mice
+ST_UI,TITLE_mice_k,{n}K kills,{n}K mice,mice -> enemies (designer 2026-11-09); was: {n}K mice
+ST_UI,TITLE_mice,{n} kills,{n} mice,mice -> enemies (designer 2026-11-09); was: {n} mice
+ST_Data,JOB_blacksmith_desc,Paw damage x2.5. Aura radius x0.5.,All shoulder and no reach. What you can actually touch gets flattened; everything past arm's length is somebody else's problem.,
+ST_Data,JOB_daredevil_desc,Pounce damage x4. Pounce lock: you cannot move for 3s after each Pounce.,"Commits absolutely. The Pounce lands four times over, and then you stand in the crater for three seconds while the world catches up.",
+ST_Data,JOB_town_crier_desc,Aura radius x1.6. Aura damage x0.65.,"Bellows across the whole yard. Everything for streets around knows you are coming, and none of it is especially frightened.",
+ST_Data,JOB_magician_desc,Aura damage x2.2. Kittens deal no damage.,"Works alone, obviously. Whatever is up that sleeve burns everything nearby, and the kittens have made it clear they will not be assisting.",
+ST_Data,JOB_engineer_desc,+1 card in every hand. Damage x0.8.,Turns up with a clipboard and three options you had not considered. One more card at every level. Cannot punch.,Godot's tree text also says every card arrives a level higher: the job has no such effect (that is Prototype). Finding F45.
+ST_Data,JOB_unemployed_desc,Damage x1.1. Catnip x1.1. No downside.,"The cat has reviewed the available positions and declined all of them. Ten percent more of everything, purely out of spite.",
+ST_Data,JOB_cat_burglar_desc,Catnip x1.8. Damage x0.7.,"Takes what is not nailed down. Far more Catnip from everything, and you hit a good deal softer for it.",
+ST_Data,JOB_sphinx_desc,"Crit chance +10%, then x3. Crit damage x2.5. Attack speed x0.5.","Strikes rarely and enormously. Three times the crit chance, crits two and a half times as hard, and swung at half the speed.",+10% is added before the x3 (game_state.gd get_job_crit_chance_bonus).
+ST_Data,JOB_tax_collector_desc,Catnip x2.5. Kitten damage x0.4.,"Everything is owed to you. Two and a half times the Catnip, and the kittens barely scratch.",
+ST_Data,JOB_ratcatcher_desc,Spawn rate x2. Enemy health x1.6.,"Calls them in. Twice as many arrive, and every one of them is half again as hard to put down.",
+ST_Data,CARD_bloodlust_desc,Each kill reduces Pounce cooldown by {v}s.,Every kill takes {v}s off your Pounce cooldown.,
+ST_Data,CARD_bounty_desc,Signature enemies give x{v} Catnip.,Signature enemies pay {v}x Catnip.,
+ST_Data,CARD_catnip_bomb_desc,Every {v}th kill drops a Catnip bomb: 4s of aura damage.,Every {v}th kill drops a catnip bomb.,"4s of aura damage, 240px (catnip_bomb_damage_seconds)."
+ST_Data,CARD_chain_pounce_desc,Pounce jumps to {v} more enemies.,Pounce leaps on to {v} more enemies before it lands.,
+ST_Data,CARD_close_quarters_desc,"Every 6s, the aura deals {v}s of its damage at once. Aura radius x{c}.","Your aura detonates for {v} seconds of damage, but shrinks to {c}x its radius.",
+ST_Data,CARD_compound_interest_desc,Each level up gives interest: x{v} your Catnip.,Every level pays out {v}x your banked Catnip as interest.,
+ST_Data,CARD_dilated_desc,+{v} cards in every hand.,See {v} more cards every time you level up.,
+ST_Data,CARD_ember_trail_desc,Moving leaves a burning trail: x{v} your damage.,"Your aura leaves a burning trail behind you, dealing {v}x your aura damage.","The trail is a damage zone: your whole damage, not the aura (the old text said aura)."
+ST_Data,CARD_feral_focus_desc,Pounce leaves a burning crater: x{v} your damage. Aura radius x{c}.,"Pounce craters burn for {v}x your damage, but the aura shrinks to {c}x.",
+ST_Data,CARD_fixation_desc,Your next {v} hands only offer cards you own.,Your next {v} hands are dealt only from cards you already own.,
+ST_Data,CARD_giblets_desc,Enemies killed by kittens explode for x{v} their max health.,"Enemies your kittens kill burst, dealing {v}x their own health to everything nearby.",
+ST_Data,CARD_gilded_kitten_desc,1 kitten turns gold: x{v} damage.,One kitten turns gold and hits {v}x as hard as its siblings.,
+ST_Data,CARD_gold_rush_desc,Golden enemies spawn x{v} as often.,Golden enemies turn up {v}x as often.,
+ST_Data,CARD_hoarder_desc,Each level up gives interest: x{v} your Catnip. Kills give x{c} Catnip.,"Levelling up pays {v}x your bank as interest, but kills pay only {c}x Catnip.",
+ST_Data,CARD_hot_borders_desc,Enemies near the edge burn for x{v} aura damage.,"Enemies near the edge of the area burn for {v}x your aura damage, so strays are not simply lost.",
+ST_Data,CARD_lingering_rainbow_desc,Rainbow Poop lasts {v}s longer.,Rainbow puddles stay for {v} seconds longer.,
+ST_Data,CARD_lone_hunter_desc,1 kitten turns gold: x{v} damage. You lose {c} kittens.,One kitten turns gold and hits {v}x as hard. The other {c} wander off.,
+ST_Data,CARD_not_that_one_desc,Banish {v} cards from this run's deck.,Remove {v} cards from this run's deck for good.,
+ST_Data,CARD_notoriety_desc,Signature enemies spawn x{v} as often.,Signature enemies turn up {v}x as often.,
+ST_Data,CARD_peer_pressure_desc,"When you Pounce, each kitten pounces for x{v} your Pounce damage.","When you Pounce, every kitten pounces its own target for {v}x your Pounce damage.",
+ST_Data,CARD_rainbow_trail_desc,Walking leaves Rainbow Poop every {v}s.,You leave a rainbow puddle every {v} seconds just by walking.,
+ST_Data,CARD_rigor_desc,Enemies in your aura move at x{v} speed.,Enemies caught in your aura crawl at {v}x speed.,
+ST_Data,CARD_scavenger_desc,Escaped enemies still give x{v} their Catnip.,Enemies that wander off still pay {v}x their Catnip instead of being lost.,
+ST_Data,CARD_scorched_landing_desc,Pounce leaves a burning crater: x{v} your damage.,Pounce leaves a crater that burns for {v}x your damage.,
+ST_Data,CARD_slow_burn_desc,Enemies near the edge burn for x{v} aura damage. Spawn rate x{c}.,"The edges burn for {v}x your aura damage, but only {c}x as many enemies spawn.",
+ST_Data,CARD_spite_desc,+{v} rerolls.,Gain {v} rerolls of the cards you are offered.,
+ST_Data,CARD_stampede_desc,Every {v}th kill drops a Catnip bomb. Enemies move at x{c} speed.,"Every {v}th kill drops a catnip bomb, but enemies move at {c}x speed.",
+ST_Data,CARD_thunderclap_desc,"Every 6s, the aura deals {v}s of its damage at once.",Every few seconds your aura detonates for {v} seconds of damage at once.,
+ST_Data,SKILL_grudge_ledger_name,Stacked Deck,Grudge Ledger,Placeholder: pick a name on the review page.
+ST_Data,ACH_boss_1_desc,Reward: 4 Stardust,Reward: 4,Names the currency.
+ST_Data,ACH_boss_2_desc,Reward: 7 Stardust,Reward: 7,Names the currency.
+ST_Data,ACH_boss_3_desc,Reward: 9 Stardust,Reward: 9,Names the currency.
+ST_Data,ACH_br_instinct_5_desc,Reward: 2 Stardust,Reward: 2,Names the currency.
+ST_Data,ACH_br_unicorn_1_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_br_unicorn_5_desc,Reward: 4 Stardust,Reward: 4,Names the currency.
+ST_Data,ACH_br_vitality_5_desc,Reward: 2 Stardust,Reward: 2,Names the currency.
+ST_Data,ACH_catnip_1000_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_catnip_100000_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_catnip_10000000_desc,Reward: 2 Stardust,Reward: 2,Names the currency.
+ST_Data,ACH_catnip_1000000000_desc,Reward: 5 Stardust,Reward: 5,Names the currency.
+ST_Data,ACH_catnip_100000000000_desc,Reward: 9 Stardust,Reward: 9,Names the currency.
+ST_Data,ACH_kills_1_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_kills_100_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_kills_1000_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_kills_10000_desc,Reward: 2 Stardust,Reward: 2,Names the currency.
+ST_Data,ACH_kills_1000000_desc,Reward: 12 Stardust,Reward: 12,Names the currency.
+ST_Data,ACH_kills_200000_desc,Reward: 6 Stardust,Reward: 6,Names the currency.
+ST_Data,ACH_kills_50000_desc,Reward: 3 Stardust,Reward: 3,Names the currency.
+ST_Data,ACH_reawaken_1_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_reawaken_12_desc,Reward: 7 Stardust,Reward: 7,Names the currency.
+ST_Data,ACH_reawaken_2_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_reawaken_3_desc,Reward: 2 Stardust,Reward: 2,Names the currency.
+ST_Data,ACH_reawaken_5_desc,Reward: 2 Stardust,Reward: 2,Names the currency.
+ST_Data,ACH_reawaken_8_desc,Reward: 4 Stardust,Reward: 4,Names the currency.
+ST_Data,ACH_stage_2_desc,Reward: 2 Stardust,Reward: 2,Names the currency.
+ST_Data,ACH_stage_3_desc,Reward: 4 Stardust,Reward: 4,Names the currency.
+ST_Data,ACH_stage_4_desc,Reward: 6 Stardust,Reward: 6,Names the currency.
+ST_Data,ACH_up_aura_radius_15_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_up_currency_find_25_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_up_kitten_count_10_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_up_kitten_power_25_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_up_kitten_speed_20_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_up_overkill_15_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_up_paw_damage_20_desc,Reward: 1 Stardust,Reward: 1,Names the currency.
+ST_Data,ACH_up_paw_damage_60_desc,Reward: 3 Stardust,Reward: 3,Names the currency.
+ST_Data,ACH_up_pounce_power_20_desc,Reward: 2 Stardust,Reward: 2,Names the currency.
+ST_Data,ACH_up_shield_pierce_15_desc,Reward: 2 Stardust,Reward: 2,Names the currency.
+ST_Data,ACH_up_spawn_rate_20_desc,Reward: 2 Stardust,Reward: 2,Names the currency.
+ST_Tree,TREE_job_blacksmith_blurb,Paw damage x2.5. Aura radius x0.5.,All shoulder and no reach. What you can touch is flattened; the aura shrinks to half.,
+ST_Tree,TREE_job_daredevil_blurb,Pounce damage x4. Pounce lock: you cannot move for 3s after each Pounce.,"Commits absolutely. Pounce lands four times over, then you stand still for three seconds.",
+ST_Tree,TREE_job_town_crier_blurb,Aura radius x1.6. Aura damage x0.65.,Heard for streets around. A far wider aura that hits for a good deal less.,
+ST_Tree,TREE_job_magician_blurb,Aura damage x2.2. Kittens deal no damage.,Works alone. The aura more than doubles and the kittens stop dealing damage entirely.,
+ST_Tree,TREE_job_engineer_blurb,+1 card in every hand. Damage x0.8.,"Turns up with a clipboard. One more card in every hand, and every card taken arrives a level higher, for a fifth of your damage.",Godot's tree text also says every card arrives a level higher: the job has no such effect (that is Prototype). Finding F45.
+ST_Tree,TREE_job_unemployed_blurb,Damage x1.1. Catnip x1.1. No downside.,"Declined every position. Ten percent more of everything, and it costs nothing at all.",
+ST_Tree,TREE_job_cat_burglar_blurb,Catnip x1.8. Damage x0.7.,"Takes what is not nailed down. Far more Catnip from everything, and you hit a good deal softer for it.",
+ST_Tree,TREE_job_sphinx_blurb,"Crit chance +10%, then x3. Crit damage x2.5. Attack speed x0.5.","Strikes rarely and enormously. Three times the crit chance, crits two and a half times as hard, and swung at half the speed.",+10% is added before the x3 (game_state.gd get_job_crit_chance_bonus).
+ST_Tree,TREE_job_tax_collector_blurb,Catnip x2.5. Kitten damage x0.4.,"Everything is owed to you. Two and a half times the Catnip, and the kittens barely scratch.",
+ST_Tree,TREE_job_ratcatcher_blurb,Spawn rate x2. Enemy health x1.6.,"Calls them in. Twice as many arrive, and every one of them is half again as hard to put down.",
+ST_Tree,TREE_claws_blurb,Increases damage. +15% to +130% and x1.06 to x1.75 over 10 levels.,"Adds to your damage and multiplies it — paw and aura alike. Two brackets in one node: the flat bonus sums with itself, the multiplier rides on top.",
+ST_Tree,TREE_instinct_blurb,Increases kitten damage. +35% to +350% over 10 levels.,"Adds to every kitten's damage. Scales with how many kittens you own, so it pairs with Vitality.",
+ST_Tree,TREE_vitality_blurb,Adds kittens. They attack enemies on their own. +1 to +10 over 10 levels.,"More kittens, permanently. They hunt on their own and keep earning while you aim elsewhere.",
+ST_Tree,TREE_unlock_aura_blurb,Unlocks the aura: it damages every enemy inside its radius. Unlocks the Aura Radius upgrade.,"Gives you the AURA: everything inside your reach takes continuous damage, instead of one mouse at a time. Its Aura Radius shop line appears once you own it.",
+ST_Tree,TREE_aura_damage_blurb,Increases aura damage. x1.18 to x3 over 10 levels.,Makes the aura hurt more. Needs the Aura.,
+ST_Tree,TREE_aura_reach_blurb,Increases aura radius permanently. x1.08 to x2 over 10 levels.,Permanently widens the aura. The shop line does the same thing for one run; this one keeps it.,
+ST_Tree,TREE_unlock_pounce_blurb,Unlocks Pounce ({pounce}): 2s of your damage at once. x5 on an enemy whose shield is down.,"Teaches you to POUNCE — a burst on {pounce}, worth more if you time it into a vulnerable window. Its two shop lines appear once you own it.","x5 = pounce_vulnerable_multiplier, on enemies with a shield cycle whose shield is down."
+ST_Tree,TREE_pounce_blurb,Increases Pounce damage. x1.18 to x2.9 over 10 levels.,Makes each Pounce hit harder. Needs Pounce.,
+ST_Tree,TREE_unlock_reflex_blurb,"Pounce fires automatically when ready, at x1.1 damage. It gets no x5 shield bonus.","Pounce fires itself the moment it is ready, and you earn more while the game is shut. The auto-fired burst is worth less than one you timed yourself — that is the trade.",Godot's text promises more earnings while the game is shut: offline earnings were removed 2026-09-10. Finding F44.
+ST_Tree,TREE_unlock_overkill_blurb,Unlocks overkill: damage past a kill. 2% of it hits the nearest enemy.,Damage past a mouse's last hit point splashes onto the nearest survivor instead of evaporating.,
+ST_Tree,TREE_overkill_blurb,Increases the overkill that hits the nearest enemy. +4.5% to +28% over 10 levels.,Raises the share that splashes. Needs Overkill.,
+ST_Tree,TREE_unlock_unicorn_blurb,The cat rides the Unicorn. Unlocks the Unicorn skills.,"The cat rides a unicorn now, as is its right. Opens everything the Unicorn can be made to do.",
+ST_Tree,TREE_unlock_poop_blurb,"Unlocks Rainbow Poop: every 8s, a puddle that damages enemies for 3s.",Unlocks Rainbow Poop. It is exactly as unpleasant as it sounds and it kills things.,
+ST_Tree,TREE_unicorn_blurb,Increases Rainbow Poop damage. x1.3 to x4 over 10 levels.,Multiplies Rainbow Poop's damage. Needs Rainbow Poop.,
+ST_Tree,TREE_fortune_blurb,"Increases Catnip per kill and Golden enemies. Catnip x1.038 to x1.268, Golden chance +0.5% to +5%.","Every mouse is worth more Catnip, and Golden Mice turn up more often. It does not make you kill faster — it makes the killing pay.",
+ST_Tree,TREE_legacy_blurb,"Each run starts ahead. Keep 5% to 50% of your Catnip. Upgrades start at Lv 2 to 26, in biome 2 to 6.","The next run starts further along: you keep a share of your Catnip, your shop lines start already levelled, and you open in a deeper biome. Only ever as deep as you have already earned.","Biome 2 to 6, never deeper than you have reached."
+ST_Tree,TREE_unlock_snare_blurb,Ground enemies move 40% slower everywhere. Fliers are not slowed.,Everything on the ground moves like it is wading. Not just inside your reach — the whole floor is yours. Fliers do not care.,
+ST_Tree,TREE_deadweight_blurb,Increases the Snare slow. 44% to 80% over 10 levels.,The wading gets worse. At the last rung a mouse on the ground barely moves at all.,
+ST_Tree,TREE_funnel_blurb,An enemy about to escape turns back. 1 to 3 times per enemy over 10 levels.,A mouse about to wander off the edge is turned back instead. Roughly a third of everything that spawns currently leaves without paying you.,
+ST_Tree,TREE_play_with_food_blurb,Enemies killed below 20% health give more Catnip. x1.1 to x2 over 10 levels.,A mouse you finish off while it is already nearly dead pays more. Bat it around first.,
+ST_Tree,TREE_unlock_prism_blurb,The Unicorn fires a beam at the nearest enemy. It deals 35% of your aura damage.,"The horn fires a continuous beam at whatever is nearest. It is a share of your AURA, so every point you have ever put into the aura is already in it.",
+ST_Tree,TREE_refraction_blurb,A beam kill jumps to the next enemy. 1 to 5 jumps over 10 levels.,When the beam kills something it jumps to the next thing. And the next.,
+ST_Tree,TREE_spectrum_blurb,Beam kills give more Catnip. x1.15 to x2.5 over 10 levels.,Anything the beam finishes off pays more. The only thing in the game that makes you want a mouse to stay alive one more second.,
+ST_Tree,TREE_unlock_full_spectrum_blurb,The beam sweeps and damages every enemy it crosses.,"The beam stops picking targets and simply sweeps, hitting everything it crosses.",
+ST_Tree,TREE_critical_mass_blurb,Beam kills drop shards. Every 10 shards: 50% to 320% of aura damage to all enemies.,Beam kills leave shards. Enough shards and the whole screen goes off at once.,Shards: 10 per burst (prism_shards_per_detonation).
+ST_Tree,TREE_dent_blurb,Increases Shred per stack. +0.5% to +5% over 10 levels. Doubles the Shred upgrade's cap.,"Every hit leaves a dent, and dents stack. Doubles the ceiling the shop's own Shred line stops at.",
+ST_Tree,TREE_overtime_blurb,Start each run with extra rerolls. +1 to +5 over 5 levels.,You are still here. Every run starts with rerolls in hand - the one part of the card economy no shop line sells.,
+ST_Tree,TREE_severance_blurb,Increases damage for each Reawaken done. +1% to +5% per Reawaken over 10 levels.,They owe you for every life you have already given them. Damage rises with every Reawaken on the save.,
+ST_Tree,TREE_traps_blurb,Increases damage to snared enemies. x1.1 to x2 over 10 levels.,The floor is the weapon. Anything wading through your Snare takes far more from everything you have.,
+ST_Tree,TREE_compound_blurb,Each new wave pays interest on your Catnip. +0.2% to +2% over 10 levels.,Catnip you have not spent works for you. A share of the bank is paid back every time the wave turns over.,
+ST_Tree,TREE_momentum_blurb,Each kill shortens the Pounce lock. -0.05s to -0.5s per kill over 10 levels.,"The Cone of Shame is a countdown, not a sentence. Every kill you make while rooted cuts it short.",
+ST_Tree,TREE_carry_blurb,"Standing still increases aura radius, in full after 3s. +5% to +50% over 10 levels.","Hold still and the sound carries. Your reach grows the longer you stay put, and resets the moment you move.",
+ST_Tree,TREE_misdirection_blurb,Ground enemies drift toward you. 10% to 100% strength over 10 levels.,Look over there. Ground mice wander toward you instead of away - the crowd the Magician gave up its kittens to gather.,
+ST_Tree,TREE_fence_blurb,"Each kill this wave increases Catnip per kill, up to 100 kills. +0.2% to +2% per kill.",Every job needs a buyer. Catnip climbs with each kill this wave and starts over when the wave turns.,
+ST_Tree,TREE_patience_blurb,Increases crit damage for each halving of attack speed. +20% to +200% over 10 levels.,"The slower the swing, the worse it lands. Crit damage rises with everything that has made you slow.",
+ST_Tree,TREE_pickpocket_blurb,Escaped enemies still give Catnip. 5% to 50% of it over 10 levels.,Nothing leaves with its pockets full. Mice that wander off still pay you a share on the way out.,
+ST_Tree,TREE_long_lunch_blurb,"Standing still banks Catnip, in full after 10s. Your next kill adds 0.5 to 5 kills' worth.",Stand around long enough and it adds up. The bank empties into your next kill.,
+ST_Tree,TREE_levy_blurb,Every 100th kill gives x20 to x200 Catnip over 10 levels.,Everyone pays eventually. Every hundredth kill settles up in a lump.,
+ST_Tree,TREE_infestation_blurb,"Each kill increases spawn rate by 10% to 100%, up to +200%. It fades by 35% per second.","Word gets around. Every kill brings more of them, and the rush fades if you stop.","Cap +200% (infestation_ceiling 2.0), fades 0.35 a second."
+ST_Tree,TREE_sleight_of_hand_blurb,An enemy vanishes every 20s to 6s over 10 levels. Bosses never vanish.,Nothing up your sleeve. Every so often one of them is simply not there any more - bosses excepted.,3 to 10 vanishings a minute.
+ST_Tree,TREE_anvil_paw_blurb,Some paw attacks hit twice. 5% to 50% of attacks over 10 levels.,"Some swings land twice. No warning, no wind-up - the second one is simply already there.",
+ST_Tree,TREE_crash_landing_blurb,"During the Pounce lock, the ground under you burns. 20% to 200% of your damage.","You do not land, you arrive. The ground you are rooted to burns for as long as you are stuck on it.",Lasts as long as the Pounce lock; your whole damage (damage zone).
+ST_Tree,TREE_echo_blurb,A second aura trails 1s behind you. 10% to 100% of your damage over 10 levels.,"The sound gets there a moment after you do. A second, weaker ring keeps working where you just were.","Damage zones are priced on your whole damage, not the aura (tier_controller.gd _resolve_damage_zones)."
+ST_Tree,TREE_riddle_blurb,"After a crit, the next paw attack can kill instantly. 5% to 50% chance over 10 levels.",A crit asks a question. Whatever the paw touches next does not get to answer it.,
+ST_Tree,TREE_blueprint_blurb,See part of the next hand while you choose. 1 to 3 cards over 3 levels.,You have seen the plans. Part of the next hand is already known while you choose from this one.,
+ST_Tree,TREE_butchers_rhythm_blurb,Every 10th attack is a crit. Switching targets keeps the count.,"You find the beat and keep it. Every tenth swing crits without asking, and switching targets does not lose your place.",
+ST_Tree,TREE_standing_wave_blurb,"Every 6s, the aura deals 1s of its damage at once.",The aura stops humming and starts pulsing. Everything inside takes the beat.,
+ST_Tree,TREE_sixth_sense_blurb,Marks where the next signature enemy will spawn.,You know before they do. The next thing worth worrying about is marked where it will arrive.,
+ST_Tree,TREE_compound_interest_blurb,Gain 1% of your Catnip every minute.,"Catnip you leave alone quietly grows, on the clock rather than on the kill.",
+ST_Tree,TREE_gridlock_blurb,Fliers near snared enemies move at 60% speed.,The tangle spreads upward. Fliers that stray over the snared get dragged down into it - the only thing in the game that reaches them from the ground.,
+ST_Tree,TREE_hammerfall_blurb,Paw attacks also hit up to 3 enemies behind the target.,"The swing does not stop at the first one. Whatever is lined up behind it gets the same blow - the aura you gave up, as a line.",
+ST_Tree,TREE_crowd_work_blurb,+4% aura damage for each enemy inside the aura.,"You play to the room. The fuller the aura, the harder everything in it is hit.",
+ST_Tree,TREE_cat_burglars_cut_blurb,Overkill gives extra Catnip: up to +100% of the kill's Catnip.,Nothing is wasted. Damage that spilled past a kill comes back as Catnip.,"Pays 50% of the kill's Catnip per 100% overkill, capped at 200% overkill."
+ST_Tree,TREE_inscrutable_blurb,"Crits come on a fixed count, not at random. Same average.","Crits stop being luck. The same chance is spent on a fixed cadence instead - no better on average, and never a cold streak again.",
+ST_Tree,TREE_pied_piper_blurb,"Enemies spawn in a ring 280px around you, not at the edges.",They come to you now. Mice arrive in a ring around the cat instead of walking in from the edges.,
+ST_Tree,TREE_nine_lives_insurance_blurb,A Pounce that kills nothing has no cooldown.,Read the small print. A Pounce that rooted you and killed nothing costs no cooldown at all.,
+ST_Tree,TREE_grand_finale_blurb,"Kittens return, without damage. They pull enemies near them into your aura.","The kittens come back, and they are not really there. They do no damage - they simply herd everything into your aura.",
+ST_Tree,TREE_union_rules_blurb,"Wear a second job at 50% strength, upsides and downsides.","Nobody said one job. Wear a second, at half its effect, good and bad alike.",
+ST_Tree,TREE_audit_blurb,"Buy a boss's Bait with Catnip, at x3 its Catnip price.",The bait was always a paperwork problem. Pay the boss's summons in Catnip and skip the grind entirely.,
+ST_Tree,TREE_prototype_blurb,1 card in every hand is 1 level higher.,"One card in every hand comes off the bench early, already a level ahead.",
+ST_Tree,TREE_swarm_blurb,Increases spawn rate. x1.1 to x2.5 over 10 levels. Stacks with the Spawn Rate upgrade.,Word gets out. They arrive far faster than the neighbourhood alone would send them - and this keeps climbing after the shop's Spawn Rate has nothing left to sell.,
+ST_Tree,TREE_auto_travel_blurb,Travel to the next biome when it unlocks. You can turn it off in Realms.,You stop waiting for permission. The moment the next biome opens you are already in it - and you can still switch it off if you want to linger.,
+ST_Tree,TREE_auto_bait_blurb,Summons the boss as soon as you have its Bait. Never during a fight.,"The boss is summoned the instant you can afford it. Never mid-fight, and never without the Bait in hand.",
+ST_Tree,TREE_auto_card_blurb,Cards are picked for you without pausing. You can turn it off in Catches.,A card is taken for you rather than stopping the game to ask. The pick screen only appears when you want it to.,
+ST_Tree,TREE_swarm_logic_blurb,Increases damage while 40 or more enemies are on screen. x1.05 to x1.6 over 10 levels.,"A full room is easier, not harder. Everything you do hits harder while forty or more of them are on the floor.",
+ST_Tree,TREE_last_stand_blurb,Increases damage while under 5 enemies are on screen. x1.2 to x3 over 10 levels.,"And an empty one is personal. With fewer than five left you hit vastly harder - which is the exact opposite of Swarm Logic, and there is a gap in the middle where neither helps.",
+ST_Tree,TREE_overflow_blurb,Overkill of 10 times an enemy's health drops a Catnip bomb.,Some kills are excessive. Overshoot a mouse by ten times its own health and the leftovers go off where it stood.,
+ST_Tree,TREE_reputation_blurb,+0.5% to +5% damage per wave in this biome. Resets when you travel.,"They start to know your name. Damage climbs with every wave you survive here, and travelling loses all of it.",
+ST_Tree,TREE_grudge_ledger_blurb,+1% to +10% damage per card taken this run. Resets when you Reawaken.,"You are keeping score. Every card taken this run makes you harder, and a Reawaken settles the account.",The name still needs your pick (no grudges).
+ST_Tree,TREE_body_count_blurb,"+1% to +10% damage per 10,000 kills this run. Resets when you Reawaken.",The number speaks for itself. Every ten thousand kills this cycle is another permanent notch until you Reawaken.,
+ST_Tree,TREE_kitten_foreman_blurb,"Kittens attack where enemies are densest, not the nearest enemy.",Somebody organised them. Kittens go where the mice are thickest instead of grabbing whatever is nearest.,
+ST_Tree,TREE_second_opinion_blurb,Each level up gives rerolls. +1 to +5 over 5 levels.,You get another look. Every Catches level hands you rerolls to spend on the hands that follow.,
+ST_Tree,TREE_whisker_trade_blurb,Kittens get part of your crit chance. 10% to 100% over 10 levels.,The kittens have been watching. They inherit a share of your crit chance - the first thing in the game that makes them scale with the paw.,
+ST_Tree,TREE_curiosity_blurb,+1 card in every hand.,"One more card in every hand, for good. More things to choose between, permanently - not more of any one thing.",
+ST_Tree,TREE_second_helping_blurb,Reawaken gives half its Stardust now. The other half comes when you reach City Rooftops.,"Reawakening pays out twice. Once when you do it, and once more the next time you reach the Park - so the second half is a reason to go back out.","Godot's text says 'the Park' (biome 3); the code pays on reaching biome 4, City Rooftops (game_state.gd begin_biome, arrived >= 3, 0-based). Finding F44."
+ST_Tree,TREE_cartography_blurb,The Realms tab shows each biome's Catnip reward.,You have been reading ahead. The realm list says what a biome pays before you go there.,
+ST_Tree,TREE_deep_pockets_blurb,Bait earned in one biome counts in every biome.,Bait stops being stranded. What you earned anywhere counts everywhere.,
+ST_Tree,FX_POOP_DAMAGE_MULTIPLICATIVE__unlock_unicorn,unlocks the Unicorn,rides a unicorn,
+ST_Tree,FX_AUTO_POUNCE,auto-Pounce at x{v} damage,"Pounce fires itself, x{v}",
+ST_Tree,FX_AURA_RADIUS_MULTIPLICATIVE,x{v} aura radius,x{v} aura size,
+ST_Tree,FX_AMBUSH_FUNNEL,an enemy turns back {v} times before it escapes,{v} bounces before a mouse may leave,
+ST_Tree,FX_AMBUSH_PLAY_WITH_FOOD,x{v} Catnip from enemies killed below 20% health,x{v} Catnip from a nearly-dead mouse,
+ST_Tree,FX_PRISM_BEAM,unlocks the beam: {v}% of aura damage,"unlocks the beam, {v}% of aura DPS",
+ST_Tree,FX_PRISM_CHAIN,beam kills jump to {v} more enemies,the beam chains to {v} more,
+ST_Tree,FX_PRISM_SWEEP,the beam sweeps,the beam sweeps instead of tracking,
+ST_Tree,FX_SHRED_ADDITIVE,+{v}% Shred per stack,+{v}% armour shred per stack,
+ST_Tree,FX_CARD_REROLLS,+{v} rerolls at the start of each run,+{v} rerolls every run,
+ST_Tree,FX_AURA_RADIUS_STILLNESS,+{v}% aura radius after 3s standing still,+{v}% aura size after 3s standing still,
+ST_Tree,FX_CATNIP_KILL_STACK,"+{v}% Catnip per kill this wave, up to 100 kills","+{v}% Catnip per kill this wave, up to 100",
+ST_Tree,FX_SCAVENGE_ADDITIVE,{v}% Catnip from escaped enemies,recover {v}% from mice that wander off,
+ST_Tree,FX_STILLNESS_BANK,"+{v} kills' Catnip on the next kill, after 10s still",up to x{v} Catnip on a kill after standing still,
+ST_Tree,FX_DOUBLE_STRIKE_SHARE,{v}% of paw attacks hit twice,{v}% of paw swings land twice,
+ST_Tree,FX_POUNCE_CRATER,the Pounce lock burns for {v}% of your damage,the lock burns for {v}% of your damage,
+ST_Tree,FX_AURA_ECHO,a trailing aura at {v}% of your damage,a trailing ring at {v}% of your damage,
+ST_Tree,FX_CRIT_EXECUTE_CHANCE,{v}% of crits: the next paw attack kills instantly,{v}% of crits kill the next mouse outright,
+ST_Tree,FX_GUARANTEED_CRIT_SHARE,every {v}th attack is a crit,"every {v} swings crits, and the count never resets",
+ST_Tree,FX_AURA_BEAT,"every 6s, the aura deals {v}s of its damage",the aura beats for {v}s of its damage,
+ST_Tree,FX_SPAWN_FORESIGHT,marks where the next signature enemy spawns,the next signature is marked before it arrives,
+ST_Tree,FX_SNARE_CONTAGION,fliers near snared enemies move at {v}% speed,fliers near the snared drop to {v}% speed,
+ST_Tree,FX_PAW_CLEAVE,paw attacks hit {v} more enemies behind the target,the swing carries through {v} more behind it,
+ST_Tree,FX_OVERKILL_TO_CATNIP,"overkill gives up to +100% Catnip, {v}% per 100% overkill",wasted damage pays back {v}% of the kill,
+ST_Tree,FX_DETERMINISTIC_CRIT,"crits on a fixed count, not at random",crits become a cadence instead of a roll,
+ST_Tree,FX_SPAWN_AROUND_PLAYER,"enemies spawn {v}px around you, not at the edges","mice arrive {v}px around you, not at the edges",
+ST_Tree,FX_POUNCE_INSURANCE,a Pounce that kills nothing has no cooldown,a Pounce that killed nothing costs no cooldown,
+ST_Tree,FX_KITTEN_ILLUSION_PULL,kittens pull enemies into your aura,illusory kittens herd mice toward you,
+ST_Tree,FX_CARD_PROTOTYPE,1 card in every hand is {v} level higher,one card a hand arrives {v} level(s) higher,
+ST_Tree,FX_SPAWN_RATE_MULTIPLICATIVE,"x{v} spawn rate, on top of the upgrade","x{v} spawn rate, on top of the shop line",
+ST_Tree,FX_AUTO_TRAVEL,travel when the next biome unlocks,travel on when the next biome unlocks,
+ST_Tree,FX_AUTO_BAIT,summon the boss when you have its Bait,summon the boss as soon as you can afford it,
+ST_Tree,FX_AUTO_CARD,cards are picked without pausing,take cards without stopping the game,
+ST_Tree,FX_CROWD_DAMAGE,x{v} damage with 40+ enemies on screen,x{v} damage while 40+ are on the floor,
+ST_Tree,FX_LAST_STAND_DAMAGE,x{v} damage with under 5 enemies on screen,x{v} damage while under 5 are left,
+ST_Tree,FX_OVERKILL_BOMB,overkill of {v} times an enemy's health drops a Catnip bomb,an overkill of x{v} drops a Catnip bomb,
+ST_Tree,FX_BODY_COUNT,"+{v}% damage per 10,000 kills this run","+{v}% damage per 10,000 kills this cycle",
+ST_Tree,FX_KITTEN_SEEKS_CLUSTER,kittens attack where enemies are densest,kittens hunt the busiest mouse,
+ST_Tree,FX_REROLL_PER_LEVEL,+{v} rerolls each level up,+{v} rerolls on every Catches level,
+ST_Tree,FX_KITTEN_CRIT_SHARE,kittens get {v}% of your crit chance,kittens inherit {v}% of your crit chance,
+ST_Tree,FX_CURIOSITY,+1 card in every hand,one more card in every hand,
+ST_Tree,FX_SECOND_HELPING,"Reawaken: half the Stardust now, half at City Rooftops","Reawaken pays half now, half at the Park",
+ST_Tree,FX_SHOW_BIOME_REWARDS,Realms shows each biome's Catnip reward,the realm list shows what a biome pays,
+ST_Tree,FX_BAIT_CARRIES_OVER,Bait counts in every biome,Bait counts across every biome,
+ST_Tree,FX_PRISM_SHARDS,every 10 shards: {v}% of aura damage to all enemies,shards detonate for {v}% of aura DPS,
+ST_Tree,CH_golden,+{v}% Golden enemy chance,+{v}% Golden Mice,
+ST_Tree,CH_levels,upgrades start at Lv {v},shop lines start at Lv {v},
+ST_Tree,TREE_grudge_ledger_label,Stacked Deck,Grudge Ledger,Same as the name.
+ST_Tree,FX_AMBUSH_SNARE__unlock_snare,"unlocks Snare, ground enemies {v}% slower","unlocks Snare, ground mice {v}% slower","mice -> enemies (designer 2026-11-09); was: unlocks Snare, ground mice {v}% slower"
+ST_Tree,FX_AMBUSH_SNARE,ground enemies {v}% slower,ground mice {v}% slower,mice -> enemies (designer 2026-11-09); was: ground mice {v}% slower
+ST_Tree,FX_SNARED_DAMAGE_MULTIPLICATIVE,x{v} damage to snared enemies,x{v} damage to snared mice,mice -> enemies (designer 2026-11-09); was: x{v} damage to snared mice
+ST_Tree,FX_ENEMY_DRIFT,ground enemies drift toward you,ground mice drift toward you,mice -> enemies (designer 2026-11-09); was: ground mice drift toward you
+ST_Tree,FX_VANISH_INTERVAL,an enemy vanishes every {v}s,a mouse vanishes every {v}s,mice -> enemies (designer 2026-11-09); was: a mouse vanishes every {v}s
+ST_Tree,FX_AURA_CROWD_SCALING,+{v}% aura damage per enemy inside it,+{v}% aura damage per mouse inside it,mice -> enemies (designer 2026-11-09); was: +{v}% aura damage per mouse inside it

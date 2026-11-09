@@ -1,7 +1,8 @@
 # The restyle: the plum look (plan, 2026-11-07)
 
-**Status (2026-11-08, HANDOFF-LOG (68)): R0, R1, R2, R3 DONE (the colour flip, then the shapes: Deep Plum edges, one solid
-shadow, the pressed button sinking); next R4.** D1 answered: M PLUS Rounded 1c. D2 answered: the
+**Status (2026-11-08 night, HANDOFF-LOG (70)): R0-R4 DONE (R4 closed on its exit criteria; its open faults wait on R6 art
+and the designer's words); next R5 (the field).** 2026-11-09: the designer's text pass is in (D15, HANDOFF-LOG (72)).
+Committed through R4h's first pass as `7a6023c`. D1 answered: M PLUS Rounded 1c. D2 answered: the
 cat stays grey. Designer: restyle now, before slice 6's 6b-6d. Written after a design review of the concept in the browser (§3).
 
 ## 1. What was decided, and what it changes
@@ -60,7 +61,7 @@ Open, to settle in the phase that owns them:
 - **Shapes.** One ink, one weight: every outline in Plum at one width at every size. Ellipse first, then fatter. Flat
   fills, no gradients, no glow; one shadow, solid, straight down (panels 8 px, buttons 4-5 px at 1080p). Rounded corners
   16-30 px. Pressed buttons sink by their shadow.
-- **Faces.** The cat: half-lidded, mismatched, unimpressed, one fang; never sparkly. Prey: wide eyes, tiny pupils, a sweat
+- **Faces.** The cat: half-lidded, mismatched, one fang; never sparkly (never "unimpressed": designer, 2026-11-08). Prey: wide eyes, tiny pupils, a sweat
   drop when hunted. Mean, not cute; chubby, not baby.
 - **Type.** D1's family; titles and numbers in the heavy weight with a Plum outline and a solid drop shadow; text never
   below the floor in §5.
@@ -257,6 +258,30 @@ exist yet. Each phase below ends as every slice does: everyday `check_all` exit 
   under the menu, Boba's card and the version off screen), the dock's shop page (rows under the quick bar: that page does
   not scroll), the settings window (taller than the screen: Controls runs into Close), the tree (drawn off centre).
   Sheets: `build/look/r4h_150.png`, `build/look/r4h_1280.png`.
+- **R4h CLOSED (night 2026-11-08, HANDOFF-LOG (70))**: the four overflows fixed and a test that fails on them:
+  `Pawpocalypse.UI.Layout.{Title,Dock,Settings,Tree}` lay each screen out headless (`UI/PawLayoutCheck`: prepass, paint,
+  arrange; the DPI curve times the UI size) at 1920x1080 and 1280x800, 100 % and 150 %: every painted part on screen (what a
+  scroll box lets show), no part under the parts it must not cover. Seen failing on all four first (the tree's through its
+  sabotage). **Found:** the R4h claim "1280x800 fits" was right only by luck of the DPI curve (0.74: a ~1730x1080 layout);
+  a test without the curve reported false overflows. Fixes: **the title** the logo and the menu in ONE scale-down-only room
+  (`LeftFit`: at 1080p exactly where R4c put them, at 150 % both ~1.1x; the menu alone shrank to 0.95x first), Boba's card in
+  its own room above the version (`BobaFit`, full size at 150 %), the logo's empty box 1100 -> 1000 wide; **the shop page**
+  scrolls (`ShopList`, as the other pages); **settings** the pages scroll above Close (`PagesScroll`, by the new graft op
+  `wrap:Pages>PagesScroll`, the pages kept as the asset has them); **the tree** refits when its real size arrives on the first
+  tick, until the player moves the view (`bViewTouched`). Sabotages `shop_not_scrolling`, `tree_fit_stale_size`,
+  `tree_refit_after_zoom`, `title_menu_room_low`, each CAUGHT alone. `padplay_tour.py` 41 PASS. Sheets
+  `build/look/night_150.png`, `build/look/night_100.png` (1080p unchanged).
+- **R4's exit review beside the boards (night 2026-11-08; the board SOURCES, as in R4: the canvas renders only in its own
+  runtime).** Pass: the title (logo, menu left, Continue the Butter call, Boba's card right and tilted, the hint pill), the HUD
+  pills, the dock's rows, the Level up title and cards, the round tree nodes, Butter focus everywhere, the text floor.
+  **Faults left, each waiting on something else:** the title's Continue has no slot line ("Slot 1 · The Park · Reawaken 2 ·
+  1h 12m": words, the designer), Settings / Credits not side by side, no pin on Boba's card, no photo in it (R6 art; the
+  canvas holds one); the tree's big nodes with name and level chips, its header bar and detail panel (the tree opens
+  fit-all: zoom stays the designer's call, C 2026-11-08 "center"); the Level up cards are not tilted; the dock's icon tiles,
+  price pills and kittens strip (R6 art, words). **The canvas itself says "grudge" twice** (the title's tagline "Small cat.
+  Big grudge.", the tree's chip "Never resets. Neither do grudges."); neither is in the game. The designer's call to edit it.
+  **R4 is closed** on its exit criteria (the screens reviewed, focus tours pass, no overflow at 150 %); the faults above move
+  to R6 (art) and the designer (words, the tree's zoom).
 
 ### R5: the field (4-6 sessions)
 - Regenerate every creature (46 enemies, 7 bosses, the cat's 7 stages and base, 6 weapons, the kitten), the 36 props and
@@ -299,13 +324,14 @@ with the same checklist; differences are either fixed or recorded as a deliberat
 
 **The checklist:**
 - Silhouette: chubby (ellipse-first), readable as itself at 56 px, distinct from the cat and from its biome-mates.
-- Face: the cast's rules (§4): the cat unimpressed, prey panicked; mean, not cute.
+- Face: the cast's rules (§4): the cat half-lidded, prey panicked; mean, not cute.
 - Ink: one outline colour and weight; nothing drawn without it except the deliberate exceptions the generators document.
 - Colour: palette tokens only; reward pink only on rewards; threat in Crimson; separates from every ground it ships on.
 - Flat: no gradients, glow or soft shadows.
 - Layout (screens): consistent edges and padding across repeated rows; nothing clipped or overlapping; focus visible; text
   at or above the floor and at contrast; empty space intended, never a void.
-- Text: the game's register: short, mean and funny; never "prestige"; Boba only in menus.
+- Text: plain and informative (designer, 2026-11-09: real numbers, one word per idea, "enemies" not "mice"; the list is
+  `VOCAB` in `tools/text_audit.py`); never "prestige"; no grudges, never an "unimpressed" cat; Boba only in menus.
 
 ## 7. Risks
 

@@ -207,7 +207,7 @@ namespace PawUi
 	// Godot's numbers above stay for what they still size; these place and size the plum title.
 	constexpr double R4TitleMargin = 64.0;          // the logo's and the menu's left edge, the corners' margins
 	constexpr double R4NameTop = 40.0;              // the logo: top left, tilted, Butter with an ink outline and a shadow
-	constexpr double R4NameWidth = 1100.0;
+	constexpr double R4NameWidth = 1000.0;          // R4h: was 1100; the logo's letters are ~935 (an empty box past them left a 1153-wide screen)
 	constexpr double R4NameHeight = 150.0;
 	constexpr double R4NamePx = 112.0;
 	constexpr double R4NameOutline = 8.0;
@@ -215,7 +215,10 @@ namespace PawUi
 	constexpr double R4NameAngle = -3.0;            // degrees
 	constexpr double R4PanelTop = -290.0;           // the menu: from the middle's height, on the left
 	constexpr double R4PanelWidth = 460.0;
-	constexpr double R4PanelHeight = 530.0;
+	constexpr double R4PanelHeight = 560.0;         // the shipped asset's (measured, R4h); the code said 530
+	constexpr double R4MenuBottom = 115.0;          // R4h: the menu's room ends this far above the bottom (the hint's top is 103 up)
+	constexpr double R4BobaRoomTop = 200.0;         // R4h: Boba's card's room: under the logo's row ...
+	constexpr double R4BobaBottom = 140.0;          // ... to this far above the bottom (the version and the cluster below)
 	constexpr double R4ContinueHeight = 66.0;       // Continue, the call: the board's 32 px x 1.2
 	constexpr double R4ContinuePx = 36.0;
 	constexpr double R4MenuButtonHeight = 50.0;     // the rest: the board's 24 px

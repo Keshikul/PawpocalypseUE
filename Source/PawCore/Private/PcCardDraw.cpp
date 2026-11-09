@@ -242,7 +242,7 @@ namespace Pc
 		P.CardLevels[CardId] = NewLevel;
 		P.PrototypeCard.clear();
 		P.Hand.clear();
-		// Grudge Ledger counts cards TAKEN (a rerolled hand is not a card).
+		// Stacked Deck (grudge_ledger) counts cards TAKEN (a rerolled hand is not a card).
 		P.CardsTakenThisRun += 1;
 		const int64_t Value = static_cast<int64_t>(CardValueAt(*Card, NewLevel));
 		switch (Card->Effect)

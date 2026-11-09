@@ -44,6 +44,7 @@
 #include "UI/PawTokens.h"
 #include "UI/PawTreeTables.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
+#include "UI/PawTextTesting.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -178,6 +179,17 @@ bool FPawTreeOpensTest::RunTest(const FString& Parameters)
 	const Pc::PcRect2 B = Pc::TreeBounds(L);
 	TestEqual(TEXT("fitted on open (the content area under the header)"), Tree->GetZoom(), Pc::TreeFitZoom(B, 1920.0, 950.0), 1e-9);
 	TestEqual(TEXT("and centred"), Tree->GetPan().X, 960.0 - B.CentreX() * Tree->GetZoom(), 1e-6);
+	// R4h: the real view size arrives on the first tick (at 150 % UI: 1280 x 720); the fit and the centre follow it.
+	Tree->SetViewSize(FVector2D(1280.0, 720.0));
+	const double Content150 = 720.0 - (1080.0 - 950.0);
+	TestEqual(TEXT("150 %: fitted to the view the player sees"), Tree->GetZoom(), Pc::TreeFitZoom(B, 1280.0, Content150), 1e-9);
+	TestEqual(TEXT("150 %: centred across"), Tree->GetPan().X, 640.0 - B.CentreX() * Tree->GetZoom(), 1e-6);
+	TestEqual(TEXT("150 %: centred down"), Tree->GetPan().Y, Content150 * 0.5 - B.CentreY() * Tree->GetZoom(), 1e-6);
+	// Once the player moves the view, a size change leaves it alone.
+	Tree->ZoomBy(Pc::TreeLayout::ZoomStep);
+	const double Chosen = Tree->GetZoom();
+	Tree->SetViewSize(FVector2D(1920.0, 1080.0));
+	TestEqual(TEXT("a zoom the player chose survives a resize"), Tree->GetZoom(), Chosen, 1e-9);
 	TestEqual(TEXT("the browse X"), S(Tree->GetCloseButton()->GetLabel()), FString(TEXT("X")));
 	TestEqual(TEXT("the balance"), S(Tree->GetStardustText()), FString(TEXT("Stardust: 0")));
 	TestTrue(TEXT("the focus target is a node"), Cast<UPawTreeNode>(Tree->GetDesiredFocusTarget()) != nullptr);
@@ -228,6 +240,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTreeSpendTest, "Pawpocalypse.UI.Tree.Spend"
 
 bool FPawTreeSpendTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FTreeWorld W;
 	if (!W.Open(*this))
 	{
@@ -353,6 +368,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTreeTextTest, "Pawpocalypse.UI.Tree.Text", 
 
 bool FPawTreeTextTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FTreeWorld W;
 	if (!W.Open(*this))
 	{

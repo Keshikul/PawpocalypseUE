@@ -39,6 +39,7 @@
 #include "UI/PawSettingsDialog.h"
 #include "UI/PawWidgets.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
+#include "UI/PawTextTesting.h"
 
 #include <cstdlib>
 #include <string>
@@ -206,6 +207,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSettingsGodotTest, "Pawpocalypse.UI.Setting
 
 bool FPawSettingsGodotTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FString Text;
 	const FString Path = FPaths::ProjectDir() / TEXT("Source/PawCore/Tests/Data/settings_godot.tsv");
 	if (!TestTrue(TEXT("the fixture"), FFileHelper::LoadFileToString(Text, *Path)))
@@ -367,6 +371,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSettingsLookTest, "Pawpocalypse.UI.Settings
 
 bool FPawSettingsLookTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FSettingsWorld W;
 	if (!W.Open(*this, false))
 	{

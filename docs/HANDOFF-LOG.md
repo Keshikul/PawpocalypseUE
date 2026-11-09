@@ -5,6 +5,161 @@ and the exact next step. Read `docs/00-START-HERE.md` first, then the newest ent
 
 ---
 
+## 2026-11-09 (72) - The plain text is in: 279 lines, "enemies", the port's own English
+
+### Where the project is
+- As in (70)/(71): R0-R4 done, **next R5 (the field)**. Committed through `7a6023c`; (70), (71) and this entry are not
+  committed.
+- The designer's text pass is **applied**. Everyday `check_all` **exit 0, 24 of 24 gates** on the final state
+  (`build/check_all_text_apply.log`); every engine test 130/130 (`build/run_automation_text_apply2.log`).
+
+### What happened
+- The designer on review 2: **"All your picks are good but change mice to enemies since we don't only kill mice."**
+  Grudge Ledger becomes **Stacked Deck** (the first pick); Second Helping says **City Rooftops** (what the code pays; F44:
+  Godot's "the Park" is the wrong one).
+- **mice -> enemies**: every draft (58), plus 9 table lines that said mice and had no draft (the effect lines for Snare,
+  drift, vanish, crowd; the title's `{n} mice` slot lines became `{n} kills`, `{n}K kills`, `{n}M kills`). `VOCAB` now says
+  "enemy / enemies" (the input device, "keyboard and mouse", stays). 279 lines in all.
+- **Where the text lives (a decision, mine; tell the designer):** NOT in Godot. Godot's `ci/check_loc.py` needs every English
+  string translated in every shipped language, so ~200 changed strings there would fail its loc gate. So:
+  `ST_UI` written directly; `ST_Data` / `ST_Tree` from **`Data/TextOverrides.csv`** (`table,key,text,godot,note`, all 279
+  lines, the `ST_UI` ones as a record), applied by `gen_data_strings.py` / `gen_tree_tables.py` through
+  `tools/text_overrides.py`, which fails when a key is not generated, Godot's line changed since (`godot` column), or the
+  `{tokens}` differ; `--check`: the `ST_UI` lines equal `ST_UI.csv`. `Data/` tools skip the file (L0 `data-export`,
+  `gen_paw_rows.py`, `import_data.py`). Godot finding **F46** says so for the designer.
+- **Tests:** 22 engine tests compare screens with Godot's recorded words (`.MatchesGodot`, literal Godot English). They now
+  run under **`PawTextTesting::FGodotWords`** (`UI/PawTextTesting.h`): the `godot` column swapped into the loaded tables
+  (`FStringTable::SetSourceString`) and the port's back after. New **`Pawpocalypse.UI.Text.PortWords`**: every line loads as
+  the port's English, the scope swaps all 279 and gives them back, and texts made inside it say Godot's words.
+  `PcTreeTextTests` (PawCore) renders through the `godot` column too. Sabotages: PawCore test with a wrong `godot` word
+  FAILED (seen, restored byte-identical); `sabotage_realm.py` `text_scope_never_restores`, `text_scope_swaps_nothing`,
+  `text_scope_no_unescape` (484), **each CAUGHT**, source restored (`build/sabotage_text_scope.log`).
+- **Gates added to `check_all`**: `no banned words` (`text_audit.py --banned`; seen failing on a planted "grudge"),
+  `text overrides self-test` (11 plants caught), `text overrides agree`. The audit: **0 of 841 strings break a rule**.
+- The draft file is retired (applied; its notes are in `Data/TextOverrides.csv`). Skill blurbs' "over N levels" checked
+  against the level counts in `Data/SkillBranchData.csv`: 34 of 34 right.
+- Found on the way: my first `ST_UI` rewrite went line by line and cut the 7 values that span lines (restored, redone with a
+  whole-CSV parse that round-trips byte-identical; pitfall row). Docs: CLAUDE.md (the rule, the tool line), 00, 08 (where the
+  port's English lives; for `port_po.py` the changed lines have no Godot translation), 09 (gate row), 12 (two rows); KB
+  `Unreal/20` §2 (a table entry swapped for a test), both indexes; memory `ui-text-short`.
+- **Docs sweep** (designer: "Make sure all docs are up to date ... any old references or namings"): every old English line
+  searched in the live docs and code comments; every path the docs name checked. Fixed: Grudge Ledger -> Stacked Deck
+  (`grudge_ledger`) in docs 02, 09 and nine code comments; the lines PawCore's decisions show (`PcCards.h`, `PcControls.h`,
+  `PcHud.h`), the victory headline (doc 05, `PawVictoryScreen.h`), the pad-audio toast and the title's kills (doc 05);
+  the restyle worklist's text rule ("mean and funny" -> plain); the palette's source in docs 03 / 04 (`tools/art/palette.py`,
+  not Godot's `palette.gd`); the shop's scroll (doc 02); new **D15** (doc 01) and the CLAUDE.md header (the text is the
+  port's own, like the look); doc 06 and 00 list `Data/TextOverrides.csv`; doc 11 (phase 7: the 279 lines go to translators);
+  sabotage count 484 (00, 09); Godot finding F43 updated. Left on purpose: older HANDOFF entries and dated night worklists
+  (history), Godot findings and Godot-side files quoting Godot's own words, paths of Godot files and of tools planned for
+  later phases. Everyday `check_all` after the sweep: exit 0, 24 of 24 (`build/check_all_docs_sweep.log`).
+
+### Open
+- **The designer:** whether Godot should take the same text (F46: then re-extract the .pot and translate); the title's
+  `{n} kills` lines were my wording (the mechanical "{n} enemies" read badly on a save card); the canvas's two "grudge"
+  lines; the tree opening zoomed; Continue's slot line; the hardware check; committing (70)-(72).
+- The text's numbers are literal (only the level counts are checked): a `Data/` change to a skill's ladder will not update
+  its blurb. A check that recomputes each blurb's range from `Data/` would close it.
+- The 279 changed lines are untranslated (phase 7's `port_po.py` sends them to translators).
+
+### Next step
+Start R5 of `docs/WORKLIST-RESTYLE-2026-11-07.md` (settle the paw strike and the aura on a review sheet first, D3).
+
+---
+
+## 2026-11-09 (71) - The text redone: plain, informative, real numbers, one word per idea
+
+### Where the project is
+- As in (70): R0-R4 done, **next R5 (the field)**. Committed through `7a6023c`; (70)'s night and this entry are not committed.
+- **Waiting on the designer:** text review 2 (270 drafts, `docs/TEXT-DRAFT-2026-11-09.csv`, review page
+  https://claude.ai/artifact/5KnwdnDv3AZAS6Kz3bESzS, same link as before) and Grudge Ledger's name. Nothing is written into
+  the string tables yet.
+
+### What happened
+- The designer, on the first drafts: no "poem or any kind of language with character"; "from now on" -> "permanently";
+  "Use the same words for same concepts. So increase is increase everywhere not grows in some."; "be more specific with
+  number"; "all the text should just be to the point informative information". The designer had started editing on the
+  first page; those edits live in their browser and carry over to the new page (it imports the old page's edits).
+- **The drafts, redone (270):** every skill text gives its numbers from `Data/` over all levels ("x1.18 to x3 over 10
+  levels"); jobs and cards are their numbers ("Catnip x2.5. Kitten damage x0.4."); screen lines lose the voice
+  ("Take 1 card.", "VICTORY", "You defeated the final boss."); effect lines and achievement rewards ("Reward: 4 Stardust")
+  use the same words. Each fact was checked against the code, not the old blurb: zones (Echo, Crash Landing, Ember Trail)
+  are priced on the whole damage, not the aura; Cat Burglar's Cut pays up to +100%; Sleight of Hand is every 20s to 6s.
+  Skill, card, biome and achievement **names were kept** (names, not text).
+- **`tools/text_audit.py`**: a `VOCAB` list (one word per idea: increase, permanently, mice, escape, run, attack, aura radius,
+  upgrade, skill, x2.5 with the x first, ...), flagged in every non-name string; descriptions that wrap get a 120-character
+  budget (3 short sentences) instead of the 60-character line; a draft that loses or invents a `{token}` is flagged; reads
+  the newest `docs/TEXT-DRAFT-*.csv` and lists drafts for strings within budget too. Self-test: every new rule seen
+  failing, clean lines pass. 124 of 841 strings break a rule today; all 270 drafts pass. The 2026-11-08 draft file is
+  retired (superseded).
+- **Godot findings F44, F45** (`docs/pawpocalypse-port-findings.md`, uncommitted): Auto-Pounce's text promises offline
+  earnings (removed 2026-09-10); Second Helping says "the Park" but pays at biome 4, City Rooftops; the Engineer's text claims
+  a card-level bonus that is Prototype's.
+- CLAUDE.md's register rule rewritten (plain and informative); memory `ui-text-short` updated.
+
+### Open
+- The designer's picks on review 2, the Grudge Ledger name, F44 (Park or City Rooftops).
+- Applying: `ST_UI` here; `ST_Tree` and `ST_Data` are generated from Godot, so their lines go into Godot first and are
+  re-exported. The numbers in the drafts are literal; when applied they should be filled from the data so they cannot go
+  stale.
+
+### Next step
+If the designer has answered review 2: apply it (Godot first for `ST_Tree`/`ST_Data`), then add `text_audit.py --banned` to
+`check_all`. Otherwise start R5 of `docs/WORKLIST-RESTYLE-2026-11-07.md` (settle the paw strike and the aura on a review
+sheet first, D3).
+
+---
+
+## 2026-11-08 (70) - Night: R4 closed (every screen fits at 150 %), short-text drafts, no grudges
+
+### Where the project is
+- The restyle: **R0-R4 DONE**. R4 closed on its exit criteria: screens reviewed against the boards' sources, focus tours
+  pass (41), **no overflow at 150 %** (`Pawpocalypse.UI.Layout.*`). Its leftover faults wait on R6 art and the designer's
+  words (worklist "R4's exit review"). **Next: R5 (the field).**
+- **Committed `7a6023c`** (R2-R4 up to R4h's first pass; 453 explicit paths; local, not pushed). The night's work after it
+  is not committed.
+- Everyday `check_all` **exit 0, 21 of 21 gates** on the night's final state (`build/check_all_night_r4h.log`; the new
+  `text audit self-test` among them).
+- **Waiting on the designer:** the short-text review (122 drafts) and Grudge Ledger's new name (page below).
+
+### What happened (night list `docs/WORKLIST-NIGHT-2026-11-08.md`, designer: "A yes, B draft, C center, Go")
+1. **Commit** R2-R4 as `7a6023c`.
+2. **A layout test that fails on overflow**: `UI/PawLayoutCheck` lays a screen out headless (prepass, paint, which ticks,
+   arrange; the DPI curve x the UI size) and lists every painted part's screen rect, clipping included. Four tests
+   `Pawpocalypse.UI.Layout.{Title,Dock,Settings,Tree}` at 1920x1080 and 1280x800, 100 % and 150 %; seen failing on the
+   real faults first. **Found:** without the DPI curve the 1280x800 case shows false overflows.
+3. **Fixes**: the title's logo and menu in one scale-down-only room (`LeftFit`), Boba's card in its own (`BobaFit`), the
+   logo's empty box 1000 wide (1080p unchanged, measured); the shop page scrolls (`ShopList`); settings' pages scroll above
+   Close (`PagesScroll`, new graft op `wrap:Part>Wrapper`); the tree refits when its real size arrives (`bViewTouched`).
+   Grafts: WBP_MainMenu, WBP_HudScreen, WBP_SettingsDialog. **Found:** naming two texts in code renumbered the code's
+   unnamed texts and broke `.Widgets.Parity`: those two stay unnamed (pitfall row).
+4. **Designer mid-night: "remove any mention of grudges or cats being unimpressed"**. The victory line "The cat is
+   unimpressed." dropped (test seen failing first); CLAUDE.md, the restyle's face rule and checklist cleaned; Godot finding
+   F43 (Godot still has both). Grudge Ledger needs a new name: drafted ("Stacked Deck"), applied after the designer picks,
+   Godot first (`ST_Tree` is generated from it). Ids `grudge_ledger` / `GRUDGE_PER_CARD` stay (save keys). **The canvas
+   itself says "grudge" twice** (title tagline, tree chip): left for the designer.
+5. **Short text** (designer: "simple and concise ... Use short sentences"): `tools/text_audit.py` (budgets: a line 60
+   chars, a sentence 12 words, 2 sentences, a name 4 words; banned words; `--self-test` in `check_all` L0). 122 of 841
+   strings over budget; 122 drafts in `docs/TEXT-DRAFT-2026-11-08.csv`, all within budget. Review page (private):
+   https://claude.ai/artifact/5KnwdnDv3AZAS6Kz3bESzS. Nothing written to the tables.
+6. Sabotages `shop_not_scrolling`, `tree_fit_stale_size`, `tree_refit_after_zoom`, `title_menu_room_low`, each CAUGHT alone
+   (481). `padplay_tour.py` 41 PASS. Sheets `build/look/night_150.png`, `build/look/night_100.png`. Docs: restyle worklist,
+   00, 05 §7, 09, 11, 12 (three rows), CLAUDE.md; KB `Unreal/09` §2.3 and §6, both indexes.
+
+### Open
+- **The designer:** the text review (then apply: Godot first for `ST_Tree` / `ST_Data`, the port's own `ST_UI` here; a
+  changed English line loses its 20 translations); Grudge Ledger's name (then `text_audit.py --banned` joins `check_all`);
+  the canvas's two "grudge" lines; the tree opening zoomed in; words for Continue's slot line and the dock's second lines;
+  the hardware check (55); commit the night.
+- R4's leftovers for R6: Boba's photo, the dock's icon tiles, card art.
+- The `-Full` nightly has not run since the restyle began: the next free night.
+
+### Next step
+*"Read docs/00-START-HERE.md and docs/HANDOFF-LOG.md, then start R5 (the field) of docs/WORKLIST-RESTYLE-2026-11-07.md:
+settle the paw strike and the aura on a review sheet first (D3)."* If the designer has answered the text review first:
+apply it (Godot first for generated tables) before R5.
+
+---
+
 ## 2026-11-08 (69) - Restyle R4 nearly done: Butter focus, the text floor, the title, the HUD, the dock, the tree, the titles; 150 % open
 
 ### Where the project is

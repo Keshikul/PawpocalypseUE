@@ -25,12 +25,12 @@ namespace Pc
 	{
 		None,           // "" (also what an unchanged binding leaves)
 		Listening,      // "Press a key or button for {action}. Esc or B cancels."
-		NothingPressed, // "Nothing pressed, nothing changed."
+		NothingPressed, // "Nothing changed."
 		Cancelled,      // "Cancelled."
 		Done,           // "Done."
 		Swapped,        // "Swapped with {action}."
 		RefusedSystem,  // "Esc, Start and B always open the menu and go back."
-		Taken,          // "That one is taken."
+		Taken,          // "Already in use."
 		Reset,          // "Reset."
 		ResetAll,       // "Every control is back to its default."
 	};

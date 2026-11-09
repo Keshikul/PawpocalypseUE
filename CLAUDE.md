@@ -4,7 +4,7 @@
 > file is a bug**: fix it in the same pass. Until parity (docs/11 phase 9) the **Godot game at `C:\Games\pawpocalypse` is the
 > specification**: where this project and the Godot code disagree on a rule or number, Godot is right. **The LOOK is the
 > exception (designer, 2026-11-07): "The unreal version does not have to match godot, they can be different." and "Plum
-> everywhere."** The look's reference is the concept canvas and `docs/WORKLIST-RESTYLE-2026-11-07.md`; the palette, the art
+> everywhere."** So is the player-facing TEXT since 2026-11-09 (D15: the port's own plain English, below). The look's reference is the concept canvas and `docs/WORKLIST-RESTYLE-2026-11-07.md`; the palette, the art
 > generators (`tools/art`) and every look test are this project's own. Rules, numbers, behaviour and timing still follow Godot.
 
 ## What this is
@@ -33,9 +33,18 @@ never project names or design decisions.
 - **No design changes during the port** (the look excepted since 2026-11-07, D14: it is changed here only, never in Godot).
   Open design questions are answered in Godot first, then re-exported
   (`py tools/export_godot_data.py ...`). A difference is either a port bug or a design change for after parity, never both.
-- The register is **mean and funny**: the cat is malevolent, never cute; keep the sparkly vocabulary. **Player-facing text is short.**
+- **Player-facing text is plain and informative** (designer, 2026-11-09: "i do not want the text to be like a poem or any kind
+  of language with character", "all the text should just be to the point informative information"): real numbers, not
+  "increases crit"; one word per idea (the list: `VOCAB` in `tools/text_audit.py`; "increase", never "grows";
+  "permanently", never "from now on"; "enemies", never "mice": designer, 2026-11-09, "we don't only kill mice").
+  The cat is still malevolent, never cute, in the art. **Player-facing text is short.**
   Designer, 2026-11-08: "make sure all text is simple and concise in the ui. Don't overexplain. Use short sentences."
   New or changed UI words are drafted for the designer first (they also cost the string's 20 translations).
+  The approved text lives here, not in Godot: `ST_UI` directly; for the tables generated from Godot (`ST_Data`, `ST_Tree`)
+  in `Data/TextOverrides.csv`, which the generators apply (Godot's translation gate needs every English string translated,
+  so the port does not change Godot's words).
+  Designer, 2026-11-08: no grudges and never an "unimpressed" cat, anywhere (they slipped through in Godot).
+  Internal ids (`grudge_ledger`, `GRUDGE_PER_CARD`) stay: save keys and enum names are never renamed.
   "Prestige" is never used (it is Reawaken). Boba (the designer's cat) appears in menus only, never over the skill tree.
 
 ## Hard rules (docs/02 §14 has the full checklist)
@@ -77,7 +86,7 @@ powershell -ExecutionPolicy Bypass -File tools\check_all.ps1             # every
 py tools/make_godot_fixtures.py [--only tree] [--check]                  # Godot ground truth (scratch copy, sandboxed)
 py tools/sabotage_pawcore.py [--only NAME]                               # one-line PawCore sabotages; each must be CAUGHT
 py tools/run_automation.py [--no-build] [Pawpocalypse.Realm]             # engine automation tests, headless (editor closed; builds first)
-py tools/bake_widgets.py --run [--graft "Class=add:Part;swap:Old>New"]  # Widget Blueprints for UI classes that have none (never over one); --graft puts NEW parts into an existing one (restyle:Part a part's look, restyle:Code>Asset when an unnamed part's auto-name differs (names:x / codenames:x list both), props:Part a piece's settings, slot:Part its place and tilt, text:Part a text's whole look, remove:Part; add: takes a panel with children; all or nothing); --textfloor raises texts under 16 px; --recolour / --refont migrate the assets' saved colours / fonts
+py tools/bake_widgets.py --run [--graft "Class=add:Part;swap:Old>New"]  # Widget Blueprints for UI classes that have none (never over one); --graft puts NEW parts into an existing one (restyle:Part a part's look, restyle:Code>Asset when an unnamed part's auto-name differs (names:x / codenames:x list both), props:Part a piece's settings, slot:Part its place and tilt, text:Part a text's whole look, remove:Part, wrap:Part>Wrapper moves the asset's part (children kept) into a new panel; add: takes a panel with children; all or nothing); --textfloor raises texts under 16 px; --recolour / --refont migrate the assets' saved colours / fonts
 py tools/art/build_art.py [--check]                                     # the art generators -> SourceArt/svg (--check: = the committed SourceArt/svg)
 py tools/raster_svg.py [--check]                                        # SourceArt/svg -> png (the glyphs: 56 px; the cursors; the chrome and icons 1:1)
 py tools/pack_atlas.py [--check]                                        # the field's sprites -> SourceArt/png/atlas (2 pages + field.csv)
@@ -87,7 +96,9 @@ py tools/import_audio.py --run                                          # Source
 py tools/create_input_assets.py --run                                    # IA_* / IMC_Pawpocalypse from Data/InputMap.csv (generated, never edited)
 py tools/sabotage_realm.py [--only NAME]                                 # game-module sabotages of the realm tests (UBT each, ~1 min)
 py tools/packaged_bench.py [--seconds 20]                                # L5: paw.Bench in the packaged build (build/package): frame gate
-py tools/godot_tour.py [--skip-godot] [--skip-ue] [--set biomes|fonts] [--res WxH]   # the screenshot tour, both games -> build/tour/compare (opens windows)
+py tools/godot_tour.py [--skip-godot] [--skip-ue] [--set biomes|fonts] [--res WxH] [--uiscale 1.5]   # the screenshot tour, both games -> build/tour/compare (opens windows)
+py tools/text_audit.py [--self-test | --banned]                         # player text over budget (short lines, short sentences), off-list words (VOCAB), banned words; drafts: the newest docs/TEXT-DRAFT-*.csv
+py tools/text_overrides.py [--self-test]                                # Data/TextOverrides.csv: the port's own English over Godot's (gen_data_strings / gen_tree_tables apply it)
 py tools/padplay_tour.py                                                 # L4: the pad-only playthrough + focus tours (-game window; sandboxed saves)
 UnrealEditor-Cmd.exe ... -run=pythonscript -script=C:/abs/tools/create_field_materials.py   # the field and sprite materials (then create_maps.py)
 py tools/trim_game_plugins.py                                            # rewrites the .uproject plugin list (doc 03 §7)

@@ -195,7 +195,8 @@ Fifteen lines, **not uniform** (`UPGRADE_PATHS`):
   refuse rather than charge; `BULK_MAX_STEPS` 500; one save per frame however many levels.
 - **Overkill, Kitten Speed, Shield Pierce and Pounce Recovery are not sustained-DPS terms**: raising their caps does not
   scale DPS.
-- The shop **does not scroll**: all lines stacked; when it overflows, make rows fit.
+- The shop **does not scroll** in Godot: all lines stacked; when it overflows, make rows fit. (The port's shop list
+  scrolls since R4h, 2026-11-08: at 150 % UI the lines do not fit; `ShopList`, `.Layout.Dock`.)
 - The step between buys is set by `tools/shop_step.py` (raises effect and growth to the same power: same curve,
   different buy size); a buy under ~8% of income is the complaint of 2026-09-14.
 
@@ -224,7 +225,7 @@ Fifteen lines, **not uniform** (`UPGRADE_PATHS`):
   and deduped. **Fixation** deals only owned cards while it lasts, falling back to the whole pool when too few are owned,
   and is spent on the deal, not on a reroll. Then auto-pick (node owned AND setting on) takes one at random and the screen
   never opens; otherwise **Prototype** marks one card of the hand to arrive above its level (capped at its max).
-- **Taking a card**: only a card in the hand; it closes the hand, counts for Grudge Ledger, and the deck cards act at once
+- **Taking a card**: only a card in the hand; it closes the hand, counts for Stacked Deck (`grudge_ledger`), and the deck cards act at once
   (Spite adds rerolls, Dilated SETS the extra choices, Fixation adds hands, Not That One adds banishes).
 - **Reroll** spends one and re-deals; **banish** spends one, removes the card for the run and re-deals WITHOUT consuming the
   level (banishing the deck dry closes the screen). Both redo Prototype's mark on the new hand and Blueprint's promise, as
@@ -338,7 +339,8 @@ The Litter King dies in the Litterbox Dimension, stage 7 is granted, the **victo
   claim, pounce, hover`; one cue at a time; the game's paw tapping one control and one short verb-first line. Never
   pauses, never takes a click or focus. A step is DONE when the game state says the lesson was learned (old saves and
   fast players skip ahead). Progress in the save (`tutorial_done`). Switch: Settings > Controls > Tutorial tips. Off
-  in the soak, trailer and store shots. The lines are a draft awaiting the designer.
+  in the soak, trailer and store shots. The lines are a draft awaiting the designer; ported, they follow the plain-text
+  rule (D15: plain, informative, one word per idea, `tools/text_audit.py`).
 - **Paper look** (Godot's; the Unreal build has its own look since 2026-11-07, D14: plum panels, bone text, M PLUS Rounded 1c; the button and focus rules below still hold): Stacklands colours; panels cream `#FFF9E3`, 3 px `#1A1A1A` frame, ink text, 6-8 px radius. **An
   enabled button is the brightest thing in its panel**; disabled dims. All four button states share one silhouette.
   Focus draws a ring, not a plate. Dimming text on paper is a colour change, never a multiply (it makes ink blacker).

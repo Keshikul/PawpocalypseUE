@@ -267,6 +267,9 @@ private:
 	TMap<FKey, float> ZoomAxes; // the triggers' last values: their strength past the dead zone
 	void RefreshZoom();
 	bool bFollowing = false;
+	// R4h: the view moved by the player since the open (a zoom, a pan, a drag, a follow). Until then a new view size refits:
+	// the real size arrives on the first tick (Godot reads content_area.size on open; 150 % UI is 1280 x 720).
+	bool bViewTouched = false;
 	FVector2D FollowFrom = FVector2D::ZeroVector, FollowTo = FVector2D::ZeroVector;
 	double FollowT = 0.0;
 };

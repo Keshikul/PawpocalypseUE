@@ -55,6 +55,14 @@ Invoke-Gate 'art rasters reproduce' 'py tools\raster_svg.py --check'
 Invoke-Gate 'field atlas reproduces' 'py tools\pack_atlas.py --check'
 Invoke-Gate 'audio export reproduces' 'py tools\export_audio.py --check'
 Invoke-Gate 'font coverage' 'py tools\check_font_coverage.py'
+# The text rule's own test (2026-11-08): its budgets and banned words flag planted faults. `--banned`: no table says
+# "grudge", "unimpressed" or "prestige" (gated since 2026-11-09, when the designer's text pass renamed Grudge Ledger).
+# The port's own English over Godot's (Data/TextOverrides.csv): its checks bite on planted faults (the generators run
+# them for real in L0's `generated`).
+Invoke-Gate 'text audit self-test' 'py tools\text_audit.py --self-test'
+Invoke-Gate 'no banned words' 'py tools\text_audit.py --banned'
+Invoke-Gate 'text overrides self-test' 'py tools\text_overrides.py --self-test'
+Invoke-Gate 'text overrides agree' 'py tools\text_overrides.py --check'
 # Every sabotage's target still in its source (seconds, nothing built): a target a later slice rewrote otherwise stays unseen
 # until the nightly's sabotage gate refuses to start (2026-11-06: one stale since slice 3 cost a whole night's realm gate).
 Invoke-Gate 'sabotage targets current' 'py tools\sabotage_pawcore.py --list && py tools\sabotage_realm.py --list'

@@ -2052,6 +2052,36 @@ SABOTAGES = [
      '\t\tText->SetColorAndOpacity(FSlateColor(PawTokens::UI_SELECTED));\n\t\treturn Heavy(Text);\n',
      '\t\tText->SetColorAndOpacity(FSlateColor(PawTokens::UI_TEXT));\n\t\treturn Heavy(Text);\n',
      'Pawpocalypse.UI.Widgets.Parity'),  # the asset holds its colour: a CODE layout drift shows in parity
+    # Restyle R4h (2026-11-08): the screens fit at 150 % UI (Pawpocalypse.UI.Layout.*).
+    ('shop_not_scrolling', 'UI/PawHudScreen.cpp',
+     '\tUScrollBox* List = Cast<UScrollBox>(T->FindWidget(TEXT("ShopList")));\n',
+     '\tUScrollBox* List = nullptr;\n',
+     'Pawpocalypse.UI.Layout.Dock'),
+    ('tree_fit_stale_size', 'UI/PawSkillTreeScreen.cpp',
+     '\t\t\tFitAndCentre(); // R4h: fitted to the size the player sees, not the last one\n',
+     '\t\t\t; // R4h: fitted to the size the player sees, not the last one\n',
+     'Pawpocalypse.UI.Layout.Tree'),
+    ('tree_refit_after_zoom', 'UI/PawSkillTreeScreen.cpp',
+     '\tbFollowing = false;\n\tbViewTouched = true;\n\tApplyTransform();\n',
+     '\tbFollowing = false;\n\tApplyTransform();\n',
+     'Pawpocalypse.UI.Tree.Opens'),
+    ('title_menu_room_low', 'UI/PawUiConstants.h',
+     '\tconstexpr double R4MenuBottom = 115.0;',
+     '\tconstexpr double R4MenuBottom = 24.0;',
+     'Pawpocalypse.UI.Title.Plum'),
+    # The port's own English (2026-11-09): the Godot-words scope the parity tests run under.
+    ('text_scope_never_restores', 'UI/PawTextTesting.cpp',
+     '\t\t\t\tSetSource(Table, Line.Key, Line.Text);\n',
+     '\t\t\t\t;\n',
+     'Pawpocalypse.UI.Text.PortWords'),
+    ('text_scope_swaps_nothing', 'UI/PawTextTesting.cpp',
+     '\t\t\tSetSource(Table, Line.Key, Line.Godot);\n',
+     '\t\t\t;\n',
+     'Pawpocalypse.UI.Victory.Ending'),
+    ('text_scope_no_unescape', 'UI/PawTextTesting.cpp',
+     '\t\t\tLine.Text = FString(Rows[R][2]).ReplaceEscapedCharWithChar();\n',
+     '\t\t\tLine.Text = FString(Rows[R][2]);\n',
+     'Pawpocalypse.UI.Text.PortWords'),
 ]
 
 

@@ -10,7 +10,7 @@
 //                     without the card (the control) and once with it at its maximum level. The control must NOT show the
 //                     consumer's mark and the subject must, so each assertion also proves its own test is not vacuous. A
 //                     coverage check fails on any CardEffect without a case (or with a card, when it is listed as cardless).
-//                     Taking a card rebuilds the cached stats (Grudge Ledger).
+//                     Taking a card rebuilds the cached stats (Stacked Deck, grudge_ledger).
 // Pawpocalypse.Realm.EveryCard   every card in the deck at its maximum level at once (Godot's "maximally hostile" build):
 //                     the realm runs, kills, keeps its invariants (caps, finite positions), and every cost lands where it
 //                     is read.
@@ -981,7 +981,7 @@ bool FPawCardEffectsTest::RunTest(const FString& Parameters)
 			*FString::JoinBy(Subject, TEXT(", "), [](const TPair<FString, double>& KV) { return FString::Printf(TEXT("%s=%g"), *KV.Key, KV.Value); }));
 	}
 
-	// Taking a card rebuilds the cached stats (CardManager.choose() -> GameState.refresh_stats()): with Grudge Ledger the
+	// Taking a card rebuilds the cached stats (CardManager.choose() -> GameState.refresh_stats()): with Stacked Deck the
 	// damage product grows with every card taken, at once, not at the next kill.
 	{
 		G.Game->NewGame();
@@ -1003,7 +1003,7 @@ bool FPawCardEffectsTest::RunTest(const FString& Parameters)
 		{
 			P.Hand = { Card->Id };
 			TestTrue(TEXT("the card is taken"), G.Realm->ChooseCard(FString(UTF8_TO_TCHAR(Card->Id.c_str()))));
-			TestTrue(FString::Printf(TEXT("Grudge Ledger: the field's stats grew on the take (%g -> %g)"), Before, F.Stats.MultiplicativeDamageProduct),
+			TestTrue(FString::Printf(TEXT("Stacked Deck: the field's stats grew on the take (%g -> %g)"), Before, F.Stats.MultiplicativeDamageProduct),
 				F.Stats.MultiplicativeDamageProduct > Before);
 			TestFalse(TEXT("a card not in the hand is refused"), G.Realm->ChooseCard(FString(UTF8_TO_TCHAR(Card->Id.c_str()))));
 		}

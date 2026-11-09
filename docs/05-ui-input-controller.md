@@ -239,8 +239,8 @@ re-applies the desired focus target when a modal closes: `UPawPauseMenu::ReturnF
   (Godot asks "no GUI control hovered": the dock is the one panel over the field here).
 - **The pad-audio toast** (2026-11-05; input_device.gd `_watch_for_pad_audio`, playtest 2026-10-01 #31): a pad connected after
   the boot window starts a watch: the output devices now and 2 s later (`Pc::DevicePadAudioWaitMs`, real time); a device that
-  appeared while Settings > Audio > Output follows the system says "The controller added a sound device. No sound? Pick your
-  speakers in Settings, Audio, Output." (`Pc::DevicePadAudioToast`; `INPUT_toast_pad_audio`). Each connect watches on its own;
+  appeared while Settings > Audio > Output follows the system says "Controller added a sound device. If there is no sound,
+  set Settings > Audio > Output." (two lines; 2026-11-09) (`Pc::DevicePadAudioToast`; `INPUT_toast_pad_audio`). Each connect watches on its own;
   the setting is read after the wait, as Godot's `await`. `Pawpocalypse.Input.PadAudio`. The glyphs: slice 3b, §5. The paw
   cursors: slice 5a (§3).
 
@@ -477,7 +477,7 @@ holders do that by construction). The HUD raises it from the field's `BossDefeat
 never another boss, never a rematch already cleared this cycle; it shows `FinalBossSeconds`, the first clear's time, through
 `PawText::Duration` (`PcHud DurationParts`: "{h}h {m}m {s}s" / "{m}m {s}s", two-digit fields, negatives read 0). Both exact
 against the real hud.tscn's VictoryScreen (fixture `victory`). A second show while it is up is ignored. Dim (eats clicks),
-"THE VOID IS QUIET", the flavour line, "Cleared in ...", OK (focused on show; no guard, no Back: OK is the way out).
+"VICTORY" (Godot: "THE VOID IS QUIET"; the port's plain text, 2026-11-09), the flavour line, "Cleared in ...", OK (focused on show; no guard, no Back: OK is the way out).
 **It wears the game theme** (finding F21, decided 2026-11-03, fixed in Godot first): a themed root, and the column on a 640-wide
 `WindowPanel` (the theme's ink labels would be dark on the dark dim), the theme's OK button, ink text (the flavour 17 px).
 Measured from the real screen into `Tests/Data/victory_look_godot.txt` (the fixture writes it). Until 2026-11-03 Godot drew it in
@@ -489,7 +489,7 @@ nyan fly-past (BobaCameo, phase 6).
 the Game stack of L_Title, the game's first map: the player controller pushes it wherever there is no realm. Its rules are
 `PcTitle` (exact against the real main_menu.tscn, fixture `title`: Continue needs a save on disk or progress in memory, Load a
 save; the status line counts the game IN MEMORY; the cards' play clock (`format_duration`: "{h}h {m}m" / "{m}m {s}s" / "{s}s"),
-kills ("{n}K mice", "%.1f"), "last saved" (just now / min / hr / days, past a week the stamp's UTC date); the leaderboard's last
+kills ("{n}K kills", "%.1f"; Godot: "{n}K mice"), "last saved" (just now / min / hr / days, past a week the stamp's UTC date); the leaderboard's last
 line; the slot screen opens on the last slot used). One widget with Godot's layers, each a full-screen scrim: the slots
 (New Game and Load open the same picker; an empty card starts a game THERE, an occupied one loads it, no confirm), the
 leaderboard placeholder, the credits, the shared confirm (Cancel under the key; one-shot). `FocusTop` is `_focus_top`: only
@@ -570,7 +570,10 @@ ceremonies, the tutorial overlay (`HitTestInvisible`, never focusable), cheat ov
   slots Deep Plum `#120A17`, text Bone `#F6EEF8`, muted text Lilac `#DCCFE4`, labels over the field Bone with an ink
   outline (`UI_FIELD_LABEL`), card plates Bone with ink text; **since R4a the focus ring is Butter** (4 px, 4 px out) and
   "the selected thing" is a Butter plate with ink words (the open tab: chrome `ui_button_selected`; a call:
-  `UPawButton::SetCallLook`); since R4b no text under 16 px (`PawUi::UnderTextFloor`): `docs/WORKLIST-RESTYLE-2026-11-07.md`). **R3's shapes (2026-11-08)**: every plate casts one solid Deep Plum shadow
+  `UPawButton::SetCallLook`); since R4b no text under 16 px (`PawUi::UnderTextFloor`); since R4h every screen fits at 150 %
+  UI (`Pawpocalypse.UI.Layout.*`): long lists and pages scroll (the shop's `ShopList`, settings' `PagesScroll`), the title's
+  fixed pieces sit in scale-down-only rooms (`LeftFit`: the logo and the menu; `BobaFit`), the tree refits to its real size:
+  `docs/WORKLIST-RESTYLE-2026-11-07.md`). **R3's shapes (2026-11-08)**: every plate casts one solid Deep Plum shadow
   straight down and has a Deep Plum edge, so the code's flat plates (the dock, the boss panel, the zone plate, the title's
   menu, windows and badge, the pause and settings windows, the tree's warning and tip, the toast) wear the chrome's Window
   or small plate (`EPawChrome::PlateSmall`), and `PawUi::PlatePadding` keeps content off the shadow. The pressed button

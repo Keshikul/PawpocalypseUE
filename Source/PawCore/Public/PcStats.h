@@ -30,7 +30,7 @@ namespace Pc
 		bool bFinalBossDefeated = false;
 		double StardustGrantedEver = 0.0;          // the Reawaken multiplier keys off Stardust EVER granted (CLAUDE.md)
 		int64_t WavesHere = 0;                     // Reputation
-		int64_t CardsTakenThisRun = 0;             // Grudge Ledger
+		int64_t CardsTakenThisRun = 0;             // Stacked Deck (grudge_ledger)
 		int64_t KillsThisCycle = 0;                // Body Count
 
 		// --- the run's economy state (PcEconomy reads these; RebuildStats does not) ---

@@ -138,7 +138,7 @@ Types: `double` for every economy and damage value (D13), `int64` for counts, `i
 | `UiJuice` (static helper) | `FPawJuice` over `PcJuice` (built, phase 6 slice 5c) | a struct each screen owns and ticks (Common UI buttons do not tick) | Hover, press and punch from the buttons' own events, the lean and pop-in where Godot calls them; render transform about the centre, so layout never moves (doc 05 §7) |
 | `RainbowBar`, `RainbowFrame`, `SkillTreeSky` | `UPawRainbowBar` (the Reawaken page's bar), `UPawRainbowFrame` (the zone plate's frame, following the plate from the HUD's root overlay), `UPawTreeSky` (over the tree's Sky border) over `PcRainbow` / `PcSky` (built, phase 6 slice 5d) | pieces with their own Widget Blueprints, painted in Slate (`PawUi::PaintCanvas`) | doc 05 §7 |
 | `UnicornCeremony` | `UPawUnicornCeremony` over `PcUnicornCeremony` / `PcTween` (built, phase 6 slice 6a) | the skill tree's last part (`WBP_UnicornCeremony`), not a stack screen | Plays when the Unicorn is bought; eats every click, holds the keys (the tree buys nothing under it), skips after 0.6 s, hands the tree its focus back (doc 05 §6) |
-| `Palette` (generated) | `PawTokens.h` (generated) | header | As built: `py tools/gen_paw_tokens.py` from Godot's generated `palette.gd` (planned: `tools/palette.py --cpp`, doc 07 §3) |
+| `Palette` (generated) | `PawTokens.h` (generated) | header | As built: `py tools/gen_paw_tokens.py` from the port's own `tools/art/palette.py` (since restyle R0, 2026-11-07, D14; before that Godot's `palette.gd`; doc 07 §3) |
 
 **Framework classes** stay thin: `APawGameMode` (sets classes; no state, no UI), `APawPlayerController` (input
 contexts, the root layout, cursor), `UPawGameInstance` (level transition widget, startup checks). No `GameState`

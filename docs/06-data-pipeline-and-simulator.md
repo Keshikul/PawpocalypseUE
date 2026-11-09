@@ -86,6 +86,9 @@ save fixes F26-F33 added 11), not in `/data`
 (sizes, colours, effect timings).
 
 **As built (2026-10-29):**
+- `Data/TextOverrides.csv` (2026-11-09; `table, key, text, godot, note`) is source too, never exported: the port's own
+  English for 279 player-facing lines (doc 08 §4, `tools/text_overrides.py`). The export comparison, `gen_paw_rows.py` and
+  `import_data.py` skip it.
 - `Data/CodeConstantsMap.csv` (`godot_name, destination, literal, note`) is the REVIEWED list: one row per appendix C constant
   (585 rows on 2026-11-05: the 580, plus `BOSS_REALMS`, a list, and four literals: Second Helping's biome index in `begin_biome()`, and
   since 2026-10-31 the boss's relocation distance and drift wobble (x and y) in `Boss._tick_movement()`). The

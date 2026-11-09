@@ -9,6 +9,7 @@
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Overlay.h"
+#include "Components/ScrollBox.h"
 #include "Components/OverlaySlot.h"
 #include "Components/SizeBox.h"
 #include "Components/Slider.h"
@@ -270,11 +271,15 @@ bool UPawSettingsDialog::Initialize()
 		RuleBox->SetContent(Rule);
 		Body->AddChildToVerticalBox(RuleBox)->SetPadding(FMargin(0.0f, Gap, 0.0f, 0.0f));
 
-		// The pages share one place; one shows at a time.
-		UOverlay* Pages = T->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("Pages"));
-		UVerticalBoxSlot* PagesSlot = Body->AddChildToVerticalBox(Pages);
+		// The pages share one place; one shows at a time. R4h: that place scrolls (at 150 % UI the window is the screen's
+		// height and a page is taller than what is left above Close; the selection pulls its row into view).
+		UScrollBox* PagesScroll = T->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("PagesScroll"));
+		PagesScroll->SetScrollWhenFocusChanges(EScrollWhenFocusChanges::InstantScroll);
+		UVerticalBoxSlot* PagesSlot = Body->AddChildToVerticalBox(PagesScroll);
 		PagesSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 		PagesSlot->SetPadding(FMargin(0.0f, Gap, 0.0f, 0.0f));
+		UOverlay* Pages = T->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("Pages"));
+		PagesScroll->AddChild(Pages);
 
 		AudioPage = MakePage(T, Pages, TEXT("AudioPage"));
 		VolumeLabel = PageLabel(T, AudioPage, TEXT("VolumeLabel"), nullptr, true);

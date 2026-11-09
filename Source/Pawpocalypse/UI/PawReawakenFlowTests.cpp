@@ -46,6 +46,7 @@
 #include "UI/PawUiConstants.h"
 #include "UI/PawUiKit.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
+#include "UI/PawTextTesting.h"
 
 #include <algorithm>
 
@@ -333,6 +334,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawJobPickerAsksTest, "Pawpocalypse.UI.JobPick
 
 bool FPawJobPickerAsksTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FFlowWorld W;
 	if (!W.Open(*this))
 	{
@@ -437,6 +441,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawJobPickerUnionTest, "Pawpocalypse.UI.JobPic
 
 bool FPawJobPickerUnionTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FFlowWorld W;
 	if (!W.Open(*this))
 	{

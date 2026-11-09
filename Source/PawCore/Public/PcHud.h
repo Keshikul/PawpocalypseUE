@@ -190,7 +190,7 @@ namespace Pc
 
 	enum class PcReawakenButtonKind : uint8_t
 	{
-		Confirm,  // the second press armed: "Confirm — this resets your life"
+		Confirm,  // the second press armed: "Confirm: reset this run"
 		Early,    // after the first, before the suggestion: "Reawaken early — cash out +<amount>"
 		Reawaken, // "Reawaken (Reawaken <n>)"
 		NotYet,   // below the gate: "Not worth it yet — only +<amount>", disabled
@@ -205,7 +205,7 @@ namespace Pc
 		bool bReady = false;          // can_reawaken(): the button is enabled
 		PcReawakenButtonKind Button = PcReawakenButtonKind::NotYet;
 		int64_t Count = 0;            // Reawakens so far
-		bool bUnicorn = false;        // "The Unicorn has awakened — Rainbow Poop active"
+		bool bUnicorn = false;        // "Unicorn unlocked: Rainbow Poop active"
 	};
 	PAWCORE_API PcReawakenPage ReawakenPage(const PcGameData& D, const PcProgress& P, bool bConfirmArmed);
 
@@ -227,7 +227,7 @@ namespace Pc
 	struct PcCatchesPage
 	{
 		std::vector<PcCatchesRow> Rows;
-		int64_t Taken = 0;          // 0: "No cards taken yet this life..."; else "<n> card(s) taken this life."
+		int64_t Taken = 0;          // 0: "No cards taken this run..."; else "<n> card(s) taken this run."
 		bool bPickingAuto = false;  // + " Picking automatically." (the setting, as Godot reads it, owned or not)
 		bool bAutoPickShown = false; // the Auto-pick box: only once Auto-Card is owned (owns_auto_card())
 	};
@@ -266,7 +266,7 @@ namespace Pc
 	{
 		Worn,          // held and locked in for this run (run_job): name + description, in the text colour
 		Owned,         // held: name + description, muted
-		NoNode,        // "Locked — no skill tree node grants this yet."
+		NoNode,        // "Locked — no skill unlocks this yet."
 		Closed,        // "Closed — you took <branch> instead."
 		BossGate,      // "Locked — beat the boss in <biome>, then buy it in the skill tree."
 		ReawakenGate,  // "Locked — Reawaken once / <n> times, then buy it in the skill tree."
@@ -295,7 +295,7 @@ namespace Pc
 		bool bNew = true;        // level <= 1: "NEW" (the alert colour); else "LEVEL <level> of <max>", muted
 		double Value = 0.0;      // describe(level): {v} and {c} at the level taking it gives
 		double Cost = 0.0;
-		bool bCosts = false;     // cost != NONE: the alert-red frame and "This one costs you something."
+		bool bCosts = false;     // cost != NONE: the alert-red frame and "This card has a downside."
 	};
 	struct PcCardPick
 	{

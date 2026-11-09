@@ -33,6 +33,7 @@
 #include "UI/PawUiKit.h"
 #include "Components/PanelWidget.h"
 #include "PcBackdrop.h"
+#include "UI/PawTextTesting.h"
 
 #include <string>
 
@@ -155,6 +156,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTitleGodotTest, "Pawpocalypse.UI.Title.Matc
 // (the summary read from a real save file, a missing or unreadable slot reading Empty), the leaderboard.
 bool FPawTitleGodotTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FString Text;
 	const FString Path = FPaths::ProjectDir() / TEXT("Source/PawCore/Tests/Data/title_godot.tsv");
 	if (!TestTrue(TEXT("the fixture"), FFileHelper::LoadFileToString(Text, *Path)))
@@ -371,8 +375,16 @@ bool FPawTitlePlumTest::RunTest(const FString& Parameters)
 		if (TestNotNull(Where + TEXT(": Continue"), Continue))
 		{
 			const UCanvasPanelSlot* S = CanvasSlotOf(Continue);
-			TestTrue(Where + TEXT(": the menu on the left"), S && S->GetAnchors().Minimum == FVector2D(0.0, 0.5)
-				&& FMath::IsNearlyEqual(S->GetOffsets().Left, static_cast<float>(PawUi::R4TitleMargin)));
+			// R4h: in its room (left edge, top to bottom; Pawpocalypse.UI.Layout.Title proves it fits at 150 %).
+			TestTrue(Where + TEXT(": the menu on the left"), S && S->GetAnchors().Minimum == FVector2D(0.0, 0.0)
+				&& S->GetAnchors().Maximum == FVector2D(0.0, 1.0) && FMath::IsNearlyEqual(S->GetOffsets().Left, static_cast<float>(PawUi::R4TitleMargin)));
+			// The rooms' ends, the constants' (the asset and the code agree; a constant moved alone shows here).
+			TestTrue(Where + TEXT(": the menu's room ends above the hint"), S && FMath::IsNearlyEqual(S->GetOffsets().Bottom, static_cast<float>(PawUi::R4MenuBottom)));
+			const UWidget* Card = M->WidgetTree->FindWidget(TEXT("BobaCard"));
+			const UCanvasPanelSlot* C = Card ? CanvasSlotOf(const_cast<UWidget*>(Card)) : nullptr;
+			TestTrue(Where + TEXT(": Boba's room ends above the version"), C && C->GetAnchors().Maximum == FVector2D(1.0, 1.0)
+				&& FMath::IsNearlyEqual(C->GetOffsets().Bottom, static_cast<float>(PawUi::R4BobaBottom))
+				&& FMath::IsNearlyEqual(C->GetOffsets().Top, static_cast<float>(PawUi::R4BobaRoomTop)));
 			for (int32 I = 0; I < 7; ++I)
 			{
 				const UPawButton* B = M->GetMenuButton(I);
@@ -500,6 +512,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTitleLoadTest, "Pawpocalypse.UI.Title.Load"
 // An occupied slot loads, no confirm, and the game opens on it; the loaded slot becomes the active one.
 bool FPawTitleLoadTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FTitleWorld W;
 	if (!W.Open(*this))
 	{
@@ -526,6 +541,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTitleDeleteTest, "Pawpocalypse.UI.Title.Del
 // Delete asks first, with the safe answer under the key; Cancel keeps the save, Yes removes it (and its backup).
 bool FPawTitleDeleteTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FTitleWorld W;
 	if (!W.Open(*this))
 	{
@@ -565,6 +583,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTitleBackTest, "Pawpocalypse.UI.Title.BackA
 // Back closes the top layer; on the menu it asks to quit. Exit saves a game worth saving, then quits; the links open.
 bool FPawTitleBackTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FTitleWorld W;
 	if (!W.Open(*this))
 	{

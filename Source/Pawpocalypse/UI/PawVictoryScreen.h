@@ -1,6 +1,6 @@
 #pragma once
 
-// The ending (docs/05 §6.3; Godot victory_screen.gd): "THE VOID IS QUIET", a line of flavour, the run's time, and OK. Shown
+// The ending (docs/05 §6.3; Godot victory_screen.gd): "VICTORY", a line of flavour, the run's time, and OK. Shown
 // by the HUD when the field's BossDefeated event carries FieldFlag::Victory (PcProgress RaisesVictory: boss_defeated for
 // the last boss realm, a first clear or the first rematch of a cycle), with the FIRST clear's time (FinalBossSeconds).
 //

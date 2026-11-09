@@ -37,6 +37,7 @@
 #include "UI/PawSkillTreeScreen.h"
 #include "UI/PawWidgets.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
+#include "UI/PawTextTesting.h"
 
 #include <cstdlib>
 #include <string>
@@ -213,6 +214,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawPauseGodotTest, "Pawpocalypse.UI.Pause.Matc
 // fixture does not record: its line is checked up to them; every slot the menu itself wrote is checked whole.
 bool FPawPauseGodotTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FString Text;
 	const FString Path = FPaths::ProjectDir() / TEXT("Source/PawCore/Tests/Data/pause_godot.tsv");
 	if (!TestTrue(TEXT("the fixture"), FFileHelper::LoadFileToString(Text, *Path)))
@@ -632,6 +636,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawPauseOverwriteTest, "Pawpocalypse.UI.Pause.
 
 bool FPawPauseOverwriteTest::RunTest(const FString& Parameters)
 {
+	// Godot's English for this run (UI/PawTextTesting.h): it compares with Godot's words; the port's own English is
+	// Pawpocalypse.UI.Text.PortWords' (Data/TextOverrides.csv).
+	const PawTextTesting::FGodotWords GodotWords(*this);
 	FPauseWorld W;
 	if (!W.Open(*this))
 	{

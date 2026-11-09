@@ -142,7 +142,17 @@ Content folder) and staged loose (`+DirectoriesToAlwaysStageAsUFS=(Path="Pawpoca
 shows the text). Accessors `PawText::Ui(Key[, Args])`, `PawText::Data(Prefix, Id)`; numbers through `PawText::Amount`
 (`Amounts.short`, culture-invariant until its suffixes join a table) and `PawText::Count` / `TwoDigits` / `Fixed` (Godot's `str()`, `"%02d"`, `"%.Nf"`: ungrouped, a '.' point in every
 language; designer 2026-11-02, "match Godot"). L0 gate `ui-rules`: no hard-coded text in the UI code, no `FText::AsNumber`, every key it names exists, every `ST_UI` key is named. A quoted CSV value may
-span lines (`SHOP_kitten_power_locked`, tested).
+span lines (`SHOP_kitten_power_locked`, tested); a written `\n` is a line break too (the import unescapes it,
+`ReplaceEscapedCharWithChar`, StringTableCore.cpp 5.8).
+
+**The port's own English (2026-11-09).** The designer's text pass (plain, informative, real numbers, one word per idea;
+CLAUDE.md) changed 279 English lines. `ST_UI` holds its own; the generated tables take theirs from `Data/TextOverrides.csv`
+(`table, key, text, godot, note`; `tools/text_overrides.py`): `gen_data_strings.py` and `gen_tree_tables.py` write `text` and
+fail when a key is not generated, Godot's English is no longer `godot` (review the line), or the `{tokens}` differ.
+Godot's words are not changed: its `loc` gate needs every English string translated in every shipped language. The tree
+text test (`PcTreeTextTests`) still compares against Godot's wording through the `godot` column. **For `port_po.py`**: a
+changed line has no Godot translation to match (its `godot` column is the msgid that has one): those lines go to
+translators.
 
 | Godot | Unreal |
 |---|---|

@@ -79,7 +79,8 @@ The full plan with session prompts is [11-roadmap.md](11-roadmap.md).
   run opens in Territory's biome (designer 2026-11-01, "Territory wins", F20, fixed in Godot first). The card pick screen since
   (24): a Menu-stack screen that holds the field while a hand is up; the skill tree's layout and navigation in PawCore
   (`PcTreeLayout`, exact against Godot); the skill tree screen since (25): browse (T / pad Y) and the Reawaken's spend step, every
-  word generated from skill_tree_ui.gd (`tools/gen_tree_tables.py`). The Reawaken ceremony and the job picker since (26), so a
+  word generated from skill_tree_ui.gd (`tools/gen_tree_tables.py`; the English since 2026-11-09 the port's own where the
+  designer's text pass changed it, `Data/TextOverrides.csv`). The Reawaken ceremony and the job picker since (26), so a
   Reawaken runs Godot's whole order: ceremony, spend step, job picker, travel (doc 05 §6.3). The victory screen since (27), and
   numbers printed Godot's way (ungrouped, culture-invariant). The screenshot tour against Godot since (28) (`py tools/godot_tour.py`).
   The whole run through the UI since (29) (`Pawpocalypse.UI.Playthrough`): **phase 3's exit criteria are met** but the
@@ -121,15 +122,16 @@ The full plan with session prompts is [11-roadmap.md](11-roadmap.md).
   the cat stays grey). Plan `docs/WORKLIST-RESTYLE-2026-11-07.md`; **R0-R3 done** (HANDOFF-LOG (65), (66), (68)): the
   palette is `tools/art/palette.py`; the ink is Plum `#2A1A33`; every text is M PLUS Rounded 1c (`F_Paw`, Noto for ko / zh /
   th), titles and numbers in Black; the panels are plum with bone text; every plate has a Deep Plum edge and one solid
-  shadow straight down, a pressed button sinks onto it. **R4 (screens and layout) under way** (HANDOFF-LOG (69)): R4a-R4g
-  done as far as they go without new art and words (Butter focus and selection, the 16 px text floor, the title, the HUD,
-  the dock's rows, the tree's round nodes and pills, Butter titles); R4h's checks ran: pad tours and 1280x800 pass, **150 %
-  overflows on four screens (open, next)**. Slice 6's 6b-6d after the restyle.
-- **Committed through `f6a16b3`** (2026-11-07 night, local, not pushed: the port through slice 6a and restyle R0-R1;
-  designer's "Do all of it" to the night plan's question A). R2, R3 and R4 so far (2026-11-08) are not committed: the
-  designer reviews them.
+  shadow straight down, a pressed button sinks onto it. **R4 (screens and layout) DONE** (HANDOFF-LOG (69), (70)): Butter
+  focus and selection, the 16 px text floor, the title, the HUD, the dock's rows, the tree's round nodes and pills, Butter
+  titles; every screen fits at 150 % UI (`Pawpocalypse.UI.Layout.*`). Its leftover faults wait on R6 art and the designer's
+  words. **Next R5 (the field).** The plain text is IN (HANDOFF-LOG (72)): 279 lines approved by the designer, "enemies" not
+  "mice"; `ST_UI` directly, `ST_Data` / `ST_Tree` through `Data/TextOverrides.csv` (Godot's words unchanged). Slice 6's
+  6b-6d after the restyle.
+- **Committed through `7a6023c`** (2026-11-08 night, local, not pushed: restyle R2-R4 up to R4h's first pass; the
+  designer's "A yes" to the night plan). The night's R4h close, the text audit and the grudge removal are not committed.
 - **One gate command**: `powershell -ExecutionPolicy Bypass -File tools\check_all.ps1` (everyday, minutes) or `-Full`
-  (nightly, ~10 h measured: 627 PawCore and 477 realm sabotages since R4g). **Last everyday run 2026-11-08 (HANDOFF-LOG (69), after R4a-R4h): every gate green. Last `-Full` run 2026-11-06 (HANDOFF-LOG (60))**: all 31
+  (nightly, ~10 h measured: 627 PawCore and 484 realm sabotages since 2026-11-09). **Last everyday run 2026-11-09 (HANDOFF-LOG (72), the text applied): 24 of 24 green. Last `-Full` run 2026-11-06 (HANDOFF-LOG (60))**: all 31
   gates green, every sabotage caught (563 PawCore, 412 realm), 9 h 38 min. The run before, 2026-11-05/06 (HANDOFF-LOG (56)): 29 of 30
   gates green; the realm gate refused on one stale target, which was retargeted; its rerun caught 381 of 388, the 7 missed
   were 1 retargeted (`view_no_effects`, then CAUGHT alone) and 6 retired (bake-only lines since the Widget Blueprints): every
@@ -156,6 +158,8 @@ dialog), `PcDevice` (phase 5: the prompt family, the cursor source, the toasts),
 | `Data/*.csv` | **every gameplay resource of the Godot game** (266 resources, 11 classes), exported by `tools/export_godot_data.py`, enums written by NAME |
 | `Data/AudioEvents.csv`, `Data/AudioMusic.csv` | phase 6: audio_manager.gd's sound table and music (by `tools/export_audio.py`, also run by the exporter; not DataTables: `tools/import_audio.py` builds `DA_AudioBank`) |
 | `Data/CodeConstantsMap.csv`, `Data/CodeConstants.csv` | the reviewed destination of every Godot code constant (585 rows); the 66 gameplay ones it selects, exported with their values and reasons from the Godot code (`tools/export_code_constants.py`, run by the exporter) |
+| `Data/TextOverrides.csv` | the port's own English (2026-11-09, the designer's text pass: 279 lines, Godot's line beside each): `ST_UI` holds its lines directly, `gen_data_strings.py` / `gen_tree_tables.py` apply the `ST_Data` / `ST_Tree` ones (`tools/text_overrides.py`); never exported, Godot's words unchanged |
+| `tools/text_audit.py`, `tools/text_overrides.py` | the text rule (budgets, one word per idea, banned words; drafts in `docs/TEXT-DRAFT-*.csv` while a pass is under review) and the port's own English over Godot's (doc 08 §4) |
 | `tools/export_godot_data.py`, `gen_pc_data.py`, `gen_pc_enums.py` | the exporter (doc 06 §2) and the generators of `PcDataRows.h` / `PcEnums.h` from the Godot data scripts (L0 checks they are current) |
 | `tools/list_godot_code_constants.py`, `tools/make_port_map.py` | regenerate appendices C and B from the Godot repo (the map script fails if a Godot script is unmapped) |
 | `tools/pawsim.py` | the balance simulator, reading `Data/*.csv` (byte-identical to the Godot pawsim on the `.tres`, doc 06 §7) |

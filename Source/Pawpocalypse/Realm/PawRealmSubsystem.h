@@ -70,7 +70,7 @@ public:
 	// After a Reawaken (the game's or the cheat's): what TierController did on the `reawakened` signal.
 	void OnReawakened();
 	// CardManager.choose(): take a card from the hand up (only a card in it), then the stats rebuilt, as Godot's
-	// choose() refreshes them (a card's cost and Grudge Ledger change them), and the kittens re-counted at once: a
+	// choose() refreshes them (a card's cost and Stacked Deck change them), and the kittens re-counted at once: a
 	// kitten-cost card takes them now (TierController on card_taken; doc 01 §5 F14, designer 2026-11-03). False when the card
 	// is not in the hand.
 	bool ChooseCard(const FString& CardId);

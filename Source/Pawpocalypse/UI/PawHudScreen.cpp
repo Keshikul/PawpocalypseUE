@@ -614,7 +614,9 @@ void UPawHudScreen::BuildUpgradesPage(UVerticalBox* Page)
 	MultiplierButton->SetMinDimensions(static_cast<int32>(PawUi::MultiplierButtonWidth), static_cast<int32>(PawUi::MultiplierButtonHeight));
 	Header->AddChildToHorizontalBox(MultiplierButton)->SetVerticalAlignment(VAlign_Center);
 
-	// The rows: BuildShopRows, at runtime, into this page (Page0).
+	// The rows: BuildShopRows, at runtime, into this page's list. R4h: the list scrolls, as the other pages' do (at 150 % UI,
+	// and on a short screen, the rows ran under the quick bar); the selection pulls its row into view.
+	PageScroll(Page, TEXT("ShopList"));
 }
 
 namespace
@@ -628,6 +630,7 @@ void UPawHudScreen::BuildShopRows()
 {
 	UWidgetTree* T = WidgetTree;
 	UVerticalBox* Page = Cast<UVerticalBox>(T->FindWidget(PawUi::Numbered(TEXT("Page"), static_cast<int32>(PcDockTab::Upgrades))));
+	UScrollBox* List = Cast<UScrollBox>(T->FindWidget(TEXT("ShopList")));
 	if (!Page || Rows.Num() > 0)
 	{
 		return;
@@ -645,7 +648,15 @@ void UPawHudScreen::BuildShopRows()
 		Row->SetPressMethod(EButtonPressMethod::ButtonPress);
 		Row->SetClickMethod(EButtonClickMethod::MouseDown);
 		Row->OnClicked().AddWeakLambda(this, [this, I]() { PressRow(I); });
-		Page->AddChildToVerticalBox(Row)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, PawUi::RowGap));
+		if (List)
+		{
+			List->AddChild(Row);
+			PadScrollChild(Row);
+		}
+		else
+		{
+			Page->AddChildToVerticalBox(Row)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, PawUi::RowGap));
+		}
 		Rows.Add(Row);
 	}
 }

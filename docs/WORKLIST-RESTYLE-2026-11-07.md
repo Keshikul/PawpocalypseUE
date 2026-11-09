@@ -2,7 +2,7 @@
 
 **Status (2026-11-08 night, HANDOFF-LOG (70)): R0-R4 DONE (R4 closed on its exit criteria; its open faults wait on R6 art
 and the designer's words); next R5 (the field).** 2026-11-09: the designer's text pass is in (D15, HANDOFF-LOG (72)).
-Committed through R4h's first pass as `7a6023c`. D1 answered: M PLUS Rounded 1c. D2 answered: the
+Committed and pushed through R4 and the text pass as `b0ce7be` (2026-11-09). D1 answered: M PLUS Rounded 1c. D2 answered: the
 cat stays grey. Designer: restyle now, before slice 6's 6b-6d. Written after a design review of the concept in the browser (§3).
 
 ## 1. What was decided, and what it changes

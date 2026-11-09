@@ -128,8 +128,8 @@ The full plan with session prompts is [11-roadmap.md](11-roadmap.md).
   words. **Next R5 (the field).** The plain text is IN (HANDOFF-LOG (72)): 279 lines approved by the designer, "enemies" not
   "mice"; `ST_UI` directly, `ST_Data` / `ST_Tree` through `Data/TextOverrides.csv` (Godot's words unchanged). Slice 6's
   6b-6d after the restyle.
-- **Committed through `7a6023c`** (2026-11-08 night, local, not pushed: restyle R2-R4 up to R4h's first pass; the
-  designer's "A yes" to the night plan). The night's R4h close, the text audit and the grudge removal are not committed.
+- **Committed and pushed through `b0ce7be`** (2026-11-09, designer: "Commit and push"; `origin/master` on GitHub): restyle
+  R0-R4, the plain-text pass (D15), HANDOFF-LOG (70)-(72).
 - **One gate command**: `powershell -ExecutionPolicy Bypass -File tools\check_all.ps1` (everyday, minutes) or `-Full`
   (nightly, ~10 h measured: 627 PawCore and 484 realm sabotages since 2026-11-09). **Last everyday run 2026-11-09 (HANDOFF-LOG (72), the text applied): 24 of 24 green. Last `-Full` run 2026-11-06 (HANDOFF-LOG (60))**: all 31
   gates green, every sabotage caught (563 PawCore, 412 realm), 9 h 38 min. The run before, 2026-11-05/06 (HANDOFF-LOG (56)): 29 of 30

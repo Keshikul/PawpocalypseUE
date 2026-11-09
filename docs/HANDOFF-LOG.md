@@ -8,8 +8,8 @@ and the exact next step. Read `docs/00-START-HERE.md` first, then the newest ent
 ## 2026-11-09 (72) - The plain text is in: 279 lines, "enemies", the port's own English
 
 ### Where the project is
-- As in (70)/(71): R0-R4 done, **next R5 (the field)**. Committed through `7a6023c`; (70), (71) and this entry are not
-  committed.
+- As in (70)/(71): R0-R4 done, **next R5 (the field)**. **Committed and pushed as `b0ce7be`** (designer: "Commit and
+  push"; (70)-(72), with `.gitattributes` pinning CSVs to LF: with `core.autocrlf` a fresh clone got CRLF string tables).
 - The designer's text pass is **applied**. Everyday `check_all` **exit 0, 24 of 24 gates** on the final state
   (`build/check_all_text_apply.log`); every engine test 130/130 (`build/run_automation_text_apply2.log`).
 
@@ -56,7 +56,7 @@ and the exact next step. Read `docs/00-START-HERE.md` first, then the newest ent
 ### Open
 - **The designer:** whether Godot should take the same text (F46: then re-extract the .pot and translate); the title's
   `{n} kills` lines were my wording (the mechanical "{n} enemies" read badly on a save card); the canvas's two "grudge"
-  lines; the tree opening zoomed; Continue's slot line; the hardware check; committing (70)-(72).
+  lines; the tree opening zoomed; Continue's slot line; the hardware check.
 - The text's numbers are literal (only the level counts are checked): a `Data/` change to a skill's ladder will not update
   its blurb. A check that recomputes each blurb's range from `Data/` would close it.
 - The 279 changed lines are untranslated (phase 7's `port_po.py` sends them to translators).

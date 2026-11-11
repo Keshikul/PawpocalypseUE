@@ -511,10 +511,10 @@ bool FPawTreeZoomTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("nothing for sale, nothing moves"), Tree->JumpToAffordable().IsEmpty());
 	W.P().Stardust = 1e12;
 	W.P().ReawakenCount = 99;
-	const FString From = UPawSkillTreeScreen::LastSelected();
+	const FString From = Tree->LastSelected();
 	const FString Got = Tree->JumpToAffordable();
 	TestEqual(TEXT("the next affordable"), Got, FString(UTF8_TO_TCHAR(Pc::NextAffordableBranch(W.D(), W.P(), TCHAR_TO_UTF8(*From)).c_str())));
-	TestEqual(TEXT("and it is the selection now"), UPawSkillTreeScreen::LastSelected(), Got);
+	TestEqual(TEXT("and it is the selection now"), Tree->LastSelected(), Got);
 	TestEqual(TEXT("its tooltip docks"), Tree->GetTipBranch(), Got);
 	W.Close();
 	return true;

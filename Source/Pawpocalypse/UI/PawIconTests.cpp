@@ -99,6 +99,16 @@ bool FPawIconsTest::RunTest(const FString& Parameters)
 	{
 		return true;
 	}
+	// Review CR11: an engine subsystem's property holds the set (released with the engine, never by a C++ static destructor
+	// after it). No garbage collection here: the editor's keep flags spare a loaded asset whoever holds it, and a collection
+	// without them would pull assets from under the other tests of this session.
+	{
+		const UPawIconCache* Cache = GEngine ? GEngine->GetEngineSubsystem<UPawIconCache>() : nullptr;
+		if (TestNotNull(TEXT("the icon cache (an engine subsystem)"), Cache))
+		{
+			TestTrue(TEXT("it holds the set"), Cache->GetHeld() == Set);
+		}
+	}
 	TestEqual(TEXT("one texture per name"), Set->Textures.Num(), Set->Names.Num());
 	for (int32 I = 0; I < Set->Textures.Num(); ++I)
 	{

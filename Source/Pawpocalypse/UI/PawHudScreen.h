@@ -121,8 +121,6 @@ public:
 	// A Reawaken, in Godot's order (hud.gd _run_reawaken_ceremony): the payout read, the reset, the ceremony (the HUD's top
 	// layer; it runs on the HUD's clock while the field runs), then the spend step on the Menu stack; leaving it asks for
 	// the run's job (the Modal stack, when JobPicker.should_ask()), then the run goes to its starting biome.
-	// HUD._jobs_seen = -1 (main_menu.gd _on_slot_chosen): another game's count must not badge this one's jobs.
-	static void ForgetJobsSeen();
 	UPawReawakenCeremony* GetCeremony() const { return Ceremony; }
 	UPawJobPicker* GetJobPicker() const { return JobPicker; }
 	// THE ENDING (hud.gd _on_boss_defeated_for_victory): on a BossDefeated event flagged Victory, the victory screen on the
@@ -329,6 +327,13 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> QuickStatus;
 	int64 QuickSaveTicket = 0; // the quick save's write, until the writer says how it went (review CR15; Pump)
+	// What the dock remembers across HUDs (UPawUiMemory, review CR14); a HUD with no game instance keeps its own.
+	Pc::PcDockTab& ActiveTabRef() const;
+	int64& JobsSeenRef() const;
+	int64& BuyMultiplierRef() const;
+	mutable Pc::PcDockTab LoneActiveTab = Pc::PcDockTab::Upgrades;
+	mutable int64 LoneJobsSeen = -1;
+	mutable int64 LoneBuyMultiplier = 1;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> ClaimAllButton;
 	UPROPERTY()

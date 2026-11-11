@@ -180,7 +180,8 @@ public:
 	// buys nothing and hands it every key (ceremony_playing()).
 	UPawUnicornCeremony* GetUnicorn() const { return Unicorn; }
 	bool IsCeremonyPlaying() const;
-	static FString LastSelected();
+	// The node the tree was left on (UPawUiMemory, review CR14).
+	FString LastSelected() const;
 
 protected:
 	virtual void NativeOnActivated() override;
@@ -195,6 +196,9 @@ protected:
 	virtual FReply NativeOnMouseWheel(const FGeometry& Geometry, const FPointerEvent& Event) override;
 
 private:
+	// UPawUiMemory's; a tree with no game instance keeps its own.
+	FString& LastSelectedRef() const;
+	mutable FString LoneLastSelected;
 	void BuildCanvas();
 	void BuildChrome(class UOverlay* Root);
 	void OnLayoutReady();

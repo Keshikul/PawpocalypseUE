@@ -9,6 +9,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Engine/DataAsset.h"
 #include "Styling/SlateBrush.h"
+#include "Subsystems/EngineSubsystem.h"
 
 #include "PawIcons.generated.h"
 
@@ -34,9 +35,29 @@ private:
 	mutable TMap<FString, int32> ByName;
 };
 
+// Who keeps DA_Icons loaded (review CR11): an engine subsystem's property, released when the engine shuts down. It was a
+// function-static TStrongObjectPtr, released by the C++ static destructors at exit, after the engine (the release goes
+// through the object system), in an order across files the language leaves unspecified.
+UCLASS()
+class PAWPOCALYPSE_API UPawIconCache : public UEngineSubsystem
+{
+	GENERATED_BODY()
+
+public:
+	// DA_Icons, loaded the first time it is asked for and kept; null when it was never imported.
+	const UPawIconSet* Get();
+	// What is held now, without loading (the tests).
+	const UPawIconSet* GetHeld() const { return Set; }
+	virtual void Deinitialize() override;
+
+private:
+	UPROPERTY()
+	TObjectPtr<UPawIconSet> Set;
+};
+
 namespace PawUi
 {
-	// DA_Icons, loaded once and kept (null when it was never imported).
+	// DA_Icons, loaded once and kept by UPawIconCache (null when it was never imported, or with no engine).
 	const UPawIconSet* Icons();
 	// The icon named Stem ("ui_tab_upgrades"), or a Godot res:// path's stem ("res://assets/art/cards/card_x.svg"); null if none.
 	UTexture2D* Icon(const FString& StemOrPath);

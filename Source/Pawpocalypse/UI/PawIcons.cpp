@@ -10,8 +10,8 @@
 #include "UI/PawUiConstants.h"
 #include "UI/PawUiKit.h"
 #include "UI/PawWidgets.h"
+#include "Engine/Engine.h"
 #include "Misc/Paths.h"
-#include "UObject/StrongObjectPtr.h"
 
 UTexture2D* UPawIconSet::Find(const FString& Stem) const
 {
@@ -27,16 +27,27 @@ UTexture2D* UPawIconSet::Find(const FString& Stem) const
 	return I && Textures.IsValidIndex(*I) ? Textures[*I].Get() : nullptr;
 }
 
+const UPawIconSet* UPawIconCache::Get()
+{
+	if (!Set)
+	{
+		Set = LoadObject<UPawIconSet>(nullptr, TEXT("/Game/Pawpocalypse/Art/UI/Icons/DA_Icons.DA_Icons"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+	}
+	return Set;
+}
+
+void UPawIconCache::Deinitialize()
+{
+	Set = nullptr; // with the engine, not after it
+	Super::Deinitialize();
+}
+
 namespace PawUi
 {
 	const UPawIconSet* Icons()
 	{
-		static TStrongObjectPtr<UPawIconSet> Set;
-		if (!Set.IsValid())
-		{
-			Set.Reset(LoadObject<UPawIconSet>(nullptr, TEXT("/Game/Pawpocalypse/Art/UI/Icons/DA_Icons.DA_Icons"), nullptr, LOAD_NoWarn | LOAD_Quiet));
-		}
-		return Set.Get();
+		UPawIconCache* Cache = GEngine ? GEngine->GetEngineSubsystem<UPawIconCache>() : nullptr;
+		return Cache ? Cache->Get() : nullptr;
 	}
 
 	UTexture2D* Icon(const FString& StemOrPath)

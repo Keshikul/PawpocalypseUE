@@ -959,8 +959,8 @@ void UPawMainMenu::PressSlot(int32 SlotIndex)
 		return;
 	}
 	Show(ELayer::Slots, false);
-	// The Jobs badge counts jobs SEEN, in a static that outlives the HUD; another game's count must not carry into this one.
-	UPawHudScreen::ForgetJobsSeen();
+	// The Jobs badge's count of jobs SEEN starts again with the game this press starts or loads (UPawUiMemory, review CR14:
+	// HUD._jobs_seen = -1 in main_menu.gd _on_slot_chosen).
 	if (State == Pc::PcSlotState::Readable || State == Pc::PcSlotState::ReadableFromBackup)
 	{
 		// Occupied: it loads and resumes. No confirm: nothing is destroyed by loading. A load that fails after all (the

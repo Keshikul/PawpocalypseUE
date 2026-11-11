@@ -337,8 +337,10 @@ HANDOFF-LOG (96).
 **Batch B done 2026-11-11** (HANDOFF-LOG (97)), the words approved by the designer that morning: CR2 with F47 (every load
 outcome on the title; the unreadable slot's card, the `title` fixture made with `godot_fixes.py` F47) and CR15 (the quick
 bar and the pause menu say "Saved" only for a write that happened; write tickets). **F36 decided and done** the same day
-(batch E: refund the summon's Bait and Catnip on a mid-fight save). **Still open**: F3 (the designer's), CR5 step 2, CR9,
-CR11, CR12, CR14, CR17.
+(batch E: refund the summon's Bait and Catnip on a mid-fight save). **CR11 and CR14 done** the same day (HANDOFF-LOG
+(98)): `DA_Icons` held by an engine subsystem (`UPawIconCache`); the dock's tab, step and Jobs count seen and the tree's
+last node in a game-instance subsystem (`UPawUiMemory`), Godot's rules kept (the Jobs count seen starts again with every
+game, the rest lasts the session). **Still open**: F3 (the designer's), CR5 step 2, CR9, CR12, CR17.
 
 **After batch C**, the frame gate's draw-call question (doc 01 Q11) should be re-asked with clean numbers: the scene's own
 count (`showflag.Rendering 0` split) without the debug overlay. **Measured** the night of 2026-11-10 on a quiet PC

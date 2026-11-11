@@ -9,6 +9,41 @@ in whichever file holds it.
 
 ---
 
+## 2026-11-11 (98) - Review CR11 (the icon set's owner) and CR14 (the UI's memory, the game instance's); the nightly queued
+
+**Where the project is.** (97) is committed and pushed (`7277c49`, at the designer's request). The designer then asked for
+the suggestion: CR11 then CR14, and the nightly `-Full` tonight. Both are built and proven, then committed and pushed at the
+designer's request. The nightly waits in this session's background for 21:00 (`build/full_tonight.sh`, log
+`build/check_all_full_20261111.log`; it dies with the session, and its engine gates skip if an editor is open).
+
+**What happened.**
+- **CR11**: `DA_Icons` was kept by a function-static `TStrongObjectPtr`, released by the C++ static destructors after the
+  engine. Now the engine subsystem `UPawIconCache` holds it in a `UPROPERTY` and lets it go in `Deinitialize`;
+  `PawUi::Icons()` keeps its signature (no world context needed: `GEngine->GetEngineSubsystem`). `Pawpocalypse.UI.Icons`
+  asserts the subsystem holds the set; sabotage `icons_set_not_kept`. Not testable headless: the exit itself.
+- **CR14**: the HUD's open tab, buy step and Jobs count seen, and the tree's last node, were file-level globals that
+  crossed game instances (tests, PIE). They are `UPawUiMemory`'s, a game-instance subsystem, with Godot's rules kept: the
+  tab, the step and the tree's node last the session across games (Godot's statics); the Jobs count seen starts again with
+  every game (main_menu.gd's slot choice set it to -1; here the progress epoch: any new game or load), so
+  `UPawHudScreen::ForgetJobsSeen` is gone. A first version reset the tab and the node per game too, as the review
+  proposed; that departs from Godot without a fault to fix (D16), so it was taken back before anything was proven on it.
+  New test `Pawpocalypse.UI.Hud.Memory` (a rebuilt HUD opens on the tab and step; another game keeps them; a loaded game
+  does not badge the jobs it held; another game instance shares nothing; a new tree reads the node); 5 sabotages, 5
+  retargeted to the renamed accessors.
+- Proof: `Pawpocalypse.UI` 30 of 30 on the touched screens; every realm sabotage on the HUD, the tree, the icons, the
+  memory and the title, and every one their tests own (200, `build/cr1114_realm_sab.log`): 200 CAUGHT, the clean build
+  passes; `check_all` 27 of 27 green (15:23).
+- Knowledge base: U/02 §2 the static `TStrongObjectPtr` rule with the verified fix (an engine subsystem behind a
+  context-free accessor) and a test note (`GARBAGE_OBJECT_FLAGS` does not exist in 5.8.3); INDEX.
+- Docs: doc 00 (the UI row), doc 09 (91 UI tests, 544 realm sabotages), the review worklist (CR11, CR14 done).
+
+**Open.** The review's CR5 step 2, CR9, CR12, CR17; F3; Q11; R6; the hand checks
+of (96).
+
+**Next step.** Read the nightly's result (`build/check_all_full_20261111.log`; the session's `build/full_tonight.log` has
+its exit). Then, needing no one: CR12 (glyph textures and resolved widget classes held strongly: `glyph_cache_weak`), or
+R6 with the designer.
+
 ## 2026-11-11 (97) - Batch B (the load's outcome on the title, "Saved" only when saved) and F36 (a mid-fight save refunds the summon)
 
 **Where the project is.** The designer approved the 7 drafted lines (`docs/TEXT-DRAFT-2026-11-11.csv`, "Approve all 7")

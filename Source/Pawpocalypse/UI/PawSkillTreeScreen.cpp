@@ -1,4 +1,5 @@
 #include "UI/PawSkillTreeScreen.h"
+#include "UI/PawUiMemory.h"
 
 #include "UI/PawIcons.h"
 
@@ -359,12 +360,15 @@ float UPawTreeNode::GetFrameRadius() const { return Frame ? static_cast<float>(F
 
 // --- the screen -----------------------------------------------------------------------------------------------------------
 
-namespace
+// The node the tree was left on, across opens and games (Godot's static var _last_selected): UPawUiMemory (review CR14:
+// the game instance's, so never another test's or PIE session's).
+FString& UPawSkillTreeScreen::LastSelectedRef() const
 {
-	FString GLastSelected; // the node the tree was left on, across opens (Godot's static var _last_selected)
+	UPawUiMemory* M = UPawUiMemory::Of(this);
+	return M ? M->TreeLastSelected : LoneLastSelected;
 }
 
-FString UPawSkillTreeScreen::LastSelected() { return GLastSelected; }
+FString UPawSkillTreeScreen::LastSelected() const { return LastSelectedRef(); }
 
 bool UPawSkillTreeScreen::Initialize()
 {
@@ -1084,13 +1088,13 @@ FString UPawSkillTreeScreen::JumpToAffordable()
 	{
 		return FString();
 	}
-	const std::string Next = Pc::NextAffordableBranch(G->Data(), G->Progress(), Utf8(GLastSelected));
+	const std::string Next = Pc::NextAffordableBranch(G->Data(), G->Progress(), Utf8(LastSelectedRef()));
 	if (Next.empty())
 	{
 		return FString();
 	}
 	const FString Id = UTF8_TO_TCHAR(Next.c_str());
-	GLastSelected = Id;
+	LastSelectedRef() = Id;
 	if (CanTakeFocus() && Nodes.Contains(Id))
 	{
 		Nodes[Id]->SetFocus();
@@ -1101,7 +1105,7 @@ FString UPawSkillTreeScreen::JumpToAffordable()
 
 void UPawSkillTreeScreen::OnNodeFocused(const FString& Id)
 {
-	GLastSelected = Id;
+	LastSelectedRef() = Id;
 	Follow(Id, false);
 	ShowTip(Id, true);
 }
@@ -1116,9 +1120,9 @@ UWidget* UPawSkillTreeScreen::NativeGetDesiredFocusTarget() const
 	{
 		Id = UTF8_TO_TCHAR(Pc::CheapestAffordableBranch(G->Data(), G->Progress()).c_str());
 	}
-	if ((Id.IsEmpty() || !Nodes.Contains(Id)) && Nodes.Contains(GLastSelected))
+	if ((Id.IsEmpty() || !Nodes.Contains(Id)) && Nodes.Contains(LastSelectedRef()))
 	{
-		Id = GLastSelected;
+		Id = LastSelectedRef();
 	}
 	if ((Id.IsEmpty() || !Nodes.Contains(Id)) && Pc::TrunkWheel().size() > 0)
 	{
@@ -1152,7 +1156,7 @@ void UPawSkillTreeScreen::NativeOnActivated()
 	{
 		if (const UPawTreeNode* N = Cast<UPawTreeNode>(Target))
 		{
-			GLastSelected = N->BranchId;
+			LastSelectedRef() = N->BranchId;
 		}
 	}
 	Super::NativeOnActivated();
@@ -1222,7 +1226,7 @@ void UPawSkillTreeScreen::NativeTick(const FGeometry& Geometry, float DeltaSecon
 			Focused = N.Key;
 		}
 	}
-	if (!Focused.IsEmpty() && Focused != GLastSelected)
+	if (!Focused.IsEmpty() && Focused != LastSelectedRef())
 	{
 		OnNodeFocused(Focused);
 	}

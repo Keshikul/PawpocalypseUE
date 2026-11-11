@@ -36,6 +36,7 @@
 #include "UI/PawIcons.h"
 #include "UI/PawSettingsDialog.h"
 #include "Save/PawSaveSubsystem.h"
+#include "UI/PawUiMemory.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/SizeBoxSlot.h"
 #include "Components/Image.h"
@@ -60,12 +61,10 @@ namespace
 	using Pc::PcDockTab;
 	constexpr int32 TabCount = static_cast<int32>(PcDockTab::Count);
 
-	// Survive the HUD being rebuilt, as Godot's statics survive travel: the buy multiplier, the open tab, the jobs the
-	// player has seen (-1 until the session's first HUD seeds it). The dock's side and "ask before Reawakening" are the
-	// settings' (UPawSettingsSubsystem: Settings > Controls > Menu side; the Reawaken page's box).
-	int64 GBuyMultiplier = 1;
-	PcDockTab GActiveTab = PcDockTab::Upgrades;
-	int64 GJobsSeen = -1;
+	// The buy multiplier, the open tab and the jobs the player has seen survive the HUD being rebuilt, as Godot's statics
+	// survive travel: UPawUiMemory (review CR14: the game instance's; the jobs seen start again with every game, as
+	// main_menu.gd's slot choice does). The dock's side and "ask before Reawakening" are the settings' (UPawSettingsSubsystem: Settings > Controls >
+	// Menu side; the Reawaken page's box).
 	// The automations (auto-travel, auto-pick) are the save slot's: UPawGameSubsystem::Slot().
 
 	UPawSettingsSubsystem* SettingsOf(const UUserWidget* W)
@@ -318,7 +317,7 @@ void UPawHudScreen::OnLayoutReady()
 	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	bLastLeft = DockOnLeft(this);
 	ApplyDockSide();
-	SelectTab(GActiveTab);
+	SelectTab(ActiveTabRef());
 	// dock_side_changed: Settings > Controls > Menu side moves the dock at once; the Reawaken page's box follows too.
 	if (UPawSettingsSubsystem* S = SettingsOf(this))
 	{
@@ -946,7 +945,7 @@ UPawButton* UPawHudScreen::GetTabButton(Pc::PcDockTab Tab) const
 
 Pc::PcDockTab UPawHudScreen::GetActiveTab() const
 {
-	return GActiveTab;
+	return ActiveTabRef();
 }
 
 void UPawHudScreen::RefreshLegend()
@@ -954,7 +953,7 @@ void UPawHudScreen::RefreshLegend()
 	// hud.gd _refresh_dock_legend: Buy and Amount on Upgrades, Select elsewhere.
 	if (DockLegend)
 	{
-		DockLegend->SetTemplate(PawText::Ui(GActiveTab == PcDockTab::Upgrades ? TEXT("HUD_legend_upgrades") : TEXT("HUD_legend_other")));
+		DockLegend->SetTemplate(PawText::Ui(ActiveTabRef() == PcDockTab::Upgrades ? TEXT("HUD_legend_upgrades") : TEXT("HUD_legend_other")));
 	}
 }
 
@@ -982,12 +981,12 @@ void UPawHudScreen::SelectTab(Pc::PcDockTab Tab)
 	{
 		bReawakenArmed = false; // hud.gd show_tab: a half-armed confirm cannot survive the player looking away
 	}
-	GActiveTab = static_cast<PcDockTab>(I);
-	if (GActiveTab == PcDockTab::Jobs)
+	ActiveTabRef() = static_cast<PcDockTab>(I);
+	if (ActiveTabRef() == PcDockTab::Jobs)
 	{
 		if (const UPawGameSubsystem* G = Game(); G && G->IsDataReady())
 		{
-			GJobsSeen = static_cast<int64>(G->Progress().JobsHeld.size());
+			JobsSeenRef() = static_cast<int64>(G->Progress().JobsHeld.size());
 		}
 	}
 	if (Pages)
@@ -1014,7 +1013,7 @@ void UPawHudScreen::PressRow(int32 Row)
 		return;
 	}
 	const std::string& Id = Order[static_cast<size_t>(Row)];
-	if (Pc::PressShopRow(G->Data(), G->Progress(), Id, GBuyMultiplier) > 0)
+	if (Pc::PressShopRow(G->Data(), G->Progress(), Id, BuyMultiplierRef()) > 0)
 	{
 		// A Kitten Count purchase re-counts the kittens (Godot's upgrade_purchased); every purchase rebuilds the stats.
 		if (UPawRealmSubsystem* R = Realm())
@@ -1031,14 +1030,14 @@ void UPawHudScreen::PressRow(int32 Row)
 
 void UPawHudScreen::CycleMultiplier()
 {
-	GBuyMultiplier = Pc::NextBuyMultiplier(GBuyMultiplier);
+	BuyMultiplierRef() = Pc::NextBuyMultiplier(BuyMultiplierRef());
 	UPawAudioSubsystem::PlayFrom(this, TEXT("ui_click")); // _on_multiplier_button_pressed
 	RefreshNow();
 }
 
 int64 UPawHudScreen::GetBuyMultiplier() const
 {
-	return GBuyMultiplier;
+	return BuyMultiplierRef();
 }
 
 TArray<UWidget*> UPawHudScreen::PageColumn() const
@@ -1053,7 +1052,7 @@ TArray<UWidget*> UPawHudScreen::PageColumn() const
 			Column.Add(W);
 		}
 	};
-	switch (GActiveTab)
+	switch (ActiveTabRef())
 	{
 	case PcDockTab::Upgrades:
 		AddShown(MultiplierButton);
@@ -1114,7 +1113,7 @@ void UPawHudScreen::WriteNavigation()
 		}
 	}
 	const TArray<UWidget*> Column = PageColumn();
-	UPawButton* Here = GetTabButton(GActiveTab);
+	UPawButton* Here = GetTabButton(ActiveTabRef());
 	for (int32 I = 0; I < VisibleTabs.Num(); ++I)
 	{
 		UPawButton* Tab = VisibleTabs[I];
@@ -1146,7 +1145,7 @@ void UPawHudScreen::WriteNavigation()
 void UPawHudScreen::RememberFocus()
 {
 	// Follows focus continuously: Common UI re-applies the focus target when the input device changes (spike S4).
-	const int32 Tab = static_cast<int32>(GActiveTab);
+	const int32 Tab = static_cast<int32>(ActiveTabRef());
 	if (!Remembered.IsValidIndex(Tab))
 	{
 		return;
@@ -1164,7 +1163,7 @@ void UPawHudScreen::RememberFocus()
 UWidget* UPawHudScreen::NativeGetDesiredFocusTarget() const
 {
 	// The remembered widget if it is still in the column, else the column's top, else the tab: never nothing (the pad dies).
-	const int32 Tab = static_cast<int32>(GActiveTab);
+	const int32 Tab = static_cast<int32>(ActiveTabRef());
 	const TArray<UWidget*> Column = PageColumn();
 	if (Remembered.IsValidIndex(Tab) && Remembered[Tab].IsValid() && Column.Contains(Remembered[Tab].Get()))
 	{
@@ -1173,9 +1172,9 @@ UWidget* UPawHudScreen::NativeGetDesiredFocusTarget() const
 	if (Column.Num() > 0)
 	{
 		// The Upgrades page opens on its first row, not on the multiplier (the shop is what the player came for).
-		return GActiveTab == PcDockTab::Upgrades && Column.Num() > 1 ? Column[1] : Column[0];
+		return ActiveTabRef() == PcDockTab::Upgrades && Column.Num() > 1 ? Column[1] : Column[0];
 	}
-	return GetTabButton(GActiveTab);
+	return GetTabButton(ActiveTabRef());
 }
 
 TOptional<FUIInputConfig> UPawHudScreen::GetDesiredInputConfig() const
@@ -1192,7 +1191,7 @@ FReply UPawHudScreen::NativeOnPreviewKeyDown(const FGeometry& Geometry, const FK
 	// Rows move by Slate navigation (FPawNavigationConfig: Godot's ui_* keys, menu_up / menu_down's own keys among them).
 	const FKey K = KeyEvent.GetKey();
 	auto Is = [&K](const TCHAR* Action) { return PawInput::KeyIs(K, Action); };
-	const int32 Here = static_cast<int32>(GActiveTab);
+	const int32 Here = static_cast<int32>(ActiveTabRef());
 	auto Step = [this, Here](int32 Dir)
 	{
 		for (int32 N = 1; N < TabCount; ++N)
@@ -1278,9 +1277,22 @@ bool UPawHudScreen::PressSelected()
 	return true;
 }
 
-void UPawHudScreen::ForgetJobsSeen()
+Pc::PcDockTab& UPawHudScreen::ActiveTabRef() const
 {
-	GJobsSeen = -1;
+	UPawUiMemory* M = UPawUiMemory::Of(this);
+	return M ? M->ActiveTab : LoneActiveTab;
+}
+
+int64& UPawHudScreen::JobsSeenRef() const
+{
+	UPawUiMemory* M = UPawUiMemory::Of(this);
+	return M ? M->JobsSeen() : LoneJobsSeen;
+}
+
+int64& UPawHudScreen::BuyMultiplierRef() const
+{
+	UPawUiMemory* M = UPawUiMemory::Of(this);
+	return M ? M->BuyMultiplier : LoneBuyMultiplier;
 }
 
 void UPawHudScreen::NativeOnActivated()
@@ -1395,7 +1407,7 @@ void UPawHudScreen::TickReawakenGlow()
 	// The tab jitters as well as glows while a Reawaken is waiting: the one thing on the dock to do next. Not while its own
 	// page is open (an invitation to a room you are in).
 	const bool bSuggested = Pc::IsReawakenSuggested(G->Data(), G->Progress());
-	Juice.Jitter(Tab, bSuggested && GActiveTab != PcDockTab::Reawaken, FPawJuice::EffectsOn(this));
+	Juice.Jitter(Tab, bSuggested && ActiveTabRef() != PcDockTab::Reawaken, FPawJuice::EffectsOn(this));
 	if (!bSuggested)
 	{
 		Tab->SetColorAndOpacity(FLinearColor::White); // restored, not left where the cycle stopped
@@ -1648,7 +1660,7 @@ void UPawHudScreen::RefreshNow()
 	RefreshTabs();
 	RefreshField();
 	// Hidden pages do nothing (hud.gd: measured, a hidden page refreshed cost 39 ms a second).
-	switch (GActiveTab)
+	switch (ActiveTabRef())
 	{
 	case PcDockTab::Upgrades: RefreshShop(); break;
 	case PcDockTab::Realms: RefreshRealms(); break;
@@ -1672,7 +1684,7 @@ void UPawHudScreen::RefreshShop()
 	const Pc::PcProgress& P = G->Progress();
 	{
 		FFormatNamedArguments Args;
-		Args.Add(TEXT("multiplier"), PawText::Ui(MultiplierKey(GBuyMultiplier)));
+		Args.Add(TEXT("multiplier"), PawText::Ui(MultiplierKey(BuyMultiplierRef())));
 		MultiplierButton->SetLabel(PawText::Ui(TEXT("SHOP_buy_multiplier"), Args));
 	}
 	const std::vector<std::string>& Order = Pc::ShopRowOrder();
@@ -1680,7 +1692,7 @@ void UPawHudScreen::RefreshShop()
 	{
 		UPawButton* Row = Rows[I];
 		const std::string& Id = Order[static_cast<size_t>(I)];
-		const Pc::PcShopRow S = Pc::ShopRow(D, P, Id, GBuyMultiplier);
+		const Pc::PcShopRow S = Pc::ShopRow(D, P, Id, BuyMultiplierRef());
 		SetShown(Row, S.Kind != Pc::PcShopRowKind::Hidden, ESlateVisibility::Visible);
 		if (S.Kind == Pc::PcShopRowKind::Hidden)
 		{
@@ -1793,23 +1805,23 @@ void UPawHudScreen::RefreshTabs()
 	}
 	const Pc::PcGameData& D = G->Data();
 	const Pc::PcProgress& P = G->Progress();
-	if (GJobsSeen < 0)
+	if (JobsSeenRef() < 0)
 	{
-		GJobsSeen = static_cast<int64>(P.JobsHeld.size()); // a loaded game does not badge jobs owned for days
+		JobsSeenRef() = static_cast<int64>(P.JobsHeld.size()); // a loaded game does not badge jobs owned for days
 	}
 	bool bActiveShown = false;
 	for (int32 I = 0; I < TabCount; ++I)
 	{
 		const PcDockTab Tab = static_cast<PcDockTab>(I);
-		const Pc::PcTabState S = Pc::TabState(R->GetSim().Field, D, P, Tab, GActiveTab, GJobsSeen);
+		const Pc::PcTabState S = Pc::TabState(R->GetSim().Field, D, P, Tab, ActiveTabRef(), JobsSeenRef());
 		UPawButton* Button = Tabs[I];
 		SetShown(Button, S.bVisible, ESlateVisibility::Visible);
 		Button->SetBadge(S.bBadge, S.Count);
-		Button->SetActiveLook(Tab == GActiveTab); // btn.button_pressed: the theme's pressed plate
-		bActiveShown = bActiveShown || (Tab == GActiveTab && S.bVisible);
+		Button->SetActiveLook(Tab == ActiveTabRef()); // btn.button_pressed: the theme's pressed plate
+		bActiveShown = bActiveShown || (Tab == ActiveTabRef() && S.bVisible);
 	}
 	// A tab can lock again: falling back beats a page with no tab lit.
-	if (!bActiveShown && GActiveTab != PcDockTab::Upgrades)
+	if (!bActiveShown && ActiveTabRef() != PcDockTab::Upgrades)
 	{
 		SelectTab(PcDockTab::Upgrades);
 	}

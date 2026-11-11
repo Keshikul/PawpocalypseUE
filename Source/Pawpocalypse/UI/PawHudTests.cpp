@@ -51,6 +51,8 @@
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
 #include "UI/PawTextTesting.h"
+#include "UI/PawUiMemory.h"
+#include "UI/PawSkillTreeScreen.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -1009,6 +1011,94 @@ bool FPawHudJobsTest::RunTest(const FString& Parameters)
 	const TArray<UWidget*> Column = W.Hud->PageColumn();
 	TestEqual(TEXT("the column: every job"), Column.Num(), static_cast<int32>(Pc::AllJobs(D).size()));
 	TestTrue(TEXT("a locked job is in it"), Column.Contains(W.Hud->GetJobButton(Magic)));
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawHudMemoryTest, "Pawpocalypse.UI.Hud.Memory", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// Review CR14: what the dock and the tree remember from one screen to the next is the game instance's (UPawUiMemory), not a
+// global, so another game instance (the next test, another PIE session) starts clean. The rules stay Godot's statics': the
+// tab, the step and the tree's node are kept for the session, across games; the Jobs count seen starts again with every
+// game (a new game or a load).
+bool FPawHudMemoryTest::RunTest(const FString& Parameters)
+{
+	FHudWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	UPawUiMemory* Memory = UPawUiMemory::Of(W.GI);
+	if (!TestNotNull(TEXT("the game instance's UI memory"), Memory))
+	{
+		W.Close();
+		return false;
+	}
+	// One game: a HUD rebuilt (the title's Continue) opens on the tab and the step the last one was left on.
+	W.Hud->SelectTab(Pc::PcDockTab::Realms);
+	W.Hud->CycleMultiplier();
+	const int64 Step = W.Hud->GetBuyMultiplier();
+	TestTrue(TEXT("a step other than x1"), Step != 1);
+	UPawHudScreen* Again = CreateWidget<UPawHudScreen>(W.GI, PawUi::Resolve<UPawHudScreen>());
+	if (TestNotNull(TEXT("a second HUD"), Again))
+	{
+		TestTrue(TEXT("one game: the rebuilt HUD opens on that tab"), Again->GetActiveTab() == Pc::PcDockTab::Realms);
+		TestEqual(TEXT("and that step"), Again->GetBuyMultiplier(), Step);
+	}
+	Memory->TreeLastSelected = TEXT("paw_damage");
+	UPawSkillTreeScreen* Tree = CreateWidget<UPawSkillTreeScreen>(W.GI, PawUi::Resolve<UPawSkillTreeScreen>());
+	if (TestNotNull(TEXT("a tree screen"), Tree))
+	{
+		TestEqual(TEXT("a tree opened in this game reads the node it was left on"), Tree->LastSelected(), FString(TEXT("paw_damage")));
+	}
+
+	// Another game in the session (a new game; a load does the same: both replace the progress): Godot's statics stay.
+	W.Game->NewGame();
+	TestTrue(TEXT("another game: the tab stays"), W.Hud->GetActiveTab() == Pc::PcDockTab::Realms);
+	TestEqual(TEXT("and the tree's last node"), Memory->TreeLastSelected, FString(TEXT("paw_damage")));
+	TestEqual(TEXT("and the step"), W.Hud->GetBuyMultiplier(), Step);
+
+	// The jobs seen: a loaded game does not badge the jobs it already held (HUD._jobs_seen = -1 on every game).
+	W.Hud->RefreshNow(); // this game's first refresh: no jobs seen
+	const Pc::PcGameData& D = W.Game->Data();
+	if (TestTrue(TEXT("two jobs in the data"), D.Jobs.size() >= 2))
+	{
+		W.Game->Progress().JobsHeld = { D.Jobs[0].Id, D.Jobs[1].Id };
+		W.Game->MarkProgressReplaced(); // as a load does
+		W.Hud->RefreshNow();
+		UPawButton* Jobs = W.Hud->GetTabButton(Pc::PcDockTab::Jobs);
+		TestTrue(TEXT("the loaded game's Jobs tab shows"), Jobs && Jobs->GetVisibility() != ESlateVisibility::Collapsed);
+		TestFalse(TEXT("with no badge for jobs it already held"), Jobs && Jobs->HasBadge());
+		// Within the game, a job earned now is new: badged.
+		if (D.Jobs.size() >= 3)
+		{
+			W.Game->Progress().JobsHeld.insert(D.Jobs[2].Id);
+			W.Hud->RefreshNow();
+			TestTrue(TEXT("a job earned in play is badged"), Jobs && Jobs->HasBadge());
+		}
+	}
+
+	// Another game instance shares none of it.
+	W.Hud->SelectTab(Pc::PcDockTab::Realms);
+	UGameInstance* GI2 = NewObject<UGameInstance>(GEngine);
+	GI2->InitializeStandalone();
+	UPawUiMemory* Other = UPawUiMemory::Of(GI2);
+	if (TestNotNull(TEXT("the other instance's memory"), Other))
+	{
+		TestTrue(TEXT("its own"), Other != Memory);
+		TestTrue(TEXT("on Upgrades, whatever this one shows"), Other->ActiveTab == Pc::PcDockTab::Upgrades);
+		TestEqual(TEXT("at x1"), Other->BuyMultiplier, static_cast<int64>(1));
+		TestTrue(TEXT("no tree node"), Other->TreeLastSelected.IsEmpty());
+		TestEqual(TEXT("no jobs seen yet"), Other->JobsSeen(), static_cast<int64>(-1));
+	}
+	UWorld* World2 = GI2->GetWorld();
+	GI2->Shutdown();
+	if (World2)
+	{
+		GEngine->DestroyWorldContext(World2);
+		World2->DestroyWorld(false);
+	}
 	W.Close();
 	return true;
 }

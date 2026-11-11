@@ -1,0 +1,9 @@
+<svg data-rig-of="enemy_factory_robot_mouse" data-layer="key" data-order="-1" data-pivot="92.98 68.79" data-motion="swing" data-amp="25.0" data-hz="1.20" data-phase="0.000" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<rect x="87.6" y="53.2" width="10.8" height="19.5" rx="4.5" fill="#2A1A33" stroke="none"/>
+<ellipse cx="93.0" cy="51.4" rx="11.7" ry="8.8" fill="#2A1A33" stroke="none"/>
+<rect x="90.6" y="56.2" width="4.8" height="13.5" rx="1.5" fill="#749397" stroke="none"/>
+<ellipse cx="93.0" cy="51.4" rx="8.7" ry="5.8" fill="#749397" stroke="none"/>
+<ellipse cx="93.0" cy="51.4" rx="3.4" ry="2.4" fill="#93C7C2" stroke="#2A1A33"/>
+</g>
+</svg>

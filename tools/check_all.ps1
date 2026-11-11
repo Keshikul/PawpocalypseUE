@@ -53,6 +53,10 @@ Invoke-Gate 'validator fuzz 3k' 'py tools\fuzz_validator.py --trials 3000'
 Invoke-Gate 'art generators reproduce' 'py tools\art\build_art.py --check'
 Invoke-Gate 'art rasters reproduce' 'py tools\raster_svg.py --check'
 Invoke-Gate 'field atlas reproduces' 'py tools\pack_atlas.py --check'
+# The restyle's look spec on the field's drawings (R5, 2026-11-09): tokens only, one ink, flat, clear of every floor, eyes
+# that read at 56 px; KNOWN only shrinks. Its self-test plants one fault per rule (an off-palette fill must FAIL).
+Invoke-Gate 'look lint' 'py tools\art\look_lint.py'
+Invoke-Gate 'look lint self-test' 'py tools\art\look_lint.py --self-test'
 Invoke-Gate 'audio export reproduces' 'py tools\export_audio.py --check'
 Invoke-Gate 'font coverage' 'py tools\check_font_coverage.py'
 # The text rule's own test (2026-11-08): its budgets and banned words flag planted faults. `--banned`: no table says
@@ -66,6 +70,10 @@ Invoke-Gate 'text overrides agree' 'py tools\text_overrides.py --check'
 # Every sabotage's target still in its source (seconds, nothing built): a target a later slice rewrote otherwise stays unseen
 # until the nightly's sabotage gate refuses to start (2026-11-06: one stale since slice 3 cost a whole night's realm gate).
 Invoke-Gate 'sabotage targets current' 'py tools\sabotage_pawcore.py --list && py tools\sabotage_realm.py --list'
+# The port's fixes to Godot's code (D16, 2026-11-10: tools/godot_fixes.py, applied to the fixtures' scratch copy only): each
+# still finds its target in the Godot repo (read only), so a fix Godot's code moved under fails the day it happens; its
+# self-test refuses a stale target, a no-op and the repo itself.
+Invoke-Gate 'Godot fixes current' 'py tools\godot_fixes.py && py tools\godot_fixes.py --self-test'
 # --- the engine's own gates: a headless editor, so SKIP (not FAIL) while any Unreal editor is open -----------------
 # An Unreal process of this project (or naming none: it may be the designer's editor) blocks the engine gates; another
 # project's run does not (tools/unreal_procs.py).

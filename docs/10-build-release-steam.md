@@ -20,12 +20,13 @@
   `GameDefaultMap` L_Title was cooked; the packaged L_Realm failed "does not exist on disk or in the loader"). Check a package
   with `UnrealPak <Pawpocalypse-Windows.utoc> -List`.
   String tables and hardware cursors staged as UFS `[KB U/19 §1]` (as built: `Pawpocalypse/Localization` and `Pawpocalypse/UI/Cursors`,
-  the paw cursors' loose PNGs; check the cursor in the first packaged build of phase 5).
-- **Phase 6 content, not yet packaged** (the last package is phase 4's): the field atlas (3 BC7 pages), the 12 floors, 53
-  sounds (28.9 MB of OGG; the music looping SoundWaves), the generated materials and the procedural meshes (the
-  ProceduralMeshComponent plugin is now enabled for the game target). All under `/Game/Pawpocalypse` and referenced by the
-  realm view, `DA_FieldAtlas`, `DA_AudioBank` or loaded by path from there (`UPawGarden`, `UPawAudioSubsystem`); the next
-  package must prove they cook (the bench fails if the sprites did not) and measure the size.
+  the paw cursors' loose PNGs; the cursor in a packaged build is still to check).
+- **Phase 6 content and the restyle, packaged once** (2026-11-10, HANDOFF-LOG (85), `build/package`): the field atlas (4 BC7
+  pages with R5's rig layers), the 12 floors, 53 sounds (28.9 MB of OGG; the music looping SoundWaves), the fonts, the
+  generated materials and the procedural meshes (the ProceduralMeshComponent plugin is enabled for the game target). All under
+  `/Game/Pawpocalypse` and referenced by the realm view, `DA_FieldAtlas`, `DA_AudioBank` or loaded by path from there
+  (`UPawGarden`, `UPawAudioSubsystem`). The bench drew every sprite (they cook); it FAILED on draw calls (doc 09 §7.3). Still
+  to measure in a package: the size, the paw cursor (staged loose).
 - `DefaultScalability.ini`: scalability cvars only (anything else stops the cook) `[KB U/12 §2]`.
 
 ## 2. Packaging script (`tools/package.ps1`)
@@ -75,7 +76,7 @@ the exe only. Unreal exes do not carry an appended blob, so the Godot antivirus-
 ## 5. Steam integration (after the App ID; the Godot plan's workstream F)
 
 - `IPawPlatform` interface (Null implementation by default; Steam implementation in a `Steam` target via `CustomConfig = "Steam"`
-  `[KB U/01 §2.4]`): achievements (mirroring the 41 in-game ones), rich presence (biome, stage), Cloud (Auto-Cloud on the save
+  `[KB U/01 §2.4]`): achievements (mirroring the 39 in-game ones), rich presence (biome, stage), Cloud (Auto-Cloud on the save
   folder: no code), the real pad type behind Steam Input for glyphs, overlay-aware pause, the store/discussions URL for Report a
   bug (`MainMenu.BUG_REPORT_URL` points at itch until then).
 - Online Subsystem Steam is enabled only for these services; **no SteamSockets, no sessions** (single player). `steam_appid.txt`

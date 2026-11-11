@@ -97,11 +97,65 @@ def curve(x1, y1, cx, cy, x2, y2, w=6.0, colour=None):
     return line(pts, colour or INK, w)
 
 
+def bez(p0, p1, p2, n=14):
+    """A quadratic curve's points: a tube's spine."""
+    return [((1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0],
+             (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1]) for t in (i / (n - 1) for i in range(n))]
+
+
+def _tube_pts(spine, w0, w1):
+    """The outline of a tube along `spine`, w0 wide at its start tapering to w1, with round caps."""
+    n = len(spine)
+    left, right = [], []
+    for i, (x, y) in enumerate(spine):
+        a, b = spine[max(i - 1, 0)], spine[min(i + 1, n - 1)]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        d = max(math.hypot(dx, dy), 1e-6)
+        nx, ny = -dy / d, dx / d
+        h = (w0 + (w1 - w0) * i / (n - 1)) / 2.0
+        left.append((x + nx * h, y + ny * h))
+        right.append((x - nx * h, y - ny * h))
+
+    # A cap runs from the edge the outline arrives on (the left, a0 = heading + 90 deg) round the tip to the edge it
+    # leaves by. Until 2026-11-10 it started from the other edge, so each end crossed itself into a bow-tie: a "fan"
+    # instead of a round end (designer: "the point is flipped so the outline doesn't continue but looks like a fan").
+    def cap(c, r, a0):
+        return [(c[0] + math.cos(a0 - math.pi * k / 6) * r, c[1] + math.sin(a0 - math.pi * k / 6) * r) for k in range(1, 6)]
+    (x0, y0), (x1, y1) = spine[0], spine[1]
+    (xa, ya), (xb, yb) = spine[-2], spine[-1]
+    end = cap(spine[-1], w1 / 2.0, math.atan2(yb - ya, xb - xa) + math.pi / 2)
+    start = cap(spine[0], w0 / 2.0, math.atan2(y0 - y1, x0 - x1) + math.pi / 2)
+    return left + end + right[::-1] + start
+
+
+def tube(spine, w0, w1, fill, s=True):
+    """A limb, tail, neck or snout: a tapered tube along `spine` (R5, 2026-11-09: the anatomy pass). A polygon that
+    knows its spine, so fuse() grows it by exactly the line width all round instead of from its centroid."""
+    return {"k": "tri", "pts": _tube_pts(spine, w0, w1), "fill": fill, "s": s, "spine": (spine, w0, w1)}
+
+
+def _oval_pts(cx, cy, rx, ry, angle, n=28):
+    ca, sa = math.cos(angle), math.sin(angle)
+    return [(cx + math.cos(2 * math.pi * i / n) * rx * ca - math.sin(2 * math.pi * i / n) * ry * sa,
+             cy + math.cos(2 * math.pi * i / n) * rx * sa + math.sin(2 * math.pi * i / n) * ry * ca) for i in range(n)]
+
+
+def oval(cx, cy, rx, ry, angle, fill, s=True):
+    """A tilted ellipse (a wing, a leaning head), as a polygon that fuse() grows by the line width (R5 anatomy)."""
+    return {"k": "tri", "pts": _oval_pts(cx, cy, rx, ry, angle), "fill": fill, "s": s, "oval": (cx, cy, rx, ry, angle)}
+
+
 def fuse(blobs):
     out = []
     for b in blobs:
         c = dict(b); c["s"] = False; c["fill"] = INK
-        if c["k"] == "ell":
+        if "spine" in c:
+            sp, w0, w1 = c["spine"]
+            c["pts"] = _tube_pts(sp, w0 + STROKE * 2, w1 + STROKE * 2)
+        elif "oval" in c:
+            cx, cy, rx, ry, a = c["oval"]
+            c["pts"] = _oval_pts(cx, cy, rx + STROKE, ry + STROKE, a)
+        elif c["k"] == "ell":
             c["rx"] += STROKE; c["ry"] += STROKE
         elif c["k"] == "rect":
             c["w"] += STROKE * 2; c["h"] += STROKE * 2; c["r"] += STROKE
@@ -151,11 +205,26 @@ def ear_shapes(head, kind, size=0.45, spread=42.0, lift=1.0):
     return outer, inner
 
 
-def eyes(cx, cy, spread, r, asym=1.22, pupil=0.24):
+# --- the faces (R5, the restyle; docs/WORKLIST-RESTYLE-2026-11-07.md §4 "Faces") ------------------------------------
+# Designer, 2026-11-09 (review batch 1): the cat keeps its face ("Keep today's cats looks"); the enemies panic ("Panic for
+# enemies but without the drop"): worried brows, tiny pupils, no shine. Bosses keep "today" (their S.eyes calls say so)
+# until their own pass. The cat's face is the player cat's, stage 1's and the kitten's (spec "face_kind": "cat").
+PREY_FACE = "panic"
+
+
+def eyes(cx, cy, spread, r, asym=1.22, pupil=0.24, face=None):
+    face = face or PREY_FACE
     out = []
     for side, scale in ((-1, 1.0), (1, asym)):
         er = r * scale
         ex = cx + side * spread
+        if face == "panic":
+            er *= 1.08
+            out.append(ell(ex, cy, er, er, EYE_WHITE))
+            out.append(ell(ex, cy + er * 0.08, er * 0.13, er * 0.13, INK, s=False))
+            # Worried brows: the inner end raised.
+            out.append(line([(ex - side * er * 0.25, cy - er * 1.50), (ex + side * er * 0.80, cy - er * 1.16)], INK, 2.8))
+            continue
         out.append(ell(ex, cy, er, er, EYE_WHITE))
         out.append(ell(ex, cy + er * 0.06, er * pupil, er * pupil, INK, s=False))
         out.append(ell(ex + er * 0.30, cy - er * 0.36, er * 0.15, er * 0.15,
@@ -213,11 +282,12 @@ def creature(spec):
         parts.append(ell(a[4], a[5], 2.2, 2.2, mark, s=False))
 
     fx, fy = spec.get("face", (hx, hy))
+    kind = "today" if spec.get("face_kind") == "cat" else spec.get("face_style", PREY_FACE)
     if spec.get("whiskers", False):
         parts += whiskers(fx, fy + hr * 0.55, spec.get("whisker_len", 30))
     parts += eyes(fx, fy - hr * 0.06, spec.get("eye_spread", hr * 0.48),
                   spec.get("eye_r", hr * 0.46), spec.get("eye_asym", 1.22),
-                  spec.get("pupil", 0.24))
+                  spec.get("pupil", 0.24), face=kind)
 
     nose = spec.get("nose", (fx, fy + hr * 0.55))
     parts.append(ell(nose[0], nose[1], 3.2, 2.5, shade(fur, 0.55), s=False))
@@ -322,7 +392,7 @@ def CAST():
             "belly": (68, 98, 33, 23),
             "marks": [(106, 64, 5, 11), (110, 78, 5, 12), (106, 92, 5, 11)],
             "behind": [[(116, 94, 9, 8), (123, 78, 8, 12), (116, 62, 9, 8)]],
-            "whiskers": True, "whisker_len": 32, "tongue": True, "eye_r": 14,
+            "whiskers": True, "whisker_len": 32, "tongue": True, "eye_r": 14, "face_kind": "cat",
         },
         "kitten": {
             "fur": PAL.PLAYER["kitten_body"], "mark": shade(PAL.PLAYER["kitten_accent"], 0.3),
@@ -332,7 +402,7 @@ def CAST():
             "feet": [(58, 116, 6, 5), (74, 117, 6, 5), (90, 115, 6, 5)],
             "belly": (70, 100, 23, 15),
             "behind": [[(102, 100, 7, 6), (109, 88, 6, 9)]],
-            "whiskers": True, "whisker_len": 22, "eye_r": 11,
+            "whiskers": True, "whisker_len": 22, "eye_r": 11, "face_kind": "cat",
         },
         "mouse": {
             "fur": E["mouse"][0], "mark": E["mouse"][1],

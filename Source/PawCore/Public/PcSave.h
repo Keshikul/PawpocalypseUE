@@ -89,11 +89,23 @@ namespace Pc
 		std::set<std::string> TutorialDone;
 	};
 
+	// F36 (D16; designer 2026-11-11: "Refund Bait and Catnip"): what the boss up on the field cost to summon. The fight is not
+	// saved, so neither is its payment: a save taken while it is up is written as if the summon had not happened. A fight
+	// that ends (won, timed out, a Reawaken) keeps its payment spent, as in Godot.
+	struct PcSummonPayment
+	{
+		std::string BiomeId; // the biome whose bait_spent the summon raised
+		int64_t Bait = 0;
+		double Catnip = 0.0;
+	};
+
 	// save_game(): banks the live biome's kills into the per-biome map first (GameState._bank_tier_kills(), which changes
 	// the progress, as in Godot), then copies. NowUnix stamps last_played_unix. Every known upgrade and branch id is
 	// written, zeros included, as Godot's duplicated dictionaries are: a load sets only the upgrade ids it finds, so a
-	// missing zero would leave the level in memory standing.
-	PAWCORE_API PcSaveState CaptureSave(const PcGameData& D, PcProgress& P, const PcSlotExtras& X, double NowUnix);
+	// missing zero would leave the level in memory standing. FightUp: the payment of a boss fight in progress (F36), given
+	// back in the file only (the game in memory keeps fighting).
+	PAWCORE_API PcSaveState CaptureSave(const PcGameData& D, PcProgress& P, const PcSlotExtras& X, double NowUnix,
+		const PcSummonPayment* FightUp = nullptr);
 
 	enum class PcLoadPath : uint8_t
 	{
@@ -157,6 +169,19 @@ namespace Pc
 	};
 	PAWCORE_API PcSaveReadError ReadSaveFile(const std::string& Bytes, PcSaveState& Out, std::string* Detail = nullptr);
 	PAWCORE_API const char* SaveReadErrorName(PcSaveReadError E);
+
+	// What a slot holds, for the title's slot cards and what a press on one does (review CR2; F47, a Godot fault the port
+	// fixes, D16: Godot showed an unreadable slot as Empty and played a fresh game over it without a word).
+	enum class PcSlotState : uint8_t
+	{
+		Empty,              // no file: "Empty"; a press starts a new game there
+		Readable,           // the slot reads: its summary; a press loads it
+		ReadableFromBackup, // the slot does not read, its backup does: the backup's summary; a press loads the backup
+		NewerBuild,         // a newer build wrote it: "Newer version"; a press does nothing; nothing ever writes over it
+		Unreadable,         // neither reads: "Cannot be read"; a press starts a new game there (the old file kept aside)
+	};
+	// Slot / Backup: what ReadSaveFile said of each file (Empty when it could not be read at all).
+	PAWCORE_API PcSlotState ClassifySlot(bool bExists, PcSaveReadError Slot, bool bBackupExists, PcSaveReadError Backup);
 
 	// CRC-32 (IEEE 802.3, the zlib / PNG one).
 	PAWCORE_API uint32_t Crc32(const std::string& Bytes);

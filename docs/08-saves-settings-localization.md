@@ -31,7 +31,8 @@ decided they are, F24, fixed in Godot first. Until 2026-11-04 neither were the d
 Body Count's and Levy's counts or a Reawaken in progress: F26-F29, the same way.)
 
 **A damaged save loads safely** (F32-F33, 2026-11-04, Godot first): every number that is not finite reads as 0, a skill level
-is clamped to 0..max and a shop level to >= 0, the run's counters to >= 0.
+is clamped to 0..max and a shop level to >= 0, the run's counters to >= 0; a card level to 1..its max, a card below 1
+dropped (F49, fixed 2026-11-11, D16: Godot does not check them; the `save` fixture is made from Godot with the same fix).
 
 **The load, Godot's order** (it matters: the achievement re-scan runs before the jobs and per-biome maps are restored): the
 currencies and ledger and the KNOWN upgrade ids; kills and clocks; the tree (v6 shape migration, Unicorn split; every known
@@ -58,15 +59,33 @@ and the slot's toggles and tutorial.
 - **The atomic write** (`ISaveGameSystem` has no rename, so not Godot's two renames): on a worker, one write at a time
   (`UE::Tasks::FPipe`): write the temp, read it back and compare, copy the current slot to the backup ONLY if it reads (Godot's
   rename put a broken slot over the good backup), write the slot, delete the temp. A slot holding a newer build's save is never
-  overwritten. **Startup recovery**: a slot that is missing or will not read is kept aside as `_corrupt`, then finished from the
-  verified temp, else the backup; a good slot is never replaced (a stray temp is deleted). **A load** of a slot that will not read
-  falls back to its backup (`LoadedFromBackup`, the broken file kept); both broken: nothing applied (`Corrupt`). Never crash on
-  load `[KB U/10 §1]`.
+  overwritten; a slot that does not read is kept aside as `_corrupt` before anything replaces it (F47, 2026-11-11). Every
+  `SaveGame` returns a ticket and `GetWriteResult(ticket)` says Pending / Written / Failed / NotQueued, so a screen says
+  "Saved" only for a write that happened (review CR15, 2026-11-11: the quick bar's "Not saved." when nothing was queued or
+  the writer refused; the pause menu waits for its slot save and says "Slot {n} was not saved."). **Startup recovery**: a slot
+  that is missing or will not read is kept aside as `_corrupt`, then finished from the verified temp, else the backup; a good
+  slot is never replaced (a stray temp is deleted). **A load** of a slot that will not read falls back to its backup
+  (`LoadedFromBackup`, the broken file kept; also the outcome of the first load of a slot the startup recovery finished from
+  its backup); both broken: nothing applied (`Corrupt`). Never crash on load `[KB U/10 §1]`.
+- **Every load outcome reaches the player** (review CR2 with F47, built 2026-11-11, the words approved that day): a load of
+  the active slot leaves the title a notice (`GetTitleNotice`, `Pc::PcTitleNotice`), shown in place of the counts: a newer
+  build's slot ("Slot {n} is from a newer version. Update the game to play it.": Continue off, nothing plays or writes over
+  it), an unreadable one ("Slot {n} could not be read. Choose a slot.": Continue opens the slots, never a fresh game over it),
+  a game from the backup ("Slot {n} was damaged. Its backup was loaded.", until the player plays). The slot cards follow the
+  file (`SlotState`, `Pc::ClassifySlot`): Empty, a game (a broken slot whose backup reads shows the backup's game and loads
+  it), "Newer version" (a press does nothing), "Cannot be read" (a press starts a new game there). Godot showed an
+  unreadable slot as Empty and played a fresh game over it (F47). Not yet: the pause menu's Save page still labels a newer
+  build's or an unreadable slot as Empty (no approved words; saving to a newer one says it was not saved).
+- **A boss fight is not saved, nor what it cost** (F36, the designer's call 2026-11-11, "Refund Bait and Catnip"): a save
+  taken while a boss is up is written as if its summon had not happened (`Pc::FightPayment`, `CaptureSave`'s FightUp): the
+  Bait back in its biome's `bait_spent`, the Catnip back. Godot kept both spent, so the whole Bait was owed again.
 - **Five slots**; the summary (`ReadSlotSummary`, Godot's slot_summary) reads the ~3 KB save itself, as Godot does (no separate
   meta entry). **The last slot used** belongs to the settings (SettingsManager.last_slot, built 2026-11-04 (40)): the saves start on
   it.
-- **When it saves** (Godot timings): every 30 s of unpaused play (`Autosave`, skipped with nothing to keep: an idle fresh install
-  never writes an empty slot); on focus loss and suspend; on quit (`Deinitialize`, synchronously); and at the end of a frame in
+- **When it saves** (Godot timings, without F48): every 30 s of unpaused play (`Autosave`, skipped with nothing to keep: an
+  idle fresh install never writes an empty slot), on focus loss and on suspend, these three only while a realm is up (review
+  CR21, fixed 2026-11-10: Godot's timer ran on the title too and rewrote the loaded slot every 30 s); on quit
+  (`Deinitialize`, synchronously); and at the end of a frame in
   which a save-worthy thing happened, ONE write however many: Godot's signals (upgrade_purchased, branch_leveled_up,
   boss_defeated, job_taken, achievement_claimed, card_taken, reawakened) are replaced by a digest of exactly what they report,
   compared once a frame (a bulk buy of 54 levels is one write; auto-picked cards and cheats are covered by construction).
@@ -95,9 +114,11 @@ value the game holds does; an arbitrary double comes back within two units in th
 (game instance) keeps the file as the entry `settings` of the SAME storage as the slots (Godot: user://settings.cfg beside
 them), so the sandbox is the slots' (`PawStorageForThisRun`: -NoSave, -PawSaveDir=, off in automated runs). It is the one
 writer (each setter stores with Godot's clamp, writes the whole file, applies). Applied: the window (fitted to the work area
-and centred, or borderless fullscreen; `FSystemResolution::RequestResolutionChange`), `r.VSync`, `t.MaxFPS`, one frame after
+and centred, or borderless fullscreen, both on the monitor holding the window's centre (review CR20, 2026-11-10: the
+primary before); `FSystemResolution::RequestResolutionChange`), `r.VSync`, `t.MaxFPS`, one frame after
 startup and on change, never in the editor, never in a run with no settings storage (the bench and the tour keep their
-command line), the window never when the command line names one; the menu side (the HUD listens), ask before Reawakening
+command line), the window never when the command line names one; the menu side (the HUD listens; "right" by default since
+2026-11-09, the designer's "mirror the ui", changed in Godot's settings_manager.gd first), ask before Reawakening
 (the HUD's box), the effects budget (the realm's bursts), the last slot used (the saves start on it; saving into or loading a
 slot moves it). Since phase 5, read too: the stick dead zone (slice 3), the button prompt style and Show button prompts (slice 3b),
 Invert X / Y and the cursor speed (the cat and the tree's pan), and since slice 4 (2026-11-05) **the remapping: Godot's own

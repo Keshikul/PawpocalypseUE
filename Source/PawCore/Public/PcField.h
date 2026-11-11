@@ -42,6 +42,7 @@
 #include "PcCore.h"
 #include "PcData.h"
 #include "PcFieldRules.h"
+#include "PcSave.h"
 #include "PcStats.h"
 
 #include <algorithm>
@@ -219,6 +220,7 @@ namespace Pc
 		uint64_t BossRolls = 0;
 		bool bBossEngagedOnce = false;            // the fight clock runs from the first engagement
 		double BossFightElapsed = 0.0;
+		PcSummonPayment SummonPaid;               // F36: what this fight's summon cost (FightPayment)
 		bool bShredOnBoss = false;                // the paw's streak is on the boss (not "on nothing")
 		std::vector<PcBossAdd> Adds;              // in launch order
 		double AddTimer = 0.0;
@@ -280,6 +282,9 @@ namespace Pc
 	PAWCORE_API bool CanSummonFieldBoss(const PcField& F, const PcGameData& D, const PcProgress& P);
 	// _dismiss_boss(): the boss leaves without dying (the game calls it on a Reawaken).
 	PAWCORE_API void DismissFieldBoss(PcField& F);
+	// F36 (D16): what the boss up cost to summon, for a save taken during the fight (CaptureSave gives it back in the file);
+	// null while no fight is on.
+	PAWCORE_API const PcSummonPayment* FightPayment(const PcField& F);
 
 	// The boss's own rules, one at a time (the cheat overlay; the tests drive them against a real Godot Boss node):
 	// Boss.take_damage() (a kill is credited at once), Boss.heal(), Boss._process() (its drift and its shield cycle).

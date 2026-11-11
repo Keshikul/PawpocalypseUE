@@ -449,7 +449,24 @@ bool FPawSaveAutosaveTest::RunTest(const FString& Parameters)
 	}
 	UPawSaveSubsystem* S = W.Save;
 	auto Writes = [S]() { S->Flush(); return S->GetWritesDone(); };
-	// A fresh game has nothing to keep: the 30 s pass and nothing is written (no empty slot for Continue to offer).
+	UPawRealmSubsystem* R = W.World ? W.World->GetSubsystem<UPawRealmSubsystem>() : nullptr;
+	if (!TestNotNull(TEXT("the realm subsystem"), R))
+	{
+		W.Close();
+		return false;
+	}
+	// The title (no realm running) writes nothing unprompted, a game worth keeping loaded or not: nothing changes there.
+	// Review CR21 / F48 (2026-11-10): Godot's timer ran on the title and rewrote the loaded slot every 30 s.
+	W.P().LifetimeCatnipEver = 10.0;
+	S->Tick(31.0f);
+	TestEqual(TEXT("the title: 30 s write nothing"), Writes(), 0);
+	S->NoteFocusLostForTest();
+	TestEqual(TEXT("the title: a focus loss writes nothing"), Writes(), 0);
+	W.P().LifetimeCatnipEver = 0.0;
+	// In play the clock runs. A fresh game has nothing to keep: the 30 s pass and nothing is written (no empty slot for
+	// Continue to offer).
+	R->SetViewSize(1920.0, 1080.0);
+	TestTrue(TEXT("the realm starts"), R->StartRealm(7));
 	S->Tick(31.0f);
 	TestEqual(TEXT("an idle fresh game writes nothing"), Writes(), 0);
 	TestFalse(TEXT("no slot appears"), S->HasAnySave());
@@ -460,16 +477,12 @@ bool FPawSaveAutosaveTest::RunTest(const FString& Parameters)
 	S->Tick(1.5f);
 	TestEqual(TEXT("at 30 s"), Writes(), 1);
 	// Paused (a screen holds the field): the clock stops.
-	UPawRealmSubsystem* R = W.World ? W.World->GetSubsystem<UPawRealmSubsystem>() : nullptr;
-	if (TestNotNull(TEXT("the realm subsystem"), R))
-	{
-		R->SetPaused(true);
-		const double Was = S->GetAutosaveClock();
-		S->Tick(100.0f);
-		TestEqual(TEXT("paused: the clock holds"), S->GetAutosaveClock(), Was);
-		TestEqual(TEXT("paused: nothing written"), Writes(), 1);
-		R->SetPaused(false);
-	}
+	R->SetPaused(true);
+	const double Was = S->GetAutosaveClock();
+	S->Tick(100.0f);
+	TestEqual(TEXT("paused: the clock holds"), S->GetAutosaveClock(), Was);
+	TestEqual(TEXT("paused: nothing written"), Writes(), 1);
+	R->SetPaused(false);
 	// Quit: Deinitialize saves (synchronously) a game worth keeping.
 	S->Autosave();
 	TestEqual(TEXT("the quit save"), Writes(), 2);
@@ -533,8 +546,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSaveMidFightTest, "Pawpocalypse.Save.MidFig
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 // A save while a boss is up (doc 11 phase 4: busy-state saves). Godot keeps no fight in the save: what is written is the
-// progress (the kills banked in the biome, the Bait already paid), never "beaten". Loaded, the boss is not on the ledger
-// and nothing is up; the Bait paid for the fight stays spent (finding F36).
+// progress (the kills banked in the biome), never "beaten". Loaded, the boss is not on the ledger and nothing is up. Godot
+// kept the Bait paid for the fight spent (finding F36); the port writes the save as if the summon had not happened, the
+// Bait and the Catnip it cost given back (D16, the designer's call, 2026-11-11).
 bool FPawSaveMidFightTest::RunTest(const FString& Parameters)
 {
 	FSaveWorld W;
@@ -559,8 +573,14 @@ bool FPawSaveMidFightTest::RunTest(const FString& Parameters)
 	P.BossesDefeated.erase(BossRealm); // ... but this one: its fight is the point
 	TestTrue(TEXT("the realm starts"), Realm->StartRealm(7));
 	TestTrue(TEXT("to the boss biome"), Realm->Travel(Index));
+	const std::string BiomeId = D.Tiers[static_cast<size_t>(Index)].Id;
+	// An earlier fight here was lost on time: its Bait stays spent (only the fight in progress is given back).
+	P.BaitSpentByBiome[BiomeId] = Boss->BaitRequired;
+	P.TierKillCount += Boss->BaitRequired * Boss->KillsPerBait; // the kills that paid for it (Bait held never reads below 0)
 	P.TierKillCount += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
-	P.Catnip += Pc::SummonCatnipCost(D, P, *Boss);
+	const double Cost = Pc::SummonCatnipCost(D, P, *Boss);
+	P.Catnip += Cost;
+	TestTrue(TEXT("the summon costs Catnip too (both halves of F36 are seen)"), Cost > 0.0 && Boss->BaitRequired > 0);
 	if (!TestTrue(TEXT("the boss is summoned"), Realm->SummonBoss()))
 	{
 		W.Close();
@@ -568,8 +588,10 @@ bool FPawSaveMidFightTest::RunTest(const FString& Parameters)
 	}
 	Realm->AdvanceFrame(1.0 / 60.0);
 	TestTrue(TEXT("the fight is on"), Realm->GetSim().Field.bBossUp);
+	const double CatnipAtSave = P.Catnip;
 	W.Save->SaveGame(2);
 	W.Save->Flush();
+	TestEqual(TEXT("the game in memory paid for both fights and fights on"), P.BaitSpentByBiome[BiomeId], 2 * Boss->BaitRequired);
 	const int64 Banked = P.TierKillCount;
 	TestFalse(TEXT("not beaten"), Pc::IsBossDefeated(P, BossRealm));
 	// The next session: a new game in memory, the slot loaded.
@@ -581,11 +603,12 @@ bool FPawSaveMidFightTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the realm starts from it"), Realm->StartRealm(7));
 	TestTrue(TEXT("back in the boss biome"), Realm->Travel(Index));
 	TestFalse(TEXT("no boss up after a load"), Realm->GetSim().Field.bBossUp);
-	// AS GODOT HAS IT (finding F36): the Bait paid for the interrupted fight stays spent (bait_spent is saved, the fight is
-	// not), so the whole Bait is owed again before the boss comes out.
-	TestEqual(TEXT("the paid Bait is gone: all of it owed again"), Pc::BaitShortfall(D, W.P(), *Boss), Boss->BaitRequired);
-	W.P().Catnip += Pc::SummonCatnipCost(D, W.P(), *Boss);
-	TestFalse(TEXT("so the boss cannot be summoned again from those kills"), Realm->SummonBoss());
+	// F36 (D16; designer 2026-11-11, "Refund Bait and Catnip"): the fight is not saved, so neither is what its summon cost.
+	// Godot kept the Bait spent, so the whole Bait was owed again before the boss came out.
+	TestEqual(TEXT("the Bait paid for the fight is back: none owed"), Pc::BaitShortfall(D, W.P(), *Boss), static_cast<int64_t>(0));
+	TestEqual(TEXT("the earlier, lost fight's Bait stays spent"), W.P().BaitSpentByBiome[BiomeId], Boss->BaitRequired);
+	TestEqual(TEXT("and the Catnip it cost is back"), W.P().Catnip, CatnipAtSave + Cost);
+	TestTrue(TEXT("so the boss can be summoned again at once"), Realm->SummonBoss());
 	W.Close();
 	return true;
 }

@@ -111,6 +111,26 @@ bool UPawSettingsSubsystem::MayApplyToEngine(bool bEditor, bool bStored, bool bV
 	return !bEditor && bStored && bViewport;
 }
 
+bool UPawSettingsSubsystem::WindowMonitor(const FDisplayMetrics& Metrics, const FVector2D& WindowCentre, FPlatformRect& OutDisplay,
+	FPlatformRect& OutWork)
+{
+	// The monitor holding the window's centre (review CR20: fullscreen and the window's fit used the primary display wherever
+	// the window was); off every monitor, the primary.
+	for (const FMonitorInfo& M : Metrics.MonitorInfo)
+	{
+		const FPlatformRect& R = M.DisplayRect;
+		if (WindowCentre.X >= R.Left && WindowCentre.X < R.Right && WindowCentre.Y >= R.Top && WindowCentre.Y < R.Bottom)
+		{
+			OutDisplay = R;
+			OutWork = M.WorkArea;
+			return true;
+		}
+	}
+	OutDisplay = FPlatformRect(0, 0, Metrics.PrimaryDisplayWidth, Metrics.PrimaryDisplayHeight);
+	OutWork = Metrics.PrimaryDisplayWorkAreaRect;
+	return false;
+}
+
 void UPawSettingsSubsystem::ApplyVideo()
 {
 	// apply_video(): V-Sync, the frame cap (max(cap, 0): a file's negative cap is no cap), then the window.
@@ -140,14 +160,22 @@ void UPawSettingsSubsystem::ApplyVideo()
 	}
 	FDisplayMetrics Metrics;
 	FDisplayMetrics::RebuildDisplayMetrics(Metrics);
-	const FPlatformRect& Work = Metrics.PrimaryDisplayWorkAreaRect;
+	TSharedPtr<SWindow> Window = GEngine->GameViewport->GetWindow();
+	FVector2D Centre = FVector2D::ZeroVector;
+	if (Window.IsValid())
+	{
+		const FVector2D At = Window->GetPositionInScreen();
+		const FVector2D Size = Window->GetSizeInScreen();
+		Centre = At + Size * 0.5;
+	}
+	FPlatformRect Display, Work;
+	WindowMonitor(Metrics, Centre, Display, Work);
 	if (Settings.bFullscreen)
 	{
-		FSystemResolution::RequestResolutionChange(Metrics.PrimaryDisplayWidth, Metrics.PrimaryDisplayHeight, EWindowMode::WindowedFullscreen);
+		FSystemResolution::RequestResolutionChange(Display.Right - Display.Left, Display.Bottom - Display.Top, EWindowMode::WindowedFullscreen);
 		return;
 	}
 	// The CLIENT area that fits on the screen once the title bar and borders are added, centred, never off the top or left.
-	TSharedPtr<SWindow> Window = GEngine->GameViewport->GetWindow();
 	Pc::PcIntSize Decoration{ 0, 0 };
 	if (Window.IsValid())
 	{

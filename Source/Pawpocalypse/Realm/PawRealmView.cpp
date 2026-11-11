@@ -9,6 +9,15 @@
 #include "HAL/PlatformTime.h"
 #include "InputCoreTypes.h"
 #include "PcField.h"
+#include "HAL/IConsoleManager.h"
+
+namespace
+{
+	// The rig (R5): 1 draws a rigged drawing as its moving layers, 0 as its one still sprite (the frame gate's A/B, and a
+	// fallback). Presentation only.
+	TAutoConsoleVariable<int32> CVarPawRig(TEXT("paw.Rig"), 1,
+		TEXT("1: rigged enemies are drawn as their moving layers (wings, legs); 0: as one still sprite."));
+}
 #include "PcFieldRules.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "Render/PawSpriteRenderer.h"
@@ -66,7 +75,7 @@ APawRealmView::APawRealmView()
 	Camera->SetConstraintAspectRatio(false);
 	// The automatic ortho planes stay (spike S1). Measured 2026-11-05: with them, geometry at world Z 300 draws and at Z 400 is
 	// clipped; explicit planes (near 0, far 2000) clipped everything above about Z 100. Every band therefore lies in Z 0..300
-	// (UPawSpriteRenderer: floor 0, props 3-5, shadows 20, effects 15 / 25, bodies 100-220, top effects 300).
+	// (UPawSpriteRenderer: floor 0, props 3-5, shadows 20, effects 15 / 25, bodies 30-290, top effects 300).
 	// Exact colours (docs/04 §3, spike S1): exposure pinned at 0 EV, no tone curve, no gamut or blue correction, no
 	// vignette.
 	FPostProcessSettings& S = Camera->PostProcessSettings;
@@ -200,33 +209,37 @@ void APawRealmView::SampleInput()
 	const bool bMouse = PC->GetMousePosition(MX, MY) && LastViewport.Y > 0;
 	const FVector2D Pointer = bMouse ? FieldFromViewport(FVector2D(MX, MY), LastViewport.Y) : FVector2D::ZeroVector;
 	bool bOverDock = bMouse && R->IsOverDock(Pointer.X, Pointer.Y);
-	// The Cone of Shame roots the cat after a Pounce: both paths freeze (the field ignores the input while it lasts).
-	if (F.PounceLockLeft <= 0.0)
+	// The Cone of Shame roots the cat after a Pounce: every path freezes (the field ignores the input while it lasts).
+	const bool bRooted = F.PounceLockLeft > 0.0;
+	const bool bStick = Device && Device->IsStickSteering();
+	switch (SteerBy(R->IsPaused(), bRooted, bRecentre, bStick, bMouse))
 	{
-		if (bRecentre)
+	case ESteer::Recentre:
+		// recentre(): the stick takes the cursor, the cat to the middle of the field, the pointer onto it.
+		if (Device)
 		{
-			// recentre(): the stick takes the cursor, the cat to the middle of the field, the pointer onto it.
-			if (Device)
-			{
-				Device->ClaimStick();
-			}
-			MoveCat(PC, Device, F.Bounds.X + F.Bounds.W * 0.5, F.Bounds.Y + F.Bounds.H * 0.5);
+			Device->ClaimStick();
 		}
-		else if (Device && Device->IsStickSteering())
+		MoveCat(PC, Device, F.Bounds.X + F.Bounds.W * 0.5, F.Bounds.Y + F.Bounds.H * 0.5);
+		break;
+	case ESteer::Stick:
+		// The stick path: move by velocity, stay put when released, clamped to the playfield; the pointer follows so
+		// reaching for the mouse finds it under the cat.
+		if (!Velocity.IsZero())
 		{
-			// The stick path: move by velocity, stay put when released, clamped to the playfield; the pointer follows so
-			// reaching for the mouse finds it under the cat.
-			if (!Velocity.IsZero())
-			{
-				const FVector2D To = StickStep(FVector2D(F.CatX, F.CatY), Velocity, Dt, F.Bounds);
-				MoveCat(PC, Device, To.X, To.Y);
-			}
-			bOverDock = false; // the stick's cat is never under the dock
+			const FVector2D To = StickStep(FVector2D(F.CatX, F.CatY), Velocity, Dt, F.Bounds);
+			MoveCat(PC, Device, To.X, To.Y);
 		}
-		else if (bMouse)
-		{
-			R->SetCat(Pointer.X, Pointer.Y); // wherever the pointer is, under the dock too (only the stick is clamped)
-		}
+		break;
+	case ESteer::Pointer:
+		R->SetCat(Pointer.X, Pointer.Y); // wherever the pointer is, under the dock too (only the stick is clamped)
+		break;
+	default:
+		break;
+	}
+	if (bStick && !bRooted && !bRecentre)
+	{
+		bOverDock = false; // the stick's cat is never under the dock
 	}
 	// pointer_over_field(): inside the playfield, not over the dock, the field running (a paused game shows the pointer).
 	if (Device)
@@ -649,31 +662,54 @@ void APawRealmView::DrawCreatures()
 		const double Phase = PhaseFor(F.Serial[I]);
 		const double Height = Size * PulseY(LookClock, Phase);
 		const double Order = PawLook::Order(ZMice, 1.0 + S);
-		if (E.bIsSignature)
+		// A rigged drawing (R5) is drawn as its layers, back to front, each turned about its pivot; any other as one sprite.
+		const int32 Drawing = EnemyCells[KindIndex];
+		const TArray<FPawRigLayer>* Rig = CVarPawRig.GetValueOnGameThread() != 0 ? Atlas->Rig(Drawing) : nullptr;
+		const int32 RigLayers = Rig ? Rig->Num() : 1;
+		for (int32 Pass = E.bIsSignature ? 0 : 1; Pass < 2; ++Pass)
 		{
-			// The glow: a white silhouette (its shader ignores the modulate's colour, keeps its alpha) 1.24x, right behind.
-			FPawSprite G;
-			G.Cell = EnemyCells[KindIndex];
-			G.X = X;
-			G.Y = Y;
-			G.Width = Size * GlowScale;
-			G.Height = Height * GlowScale;
-			G.bFlipX = M.bFlip;
-			G.Whiten = 1.0f;
-			G.Tint = FLinearColor(1.0f, 1.0f, 1.0f, Mod.A * static_cast<float>(GlowAlpha(LookClock, Phase)));
-			G.Order = Order - 0.5;
-			Out.AddSprite(EPawLayer::Overlays, G);
+			// Pass 0, the glow: a white silhouette (its shader ignores the modulate's colour, keeps its alpha) 1.24x, right
+			// behind (each layer of it turned with its layer). Pass 1, the creature.
+			const bool bGlow = Pass == 0;
+			const double K = bGlow ? GlowScale : 1.0;
+			for (int32 L = 0; L < RigLayers; ++L)
+			{
+				const FPawRigLayer* Layer = Rig ? &(*Rig)[L] : nullptr;
+				FPawSprite B;
+				B.Cell = Layer ? Layer->Cell : Drawing;
+				B.X = X;
+				B.Y = Y;
+				B.Width = Size * K;
+				B.Height = Height * K;
+				B.bFlipX = M.bFlip;
+				if (Layer && !Layer->IsBody())
+				{
+					const double Deg = RigAngleDeg(Layer->bLift, Layer->AmplitudeDeg, Layer->Hz, Layer->Phase, Phase, LookClock);
+					const FRigPose Pose = RigPose(X, Y, B.Width, B.Height, M.bFlip, Layer->PivotU, Layer->PivotV, Deg);
+					B.X = Pose.X;
+					B.Y = Pose.Y;
+					B.Angle = Pose.Angle;
+				}
+				// Inside one creature the layers keep their order, 0.12 of a place apart (BodyZ: 0.048 world units, well apart
+				// in depth: UPawSpriteRenderer::BodyZ). At most three back and three front
+				// layers (Look.Atlas) stay inside +-0.36; the glow's layers lie between -0.58 and -0.46, behind them all and in
+				// front of the creature before (its front layers end at -0.64).
+				const double Within = Layer ? 0.12 * Layer->Order : 0.0;
+				if (bGlow)
+				{
+					B.Whiten = 1.0f;
+					B.Tint = FLinearColor(1.0f, 1.0f, 1.0f, Mod.A * static_cast<float>(GlowAlpha(LookClock, Phase)));
+					B.Order = Order - 0.52 + (Layer ? 0.02 * Layer->Order : 0.0);
+					Out.AddSprite(EPawLayer::Overlays, B);
+				}
+				else
+				{
+					B.Tint = Modulate(Mod);
+					B.Order = Order + Within;
+					Out.AddSprite(EPawLayer::Bodies, B);
+				}
+			}
 		}
-		FPawSprite B;
-		B.Cell = EnemyCells[KindIndex];
-		B.X = X;
-		B.Y = Y;
-		B.Width = Size;
-		B.Height = Height;
-		B.bFlipX = M.bFlip;
-		B.Tint = Modulate(Mod);
-		B.Order = Order;
-		Out.AddSprite(EPawLayer::Bodies, B);
 	}
 
 	// The kittens (Kitten: the kitten drawing at 96 px, z 1, gold and illusory tints multiplied, the Lone Hunter halo).
@@ -800,7 +836,8 @@ void APawRealmView::DrawCreatures()
 	}
 
 	// The cat (Player: its visual stage's drawing at 175 px, z 2; the weapon at +1 and the hat at +2, children of the sprite:
-	// they scale with it but do not mirror. The hop lifts and squashes the sprite; the shadow stays on the floor).
+	// they scale with it, and here mirror with it too (F38 fixed: D16). The hop lifts and squashes the sprite; the shadow
+	// stays on the floor).
 	double CatX = 0.0, CatY = 0.0;
 	Sim.CatPos(CatX, CatY);
 	bCatFlip = PawLook::Face(bCatFlip, LookDt > 0.0 ? StickVelX : 0.0);
@@ -834,14 +871,14 @@ void APawRealmView::DrawCreatures()
 	const int32 WeaponCell = CellFor(FString::Printf(TEXT("player_weapon_stage_%lld"), Stage));
 	if (WeaponCell != INDEX_NONE)
 	{
-		const FOverlay O = CatOverlay(false, bMounted, RelX, RelY);
+		const FOverlay O = FacingOverlay(CatOverlay(false, bMounted, RelX, RelY), bCatFlip);
 		FPawSprite W;
 		W.Cell = WeaponCell;
 		W.X = CatX + O.X;
 		W.Y = BodyY + O.Y;
 		W.Width = O.Width;
 		W.Height = O.Height;
-		W.bFlipX = true;
+		W.bFlipX = WeaponFlipX(bCatFlip);
 		W.Tint = Cat.Tint;
 		W.Order = PawLook::Order(ZCat + 1, 0.0);
 		Out.AddSprite(EPawLayer::Overlays, W);
@@ -850,13 +887,14 @@ void APawRealmView::DrawCreatures()
 	const int32 HatCell = Job ? CellFor(UTF8_TO_TCHAR(Job->HatPath.c_str())) : INDEX_NONE;
 	if (HatCell != INDEX_NONE)
 	{
-		const FOverlay O = CatOverlay(true, bMounted, RelX, RelY);
+		const FOverlay O = FacingOverlay(CatOverlay(true, bMounted, RelX, RelY), bCatFlip);
 		FPawSprite Hat;
 		Hat.Cell = HatCell;
 		Hat.X = CatX + O.X;
 		Hat.Y = BodyY + O.Y;
 		Hat.Width = O.Width;
 		Hat.Height = O.Height;
+		Hat.bFlipX = HatFlipX(bCatFlip);
 		Hat.Tint = Cat.Tint;
 		Hat.Order = PawLook::Order(ZCat + 2, 0.0);
 		Out.AddSprite(EPawLayer::Overlays, Hat);

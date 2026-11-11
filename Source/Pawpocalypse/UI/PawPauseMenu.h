@@ -122,6 +122,7 @@ private:
 	TArray<TObjectPtr<UPawButton>> SlotButtons;
 
 	Pc::PcPauseState State;
+	bool bLastSaveFailed = false; // the status line's "Saved" was not (review CR15): "Slot {n} was not saved."
 	TArray<UWidget*> Wired;
 	TWeakObjectPtr<UCommonActivatableWidgetStack> ModalStack;
 	bool bSettingsUp = false;

@@ -85,6 +85,7 @@ public:
 	};
 	const TArray<FPlayed>& Played() const { return Log; }
 	void ClearLog() { Log.Reset(); }
+	static constexpr int32 MaxLog = 256; // the log keeps the newest (review CR4)
 	// The bus amplitudes now (Master x Music, Master x SFX).
 	double MusicGain() const;
 	double SfxGain() const;
@@ -105,6 +106,9 @@ public:
 	// the system; true when it was made). Null: the engine's.
 	TFunction<TArray<FString>()> SystemDevices;
 	TFunction<bool(const FString& Name)> SwapOutput;
+	// How a voice or a music player is made (the tests count them). Null: the engine's 2D sound that persists across level
+	// changes, as the Godot autoload's players do. Each is made once and reused while valid (review CR3).
+	TFunction<UAudioComponent*(USoundWave* Sound)> CreatePlayer;
 	// Ticks the fade and the observer once (the tests, without the engine's tick).
 	void TickOnce(float DeltaSeconds) { Tick(DeltaSeconds); }
 
@@ -119,6 +123,7 @@ private:
 	void ObserveProgress();
 	UAudioComponent* Voice(int32 Index, USoundWave* Sound);
 	UAudioComponent* MusicPlayer(int32 Index, USoundWave* Sound);
+	UAudioComponent* MakePlayer(USoundWave* Sound);
 	void ApplyVolumes();
 
 	UPROPERTY(Transient)

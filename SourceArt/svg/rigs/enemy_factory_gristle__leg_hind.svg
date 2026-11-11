@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_factory_gristle" data-layer="leg_hind" data-order="-2" data-pivot="96.33 98.87" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="87.1,106.2 90.0,115.5 92.6,120.1 97.1,122.8 102.3,122.9 106.9,120.3 109.6,115.8 109.7,110.6 107.9,101.0 105.2,96.1 100.5,93.3 94.9,93.2 90.0,95.9 87.2,100.6" fill="#2A1A33" stroke="none"/>
+<ellipse cx="102.2" cy="114.2" rx="14.3" ry="9.0" fill="#2A1A33" stroke="none"/>
+<polygon points="90.6,105.3 93.6,114.6 95.2,117.5 98.1,119.3 101.4,119.3 104.4,117.7 106.1,114.8 106.2,111.5 104.4,101.9 102.6,98.7 99.5,96.8 95.8,96.7 92.6,98.5 90.7,101.6" fill="#CCAD45" stroke="none"/>
+<ellipse cx="102.2" cy="114.2" rx="10.6" ry="5.3" fill="#CCAD45" stroke="none"/>
+</g>
+</svg>

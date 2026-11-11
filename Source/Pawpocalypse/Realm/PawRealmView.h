@@ -98,6 +98,15 @@ public:
 	{
 		return !bOverDock && Bounds.HasPoint(Pointer.X, Pointer.Y);
 	}
+	// What steers the cat this frame (player.gd _process): R3's recentre, else the stick while it has the cursor, else the
+	// pointer. Nothing while the Cone of Shame roots the cat, and nothing while the field is paused: Godot's player stops with
+	// the paused tree (review CR6: the stick kept steering here and warped the pointer under a card pick or a menu).
+	enum class ESteer : uint8 { Nothing, Recentre, Stick, Pointer };
+	static ESteer SteerBy(bool bPaused, bool bRooted, bool bRecentre, bool bStickSteering, bool bPointer)
+	{
+		return bPaused || bRooted ? ESteer::Nothing : bRecentre ? ESteer::Recentre : bStickSteering ? ESteer::Stick
+			: bPointer ? ESteer::Pointer : ESteer::Nothing;
+	}
 
 	// The logical view (docs/04 §6): 1080 high, as wide as the window's aspect makes it.
 	static constexpr double LogicalHeight = 1080.0;

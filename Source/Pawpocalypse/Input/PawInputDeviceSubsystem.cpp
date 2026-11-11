@@ -216,6 +216,7 @@ void UPawInputDeviceSubsystem::SetDetectedForTest(Pc::PcFamily Detected)
 	{
 		OnFamilyChanged.Broadcast(State.Family);
 	}
+	NoteDetected();
 }
 
 void UPawInputDeviceSubsystem::Observe(const Pc::PcDeviceEvent& E)
@@ -483,6 +484,17 @@ void UPawInputDeviceSubsystem::Changed(Pc::PcFamily Before, Pc::PcCursorSource C
 	{
 		ShowToast(State.Toast);
 	}
+	NoteDetected();
+}
+
+void UPawInputDeviceSubsystem::NoteDetected()
+{
+	// After the family (Godot's _set_detected refreshes the family first): the pad detected, for the Controls page (F37).
+	if (State.Detected != NotifiedDetected)
+	{
+		NotifiedDetected = State.Detected;
+		OnDetectedChanged.Broadcast(State.Detected);
+	}
 }
 
 void UPawInputDeviceSubsystem::ApplyPointer()
@@ -522,6 +534,22 @@ void UPawInputDeviceSubsystem::ShowToast(Pc::PcDeviceToast Which)
 	ToastLeft = UPawToast::ShowSec + UPawToast::FadeSec;
 }
 
+void UPawInputDeviceSubsystem::SetDockConsumer(const UObject* Owner, TFunction<bool(const FKey&)> Consume)
+{
+	DockConsumerOwner = Owner;
+	ConsumeForDock = MoveTemp(Consume);
+}
+
+void UPawInputDeviceSubsystem::ClearDockConsumer(const UObject* Owner)
+{
+	// Only its own: a newer HUD may have set one since (review CR13). Compared even while the owner is being destroyed.
+	if (DockConsumerOwner.Get(true) == Owner)
+	{
+		DockConsumerOwner.Reset();
+		ConsumeForDock = nullptr;
+	}
+}
+
 void UPawInputDeviceSubsystem::SetDockArea(UWidget* Dock, bool bDockOnLeft)
 {
 	DockArea = Dock;
@@ -559,12 +587,33 @@ void UPawInputDeviceSubsystem::PlaceFocusPrompt()
 		FocusPrompt->AddToViewport(UPawToast::ZOrder - 1);
 		FocusPrompt->SetAlignmentInViewport(FVector2D::ZeroVector);
 	}
+	else if (!FocusPrompt->IsInViewport())
+	{
+		// A map change took it off the screen: the viewport removes a game-instance widget with the world it was added in
+		// (UGameViewportSubsystem's world cleanup), so it is put back, as the toast is (review CR1: after the travel from the
+		// title the realm never showed it). Mid-travel there is no game world yet: the next frame has one.
+		const UWorld* PromptWorld = FocusPrompt->GetWorld();
+		if (!PromptWorld || !PromptWorld->IsGameWorld())
+		{
+			return;
+		}
+		FocusPrompt->AddToViewport(UPawToast::ZOrder - 1);
+		FocusPrompt->SetAlignmentInViewport(FVector2D::ZeroVector);
+	}
+	// The cheap test first (review CR10): with the pointer the last thing used the prompt is hidden, and the search of the
+	// window's widgets below is not made at all (it ran every frame a button had the focus).
+	if (State.bLastWasPointer)
+	{
+		FocusPrompt->SetVisibility(ESlateVisibility::Collapsed);
+		return;
+	}
 	FSlateApplication& Slate = FSlateApplication::Get();
 	const TSharedPtr<SWidget> Focused = Slate.GetUserFocusedWidget(0);
 	// owner is BaseButton: Slate's buttons (a Common button, a check box, an option's combo).
 	const FString Type = Focused.IsValid() ? Focused->GetTypeAsString() : FString();
 	const bool bButton = Type.Contains(TEXT("Button")) || Type.Contains(TEXT("CheckBox")) || Type.Contains(TEXT("ComboBox"));
 	FWidgetPath Path;
+	PromptPathSearches += bButton ? 1 : 0;
 	const bool bFound = bButton && Slate.FindPathToWidget(Focused.ToSharedRef(), Path) && Path.IsValid();
 	if (!bFound || !FocusPromptShown(true, State.bLastWasPointer))
 	{

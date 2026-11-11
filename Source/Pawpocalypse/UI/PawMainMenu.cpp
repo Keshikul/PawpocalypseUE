@@ -643,14 +643,24 @@ void UPawMainMenu::Refresh()
 	UPawSaveSubsystem* S = Saves();
 	const bool bOnDisk = S && S->HasAnySave();
 	Pc::PcProgress Empty;
-	const Pc::PcTitleMenu M = Pc::TitleMenu(bOnDisk, G && G->IsDataReady() ? G->Progress() : Empty);
+	// The last load's outcome reaches the player (review CR2; F47): a newer build's slot, an unreadable one, the backup.
+	const Pc::PcTitleNotice Notice = S ? S->GetTitleNotice() : Pc::PcTitleNotice::None;
+	const Pc::PcTitleMenu M = Pc::TitleMenu(bOnDisk, G && G->IsDataReady() ? G->Progress() : Empty, Notice);
+	bContinueOpensSlots = M.bContinueOpensSlots;
 	SetEnabledLook(GetMenuButton(0), M.bContinue);
 	if (UPawButton* Continue = GetMenuButton(0))
 	{
 		Continue->SetCallLook(M.bContinue); // R4c: the board's Butter Continue, while there is something to continue
 	}
 	SetEnabledLook(GetMenuButton(2), M.bLoad);
-	if (M.bSaveFound)
+	if (M.Notice != Pc::PcTitleNotice::None)
+	{
+		FFormatNamedArguments Args;
+		Args.Add(TEXT("n"), PawText::Count(S->GetTitleNoticeSlot() + 1));
+		StatusText->SetText(PawText::Ui(M.Notice == Pc::PcTitleNotice::NewerBuild ? TEXT("TITLE_status_newer")
+			: M.Notice == Pc::PcTitleNotice::Unreadable ? TEXT("TITLE_status_unreadable") : TEXT("TITLE_status_backup"), Args));
+	}
+	else if (M.bSaveFound)
 	{
 		FFormatNamedArguments Args;
 		Args.Add(TEXT("n"), PawText::Count(M.Reawakens));
@@ -674,7 +684,8 @@ void UPawMainMenu::RefreshSlotCards()
 	for (int32 I = 0; I < SlotCount; ++I)
 	{
 		Pc::PcSlotSummary Summary;
-		const bool bRead = S && S->ReadSlotSummary(I, Summary);
+		const Pc::PcSlotState State = S ? S->SlotState(I, &Summary) : Pc::PcSlotState::Empty;
+		const bool bRead = State == Pc::PcSlotState::Readable || State == Pc::PcSlotState::ReadableFromBackup;
 		UTextBlock* Text = SlotTexts.IsValidIndex(I) ? SlotTexts[I].Get() : nullptr;
 		if (UPawButton* Delete = GetSlotDelete(I))
 		{
@@ -686,7 +697,9 @@ void UPawMainMenu::RefreshSlotCards()
 		}
 		if (!bRead)
 		{
-			Text->SetText(PawText::Ui(TEXT("TITLE_slot_empty")));
+			// F47 (D16): a file this build cannot read is never shown as an empty slot.
+			Text->SetText(PawText::Ui(State == Pc::PcSlotState::NewerBuild ? TEXT("TITLE_slot_newer")
+				: State == Pc::PcSlotState::Unreadable ? TEXT("TITLE_slot_unreadable") : TEXT("TITLE_slot_empty")));
 			continue;
 		}
 		FFormatNamedArguments Args;
@@ -845,7 +858,21 @@ void UPawMainMenu::RememberOpener()
 
 void UPawMainMenu::PressContinue()
 {
-	if (GetMenuButton(0) && GetMenuButton(0)->GetIsEnabled() && OnPlay)
+	if (!GetMenuButton(0) || !GetMenuButton(0)->GetIsEnabled())
+	{
+		return;
+	}
+	if (bContinueOpensSlots)
+	{
+		// F47: the active slot cannot be read; memory holds a fresh game, never played over it unasked. The player chooses.
+		OpenSlots();
+		return;
+	}
+	if (UPawSaveSubsystem* S = Saves())
+	{
+		S->ClearTitleNotice(); // said once
+	}
+	if (OnPlay)
 	{
 		OnPlay();
 	}
@@ -923,21 +950,37 @@ void UPawMainMenu::PressSlot(int32 SlotIndex)
 	{
 		return;
 	}
+	UPawGameSubsystem* G = Game();
+	UPawSaveSubsystem* S = Saves();
+	const Pc::PcSlotState State = S ? S->SlotState(SlotIndex) : Pc::PcSlotState::Empty;
+	if (State == Pc::PcSlotState::NewerBuild)
+	{
+		// A newer build's save: never played here, never written over (CR2). The card says why; the slots stay up.
+		return;
+	}
 	Show(ELayer::Slots, false);
 	// The Jobs badge counts jobs SEEN, in a static that outlives the HUD; another game's count must not carry into this one.
 	UPawHudScreen::ForgetJobsSeen();
-	UPawGameSubsystem* G = Game();
-	UPawSaveSubsystem* S = Saves();
-	if (S && S->HasSlot(SlotIndex))
+	if (State == Pc::PcSlotState::Readable || State == Pc::PcSlotState::ReadableFromBackup)
 	{
-		// Occupied: it loads and resumes. No confirm: nothing is destroyed by loading.
-		S->LoadGame(SlotIndex);
+		// Occupied: it loads and resumes. No confirm: nothing is destroyed by loading. A load that fails after all (the
+		// file changed since the card was drawn) plays nothing: the slots come back with the slot's real state (CR2).
+		const EPawLoadOutcome Outcome = S->LoadGame(SlotIndex);
+		if (Outcome != EPawLoadOutcome::Loaded && Outcome != EPawLoadOutcome::LoadedFromBackup)
+		{
+			RefreshSlotCards();
+			Show(ELayer::Slots, true);
+			FocusTop();
+			return;
+		}
+		S->ClearTitleNotice();
 	}
 	else if (G && G->IsDataReady())
 	{
-		// Empty: a fresh game starts there, with both automations off (UPawGameSubsystem::NewGame resets the slot's
-		// toggles) and no achievements (AchievementManager.apply_save_data({})). Writing at once is what CREATES the slot,
-		// and doing it this frame keeps the empty game out of the slot that was active (SaveGame reseeds the digest).
+		// Empty, or a file that cannot be read (F47: its card said so; the writer keeps the old file as slot_N_corrupt): a
+		// fresh game starts there, with both automations off (UPawGameSubsystem::NewGame resets the slot's toggles) and no
+		// achievements (AchievementManager.apply_save_data({})). Writing at once is what CREATES the slot, and doing it
+		// this frame keeps the empty game out of the slot that was active (SaveGame reseeds the digest).
 		G->NewGame();
 		Pc::ApplyAchievementSave(G->Data(), G->Progress(), {}, {});
 		if (S)

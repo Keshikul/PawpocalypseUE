@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_rooftop_gristle" data-layer="leg_hind" data-order="-2" data-pivot="99.19 99.32" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="89.7,106.9 92.7,116.5 95.3,121.2 100.0,124.0 105.4,124.1 110.1,121.4 112.9,116.8 113.0,111.4 111.1,101.5 108.4,96.5 103.5,93.5 97.7,93.5 92.7,96.2 89.8,101.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="105.3" cy="115.1" rx="14.7" ry="9.2" fill="#2A1A33" stroke="none"/>
+<polygon points="93.3,106.0 96.4,115.5 98.0,118.6 101.0,120.3 104.5,120.4 107.5,118.7 109.3,115.8 109.3,112.3 107.5,102.4 105.7,99.1 102.4,97.2 98.6,97.1 95.3,98.9 93.4,102.2" fill="#CCAD45" stroke="none"/>
+<ellipse cx="105.3" cy="115.1" rx="10.9" ry="5.5" fill="#CCAD45" stroke="none"/>
+</g>
+</svg>

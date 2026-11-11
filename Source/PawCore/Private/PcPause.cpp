@@ -27,7 +27,10 @@ namespace Pc
 
 	void PauseShowMain(PcPauseState& S)
 	{
-		// Godot leaves an armed overwrite armed here (F34).
+		// Leaving the Save page disarms its overwrite, as Godot's comment on _pending_overwrite promises: Godot left it armed,
+		// so one press on the slot overwrote it (F34, a Godot fault the port does not copy: D16; the `pause` fixture is made
+		// with the same fix, tools/godot_fixes.py).
+		S.PendingOverwrite = -1;
 		S.bSlotsPage = false;
 	}
 

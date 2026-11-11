@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_rat" data-layer="leg_near" data-order="-1" data-pivot="50.40 105.07" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.000" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="44.5,106.5 41.7,117.1 41.6,120.1 43.0,122.7 45.5,124.3 48.4,124.4 51.1,123.0 52.6,120.5 56.3,110.1 56.4,106.9 54.9,104.1 52.2,102.4 49.0,102.3 46.2,103.8" fill="#2A1A33" stroke="none"/>
+<ellipse cx="45.6" cy="119.6" rx="8.1" ry="5.4" fill="#2A1A33" stroke="none"/>
+<polygon points="46.9,107.2 44.1,117.8 44.0,119.5 44.8,121.0 46.2,121.9 47.9,121.9 49.4,121.2 50.3,119.7 53.9,109.4 53.9,107.5 53.1,105.8 51.5,104.8 49.6,104.8 47.9,105.6" fill="#C25D59" stroke="none"/>
+<ellipse cx="45.6" cy="119.6" rx="5.6" ry="2.9" fill="#C25D59" stroke="none"/>
+</g>
+</svg>

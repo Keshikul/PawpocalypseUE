@@ -23,9 +23,11 @@ Source/
     Input/                input device subsystem, glyphs, bindings (doc 05)
     Save/                 save container, slots, migrations (doc 08)
     Audio/                UPawAudioSubsystem (AudioManager) and the generated bank (doc 07 §6; built phase 6)
-    Platform/             IPawPlatform: achievements, cloud, rich presence, store URL (Null + Steam impls, doc 10)
-    Dev/                  cheat overlay, soak driver, screenshot tour, trailer director (compiled out of Shipping)
-  PawpocalypseEditor/   editor-only: DataTable/CSV importer, texture/atlas importer, validators, widget baker, font builder
+    Platform/             (phase 8, not built yet) IPawPlatform: achievements, cloud, rich presence, store URL (Null + Steam impls, doc 10)
+    Dev/                  the cheats, the debug HUD, paw.Bench, paw.Shot and the tour steps; planned: soak driver, trailer
+                          director (compiled out of Shipping)
+  PawpocalypseEditor/   editor-only: the widget baker (UPawWidgetBaker), the Enhanced Input asset builder, the font builder
+                        (the DataTable, texture, atlas and audio imports are headless Python: tools/import_*.py)
 ```
 
 **Three modules plus PawCore.** The KB's measured advice: more modules than that add build boundaries without a
@@ -125,14 +127,14 @@ Types: `double` for every economy and damage value (D13), `int64` for counts, `i
 | `CardManager` | part of `UPawGameSubsystem` over `PcCards` | | |
 | `SaveManager` | `UPawSaveSubsystem` | GameInstance subsystem | Slots, autosave timer, request-save coalescing (doc 08) |
 | `AudioManager` | `UPawAudioSubsystem` | GameInstance subsystem + `FTickableGameObject` | **Built (phase 6 slice 4)**: the event table and music from `DA_AudioBank`, rate limits, round robin, 16 voices, the buses from the settings, the crossfade; triggered by a progress observer, the realm's field events and the UI (doc 07 §6) |
-| `BobaCameo` | `UPawBobaSubsystem` | GameInstance subsystem | `EnterMenu`/`LeaveMenu`/`Suppress` |
+| `BobaCameo` | `UPawBobaSubsystem` (planned, phase 6 slice 6c) | GameInstance subsystem | `EnterMenu`/`LeaveMenu`/`Suppress` (`docs/WORKLIST-SLICE6-2026-11-07.md`) |
 | `TierController` | `UPawRealmSubsystem` + `APawRealmView` | `UWorldSubsystem` + one actor | Drives `PcField` through `FPawRealmSim`; the view actor owns the camera and the sprite renderer and advances the realm from its own tick, right before it draws (a `UTickableWorldSubsystem` ticks after every actor, so the view would draw the previous frame's steps: a frame of latency between the cursor and the cat, for nothing) |
 | `Player`, `Enemy`, `Kitten`, `Boss` | entities in `PcField`; drawn by `UPawSpriteRenderer` | not Actors | doc 04 §5 |
 | `BiomeBackdrop`, the `vfx_*` / ring / zone / telegraph / sparkle nodes | `PcBackdrop` + `APawRealmView::DrawBackdrop` (the title's: `UPawGarden`); `FPawVfx` | not nodes: drawn each frame | doc 04 §5.1, §7 (phase 6) |
 | `HUD` | `UPawRootLayout` + `UPawHudScreen` + dock pages | Common UI | Owned by `APawPlayerController`, never the GameMode `[KB U/03 §1]`. **Built 2026-11-01** (`Source/Pawpocalypse/UI`): `UPawRootLayout`, `UPawHudScreen` (status row, XP bar, Pounce clock, boss panel, the dock with the Upgrades page), `UPawButton`, `UPawPounceClock`, `PawText` (the string tables), `PawUiKit` (brushes, text, bars; since phase 6 slice 5a Godot's nine-patch chrome, `PawUi::Chrome`), `PawIcons` (slice 5b: `DA_Icons`, `PawUi::Icon`), `PawTokens.h` (generated colours), `PawUiConstants.h` (Godot's presentation constants); doc 05 §6.1 |
 | `SkillTreeUI` | `UPawSkillTreeScreen` | Common UI activatable | doc 05 §6 |
 | `MainMenu`, `PauseMenu`, `SettingsDialog`, `VictoryScreen`, ceremonies | `UPawMainMenu`, `UPawPauseMenu`, `UPawSettingsDialog`, `UPawVictoryScreen`, `UPawReawakenCeremony`, `UPawJobPicker`, `UPawCardPickScreen` (built) | activatable screens, each with its `WBP_*` | |
-| `Tutorial` | `UPawTutorialOverlay` | widget, read-only | Reads views, writes only `tutorial_done` |
+| `Tutorial` | `UPawTutorialOverlay` (planned, phase 6 slice 6d) | widget, read-only | Reads views, writes only `tutorial_done` |
 | `CheatOverlay` (F1) | `PcCheats` (the rules) + `paw.Cheat.*` console commands (`Dev/PawCheats.cpp`, built); the F1 panel `UPawCheatOverlay` in phase 3 | dev only | `#if !UE_BUILD_SHIPPING` |
 | (Godot's debug readouts) | `APawDebugHud` (`paw.DebugHud`) | dev only | the GameMode's HUD class outside Shipping |
 | `UiJuice` (static helper) | `FPawJuice` over `PcJuice` (built, phase 6 slice 5c) | a struct each screen owns and ticks (Common UI buttons do not tick) | Hover, press and punch from the buttons' own events, the lean and pop-in where Godot calls them; render transform about the centre, so layout never moves (doc 05 §7) |
@@ -200,6 +202,8 @@ FPawRealmSim::Advance(RealDelta):                    // called by APawRealmView'
   art never touches rules. **As built (phase 6)**: no per-creature asset yet; the art is found by the stem the data names
   (`texture_path` -> an atlas cell of `DA_FieldAtlas`), sizes and tints from the data's columns and Godot's code constants
   (`Realm/PawFieldLook.h`); every atlas page, floor and sound is referenced by the realm view or a bank, loaded with the map.
+  Since R5 (2026-11-09) a rigged creature's moving parts are atlas cells of their own (`FPawAtlasCell` `RigOf`, `RigOrder`,
+  pivot, motion, amplitude, Hz, phase; from `SourceArt/svg/rigs` through `pack_atlas.py`), turned by `PawLook::RigPose`.
 - **Never load an asset per frame or per kill** (the Godot `load()` lesson: 1.8 ms each, 90% of a 4 fps report).
   Everything the realm draws is resolved when a biome begins.
 
@@ -233,6 +237,7 @@ r.DefaultFeature.AmbientOcclusion=False
 r.DefaultFeature.LensFlare=False
 r.AntiAliasingMethod=1                    ; FXAA, chosen by spike S1 (doc 04 §10); no AA vs FXAA open as Q9 (doc 01)
 r.SkinCache.CompileShaders=False
+r.EarlyZPassOnlyMaterialMasking=False     ; 2026-11-09: masked layers at one depth drew black without it (doc 04 §4)
 
 [/Script/Engine.Engine]
 GameViewportClientClassName=/Script/CommonUI.CommonGameViewportClient

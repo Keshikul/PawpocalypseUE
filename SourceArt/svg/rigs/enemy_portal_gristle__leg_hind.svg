@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_portal_gristle" data-layer="leg_hind" data-order="-2" data-pivot="97.94 99.13" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="88.5,106.6 91.5,116.0 94.1,120.7 98.7,123.5 104.0,123.5 108.7,121.0 111.5,116.4 111.6,111.0 109.7,101.3 107.0,96.3 102.1,93.4 96.5,93.3 91.6,96.1 88.6,100.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="103.9" cy="114.7" rx="14.5" ry="9.1" fill="#2A1A33" stroke="none"/>
+<polygon points="92.2,105.7 95.1,115.1 96.8,118.1 99.7,119.9 103.1,119.9 106.1,118.3 107.9,115.3 108.0,111.9 106.1,102.2 104.3,98.9 101.1,97.0 97.4,96.9 94.1,98.7 92.2,101.9" fill="#CCAD45" stroke="none"/>
+<ellipse cx="103.9" cy="114.7" rx="10.8" ry="5.4" fill="#CCAD45" stroke="none"/>
+</g>
+</svg>

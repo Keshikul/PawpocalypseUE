@@ -1,6 +1,7 @@
 #include "PcSave.h"
 
 #include "PcAchievements.h"
+#include "PcCards.h"
 #include "PcData.h"
 #include "PcJobs.h"
 #include "PcJson.h"
@@ -21,7 +22,8 @@ namespace Pc
 {
 	// --- save_game() -------------------------------------------------------------------------------------------------
 
-	PcSaveState CaptureSave(const PcGameData& D, PcProgress& P, const PcSlotExtras& X, double NowUnix)
+	PcSaveState CaptureSave(const PcGameData& D, PcProgress& P, const PcSlotExtras& X, double NowUnix,
+		const PcSummonPayment* FightUp)
 	{
 		PcSaveState S;
 		S.Version = PcGodotSaveVersion;
@@ -83,6 +85,21 @@ namespace Pc
 		S.KillsSinceTithe = P.KillsSinceTithe;
 		S.bReawakenInProgress = P.bReawakenInProgress;
 		S.LastPlayedUnix = NowUnix;
+		if (FightUp)
+		{
+			// F36 (D16): the fight is not saved, so neither is what it cost: the file reads as if the summon had not happened
+			// (an entry the summon created goes again, so the file is the one a save just before it would have written).
+			const auto It = S.BaitSpent.find(FightUp->BiomeId);
+			if (It != S.BaitSpent.end())
+			{
+				It->second = std::max<int64_t>(It->second - FightUp->Bait, 0);
+				if (It->second == 0)
+				{
+					S.BaitSpent.erase(It);
+				}
+			}
+			S.Catnip += FightUp->Catnip;
+		}
 		return S;
 	}
 
@@ -180,9 +197,17 @@ namespace Pc
 			P.CardLevels.clear();
 			for (const auto& [Id, Level] : S.CardsOwned)
 			{
-				if (IsCard(D, Id))
+				// A card since removed is dropped. Range-checked like the shop and the tree (F32): a level under 1 is no card,
+				// one past the card's levels its top level (F49, a Godot fault the port does not copy: D16; the save fixture
+				// is made with the same fix).
+				const PcCard* Card = nullptr;
+				for (const PcCard& C : D.Cards)
 				{
-					P.CardLevels[Id] = Level;
+					Card = C.Id == Id ? &C : Card;
+				}
+				if (Card && Level >= 1)
+				{
+					P.CardLevels[Id] = std::min<int64_t>(Level, CardMaxLevel(*Card));
 				}
 			}
 			P.BanishedCards.clear();
@@ -842,5 +867,23 @@ namespace Pc
 		case PcSaveReadError::BadJson: return "bad body";
 		}
 		return "unknown";
+	}
+
+	PcSlotState ClassifySlot(bool bExists, PcSaveReadError Slot, bool bBackupExists, PcSaveReadError Backup)
+	{
+		if (!bExists)
+		{
+			return PcSlotState::Empty;
+		}
+		if (Slot == PcSaveReadError::None)
+		{
+			return PcSlotState::Readable;
+		}
+		if (Slot == PcSaveReadError::NewerFormat)
+		{
+			return PcSlotState::NewerBuild; // not ours to judge, play or replace
+		}
+		// The load's own fallback (LoadGame): the previous save, from before the write that broke this one.
+		return bBackupExists && Backup == PcSaveReadError::None ? PcSlotState::ReadableFromBackup : PcSlotState::Unreadable;
 	}
 }

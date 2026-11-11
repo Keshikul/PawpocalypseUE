@@ -15,7 +15,10 @@
 #include "Misc/Paths.h"
 #include "PcHud.h"
 #include "PcJobs.h"
+#include "PcSave.h"
 #include "Realm/PawRealmSubsystem.h"
+#include "Save/PawSaveStorage.h"
+#include "Save/PawSaveSubsystem.h"
 #include "UI/PawButton.h"
 #include "UI/PawHudScreen.h"
 #include "UI/PawIcons.h"
@@ -221,8 +224,35 @@ bool FPawIconsTest::RunTest(const FString& Parameters)
 		TestFalse(FString::Printf(TEXT("quick %d: its tooltip"), I), Q->GetToolTipText().IsEmpty());
 	}
 	TestTrue(TEXT("nothing under the quick bar before a save"), H->GetQuickStatusText().IsEmpty());
+	// Review CR15: "Saved." only for a write that happens. This run has no save sandbox: saving is off, nothing is written.
+	UPawSaveSubsystem* Save = W.GI->GetSubsystem<UPawSaveSubsystem>();
+	TestFalse(TEXT("saving is off in this run"), Save->IsEnabled());
+	H->PressQuickSave();
+	TestEqual(TEXT("saving off: the quick save says it did not"), H->GetQuickStatusText().ToString(), FString(TEXT("Not saved.")));
+	// A sandboxed disk: queued, then written, and it says so throughout.
+	TSharedPtr<FPawMemorySaveStorage> Disk = MakeShared<FPawMemorySaveStorage>();
+	Save->UseStorageForTest(Disk);
 	H->PressQuickSave();
 	TestEqual(TEXT("the quick save says so"), H->GetQuickStatusText().ToString(), FString(TEXT("Saved.")));
+	Save->Flush();
+	H->PollQuickSave();
+	TestEqual(TEXT("written: still Saved."), H->GetQuickStatusText().ToString(), FString(TEXT("Saved.")));
+	TestTrue(TEXT("the slot is on the disk"), Disk->Exists(UPawSaveSubsystem::SlotName(Save->GetActiveSlot())));
+	// A newer build's save in the slot: the writer refuses it (and logs it), and "Saved." turns to "Not saved." when it says so.
+	AddExpectedError(TEXT("the slot holds a newer build"), EAutomationExpectedErrorFlags::Contains, 1, false);
+	{
+		Pc::PcSaveState Future;
+		Future.LifetimeCatnipEver = 1.0;
+		std::string File = Pc::WriteSaveFile(Future, "future");
+		File.replace(0, 9, "PAWSAVE 7");
+		Disk->Put(UPawSaveSubsystem::SlotName(Save->GetActiveSlot()),
+			TArray<uint8>(reinterpret_cast<const uint8*>(File.data()), static_cast<int32>(File.size())));
+	}
+	H->PressQuickSave();
+	Save->Flush();
+	H->Pump(1.0 / 60.0); // the HUD's frame reads the writer's word
+	TestEqual(TEXT("a refused write: Not saved."), H->GetQuickStatusText().ToString(), FString(TEXT("Not saved.")));
+	Save->UseStorageForTest(nullptr);
 	bool bLeft = false;
 	H->OnQuitToTitle = [&bLeft]() { bLeft = true; };
 	H->PressQuickQuit();

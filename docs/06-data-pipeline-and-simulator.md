@@ -173,10 +173,11 @@ for those the Godot fixture is the only oracle. A Godot fix (doc 01 §5; the des
 ## 9. Headless import
 
 - `py tools/import_data.py` launches `UnrealEditor-Cmd.exe Pawpocalypse.uproject -run=pythonscript -script=<itself>
-  -nullrhi -unattended -nop4 -SCCProvider=None -stdout` (absolute, forward slashes; `unreal.log_warning` for output; it refuses
-  while ANY Unreal editor runs) `[KB U/17]`. It creates missing DataTables with the right row struct, fills them from the CSV text
+  -nullrhi -unattended -nop4 -SCCProvider=None -stdout` (absolute, forward slashes; `unreal.log_warning` for output)
+  `[KB U/17]`. It creates missing DataTables with the right row struct, fills them from the CSV text
   (`fill_data_table_from_csv_string`, `_godot_file` renamed `godot_file`), saves them explicitly, prints
   `PAW_IMPORT ok <table> <rows>`, then checks parity on the saved assets (`PAW_PARITY ok <table>`). Any `LogDataTable` warning
-  fails the run. `--check` = parity only (nothing written); `--self-test` = a scratch copy with one changed cell must fail.
+  fails the run. (It refuses while an Unreal process of THIS project runs, or one naming no project: `tools/unreal_procs.py`,
+  the guard every engine tool shares; another project's editor is ignored.) `--check` = parity only (nothing written); `--self-test` = a scratch copy with one changed cell must fail.
 - Run from PowerShell (Git Bash rewrites `/Game/...` paths unless `MSYS_NO_PATHCONV=1`) `[KB U/17 §3]`.
 - The parity test then compares DataTable rows with CSV rows field by field.

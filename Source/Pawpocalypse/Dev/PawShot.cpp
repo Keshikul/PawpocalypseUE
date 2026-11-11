@@ -25,6 +25,9 @@
 //                            in the text weight; `paw.FontSheet off` takes it away (tools/godot_tour.py --set fonts)
 //   paw.Fx                   one of each effect round the cat: a burst, a slam, a swipe and a crit swipe, a beam, shards
 //                            (the effect looks, phase 6 slice 3; the effects setting decides as in play)
+//   paw.Fx look              the restyle's aura and strike (D3), held still for a shot: the field held, the aura owned, three
+//                            swipes stepped to 25 %, 50 % (a crit) and 75 % of their sweep (a swipe lasts 0.24 s, shorter than
+//                            the queue's beat); the first swipe from the cat. The field stays held (a dev shot; restart to play on).
 // e.g. -ExecCmds="paw.Cheat.Catnip 300,paw.Tab 3,paw.Shot realms,paw.Tab 2,paw.Shot reawaken quit"
 
 #include "Containers/Ticker.h"
@@ -295,6 +298,32 @@ namespace
 			}
 			FPawVfx& V = View->GetVfxForTest();
 			const FVector2D Cat = C.Cat;
+			if (Step.Arg == 1)
+			{
+				UPawRealmSubsystem* R = World ? World->GetSubsystem<UPawRealmSubsystem>() : nullptr;
+				UPawGameSubsystem* G = R ? R->GetGame() : nullptr;
+				if (!G)
+				{
+					UE_LOG(LogPaw, Warning, TEXT("paw.Fx look: no realm"));
+					return true;
+				}
+				R->SetPaused(true);
+				G->Progress().BranchLevels["unlock_aura"] = 1;
+				auto Advance = [&V, View](double Seconds)
+				{
+					FPawVfx::FContext T;
+					View->MakeVfxContext(T, Seconds);
+					V.Tick(T);
+				};
+				Advance(0.2); // the aura's poll
+				V.Swipe(C, Cat + FVector2D(-420.0, 180.0), Cat + FVector2D(-360.0, 160.0), 62.0, false, false);
+				Advance(0.06);
+				V.Swipe(C, Cat + FVector2D(380.0, 200.0), Cat + FVector2D(320.0, 180.0), 62.0, true, false);
+				Advance(0.06);
+				V.Swipe(C, Cat, Cat + FVector2D(-55.0, -20.0), 62.0, false, false);
+				Advance(0.06);
+				return true;
+			}
 			V.Burst(C, Cat + FVector2D(-260.0, -160.0), FLinearColor(0.55f, 0.82f, 1.0f, 0.9f), 120.0, 1.2, 4.0);
 			V.Slam(C, Cat + FVector2D(0.0, 200.0), 160.0, false);
 			V.Swipe(C, Cat, Cat + FVector2D(140.0, -60.0), 62.0, false, false);
@@ -485,12 +514,13 @@ namespace
 			Queue(Step);
 		}));
 
-	FAutoConsoleCommand FxCommand(TEXT("paw.Fx"), TEXT("paw.Fx: one of each effect round the cat (queued with paw.Shot)."),
-		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>&)
+	FAutoConsoleCommand FxCommand(TEXT("paw.Fx"), TEXT("paw.Fx [look]: one of each effect round the cat; look: the aura and three strikes held still (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
 		{
 			FStep Step;
 			Step.bShot = false;
 			Step.Kind = EStep::Fx;
+			Step.Arg = Args.Num() > 0 && Args[0] == TEXT("look") ? 1 : 0;
 			Queue(Step);
 		}));
 

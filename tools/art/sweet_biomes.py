@@ -323,194 +323,568 @@ def check_prop_colours():
     return bad
 
 
-def _r(cx, cy, w, h, c, rr=3.0, s_=True):
-    return S.rect(cx, cy, w, h, c, r=rr, s=s_)
+# R5, THE PROPS REDRAWN (designer approved 2026-11-10). The note the enemies
+# got applies here too: "most look like indistinct blobs... it needs a bit more
+# anatomy and shape". Each prop has a silhouette that says what it is, a second
+# level of drawing (a facet, a seam, a grain, a bolt) at a contour weight lighter
+# than the outline, and one light. The 36 stems, their ideas and their colours
+# (PROP_COLOURS, palette.PROPS) stayed. Scatter props (78 px on screen) stay SMALL
+# and LOW, never a target; the edge props (190 px) carry more. Nothing in a prop
+# may read as a face or a creature: a print on the bowl read as a mouth, a swirl
+# in the ring as a face, strands of fur as a dead bird; all three were taken out.
+C = PROP_COLOURS
+PP = PAL.PROPS
+LINE = 2.2                  # a contour inside a prop: lighter than the outline (3.1)
+
+
+def r_(cx, cy, w, h, c, rr=3.0, s=True):
+    return S.rect(cx, cy, w, h, c, r=rr, s=s)
+
+
+def poly(pts, c, s=True):
+    return S.tri(pts, c, s)
+
+
+def ink(pts, w=LINE):
+    return S.line(pts, INK, w)
+
+
+def arc(p0, p1, p2, w=LINE, colour=None):
+    return S.line(S.bez(p0, p1, p2, 12), colour or INK, w)
+
+
+def light(cx, cy, rx, ry, c, amount=0.4, angle=0.0):
+    return S.oval(cx, cy, rx, ry, angle, S.tint(c, amount), s=False)
+
+
+def dots(pts, r, c):
+    return [S.ell(x, y, r, r, c, s=False) for x, y in pts]
+
+
+def ring_pts(cx, cy, r, n, a0=0.0, jitter=None):
+    out = []
+    for i in range(n):
+        a = a0 + 2 * math.pi * i / n
+        rr = r * (jitter[i % len(jitter)] if jitter else 1.0)
+        out.append((cx + math.cos(a) * rr, cy + math.sin(a) * rr))
+    return out
+
+
+# --- tier 1, the Backyard: leaf, stone ---------------------------------------------------------------------------------
+
+def grass():
+    a, b = C["tier_1"]
+    blades = [S.tube(S.bez((x0, 96), (x0 + bend * 0.4, 70), (x0 + bend, top)), 9, 1.5, a)
+              for x0, bend, top in ((46, -14, 52), (56, -4, 38), (66, 6, 44), (76, 16, 56), (52, 22, 62))]
+    parts = S.fuse([S.ell(62, 96, 24, 7, a)] + blades)
+    parts += [S.tube(S.bez((57, 94), (55, 70), (53, 42)), 3, 1, S.tint(a, 0.35), s=False)]   # one blade catches the light
+    return parts
+
+
+def rock():
+    a, b = C["tier_1"]
+    body = [poly([(30, 100), (34, 76), (50, 62), (74, 64), (88, 80), (90, 100)], b),
+            S.ell(96, 98, 12, 9, b)]                                                       # a pebble that broke off it
+    parts = S.fuse(body)
+    parts += [poly([(38, 76), (52, 66), (72, 68), (66, 80), (44, 82)], S.tint(b, 0.35), s=False)]   # the flat top
+    parts += [ink([(66, 80), (72, 92), (68, 100)]), ink([(44, 82), (40, 92)])]                      # its facets
+    parts += [ink([(56, 70), (60, 76)], 1.8)]                                                      # a crack
+    return parts
+
+
+def bush():
+    a, b = C["tier_1"]
+    lobes = [(36, 82, 22, 20), (60, 64, 24, 22), (88, 70, 24, 22), (100, 92, 18, 16), (64, 92, 34, 18), (28, 98, 16, 12)]
+    parts = S.fuse([S.ell(x, y, rx, ry, a) for x, y, rx, ry in lobes])
+    parts += [S.ell(64, 104, 40, 8, S.shade(a, 0.25), s=False)]                     # the shade under it
+    parts += [arc((40, 78), (50, 70), (60, 74)), arc((70, 70), (80, 60), (92, 66)), arc((80, 90), (90, 82), (100, 86))]
+    parts += [light(56, 58, 10, 6, a, 0.4, -0.3), light(30, 78, 7, 5, a, 0.35, -0.3)]
+    parts += S.fuse([S.ell(x, y, 3.6, 3.6, PP["flowers"][0]) for x, y in ((48, 86), (76, 80), (94, 96))])   # berries
+    return parts
+
+
+# --- tier 2, the Alley: brick, metal -----------------------------------------------------------------------------------
+
+def brick():
+    a, b = C["tier_2"]
+    body = [r_(52, 94, 56, 20, a, 3), poly([(84, 92), (106, 92), (108, 104), (100, 108), (84, 106)], a)]
+    parts = S.fuse(body)
+    parts += [r_(52, 88, 50, 6, S.tint(a, 0.3), 2, False)]                           # the top face
+    parts += [ink([(38, 86), (38, 103)]), ink([(66, 86), (66, 103)])]               # its frogs (the brick's marks)
+    parts += [ink([(28, 100), (34, 96)], 1.6)]                                      # a chip off the corner
+    parts += [poly([(87, 94), (104, 94), (102, 98), (88, 98)], S.tint(a, 0.3), s=False), ink([(100, 96), (102, 104)], 1.6)]
+    return parts
+
+
+def bag():
+    a, b = C["tier_2"]
+    c = PP["bag"][1]
+    body = [S.ell(64, 92, 38, 26, c), S.ell(62, 70, 28, 22, c), S.ell(64, 50, 11, 10, c),
+            poly([(52, 44), (58, 22), (64, 40)], c), poly([(64, 40), (74, 24), (78, 44)], c)]   # the tied ears
+    parts = S.fuse(body)
+    parts += [S.line([(52, 54), (76, 54)], S.shade(c, 0.35), 5.0)]                 # the tie
+    parts += [arc((42, 74), (52, 92), (46, 108)), arc((80, 70), (76, 88), (86, 104)), arc((60, 62), (62, 72), (58, 80))]
+    parts += [poly([(88, 96), (98, 90), (96, 102)], S.shade(c, 0.4))]               # a tear
+    parts += [light(48, 84, 9, 6, c, 0.28, -0.4)]
+    return parts
+
+
+def bin_():
+    a, b = C["tier_2"]
+    body = [poly([(30, 50), (98, 50), (92, 116), (36, 116)], b),                   # a tapered bin
+            r_(64, 46, 82, 12, b, 5)]
+    parts = S.fuse(body)
+    for x in (44, 56, 72, 84):                                                      # the ribs
+        parts += [ink([(x, 58), (x + (x - 64) * 0.06, 110)])]
+    parts += [r_(64, 46, 82, 5, S.shade(b, 0.28), 2, False), ink([(30, 52), (98, 52)])]
+    parts += S.fuse([r_(64, 36, 22, 8, b, 4)])                                      # the lid's handle
+    parts += [poly([(36, 72), (42, 68), (44, 80), (38, 84)], S.shade(b, 0.18), s=False)]   # a dent
+    parts += [light(80, 80, 4, 18, b, 0.35)]
+    return parts
+
+
+# --- tier 3, the Park: foliage, bark -----------------------------------------------------------------------------------
+
+def leaf(cx, cy, length, width, angle, c):
+    ca, sa = math.cos(angle), math.sin(angle)
+    tip = (cx + ca * length, cy + sa * length)
+    base = (cx - ca * length * 0.2, cy - sa * length * 0.2)
+    nx, ny = -sa * width, ca * width
+    pts = [base] + [(cx + ca * length * t + nx * math.sin(math.pi * t) * 1.0, cy + sa * length * t + ny * math.sin(math.pi * t))
+                    for t in (0.15, 0.35, 0.55, 0.75, 0.9)] + [tip] \
+        + [(cx + ca * length * t - nx * math.sin(math.pi * t), cy + sa * length * t - ny * math.sin(math.pi * t))
+           for t in (0.9, 0.75, 0.55, 0.35, 0.15)]
+    return poly(pts, c), (base, tip)
+
+
+def leaves():
+    a, b = C["tier_3"]
+    shapes, ribs = [], []
+    for cx, cy, ang, col in ((40, 92, -0.3, a), (64, 98, 0.15, S.tint(a, 0.15)), (58, 80, -0.9, S.shade(a, 0.12))):
+        p, rib = leaf(cx, cy, 34, 11, ang, col)
+        shapes.append(p); ribs.append(rib)
+    parts = []
+    for p in shapes:
+        parts += S.fuse([p])
+    for (x0, y0), (x1, y1) in ribs:
+        parts += [ink([(x0, y0), (x0 + (x1 - x0) * 0.85, y0 + (y1 - y0) * 0.85)], 1.8)]
+    return parts
+
+
+def flower(cx, cy, r, petal, centre):
+    out = S.fuse([S.ell(cx + math.cos(a) * r * 0.75, cy + math.sin(a) * r * 0.75, r * 0.55, r * 0.55, petal)
+                  for a in (i * 2 * math.pi / 5 - math.pi / 2 for i in range(5))])
+    out += [S.ell(cx, cy, r * 0.38, r * 0.38, centre)]
+    return out
+
+
+def flowers():
+    a, b = C["tier_3"]
+    stem = S.shade(a, 0.28)
+    parts = [S.line([(44, 76), (48, 106)], stem, 3.2), S.line([(66, 60), (64, 106)], stem, 3.2),
+             S.line([(86, 76), (80, 106)], stem, 3.2)]
+    lf, _ = leaf(56, 96, 18, 6, -0.6, a)
+    lf2, _ = leaf(72, 98, 18, 6, -2.4, a)
+    parts += S.fuse([lf, lf2])
+    parts += flower(44, 72, 13, PP["flowers"][0], PP["flowers"][1])
+    parts += flower(66, 56, 14, PP["flowers"][1], C["tier_3"][1])
+    parts += flower(86, 72, 13, PP["flowers"][2], PP["flowers"][1])
+    return parts
+
+
+def tree():
+    a, b = C["tier_3"]
+    trunk = [poly([(54, 116), (58, 66), (70, 66), (76, 116)], b),
+             poly([(46, 118), (56, 104), (60, 118)], b), poly([(70, 118), (74, 104), (84, 118)], b),   # the roots
+             S.tube(S.bez((62, 82), (50, 70), (42, 62)), 7, 4, b)]                                       # a branch
+    canopy = [S.ell(40, 52, 26, 22, a), S.ell(84, 48, 28, 24, a), S.ell(62, 30, 28, 22, a), S.ell(64, 60, 30, 16, a),
+              S.ell(100, 64, 14, 12, a), S.ell(26, 66, 12, 10, a)]
+    parts = S.fuse(trunk) + S.fuse(canopy)
+    parts += [ink([(64, 112), (65, 84)], 1.8), ink([(70, 104), (71, 92)], 1.8)]                  # bark
+    parts += [S.ell(64, 70, 26, 6, S.shade(a, 0.25), s=False)]                                   # the canopy's underside
+    parts += [arc((30, 54), (40, 44), (52, 48)), arc((72, 44), (84, 34), (98, 42)), arc((52, 30), (62, 22), (72, 26))]
+    parts += [light(54, 22, 10, 6, a, 0.4, -0.3), light(28, 46, 7, 5, a, 0.35, -0.3)]
+    parts += [S.ell(78, 86, 4, 5, S.shade(b, 0.45))]                                              # a knot hole
+    return parts
+
+
+# --- tier 4, the Rooftops: steel, clay ---------------------------------------------------------------------------------
+
+def vent():
+    a, b = C["tier_4"]
+    parts = S.fuse([r_(64, 88, 70, 44, a, 5)])
+    for y in (74, 86, 98):                                                          # the louvres, each lit on top
+        parts += [r_(64, y, 54, 7, S.shade(a, 0.3), 2, False), S.line([(38, y - 3), (90, y - 3)], S.tint(a, 0.35), 1.6)]
+    parts += dots([(33, 70), (95, 70), (33, 106), (95, 106)], 2.2, S.shade(a, 0.45))  # the screws
+    return parts
+
+
+def tiles():
+    a, b = C["tier_4"]
+    parts = []
+    for row, (y, xs) in enumerate(((70, (50, 78)), (86, (36, 64, 92)))):          # two rows of curved clay tiles
+        for x in xs:
+            parts += S.fuse([poly([(x - 13, y - 10), (x + 13, y - 10), (x + 13, y + 6), (x, y + 12), (x - 13, y + 6)], b)])
+            parts += [arc((x - 9, y - 4), (x, y + 4), (x + 9, y - 4), 1.8, S.tint(b, 0.4))]
+    parts += S.fuse([poly([(80, 102), (94, 98), (98, 106), (86, 110)], b)])         # a broken piece
+    return parts
+
+
+def chimney():
+    a, b = C["tier_4"]
+    body = [r_(62, 82, 50, 68, b, 3), r_(62, 46, 62, 14, b, 3), r_(54, 34, 14, 14, S.shade(a, 0.05), 2),
+            r_(72, 34, 14, 14, S.shade(a, 0.05), 2)]                                # two pots on the cap
+    parts = S.fuse(body)
+    for i, y in enumerate((60, 72, 84, 96, 108)):                                   # the brick courses
+        parts += [ink([(38, y), (86, y)], 1.8)]
+        for x in ((50, 74) if i % 2 == 0 else (40, 62, 84)):
+            if 38 < x < 86:
+                parts += [ink([(x, y), (x, y + 12 if y < 108 else 116)], 1.8)]
+    parts += [r_(62, 46, 62, 5, S.shade(b, 0.3), 2, False)]
+    parts += [S.ell(54, 28, 5, 2.4, INK, s=False), S.ell(72, 28, 5, 2.4, INK, s=False)]   # the pots' mouths
+    return parts
+
+
+# --- tier 5, the Sewers: pipe, water -----------------------------------------------------------------------------------
+
+def pipe():
+    a, b = C["tier_5"]
+    parts = S.fuse([r_(64, 88, 76, 26, a, 4), r_(28, 88, 12, 36, a, 3), r_(100, 88, 12, 36, a, 3)])   # a pipe and its flanges
+    parts += [S.line([(30, 80), (98, 80)], S.tint(a, 0.4), 3.0)]
+    parts += dots([(28, 76), (28, 100), (100, 76), (100, 100)], 2.0, S.shade(a, 0.45))   # bolts
+    parts += [S.ell(112, 92, 5, 9, S.shade(a, 0.45))]                               # the open end
+    parts += S.fuse([S.ell(114, 108, 3, 4.2, b)])                                   # a drip of sewer water
+    return parts
+
+
+def puddle5():
+    a, b = C["tier_5"]
+    parts = S.fuse([poly(ring_pts(62, 94, 36, 16, 0, (1, .92, 1.05, .9, 1, 1.08, .95, 1)), b), S.ell(92, 90, 16, 10, b)])
+    # flatten: the puddle lies on the ground
+    for p in parts:
+        if p["k"] == "tri":
+            p["pts"] = [(x, 94 + (y - 94) * 0.42) for x, y in p["pts"]]
+    parts += [S.ell(56, 92, 14, 4.5, S.tint(b, 0.4), s=False)]
+    parts += [S.line(S.bez((70, 96), (80, 92), (90, 96), 10), S.tint(b, 0.5), 1.8)]   # a ripple
+    parts += S.fuse([S.ell(84, 86, 3.4, 3.4, S.tint(b, 0.25))])                      # a bubble
+    return parts
+
+
+def grate():
+    a, b = C["tier_5"]
+    parts = S.fuse([r_(64, 86, 80, 56, a, 6)])
+    parts += [r_(64, 86, 64, 40, S.shade(a, 0.55), 3, False)]                       # the dark under it
+    parts += [S.ell(64, 100, 26, 6, S.shade(b, 0.2), s=False)]                      # the water down there
+    for x in (40, 52, 64, 76, 88):
+        parts += [r_(x, 86, 6, 42, a, 2)]
+    parts += [ink([(30, 66), (98, 66)], 1.6)]
+    parts += dots([(30, 64), (98, 64), (30, 108), (98, 108)], 2.2, S.shade(a, 0.45))
+    parts += [S.line([(34, 62), (94, 62)], S.tint(a, 0.4), 1.6)]
+    parts += S.fuse([S.tube([(46, 108), (46, 114), (47, 119)], 5, 3, b)])           # ooze through the bars
+    return parts
+
+
+# --- tier 6, the Rival Cat Turf: timber, bowl --------------------------------------------------------------------------
+
+def bowl():
+    a, b = C["tier_6"]
+    parts = S.fuse([poly([(28, 82), (100, 82), (90, 108), (38, 108)], b), S.ell(64, 82, 37, 12, b)])
+    parts += [S.ell(64, 82, 29, 7.5, S.shade(b, 0.42), s=False)]                    # the inside
+    parts += S.fuse([S.ell(x, y, 4.4, 3.4, C["tier_11"][1]) for x, y in ((54, 80), (64, 78), (72, 81), (60, 83))])   # food
+    parts += [S.line([(36, 94), (92, 94)], S.tint(b, 0.4), 2.4)]                    # a band
+    return parts
+
+
+def post():
+    a, b = C["tier_6"]
+    parts = S.fuse([r_(64, 110, 52, 12, a, 4), r_(64, 72, 26, 70, a, 4), r_(64, 38, 38, 10, a, 4)])
+    rope = S.tint(a, 0.45)
+    parts += [r_(64, 74, 26, 52, rope, 3, False)]
+    for y in range(52, 100, 6):                                                     # the rope wound round it
+        parts += [ink([(52, y + 4), (76, y)], 1.6)]
+    parts += [poly([(54, 70), (58, 64), (56, 78)], S.shade(rope, 0.3), s=False), poly([(70, 82), (74, 76), (72, 90)], S.shade(rope, 0.3), s=False)]   # shredded
+    parts += [S.line([(78, 40), (88, 52), (86, 62)], INK, 1.6)]                     # a string
+    parts += S.fuse([S.ell(86, 66, 5, 5, PP["flowers"][0])])                       # and its pompom
+    return parts
+
+
+def fence():
+    a, b = C["tier_6"]
+    pickets = [poly([(x - 9, 116), (x - 9, 46), (x, 34), (x + 9, 46), (x + 9, 116)], a) for x in (30, 64, 98)]
+    parts = S.fuse(pickets)
+    parts += S.fuse([r_(64, 60, 108, 9, S.shade(a, 0.2), 3), r_(64, 96, 108, 9, S.shade(a, 0.2), 3)])
+    for x in (30, 64, 98):
+        parts += [ink([(x - 3, 70), (x - 2, 86)], 1.6), ink([(x + 3, 104), (x + 3, 112)], 1.6)]   # grain
+        parts += dots([(x, 60), (x, 96)], 1.8, INK)                                   # nails
+        parts += [S.line([(x - 5, 48), (x - 5, 54)], S.tint(a, 0.4), 2.0)]
+    return parts
+
+
+# --- tier 7, the Portal Zone: shard, gold ------------------------------------------------------------------------------
+
+def shard():
+    a, b = C["tier_7"]
+    parts = S.fuse([poly([(48, 108), (60, 34), (78, 108)], a), poly([(70, 108), (86, 62), (94, 108)], a),
+                    poly([(36, 108), (42, 80), (54, 108)], a)])
+    parts += [poly([(60, 34), (64, 108), (78, 108)], S.shade(a, 0.18), s=False),     # the dark facet
+              poly([(86, 62), (88, 108), (94, 108)], S.shade(a, 0.18), s=False)]
+    parts += [S.line([(58, 48), (54, 98)], S.tint(a, 0.45), 2.6), S.line([(84, 72), (80, 100)], S.tint(a, 0.45), 2.2)]
+    parts += [S.ell(64, 110, 30, 4, S.shade(a, 0.3), s=False)]
+    return parts
+
+
+def ring():
+    a, b = C["tier_7"]
+    outer = ring_pts(64, 80, 34, 28)
+    parts = S.fuse([poly(outer, b)])
+    parts += [S.ell(64, 80, 22, 22, INK, s=False)]                                  # the hole (a portal, rimmed)
+    parts += [S.ell(64, 80, 19, 19, S.shade(a, 0.45), s=False)]
+    parts += [S.line([(64 + math.cos(k * 0.35) * (2 + k * 0.42), 80 + math.sin(k * 0.35) * (2 + k * 0.42)) for k in range(36)],
+                     S.tint(a, 0.2), 2.2)]                                          # the portal's spiral
+    parts += [S.line([(x, y) for x, y in ring_pts(64, 80, 28, 10)[6:10]], S.tint(b, 0.45), 2.6)]   # the gold catching light
+    for i in range(8):                                                              # notches round the band
+        an = i * math.pi / 4 + 0.2
+        parts += [ink([(64 + math.cos(an) * 24, 80 + math.sin(an) * 24), (64 + math.cos(an) * 33, 80 + math.sin(an) * 33)], 1.6)]
+    return parts
+
+
+def arch():
+    a, b = C["tier_7"]
+    parts = []
+    n = 7
+    for i in range(n):                                                              # the voussoirs
+        a0, a1 = math.pi + i * math.pi / n, math.pi + (i + 1) * math.pi / n
+        ro, ri = 50, 34
+        pts = [(64 + math.cos(a0) * ri, 100 + math.sin(a0) * ri), (64 + math.cos(a0) * ro, 100 + math.sin(a0) * ro),
+               (64 + math.cos(a1) * ro, 100 + math.sin(a1) * ro), (64 + math.cos(a1) * ri, 100 + math.sin(a1) * ri)]
+        col = b if i == n // 2 else (a if i % 2 == 0 else S.tint(a, 0.15))        # the keystone in gold
+        parts += S.fuse([poly(pts, col)])
+    parts += S.fuse([r_(22, 108, 18, 20, a, 3), r_(106, 108, 18, 20, a, 3)])
+    parts += [S.line(S.bez((36, 100), (64, 62), (92, 100), 16), S.tint(a, 0.55), 2.0)]   # the glow along its inside
+    return parts
+
+
+# --- tier 8, the Mythic Realm: gold, crystal ---------------------------------------------------------------------------
+
+def star():
+    a, b = C["tier_8"]
+    pts = []
+    for i in range(10):
+        an = -math.pi / 2 + i * math.pi / 5
+        rr = 34 if i % 2 == 0 else 15
+        pts.append((64 + math.cos(an) * rr, 80 + math.sin(an) * rr))
+    parts = S.fuse([poly(pts, a)])
+    for i in range(0, 10, 2):                                                       # each point's ridge
+        parts += [ink([(64, 80), pts[i]], 1.6)]
+    parts += [poly([(64, 80), pts[0], pts[1]], S.tint(a, 0.4), s=False), poly([(64, 80), pts[8], pts[9]], S.tint(a, 0.25), s=False)]
+    parts += [poly([(64, 80)] + [pts[i] for i in (4, 5, 6)], S.shade(a, 0.15), s=False)]
+    for x, y, r in ((100, 50, 6), (28, 56, 4)):                                     # two glints
+        parts += [S.line([(x - r, y), (x + r, y)], S.tint(a, 0.2), 2.0), S.line([(x, y - r), (x, y + r)], S.tint(a, 0.2), 2.0)]
+    return parts
+
+
+def crystal():
+    a, b = C["tier_8"]
+    shards = [poly([(46, 108), (48, 52), (60, 36), (70, 54), (68, 108)], b),
+              poly([(66, 108), (74, 66), (86, 56), (94, 72), (90, 108)], b),
+              poly([(30, 108), (34, 82), (44, 74), (50, 108)], b)]
+    parts = S.fuse(shards)
+    parts += [poly([(60, 36), (60, 108), (68, 108), (70, 54)], S.shade(b, 0.18), s=False),
+              poly([(86, 56), (84, 108), (90, 108), (94, 72)], S.shade(b, 0.18), s=False)]
+    parts += [ink([(48, 52), (60, 58), (70, 54)], 1.6), ink([(74, 66), (84, 70), (94, 72)], 1.6)]
+    parts += [S.line([(52, 58), (52, 100)], S.tint(b, 0.5), 2.6)]
+    parts += S.fuse([poly([(40, 112), (88, 112), (96, 106), (32, 106)], S.shade(b, 0.35))])   # the base it grows from
+    return parts
+
+
+def rock8():
+    a, b = C["tier_8"]
+    stone, light_ = PP["rock"]
+    body = [poly([(22, 110), (26, 84), (44, 66), (72, 64), (96, 74), (108, 96), (104, 112)], stone)]
+    parts = S.fuse(body)
+    parts += [poly([(34, 84), (46, 70), (70, 68), (62, 82)], light_, s=False)]
+    parts += [ink([(62, 82), (70, 104)]), ink([(62, 82), (34, 86)])]
+    parts += S.fuse([poly([(74, 74), (84, 34), (94, 76)], a), poly([(88, 80), (102, 52), (106, 86)], a)])   # gold growing out
+    parts += [S.line([(82, 44), (80, 70)], S.tint(a, 0.45), 2.2)]
+    parts += [ink([(40, 96), (50, 92), (56, 100)], 1.6)]
+    return parts
+
+
+# --- tier 9, the Neighbour's Kitchen: crust, appliance -----------------------------------------------------------------
+
+def crumbs():
+    a, b = C["tier_9"]
+    bits = [poly([(42, 86), (54, 82), (62, 90), (56, 100), (42, 98)], a), poly([(70, 84), (80, 82), (82, 92), (72, 94)], a),
+            poly([(60, 102), (68, 100), (70, 108), (62, 110)], a), poly([(86, 98), (92, 96), (94, 102), (88, 104)], a)]
+    parts = []
+    for bt in bits:
+        parts += S.fuse([bt])
+    parts += [poly([(44, 88), (54, 84), (58, 88), (46, 92)], S.shade(a, 0.3), s=False)]    # the crust on the big one
+    parts += dots([(50, 94), (76, 88)], 1.4, S.tint(a, 0.5))
+    return parts
+
+
+def shelf():
+    a, b = C["tier_9"]
+    parts = S.fuse([r_(26, 82, 10, 30, S.shade(a, 0.15), 2), r_(102, 82, 10, 30, S.shade(a, 0.15), 2), r_(64, 62, 100, 14, a, 3)])
+    parts += [r_(64, 58, 100, 5, S.tint(a, 0.35), 2, False), ink([(28, 66), (100, 66)], 1.6)]
+    parts += S.fuse([r_(44, 42, 20, 26, b, 5), r_(44, 28, 22, 6, S.shade(b, 0.3), 2)])          # a jar
+    parts += [r_(44, 44, 12, 10, PP["flowers"][1], 2, False)]                                    # its label
+    parts += S.fuse([poly([(70, 54), (90, 54), (88, 34), (72, 34)], PP["toaster"][0])])          # a mug
+    parts += [S.line(S.bez((90, 38), (100, 44), (90, 50), 10), INK, 3.0)]
+    return parts
+
+
+def toaster():
+    a, b = C["tier_9"]
+    parts = S.fuse([r_(52, 50, 18, 20, a, 4), r_(76, 52, 18, 18, a, 4)])            # the toast, up
+    parts += [r_(52, 46, 12, 10, S.tint(a, 0.4), 3, False), r_(76, 48, 12, 10, S.tint(a, 0.4), 3, False)]
+    parts += S.fuse([r_(64, 84, 76, 52, b, 10)])
+    parts += [r_(52, 62, 22, 5, INK, 2, False), r_(76, 62, 22, 5, INK, 2, False)]   # the slots
+    parts += [S.line([(36, 74), (36, 100)], S.tint(b, 0.4), 3.0)]
+    parts += [r_(98, 82, 8, 4, S.shade(b, 0.4), 2)]                                 # the lever
+    parts += S.fuse([S.ell(92, 98, 5, 5, PP["toaster"][0])])                        # the knob
+    parts += S.fuse([r_(40, 112, 10, 6, S.shade(b, 0.3), 2), r_(88, 112, 10, 6, S.shade(b, 0.3), 2)])   # feet
+    return parts
+
+
+# --- tier 10, the Vet's Waiting Room: steel, cloth ---------------------------------------------------------------------
+
+def fur():
+    shadow, coat, lite = PP["fur"]
+    body = [S.ell(60, 92, 22, 12, coat), S.ell(80, 88, 14, 10, coat), S.ell(46, 86, 13, 9, coat), S.ell(66, 80, 12, 8, coat)]
+    body += [poly([(36, 86), (30, 80), (40, 82)], coat), poly([(90, 84), (98, 80), (92, 90)], coat),
+             poly([(62, 74), (64, 68), (68, 74)], coat), poly([(74, 104), (80, 104), (76, 98)], coat)]   # tufts sticking out
+    parts = S.fuse(body)
+    parts += [S.ell(58, 88, 9, 4.5, lite, s=False)]
+    parts += [arc((50, 96), (60, 92), (70, 98), 1.6), arc((72, 90), (80, 86), (88, 90), 1.6)]
+    return parts
+
+
+def carrier():
+    a, b = C["tier_10"]
+    parts = S.fuse([r_(64, 86, 84, 52, b, 9), r_(64, 52, 34, 12, a, 5)])            # the box, its handle
+    parts += [r_(64, 64, 76, 5, S.shade(b, 0.25), 2, False)]                         # the lid's seam
+    parts += S.fuse([r_(86, 88, 32, 34, S.shade(b, 0.35), 5)])                        # the door
+    for x in (78, 86, 94):
+        parts += [S.line([(x, 74), (x, 102)], a, 2.4)]                              # its bars
+    parts += [S.line([(72, 88), (100, 88)], a, 2.0)]
+    for y in (78, 88, 98):                                                          # the vents
+        parts += [r_(42, y, 18, 4, S.shade(b, 0.4), 2, False)]
+    return parts
+
+
+def chair():
+    a, b = C["tier_10"]
+    parts = S.fuse([r_(32, 104, 6, 26, a, 2), r_(96, 104, 6, 26, a, 2)])            # the legs
+    parts += S.fuse([r_(64, 56, 74, 46, b, 8), r_(64, 90, 82, 18, b, 6)])            # the back and the seat, cloth
+    parts += [r_(64, 56, 56, 30, S.shade(b, 0.2), 6, False)]
+    parts += [ink([(64, 44), (64, 70)], 1.6)]                                       # the seam
+    parts += dots([(50, 50), (78, 50), (50, 62), (78, 62)], 2.0, S.shade(b, 0.45))   # buttons
+    parts += [S.line([(28, 84), (100, 84)], S.tint(b, 0.4), 2.4)]
+    parts += S.fuse([r_(64, 116, 72, 5, a, 2)])                                       # the rail
+    return parts
+
+
+# --- tier 11, the Pet Food Factory: machine, kibble --------------------------------------------------------------------
+
+def kibble_bits(cx, cy, c, kinds):
+    out = []
+    for (x, y, k) in kinds:
+        if k == "fish":
+            out += S.fuse([S.ell(cx + x, cy + y, 9, 6, c), poly([(cx + x + 7, cy + y), (cx + x + 14, cy + y - 6), (cx + x + 14, cy + y + 6)], c)])
+            out += dots([(cx + x - 4, cy + y - 1)], 1.4, INK)
+        elif k == "bone":
+            out += S.fuse([r_(cx + x, cy + y, 14, 5, c, 2), S.ell(cx + x - 8, cy + y - 3, 3.4, 3.4, c), S.ell(cx + x - 8, cy + y + 3, 3.4, 3.4, c),
+                           S.ell(cx + x + 8, cy + y - 3, 3.4, 3.4, c), S.ell(cx + x + 8, cy + y + 3, 3.4, 3.4, c)])
+        else:
+            out += S.fuse([S.ell(cx + x, cy + y, 7, 6, c)])
+            out += [S.ell(cx + x, cy + y, 2.2, 2.2, S.shade(c, 0.35), s=False)]
+    return out
+
+
+def kibble():
+    a, b = C["tier_11"]
+    return kibble_bits(64, 94, b, ((-14, -2, "fish"), (14, -6, "o"), (6, 8, "bone")))
+
+
+def hopper():
+    a, b = C["tier_11"]
+    parts = S.fuse([S.ell(64, 44, 34, 9, b)])                                        # the kibble heaped in it
+    parts += S.fuse([poly([(22, 48), (106, 48), (74, 94), (54, 94)], a), r_(64, 104, 22, 22, a, 3)])
+    parts += [r_(64, 50, 88, 8, S.shade(a, 0.28), 3, False)]
+    parts += dots([(30, 56), (98, 56), (44, 74), (84, 74)], 2.2, S.shade(a, 0.45))   # rivets
+    parts += [S.line([(36, 58), (60, 90)], S.tint(a, 0.35), 2.4)]
+    parts += S.fuse([S.ell(64, 120, 4.4, 3.4, b)])                                   # a piece falling out
+    parts += [S.ell(56, 42, 3, 2.4, S.shade(b, 0.3), s=False), S.ell(72, 44, 3, 2.4, S.shade(b, 0.3), s=False)]
+    return parts
+
+
+def conveyor():
+    a, b = C["tier_11"]
+    parts = S.fuse([r_(40, 108, 10, 24, S.shade(a, 0.2), 2), r_(88, 108, 10, 24, S.shade(a, 0.2), 2)])   # legs
+    parts += S.fuse([r_(64, 86, 112, 26, a, 13)])
+    parts += [r_(64, 76, 96, 5, S.shade(a, 0.45), 2, False)]                          # the belt
+    for x in (20, 42, 64, 86, 108):
+        parts += S.fuse([S.ell(x, 90, 7, 7, S.shade(a, 0.25))])
+        parts += [S.ell(x, 90, 1.8, 1.8, INK, s=False)]
+    parts += kibble_bits(64, 66, b, ((-26, 0, "o"), (0, -2, "fish"), (26, 0, "bone")))
+    return parts
+
+
+# --- tier 12, the Litterbox Dimension: litter, clump -------------------------------------------------------------------
+
+def clump():
+    a, b = C["tier_12"]
+    pts = ring_pts(64, 90, 26, 14, 0.2, (1, .86, 1.04, .92, 1.1, .9, 1, .84, 1.06, .95, 1, .88, 1.08, .93))
+    parts = S.fuse([poly([(x, 90 + (y - 90) * 0.72) for x, y in pts], b), S.ell(90, 96, 10, 7, b)])
+    parts += [poly([(46, 82), (60, 76), (72, 80), (58, 86)], S.tint(b, 0.3), s=False)]
+    parts += dots([(50, 94), (62, 98), (76, 92), (70, 86), (56, 88), (90, 94)], 1.8, S.shade(b, 0.35))   # granules stuck to it
+    parts += dots([(36, 104), (102, 106), (28, 98)], 1.8, S.shade(a, 0.1))          # loose litter round it
+    return parts
+
+
+def sand():
+    a, b = C["tier_12"]
+    parts = S.fuse([poly([(24, 104), (44, 88), (64, 82), (86, 88), (106, 104)], a)])   # a little dune of litter
+    parts += [arc((38, 100), (52, 94), (66, 98), 1.8, S.shade(a, 0.3)), arc((60, 92), (74, 88), (88, 94), 1.8, S.shade(a, 0.3))]
+    parts += [S.oval(58, 88, 12, 3, -0.15, S.tint(a, 0.5), s=False)]
+    parts += dots([(18, 108), (112, 108), (30, 112), (98, 112)], 2.0, a)
+    return parts
+
+
+def scoop():
+    a, b = C["tier_12"]
+    parts = S.fuse([S.tube([(78, 70), (96, 58), (116, 48)], 12, 10, a)])              # the handle
+    parts += [S.ell(112, 50, 3.4, 2.6, INK, s=False)]                               # its hang hole
+    parts += S.fuse([poly([(18, 74), (82, 66), (90, 104), (30, 114)], a)])           # the blade
+    parts += [poly([(26, 80), (78, 72), (84, 100), (34, 108)], S.shade(a, 0.22), s=False)]
+    for i in range(4):                                                              # its slots
+        x0 = 36 + i * 12
+        parts += [r_(x0 + 4, 90, 5, 22, INK, 2, False)]
+    parts += S.fuse([S.ell(56, 76, 7, 5, b)])                                        # a clump caught in it
+    parts += [S.line([(84, 64), (110, 50)], S.tint(a, 0.4), 2.2)]
+    return parts
+
+
+PROP_DRAW = {
+    "prop_tier1_grass": grass, "prop_tier1_rock": rock, "prop_tier1_bush": bush,
+    "prop_tier2_brick": brick, "prop_tier2_bag": bag, "prop_tier2_bin": bin_,
+    "prop_tier3_leaves": leaves, "prop_tier3_flowers": flowers, "prop_tier3_tree": tree,
+    "prop_tier4_vent": vent, "prop_tier4_tiles": tiles, "prop_tier4_chimney": chimney,
+    "prop_tier5_pipe": pipe, "prop_tier5_puddle": puddle5, "prop_tier5_grate": grate,
+    "prop_tier6_bowl": bowl, "prop_tier6_post": post, "prop_tier6_fence": fence,
+    "prop_tier7_shard": shard, "prop_tier7_ring": ring, "prop_tier7_arch": arch,
+    "prop_tier8_star": star, "prop_tier8_crystal": crystal, "prop_tier8_rock": rock8,
+    "prop_tier9_crumbs": crumbs, "prop_tier9_shelf": shelf, "prop_tier9_toaster": toaster,
+    "prop_tier10_fur": fur, "prop_tier10_carrier": carrier, "prop_tier10_chair": chair,
+    "prop_tier11_kibble": kibble, "prop_tier11_hopper": hopper, "prop_tier11_conveyor": conveyor,
+    "prop_tier12_clump": clump, "prop_tier12_puddle": sand, "prop_tier12_scoop": scoop,
+}
 
 
 def PROPS():
-    P_ = {}
-    for tier, (a, b) in PROP_COLOURS.items():
-        da, db = S.shade(a, 0.28), S.shade(b, 0.28)
-        t = tier.replace("tier_", "")
-
-        if tier == "tier_1":
-            P_["prop_tier1_grass"] = S.fuse([S.ell(64, 92, 26, 10, a)]) + [
-                S.line([(48, 92), (40, 56)], da, 5.0),
-                S.line([(58, 90), (56, 46)], da, 5.0),
-                S.line([(70, 90), (76, 50)], da, 5.0),
-                S.line([(80, 92), (90, 60)], da, 5.0)]
-            P_["prop_tier1_rock"] = S.fuse([S.ell(58, 86, 30, 22, b),
-                                            S.ell(84, 92, 20, 16, b)]) + [
-                S.ell(52, 80, 12, 7, S.tint(b, 0.4), s=False)]
-            P_["prop_tier1_bush"] = S.fuse([S.ell(48, 80, 30, 28, a),
-                                            S.ell(80, 74, 28, 26, a),
-                                            S.ell(64, 56, 26, 24, a),
-                                            _r(64, 104, 70, 20, a, 8)]) + [
-                S.ell(50, 74, 11, 8, S.tint(a, 0.35), s=False)]
-        elif tier == "tier_2":
-            P_["prop_tier2_brick"] = S.fuse([_r(64, 86, 62, 26, a, 4)]) + [
-                S.line([(36, 86), (92, 86)], da, 3.0)]
-            # A BULGING SACK WITH A GATHERED, TIED TOP. Drawn as a rounded
-            # rectangle with a small cap it was a tombstone - straight sides and
-            # a domed top is a headstone, not a bin bag. A sack is widest near
-            # the bottom and pinches where it is tied.
-            P_["prop_tier2_bag"] = S.fuse([S.ell(64, 92, 36, 30, "#6E6A63"),
-                                           S.ell(64, 70, 28, 22, "#6E6A63"),
-                                           S.ell(64, 50, 13, 12, "#6E6A63"),
-                                           S.tri([(52, 44), (64, 24), (76, 44)], "#6E6A63")]) + [
-                S.line([(50, 56), (78, 56)], S.shade("#6E6A63", 0.35), 5.0),
-                S.ell(52, 88, 12, 8, S.tint("#6E6A63", 0.28), s=False)]
-            P_["prop_tier2_bin"] = S.fuse([_r(64, 84, 64, 64, b, 6),
-                                           _r(64, 48, 76, 16, b, 5)]) + [
-                _r(64, 48, 76, 7, db, 3, False),
-                _r(64, 84, 54, 8, db, 3, False)]
-        elif tier == "tier_3":
-            P_["prop_tier3_leaves"] = S.fuse([S.ell(48, 88, 20, 12, a),
-                                              S.ell(78, 92, 18, 11, a),
-                                              S.ell(64, 76, 17, 10, a)]) + [
-                S.line([(30, 88), (66, 88)], da, 2.4)]
-            P_["prop_tier3_flowers"] = (
-                S.fuse([S.ell(44, 72, 13, 13, "#E8B0C4"), S.ell(64, 60, 13, 13, "#F0D27C"),
-                        S.ell(84, 72, 13, 13, "#B49AD6")])
-                + [S.line([(44, 78), (46, 104)], da, 3.0),
-                   S.line([(64, 66), (64, 104)], da, 3.0),
-                   S.line([(84, 78), (82, 104)], da, 3.0)])
-            P_["prop_tier3_tree"] = S.fuse([_r(64, 100, 22, 44, b, 5),
-                                            S.ell(44, 56, 30, 26, a),
-                                            S.ell(84, 52, 30, 26, a),
-                                            S.ell(64, 34, 28, 24, a)]) + [
-                S.line([(64, 108), (64, 70)], db, 3.0)]
-        elif tier == "tier_4":
-            P_["prop_tier4_vent"] = S.fuse([_r(64, 86, 66, 42, a, 5)]) + [
-                _r(64, 74, 54, 7, da, 2, False), _r(64, 86, 54, 7, da, 2, False),
-                _r(64, 98, 54, 7, da, 2, False)]
-            P_["prop_tier4_tiles"] = S.fuse([_r(46, 88, 40, 26, b, 3),
-                                             _r(86, 88, 40, 26, b, 3),
-                                             _r(64, 66, 40, 26, b, 3)]) + [
-                S.line([(26, 76), (102, 76)], db, 2.4)]
-            P_["prop_tier4_chimney"] = S.fuse([_r(64, 84, 48, 76, b, 4),
-                                               _r(64, 44, 62, 18, b, 4)]) + [
-                _r(64, 44, 62, 8, db, 3, False),
-                S.line([(50, 60), (50, 116)], db, 3.0)]
-        elif tier == "tier_5":
-            P_["prop_tier5_pipe"] = S.fuse([_r(64, 88, 84, 30, a, 14)]) + [
-                S.ell(24, 88, 8, 15, da), S.ell(104, 88, 8, 15, da)]
-            P_["prop_tier5_puddle"] = S.fuse([S.ell(60, 92, 38, 17, b),
-                                              S.ell(86, 88, 20, 11, b)]) + [
-                S.ell(50, 88, 13, 5, S.tint(b, 0.45), s=False)]
-            P_["prop_tier5_grate"] = S.fuse([_r(64, 86, 78, 54, a, 5)]) + [
-                S.line([(40, 62), (40, 110)], da, 4.0),
-                S.line([(56, 62), (56, 110)], da, 4.0),
-                S.line([(72, 62), (72, 110)], da, 4.0),
-                S.line([(88, 62), (88, 110)], da, 4.0)]
-        elif tier == "tier_6":
-            # A BOWL NEEDS A RIM AND A BODY. One ellipse plus a bar read as a
-            # flat lozenge; the depth comes from a wide rim ellipse sitting on a
-            # narrower tapered body, with the inside shaded darker than the out.
-            P_["prop_tier6_bowl"] = S.fuse([S.ell(64, 96, 30, 16, b),
-                                            _r(64, 106, 36, 12, b, 6)]) + [
-                S.ell(64, 80, 38, 15, b, s=True),
-                S.ell(64, 80, 30, 10, S.shade(b, 0.42), s=False)]
-            P_["prop_tier6_post"] = S.fuse([_r(64, 84, 24, 68, a, 4),
-                                            _r(64, 46, 36, 14, a, 5)]) + [
-                S.line([(64, 60), (64, 112)], da, 3.0)]
-            P_["prop_tier6_fence"] = S.fuse([_r(30, 78, 18, 74, a, 4),
-                                             _r(64, 78, 18, 74, a, 4),
-                                             _r(98, 78, 18, 74, a, 4)]) + [
-                _r(64, 60, 104, 9, da, 3, False), _r(64, 96, 104, 9, da, 3, False)]
-        elif tier == "tier_7":
-            P_["prop_tier7_shard"] = S.fuse([S.tri([(46, 104), (66, 32), (82, 104)], a)]) + [
-                S.line([(66, 40), (60, 100)], S.tint(a, 0.4), 3.0)]
-            P_["prop_tier7_ring"] = _ring_parts(64, 80, 34, b, 14)
-            P_["prop_tier7_arch"] = (_ring_parts(64, 96, 44, a, 16, half=True)
-                                     + [_r(20, 110, 20, 22, a, 3),
-                                        _r(108, 110, 20, 22, a, 3)])
-        elif tier == "tier_8":
-            P_["prop_tier8_star"] = _star_parts(64, 76, 34, a)
-            P_["prop_tier8_crystal"] = S.fuse([S.tri([(48, 104), (58, 34), (70, 104)], b),
-                                               S.tri([(68, 104), (84, 52), (92, 104)], b)]) + [
-                S.line([(58, 44), (54, 98)], S.tint(b, 0.45), 3.0)]
-            P_["prop_tier8_rock"] = S.fuse([S.ell(54, 88, 32, 24, "#9E93B5"),
-                                            S.ell(84, 82, 24, 22, "#9E93B5"),
-                                            S.tri([(70, 84), (78, 40), (92, 82)], a)]) + [
-                S.ell(48, 82, 12, 7, "#B5ABC9", s=False)]
-        elif tier == "tier_9":
-            P_["prop_tier9_crumbs"] = S.fuse([S.ell(52, 94, 11, 8, a)]) + [
-                S.ell(74, 90, 8, 6, a, s=True), S.ell(64, 102, 6, 5, a, s=True),
-                S.ell(88, 98, 5, 4, a, s=True)]
-            P_["prop_tier9_toaster"] = S.fuse([_r(64, 84, 72, 50, b, 8)]) + [
-                _r(52, 60, 26, 7, db, 2, False), _r(80, 60, 26, 7, db, 2, False),
-                S.ell(96, 92, 7, 7, "#C25E4E", s=True)]
-            P_["prop_tier9_shelf"] = S.fuse([_r(64, 58, 100, 16, a, 3),
-                                             _r(30, 92, 14, 52, a, 3),
-                                             _r(98, 92, 14, 52, a, 3)]) + [
-                _r(64, 58, 100, 7, da, 2, False)]
-        elif tier == "tier_10":
-            # A CLUMP, not an oval with three legs. Three whiskers off a smooth
-            # ellipse read as an insect; a shed fur tuft is an irregular fused
-            # mass with a broken edge, which is the dust bunny's trick applied
-            # to something that is not alive.
-            P_["prop_tier10_fur"] = S.fuse([S.ell(60, 92, 22, 13, "#D6C9B5"),
-                                            S.ell(78, 88, 15, 10, "#D6C9B5"),
-                                            S.ell(48, 86, 13, 9, "#D6C9B5"),
-                                            S.ell(68, 80, 12, 8, "#D6C9B5")]) + [
-                S.line([(40, 84), (30, 74)], "#B5A894", 2.6),
-                S.line([(88, 84), (100, 76)], "#B5A894", 2.6),
-                S.ell(56, 88, 9, 5, "#EDE4D6", s=False)]
-            P_["prop_tier10_carrier"] = S.fuse([_r(64, 88, 78, 52, b, 8),
-                                                _r(64, 56, 30, 12, b, 5)]) + [
-                _r(84, 88, 30, 34, S.shade(b, 0.3), 4, True),
-                S.line([(76, 74), (76, 102)], db, 2.4),
-                S.line([(92, 74), (92, 102)], db, 2.4)]
-            P_["prop_tier10_chair"] = S.fuse([_r(64, 88, 76, 22, a, 5),
-                                              _r(64, 56, 76, 44, a, 6),
-                                              _r(34, 108, 12, 24, a, 3),
-                                              _r(94, 108, 12, 24, a, 3)]) + [
-                _r(64, 56, 60, 30, S.shade(a, 0.25), 5, False)]
-        elif tier == "tier_11":
-            P_["prop_tier11_kibble"] = S.fuse([S.ell(54, 92, 12, 10, b)]) + [
-                S.ell(76, 88, 10, 9, b, s=True), S.ell(66, 102, 9, 8, b, s=True)]
-            P_["prop_tier11_hopper"] = S.fuse([S.tri([(24, 48), (104, 48), (64, 100)], a),
-                                               _r(64, 108, 26, 22, a, 3)]) + [
-                _r(64, 52, 84, 10, da, 3, False)]
-            P_["prop_tier11_conveyor"] = S.fuse([_r(64, 84, 108, 26, a, 12)]) + [
-                S.ell(24, 84, 11, 11, da), S.ell(64, 84, 11, 11, da),
-                S.ell(104, 84, 11, 11, da),
-                _r(64, 108, 16, 22, da, 3, True)]
-        else:
-            P_["prop_tier12_clump"] = S.fuse([S.ell(58, 90, 26, 19, b),
-                                              S.ell(80, 86, 18, 15, b)]) + [
-                S.ell(52, 84, 10, 6, S.shade(b, 0.3), s=False)]
-            P_["prop_tier12_puddle"] = S.fuse([S.ell(62, 94, 36, 15, a),
-                                               S.ell(88, 90, 17, 9, a)]) + [
-                S.ell(52, 90, 12, 5, S.tint(a, 0.4), s=False)]
-            P_["prop_tier12_scoop"] = S.fuse([S.ell(52, 88, 30, 24, a),
-                                              _r(92, 60, 46, 14, a, 6)]) + [
-                S.ell(52, 88, 19, 15, S.shade(a, 0.3), s=False),
-                S.line([(76, 62), (110, 56)], da, 3.0)]
-    return P_
-
-
-def _ring_parts(cx, cy, r, colour, w, half=False):
-    out = []
-    n = 18
-    for i in range(n):
-        a = math.pi + i * (math.pi / (n - 1)) if half else i * (2.0 * math.pi / n)
-        out.append(S.ell(cx + math.cos(a) * r, cy + math.sin(a) * r,
-                         w * 0.62, w * 0.62, colour))
-    return S.fuse(out)
-
-
-def _star_parts(cx, cy, r, colour):
-    out = []
-    for i in range(5):
-        a = i * (2.0 * math.pi / 5) - math.pi / 2
-        out.append(S.tri([(cx + math.cos(a - 0.34) * r * 0.4,
-                           cy + math.sin(a - 0.34) * r * 0.4),
-                          (cx + math.cos(a) * r, cy + math.sin(a) * r),
-                          (cx + math.cos(a + 0.34) * r * 0.4,
-                           cy + math.sin(a + 0.34) * r * 0.4)], colour))
-    return S.fuse(out)
+    return {stem: draw() for stem, draw in PROP_DRAW.items()}
 
 
 def seam_ratio(img):

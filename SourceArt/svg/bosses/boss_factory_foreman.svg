@@ -6,13 +6,13 @@
 <ellipse cx="68.3" cy="62.9" rx="26.8" ry="22.5" fill="#2A1A33" stroke="none"/>
 <ellipse cx="44.8" cy="114.2" rx="16.1" ry="10.8" fill="#2A1A33" stroke="none"/>
 <ellipse cx="83.2" cy="114.2" rx="16.1" ry="10.8" fill="#2A1A33" stroke="none"/>
-<ellipse cx="64.0" cy="90.7" rx="49.1" ry="29.9" fill="#9BA2AD" stroke="none"/>
-<ellipse cx="29.8" cy="80.0" rx="23.5" ry="21.4" fill="#9BA2AD" stroke="none"/>
-<ellipse cx="96.0" cy="82.2" rx="25.6" ry="23.5" fill="#9BA2AD" stroke="none"/>
-<ellipse cx="68.3" cy="62.9" rx="23.5" ry="19.2" fill="#9BA2AD" stroke="none"/>
-<ellipse cx="44.8" cy="114.2" rx="12.8" ry="7.5" fill="#9BA2AD" stroke="none"/>
-<ellipse cx="83.2" cy="114.2" rx="12.8" ry="7.5" fill="#9BA2AD" stroke="none"/>
-<ellipse cx="61.9" cy="99.3" rx="34.2" ry="13.9" fill="#CBCCCC" stroke="none"/>
+<ellipse cx="64.0" cy="90.7" rx="49.1" ry="29.9" fill="#727F8F" stroke="none"/>
+<ellipse cx="29.8" cy="80.0" rx="23.5" ry="21.4" fill="#727F8F" stroke="none"/>
+<ellipse cx="96.0" cy="82.2" rx="25.6" ry="23.5" fill="#727F8F" stroke="none"/>
+<ellipse cx="68.3" cy="62.9" rx="23.5" ry="19.2" fill="#727F8F" stroke="none"/>
+<ellipse cx="44.8" cy="114.2" rx="12.8" ry="7.5" fill="#727F8F" stroke="none"/>
+<ellipse cx="83.2" cy="114.2" rx="12.8" ry="7.5" fill="#727F8F" stroke="none"/>
+<ellipse cx="61.9" cy="99.3" rx="34.2" ry="13.9" fill="#B6BBBE" stroke="none"/>
 <rect x="14.8" y="44.7" width="42.9" height="23.7" rx="5.4" fill="#2A1A33" stroke="none"/>
 <rect x="73.5" y="47.9" width="36.5" height="21.6" rx="5.4" fill="#2A1A33" stroke="none"/>
 <rect x="18.1" y="48.0" width="36.3" height="17.1" rx="2.1" fill="#B9BFC9" stroke="none"/>
@@ -27,6 +27,6 @@
 <ellipse cx="50.1" cy="75.8" rx="15.9" ry="15.9" fill="#F6F6F6" stroke="#2A1A33"/>
 <ellipse cx="50.1" cy="76.7" rx="4.8" ry="4.8" fill="#2A1A33" stroke="none"/>
 <ellipse cx="54.9" cy="70.0" rx="2.4" ry="2.4" fill="#F6F6F6" stroke="none"/>
-<ellipse cx="34.1" cy="95.0" rx="4.3" ry="3.2" fill="#625E70" stroke="none"/>
+<ellipse cx="34.1" cy="95.0" rx="4.3" ry="3.2" fill="#4E4C61" stroke="none"/>
 </g>
 </svg>

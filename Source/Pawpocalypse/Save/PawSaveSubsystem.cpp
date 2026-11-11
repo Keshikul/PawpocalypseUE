@@ -11,6 +11,7 @@
 #include "Misc/DateTime.h"
 #include "Misc/Parse.h"
 #include "Misc/ScopeLock.h"
+#include "PcField.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "Save/PawSaveStorage.h"
 #include "Save/PawSettingsSubsystem.h"
@@ -23,6 +24,9 @@ struct FPawSaveWriteStats
 {
 	std::atomic<int32> Done{ 0 };
 	std::atomic<int32> Failed{ 0 };
+	std::atomic<int64> Finished{ 0 }; // the last ticket the writer finished (one write at a time, so in order)
+	FCriticalSection Lock;
+	TSet<int64> FailedTickets;        // under Lock
 };
 
 namespace
@@ -81,13 +85,21 @@ namespace
 		const FString Backup = Name + TEXT("_bak");
 		TArray<uint8> Current;
 		const bool bHasCurrent = S.Exists(Name) && S.Read(Name, Current);
+		Pc::PcSaveReadError CurrentRead = Pc::PcSaveReadError::Empty;
 		if (bHasCurrent)
 		{
 			Pc::PcSaveState Ignored;
-			if (Parse(Current, Ignored) == Pc::PcSaveReadError::NewerFormat)
+			CurrentRead = Parse(Current, Ignored);
+			if (CurrentRead == Pc::PcSaveReadError::NewerFormat)
 			{
 				Error = TEXT("the slot holds a newer build's save: not overwritten");
 				return false;
+			}
+			if (CurrentRead != Pc::PcSaveReadError::None)
+			{
+				// A slot that does not read is kept aside before anything replaces it (F47: a new game started in an
+				// unreadable slot), never thrown away: a broken save is evidence, and might be repairable by hand.
+				S.Write(Name + TEXT("_corrupt"), Current);
 			}
 		}
 		if (!S.Write(Temp, Bytes))
@@ -103,9 +115,8 @@ namespace
 		}
 		if (bHasCurrent)
 		{
-			Pc::PcSaveState Ignored;
 			// A slot that does not read is never copied over a good backup (Godot's rename did exactly that).
-			if (Parse(Current, Ignored) == Pc::PcSaveReadError::None && !S.Write(Backup, Current))
+			if (CurrentRead == Pc::PcSaveReadError::None && !S.Write(Backup, Current))
 			{
 				Error = TEXT("the backup could not be written");
 				return false;
@@ -139,6 +150,7 @@ void UPawSaveSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	StartOnLastSlot();
 	if (bEnabled)
 	{
+		RestoredFromBackup = 0;
 		RecoverInterruptedSaves();
 		// Godot's SaveManager loads the last slot at startup; the title's Continue then simply plays it.
 		LoadGame(ActiveSlot);
@@ -172,12 +184,25 @@ UPawGameSubsystem* UPawSaveSubsystem::Game() const
 	return GI ? GI->GetSubsystem<UPawGameSubsystem>() : nullptr;
 }
 
+const UPawRealmSubsystem* UPawSaveSubsystem::RunningRealm() const
+{
+	const UGameInstance* GI = GetGameInstance();
+	const UWorld* W = GI ? GI->GetWorld() : nullptr;
+	const UPawRealmSubsystem* R = W ? W->GetSubsystem<UPawRealmSubsystem>() : nullptr;
+	return R && R->IsRunning() ? R : nullptr;
+}
+
 bool UPawSaveSubsystem::IsWorldPaused() const
 {
 	const UGameInstance* GI = GetGameInstance();
 	const UWorld* W = GI ? GI->GetWorld() : nullptr;
 	const UPawRealmSubsystem* R = W ? W->GetSubsystem<UPawRealmSubsystem>() : nullptr;
 	return R && R->IsPaused();
+}
+
+bool UPawSaveSubsystem::IsRealmRunning() const
+{
+	return RunningRealm() != nullptr;
 }
 
 // --- ticking -------------------------------------------------------------------------------------------------------------
@@ -215,8 +240,10 @@ void UPawSaveSubsystem::Tick(float DeltaTime)
 	{
 		SaveGame();
 	}
-	// Pauses with the game (Godot's timer pauses with the tree): an open skill tree or card pick writes nothing new.
-	if (!IsWorldPaused())
+	// Runs while a game is played. It pauses with the game (Godot's timer pauses with the tree: an open skill tree or card pick
+	// writes nothing new) and stops on the title, where nothing changes (review CR21, F48: Godot's ran on the title and rewrote
+	// the loaded slot every 30 s, a game left without saving included).
+	if (IsRealmRunning() && !IsWorldPaused())
 	{
 		AutosaveClock += DeltaTime;
 		if (AutosaveClock >= AutosaveSeconds)
@@ -282,8 +309,9 @@ void UPawSaveSubsystem::SeedDigest()
 
 void UPawSaveSubsystem::OnActivationChanged(bool bActive)
 {
-	// Alt-tab, minimise, the Steam overlay: the moments before a player walks away.
-	if (!bActive)
+	// Alt-tab, minimise, the Steam overlay: the moments before a player walks away. Not on the title, where nothing changes
+	// (review CR21).
+	if (!bActive && IsRealmRunning())
 	{
 		Autosave();
 	}
@@ -291,7 +319,10 @@ void UPawSaveSubsystem::OnActivationChanged(bool bActive)
 
 void UPawSaveSubsystem::OnEnterBackground()
 {
-	Autosave(); // the console / Deck suspend: the only warning some platforms give
+	if (IsRealmRunning())
+	{
+		Autosave(); // the console / Deck suspend: the only warning some platforms give
+	}
 }
 
 // --- the slots -----------------------------------------------------------------------------------------------------------
@@ -325,18 +356,34 @@ bool UPawSaveSubsystem::HasAnySave()
 
 bool UPawSaveSubsystem::ReadSlotSummary(int32 Slot, Pc::PcSlotSummary& Out)
 {
+	const Pc::PcSlotState State = SlotState(Slot, &Out);
+	return State == Pc::PcSlotState::Readable || State == Pc::PcSlotState::ReadableFromBackup;
+}
+
+Pc::PcSlotState UPawSaveSubsystem::SlotState(int32 Slot, Pc::PcSlotSummary* OutSummary)
+{
 	if (!HasSlot(Slot))
 	{
-		return false;
+		return Pc::PcSlotState::Empty;
 	}
-	TArray<uint8> Bytes;
-	Pc::PcSaveState S;
-	if (!Storage->Read(SlotName(Slot), Bytes) || Parse(Bytes, S) != Pc::PcSaveReadError::None)
+	const FString Name = SlotName(Slot);
+	auto ReadAs = [this](const FString& File, Pc::PcSaveState& Out)
 	{
-		return false;
+		TArray<uint8> Bytes;
+		return Storage->Read(File, Bytes) ? Parse(Bytes, Out) : Pc::PcSaveReadError::Empty;
+	};
+	Pc::PcSaveState S;
+	const Pc::PcSaveReadError SlotRead = ReadAs(Name, S);
+	const FString Backup = Name + TEXT("_bak");
+	const bool bBackup = SlotRead != Pc::PcSaveReadError::None && SlotRead != Pc::PcSaveReadError::NewerFormat
+		&& Storage->Exists(Backup);
+	const Pc::PcSaveReadError BackupRead = bBackup ? ReadAs(Backup, S) : Pc::PcSaveReadError::Empty;
+	const Pc::PcSlotState State = Pc::ClassifySlot(true, SlotRead, bBackup, BackupRead);
+	if (OutSummary && (State == Pc::PcSlotState::Readable || State == Pc::PcSlotState::ReadableFromBackup))
+	{
+		*OutSummary = Pc::SlotSummary(S);
 	}
-	Out = Pc::SlotSummary(S);
-	return true;
+	return State;
 }
 
 void UPawSaveSubsystem::DeleteSlot(int32 Slot)
@@ -384,6 +431,11 @@ void UPawSaveSubsystem::RecoverInterruptedSaves()
 				{
 					Storage->Delete(Temp);
 				}
+				else
+				{
+					// The game is the one before the last save: the title says so once it loads (CR2).
+					RestoredFromBackup |= 1u << I;
+				}
 				UE_LOG(LogPaw, Warning, TEXT("Save: slot %d restored from %s"), I + 1, *Candidate);
 				break;
 			}
@@ -398,32 +450,37 @@ void UPawSaveSubsystem::RequestSave()
 	bSaveRequested = true;
 }
 
-void UPawSaveSubsystem::SaveGame(int32 Slot)
+int64 UPawSaveSubsystem::SaveGame(int32 Slot)
 {
 	bSaveRequested = false; // an explicit save supersedes any queued one
 	UPawGameSubsystem* G = Game();
 	if (!bEnabled || !G || !G->IsDataReady())
 	{
-		return;
+		return 0;
 	}
 	if (Slot >= 0)
 	{
 		// Saving somewhere is the clearest statement about where the next autosave belongs (and the last slot used).
 		ActiveSlot = FMath::Clamp(Slot, 0, SlotCount - 1);
 		RememberSlot();
+		ClearTitleNotice(); // the game is in a slot of the player's choosing now
 	}
-	const Pc::PcSaveState S = Pc::CaptureSave(G->Data(), G->Progress(), G->Slot(), UnixNow());
+	// F36 (D16): a boss fight is not saved, so neither is what its summon cost.
+	const UPawRealmSubsystem* R = RunningRealm();
+	const Pc::PcSummonPayment* FightUp = R ? Pc::FightPayment(R->GetSim().Field) : nullptr;
+	const Pc::PcSaveState S = Pc::CaptureSave(G->Data(), G->Progress(), G->Slot(), UnixNow(), FightUp);
 	const std::string File = Pc::WriteSaveFile(S, TCHAR_TO_UTF8(FApp::GetBuildVersion()));
 	SeedDigest();
-	QueueWrite(ActiveSlot, ToBytes(File));
+	return QueueWrite(ActiveSlot, ToBytes(File));
 }
 
-void UPawSaveSubsystem::QueueWrite(int32 Slot, TArray<uint8>&& Bytes)
+int64 UPawSaveSubsystem::QueueWrite(int32 Slot, TArray<uint8>&& Bytes)
 {
 	TSharedPtr<IPawSaveStorage> S = Storage;
 	TSharedPtr<FPawSaveWriteStats> St = Stats;
 	const FString Name = SlotName(Slot);
-	LastWrite = Pipe.Launch(TEXT("PawSaveWrite"), [S, St, Name, Data = MoveTemp(Bytes)]()
+	const int64 Ticket = ++NextTicket;
+	LastWrite = Pipe.Launch(TEXT("PawSaveWrite"), [S, St, Name, Ticket, Data = MoveTemp(Bytes)]()
 	{
 		FString Error;
 		if (WriteSlotAtomically(*S, Name, Data, Error))
@@ -433,9 +490,29 @@ void UPawSaveSubsystem::QueueWrite(int32 Slot, TArray<uint8>&& Bytes)
 		else
 		{
 			St->Failed.fetch_add(1);
+			{
+				FScopeLock Guard(&St->Lock);
+				St->FailedTickets.Add(Ticket);
+			}
 			UE_LOG(LogPaw, Error, TEXT("Save: %s failed: %s"), *Name, *Error);
 		}
+		St->Finished.store(Ticket);
 	});
+	return Ticket;
+}
+
+EPawWriteResult UPawSaveSubsystem::GetWriteResult(int64 Ticket) const
+{
+	if (Ticket <= 0 || !Stats)
+	{
+		return EPawWriteResult::NotQueued;
+	}
+	if (Stats->Finished.load() < Ticket)
+	{
+		return EPawWriteResult::Pending;
+	}
+	FScopeLock Guard(&Stats->Lock);
+	return Stats->FailedTickets.Contains(Ticket) ? EPawWriteResult::Failed : EPawWriteResult::Written;
 }
 
 void UPawSaveSubsystem::Autosave()
@@ -484,6 +561,7 @@ EPawLoadOutcome UPawSaveSubsystem::LoadGame(int32 Slot)
 	if (!Storage->Exists(Name) || !Storage->Read(Name, Bytes))
 	{
 		LastLoad = EPawLoadOutcome::NoSave;
+		SetLoadNotice(Which, LastLoad);
 		return LastLoad;
 	}
 	Pc::PcSaveState S;
@@ -494,6 +572,7 @@ EPawLoadOutcome UPawSaveSubsystem::LoadGame(int32 Slot)
 	{
 		UE_LOG(LogPaw, Warning, TEXT("Save: slot %d was written by a newer build; left alone"), Which + 1);
 		LastLoad = EPawLoadOutcome::NewerBuild;
+		SetLoadNotice(Which, LastLoad);
 		return LastLoad;
 	}
 	if (E != Pc::PcSaveReadError::None)
@@ -506,13 +585,20 @@ EPawLoadOutcome UPawSaveSubsystem::LoadGame(int32 Slot)
 		{
 			UE_LOG(LogPaw, Error, TEXT("Save: slot %d and its backup are unreadable; nothing loaded"), Which + 1);
 			LastLoad = EPawLoadOutcome::Corrupt;
+			SetLoadNotice(Which, LastLoad);
 			return LastLoad;
 		}
 		Storage->Write(Name + TEXT("_corrupt"), Bytes);
 		Outcome = EPawLoadOutcome::LoadedFromBackup;
 	}
+	else if (RestoredFromBackup & (1u << Which))
+	{
+		Outcome = EPawLoadOutcome::LoadedFromBackup; // the startup recovery already put the backup in the slot
+	}
+	RestoredFromBackup &= ~(1u << Which);
 	ActiveSlot = Which;
 	RememberSlot();
+	SetLoadNotice(Which, Outcome);
 	const Pc::PcLoadResult R = Pc::ApplySave(G->Data(), G->Progress(), S, G->Slot());
 	G->Slot() = R.Extras;
 	G->MarkProgressReplaced();
@@ -529,6 +615,40 @@ EPawLoadOutcome UPawSaveSubsystem::LoadGame(int32 Slot)
 	}
 	LastLoad = Outcome;
 	return LastLoad;
+}
+
+void UPawSaveSubsystem::SetLoadNotice(int32 Slot, EPawLoadOutcome Outcome)
+{
+	// Only for the slot the player is left on: a slot that failed from the slots screen keeps its card's word there.
+	if (Slot != ActiveSlot)
+	{
+		return;
+	}
+	switch (Outcome)
+	{
+	case EPawLoadOutcome::NewerBuild: TitleNotice = Pc::PcTitleNotice::NewerBuild; break;
+	case EPawLoadOutcome::Corrupt: TitleNotice = Pc::PcTitleNotice::Unreadable; break;
+	case EPawLoadOutcome::LoadedFromBackup: TitleNotice = Pc::PcTitleNotice::FromBackup; break;
+	default: TitleNotice = Pc::PcTitleNotice::None; break;
+	}
+	TitleNoticeSlot = Slot;
+}
+
+void UPawSaveSubsystem::DiscardUnsaved()
+{
+	// F51 (D16): Godot's discard ("Leaves without writing") kept the game in memory: Continue played the discarded progress
+	// and the title's autosave wrote it within 30 s. Here the unsaved play is dropped. A slot this build cannot read (corrupt,
+	// a newer build's) leaves the game as it is; so does a run that saves nothing.
+	UPawGameSubsystem* G = Game();
+	if (!bEnabled || !G || !G->IsDataReady())
+	{
+		return;
+	}
+	if (LoadGame(ActiveSlot) == EPawLoadOutcome::NoSave)
+	{
+		G->NewGame();
+		SeedDigest(); // nothing new to save: a fresh game is not written
+	}
 }
 
 void UPawSaveSubsystem::StartOnLastSlot()
@@ -562,5 +682,9 @@ void UPawSaveSubsystem::UseStorageForTest(TSharedPtr<IPawSaveStorage> InStorage)
 	AutosaveClock = 0.0;
 	bSaveRequested = false;
 	LastLoad = EPawLoadOutcome::NotTried;
+	TitleNotice = Pc::PcTitleNotice::None;
+	TitleNoticeSlot = 0;
+	RestoredFromBackup = 0;
+	NextTicket = 0;
 	SeedDigest();
 }

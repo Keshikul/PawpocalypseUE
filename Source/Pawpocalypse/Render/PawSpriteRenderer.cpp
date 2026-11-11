@@ -140,9 +140,26 @@ double UPawSpriteRenderer::ShapeZ(EPawLayer Layer) const
 
 double UPawSpriteRenderer::BodyZ(double Order)
 {
-	// 100 world units above the shadows, 0.01 per step of order: Godot's six z layers x 2000 tree positions fit in 100..220,
-	// under the effects at 400. The ortho depth buffer is linear and far finer than 0.01 over this range.
-	return 100.0 + FMath::Clamp(Order, 0.0, 20000.0) * 0.01;
+	// Over the shadows and the low effect bands (20, 25), under the top effects (TopFxZ 300). Why the mice get room (the R5
+	// rig, 2026-11-09): a rigged mouse is drawn as overlapping masked layers a fraction of a draw place apart, and layers
+	// whose depths round to the same value fight for their overlap. (Under the engine's default r.EarlyZPassOnlyMaterialMasking
+	// 1 they drew black, the colour pass painting transparent texels; DefaultEngine.ini turns it off.) So the places the mice
+	// really use (a mouse's place is 1 + its pool slot, the first free one: under max_live_enemies + 1, Realm test) get 0.4
+	// each, the layers 0.12 of a place apart = 0.048 world units:
+	//   z 0, places 0..MicePlaces       30 .. 190     the mice
+	//   z 0, the rest (the boss, 1999)  190 .. 191.6  in order, packed
+	//   z 1-5 (kittens, the cat, its weapon and hat, the adds)  192 .. 287, 0.0095 per place
+	const double O = FMath::Clamp(Order, 0.0, 12000.0);
+	constexpr double TreeSpan = 2000.0;   // PawLook::TreeSpan
+	if (O < MicePlaces)
+	{
+		return 30.0 + O * MiceStep;
+	}
+	if (O < TreeSpan)
+	{
+		return 30.0 + MicePlaces * MiceStep + (O - MicePlaces) * 0.001;
+	}
+	return 192.0 + (O - TreeSpan) * 0.0095;
 }
 
 UPawSpriteRenderer::FBatch& UPawSpriteRenderer::ShapeBatch(EPawLayer Layer)
@@ -363,7 +380,14 @@ void UPawSpriteRenderer::SetFx(EPawFxBand Band, const FPawFxCanvas& Canvas, UMat
 	FxTris[B] = Canvas.Indices.Num() / 3;
 	if (Canvas.IsEmpty() || !FxMaterial)
 	{
-		M->ClearAllMeshSections();
+		// An empty band stays as it is. A clear rebuilds the mesh's collision body and its scene proxy, so it is made once,
+		// when the band empties, not every frame (review CR5: three bands did it every frame, empty or not).
+		if (FxFull[B])
+		{
+			++FxRebuilds;
+			M->ClearAllMeshSections();
+			FxFull[B] = false;
+		}
 		return;
 	}
 	TArray<FVector> Verts;
@@ -374,8 +398,10 @@ void UPawSpriteRenderer::SetFx(EPawFxBand Band, const FPawFxCanvas& Canvas, UMat
 	}
 	TArray<FVector> Normals;
 	Normals.Init(FVector::UpVector, Verts.Num());
+	++FxRebuilds;
 	M->CreateMeshSection(0, Verts, Canvas.Indices, Normals, TArray<FVector2D>(), Canvas.Colors, TArray<FProcMeshTangent>(), false);
 	M->SetMaterial(0, FxMaterial);
+	FxFull[B] = true;
 }
 
 const TArray<FPawSprite>& UPawSpriteRenderer::LastSprites(EPawLayer Layer) const

@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_turf_gristle" data-layer="leg_hind" data-order="-2" data-pivot="98.36 99.19" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="88.9,106.7 91.9,116.2 94.5,120.9 99.1,123.6 104.5,123.7 109.2,121.1 111.9,116.5 112.0,111.1 110.2,101.4 107.4,96.4 102.6,93.5 96.9,93.4 91.9,96.1 89.0,101.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="104.4" cy="114.9" rx="14.6" ry="9.2" fill="#2A1A33" stroke="none"/>
+<polygon points="92.5,105.8 95.5,115.3 97.2,118.3 100.2,120.0 103.6,120.1 106.6,118.4 108.3,115.5 108.4,112.0 106.6,102.3 104.8,99.0 101.6,97.1 97.8,97.0 94.5,98.8 92.6,102.0" fill="#CCAD45" stroke="none"/>
+<ellipse cx="104.4" cy="114.9" rx="10.8" ry="5.4" fill="#CCAD45" stroke="none"/>
+</g>
+</svg>

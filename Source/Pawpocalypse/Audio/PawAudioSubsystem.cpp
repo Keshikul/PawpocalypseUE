@@ -225,14 +225,27 @@ void UPawAudioSubsystem::ApplyOutputDevice()
 	}
 }
 
+UAudioComponent* UPawAudioSubsystem::MakePlayer(USoundWave* Sound)
+{
+	if (CreatePlayer)
+	{
+		return CreatePlayer(Sound);
+	}
+	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
+	// Persistent across a level change, as the Godot autoload's players are.
+	return World ? UGameplayStatics::CreateSound2D(World, Sound, 1.0f, 1.0f, 0.0f, nullptr, true, false) : nullptr;
+}
+
+// Each voice and music player is made ONCE and reused while it is valid (review CR3). A component made to persist across
+// level changes belongs to the audio device, not a world: its GetWorld() is always null, and the old check against the world
+// made a new component for every sound (the 17th never cut the oldest; a looping track replaced inside its crossfade played
+// on until the garbage collector took its component).
 UAudioComponent* UPawAudioSubsystem::Voice(int32 Index, USoundWave* Sound)
 {
-	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
 	TObjectPtr<UAudioComponent>& V = VoicePlayers[Index];
-	if (!IsValid(V) || V->GetWorld() != World)
+	if (!IsValid(V))
 	{
-		// Persistent across a level change, as the Godot autoload's players are.
-		V = World ? UGameplayStatics::CreateSound2D(World, Sound, 1.0f, 1.0f, 0.0f, nullptr, true, false) : nullptr;
+		V = MakePlayer(Sound);
 	}
 	else
 	{
@@ -243,11 +256,10 @@ UAudioComponent* UPawAudioSubsystem::Voice(int32 Index, USoundWave* Sound)
 
 UAudioComponent* UPawAudioSubsystem::MusicPlayer(int32 Index, USoundWave* Sound)
 {
-	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
 	TObjectPtr<UAudioComponent>& M = MusicPlayers[Index];
-	if (!IsValid(M) || M->GetWorld() != World)
+	if (!IsValid(M))
 	{
-		M = World ? UGameplayStatics::CreateSound2D(World, Sound, 1.0f, 1.0f, 0.0f, nullptr, true, false) : nullptr;
+		M = MakePlayer(Sound);
 	}
 	else if (Sound)
 	{
@@ -280,6 +292,11 @@ void UPawAudioSubsystem::Play(const FString& Event)
 	const int32 Index = Next % E->Sounds.Num();
 	Next = Index + 1;
 	const float Pitch = FMath::IsNearlyZero(E->Pitch) ? 1.0f : FMath::FRandRange(1.0f - E->Pitch, 1.0f + E->Pitch);
+	// The newest MaxLog only (review CR4: the log grew for as long as the game ran, Shipping too).
+	if (Log.Num() >= MaxLog)
+	{
+		Log.RemoveAt(0, Log.Num() - MaxLog + 1, EAllowShrinking::No);
+	}
 	Log.Add({ Event, Index, Pitch, E->VolumeDb });
 	// _take_voice: the voices in turn; the 17th sound cuts the oldest.
 	const int32 V = NextVoice % Voices;
@@ -411,20 +428,19 @@ void UPawAudioSubsystem::ObserveProgress()
 	if (SeenEpoch == G->ProgressEpoch())
 	{
 		// Godot's signal hookups (_connect_events) plus the direct calls next to them: where both play an event whose
-		// min_interval is 0, Godot plays it TWICE, layered (F40); the port keeps that. Elsewhere the second is rate-limited.
+		// min_interval is 0, Godot plays it TWICE, layered. Here each plays once (F40, a Godot fault the port does not copy:
+		// D16). Elsewhere the second is rate-limited anyway.
 		if (Upgrades > SeenUpgrades)
 		{
 			Play(TEXT("purchase"));  // upgrade_purchased + purchase_upgrade(): the second inside 50 ms
 		}
 		if (P.ReawakenCount > SeenReawakens)
 		{
-			Play(TEXT("reawaken"));  // reawaken(): play, then the reawakened signal plays again
-			Play(TEXT("reawaken"));
+			Play(TEXT("reawaken"));  // once (F40: reawaken() played it, then the reawakened signal again)
 		}
 		if (Branches > SeenBranches)
 		{
-			Play(TEXT("skill_purchase")); // branch_leveled_up, and the tree's own play on a purchase
-			Play(TEXT("skill_purchase"));
+			Play(TEXT("skill_purchase")); // once (F40: branch_leveled_up and the tree's own play on a purchase)
 		}
 		if (Earned > SeenEarned)
 		{
@@ -436,16 +452,11 @@ void UPawAudioSubsystem::ObserveProgress()
 		}
 		if (Cards > SeenCards)
 		{
-			Play(TEXT("card_taken"));    // choose(): play, then card_taken plays again
-			Play(TEXT("card_taken"));
+			Play(TEXT("card_taken"));    // once (F40: choose() played it, then card_taken again)
 		}
 		if (!P.Hand.empty() && P.Hand != SeenHand)
 		{
-			Play(TEXT("card_offered"));  // hand_offered on every deal, reroll and banish
-			if (SeenHand.empty())
-			{
-				Play(TEXT("card_offered")); // _offer_hand() plays it itself first
-			}
+			Play(TEXT("card_offered"));  // hand_offered on every deal, reroll and banish; once (F40: _offer_hand() played it first)
 		}
 	}
 	SeenEpoch = G->ProgressEpoch();
@@ -498,8 +509,7 @@ void UPawAudioSubsystem::OnFieldEvents(const std::vector<Pc::PcFieldEvent>& Even
 			Play(TEXT("boss_phase"));
 			break;
 		case K::BossDefeated:
-			Play(TEXT("boss_defeated")); // GameState.boss_defeated's hookup and _on_boss_defeated: both play (F40)
-			Play(TEXT("boss_defeated"));
+			Play(TEXT("boss_defeated")); // once (F40: GameState.boss_defeated's hookup and _on_boss_defeated both played it)
 			break;
 		// BossTimeout: _check_boss_time_limit() withdraws the boss but leaves its music playing (only _dismiss_boss, on a
 		// Reawaken, plays the biome's again): kept.

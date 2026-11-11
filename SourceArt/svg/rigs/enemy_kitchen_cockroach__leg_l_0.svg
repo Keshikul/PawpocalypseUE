@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_kitchen_cockroach" data-layer="leg_l_0" data-order="-1" data-pivot="55.70 76.32" data-motion="swing" data-amp="16.0" data-hz="2.00" data-phase="0.000" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polyline points="55.7,76.3 45.4,68.1 33.0,51.6" fill="none" stroke="#2A1A33" stroke-width="6.6"/>
+<polyline points="55.7,76.3 45.4,68.1 33.0,51.6" fill="none" stroke="#614431" stroke-width="3.3"/>
+<polyline points="40.4,61.5 44.6,58.4" fill="none" stroke="#2A1A33" stroke-width="1.4"/>
+<polyline points="36.1,55.7 40.2,52.6" fill="none" stroke="#2A1A33" stroke-width="1.4"/>
+</g>
+</svg>

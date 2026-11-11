@@ -77,7 +77,7 @@ namespace
 	bool DockOnLeft(const UUserWidget* W)
 	{
 		const UPawSettingsSubsystem* S = SettingsOf(W);
-		return !S || S->IsDockOnLeft();
+		return S && S->IsDockOnLeft();   // the dock is on the right unless the settings say left (the default, 2026-11-09)
 	}
 
 	bool ConfirmReawaken(const UUserWidget* W)
@@ -1293,7 +1293,7 @@ void UPawHudScreen::NativeOnActivated()
 		if (UPawInputDeviceSubsystem* D = GI->GetSubsystem<UPawInputDeviceSubsystem>())
 		{
 			TWeakObjectPtr<UPawHudScreen> Weak(this);
-			D->ConsumeForDock = [Weak](const FKey& Key) { return Weak.IsValid() && Weak->DockTakesKey(Key); };
+			D->SetDockConsumer(this, [Weak](const FKey& Key) { return Weak.IsValid() && Weak->DockTakesKey(Key); });
 		}
 	}
 }
@@ -1304,7 +1304,7 @@ void UPawHudScreen::NativeDestruct()
 	{
 		if (UPawInputDeviceSubsystem* D = GI->GetSubsystem<UPawInputDeviceSubsystem>())
 		{
-			D->ConsumeForDock = nullptr;
+			D->ClearDockConsumer(this); // its own only (review CR13)
 		}
 	}
 	Super::NativeDestruct();
@@ -1334,6 +1334,7 @@ void UPawHudScreen::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 void UPawHudScreen::Pump(double DeltaSeconds)
 {
 	ReadFieldEvents();
+	PollQuickSave();
 	{
 		// _held_by_other_frame: anything but the pause menu holding the field, or up on a stack.
 		const UPawRealmSubsystem* R = Realm();
@@ -2002,9 +2003,9 @@ void UPawHudScreen::RefreshRealms()
 		SetText(StageText, PawText::Ui(TEXT("REALMS_stage_next"), StageArgs));
 	}
 
-	// The Bait button: shown in every biome until every boss has fallen this run. _refresh_bait_button stops its lean first
-	// and starts it again at its end when the bait calls: so, as in Godot, the lean restarts on every refresh (finding F42).
-	Juice.Jitter(BaitButton, false, true);
+	// The Bait button: shown in every biome until every boss has fallen this run. It leans while the bait calls; a refresh
+	// leaves a running lean alone. Godot's _refresh_bait_button stopped it at its top and started it again at its end, 15
+	// times a second, so it never finished a lean and trembled (F42, a Godot fault the port does not copy: D16).
 	const Pc::PcBaitButton Bait = Pc::BaitButton(R->GetSim().Field, D, P);
 	SetShown(BaitButton, Bait.Kind != Pc::PcBaitKind::Hidden, ESlateVisibility::Visible);
 	if (Bait.Kind != Pc::PcBaitKind::Hidden)
@@ -2041,6 +2042,10 @@ void UPawHudScreen::RefreshRealms()
 		// Ready, and the boss still stands in the way: it calls (Godot warms it GOLD at 45 %; R4a: the Butter call plate).
 		BaitButton->SetCallLook(Bait.bCalling);
 		Juice.Jitter(BaitButton, Bait.bCalling, FPawJuice::EffectsOn(this)); // _bait_is_calling()
+	}
+	else
+	{
+		Juice.Jitter(BaitButton, false, true); // no boss to call: the lean stops (here only: F42)
 	}
 	AutoTravelButton->SetCheck(true, Game() && Game()->Slot().bAutoTravel);
 	// Hidden until the skill tree hands the automation over (hud.gd: a switch for something the player cannot do yet reads
@@ -2770,13 +2775,32 @@ void UPawHudScreen::PressQuickSkills()
 
 void UPawHudScreen::PressQuickSave()
 {
-	if (UPawSaveSubsystem* S = GetGameInstance() ? GetGameInstance()->GetSubsystem<UPawSaveSubsystem>() : nullptr)
-	{
-		S->SaveGame();
-	}
+	// Review CR15: "Saved." only for a write that was queued; nothing queued (saving off) is "Not saved." at once, and a write
+	// the writer refuses or the disk fails turns it to "Not saved." when the writer says so (Pump).
+	UPawSaveSubsystem* S = GetGameInstance() ? GetGameInstance()->GetSubsystem<UPawSaveSubsystem>() : nullptr;
+	QuickSaveTicket = S ? S->SaveGame() : 0;
 	if (QuickStatus)
 	{
-		QuickStatus->SetText(PawText::Ui(TEXT("QUICK_saved")));
+		QuickStatus->SetText(PawText::Ui(QuickSaveTicket > 0 ? TEXT("QUICK_saved") : TEXT("QUICK_save_failed")));
+	}
+}
+
+void UPawHudScreen::PollQuickSave()
+{
+	if (QuickSaveTicket <= 0)
+	{
+		return;
+	}
+	const UPawSaveSubsystem* S = GetGameInstance() ? GetGameInstance()->GetSubsystem<UPawSaveSubsystem>() : nullptr;
+	const EPawWriteResult R = S ? S->GetWriteResult(QuickSaveTicket) : EPawWriteResult::NotQueued;
+	if (R == EPawWriteResult::Pending)
+	{
+		return;
+	}
+	QuickSaveTicket = 0;
+	if (R != EPawWriteResult::Written && QuickStatus)
+	{
+		QuickStatus->SetText(PawText::Ui(TEXT("QUICK_save_failed")));
 	}
 }
 

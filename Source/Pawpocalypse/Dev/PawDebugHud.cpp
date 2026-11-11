@@ -59,14 +59,19 @@ void APawDebugHud::DrawHUD()
 	Lines.Add(FString::Printf(TEXT("travel %.2f ms (worst %.2f)  Pounce %.0f%%"), Sim.LastTravelMs, Sim.WorstTravelMs,
 		Pc::PounceCooldownFraction(F) * 100.0));
 
+	// At the field's bottom corner on the side away from the dock, just over the XP bar (54 logical px from the bottom):
+	// the field's top corners hold the status panels on either dock side (the dock moved right, 2026-11-09).
 	const UFont* Font = GEngine ? GEngine->GetSmallFont() : nullptr;
-	float Y = 8.0f;
+	const float K = Canvas->ClipY / 1080.0f;
+	const Pc::PcRect& Dock = R->GetDock();
+	const float X = (Dock.W > 0.0 && Dock.X <= 0.0 ? static_cast<float>(Dock.W) * K : 0.0f) + 8.0f;
+	float Y = Canvas->ClipY - 62.0f * K - 14.0f * Lines.Num();
 	for (const FString& L : Lines)
 	{
 		Canvas->SetDrawColor(FColor(25, 25, 25));
-		Canvas->DrawText(Font, L, 9.0f, Y + 1.0f);
+		Canvas->DrawText(Font, L, X + 1.0f, Y + 1.0f);
 		Canvas->SetDrawColor(FColor::White);
-		Canvas->DrawText(Font, L, 8.0f, Y);
+		Canvas->DrawText(Font, L, X, Y);
 		Y += 14.0f;
 	}
 }

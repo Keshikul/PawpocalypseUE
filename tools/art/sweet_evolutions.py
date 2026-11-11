@@ -42,12 +42,12 @@ SIZE = S.SIZE
 
 # A PASTEL rainbow, not a saturated one, and with the red end pulled to coral so
 # it never lands in the cotton-candy pink the designer ruled out.
-RAINBOW = ["#EE9384", "#F3B87C", "#F0D989", "#A9D18C", "#8FC7D6", "#9AA4DC", "#BE9BD3"]
+RAINBOW = PAL.GEAR["rainbow"]
 
-STEEL = "#B9BFC9"
-STEEL_DARK = "#8A93A2"
+STEEL = PAL.GEAR["steel"]
+STEEL_DARK = PAL.GEAR["steel_dark"]
 GOLD = PAL.GOLD
-HOOF = "#5E5566"
+HOOF = PAL.GEAR["hoof"]
 
 
 # --- composition -------------------------------------------------------------
@@ -77,6 +77,8 @@ def xform(parts, dx=0.0, dy=0.0, scale=1.0):
         else:
             q["pts"] = [(x * scale + dx, y * scale + dy) for x, y in q["pts"]]
             q["w"] = max(q["w"] * scale, 0.9)
+        if "rig" in q:     # a rig layer's part (sweet_anatomy.limb): its pivot moves with it
+            r = dict(q["rig"]); r["pivot"] = (r["pivot"][0] * scale + dx, r["pivot"][1] * scale + dy); q["rig"] = r
         out.append(q)
     return out
 
@@ -94,7 +96,7 @@ def the_cat(seated=False):
 
 # --- the unicorn mount -------------------------------------------------------
 
-def unicorn(coat="#F3EFE4", mane=RAINBOW, tail=RAINBOW, horn=GOLD, wings=None,
+def unicorn(coat=PAL.GEAR["unicorn_coat"], mane=RAINBOW, tail=RAINBOW, horn=GOLD, wings=None,
             starfield=False, blanket=None):
     """Tall, long-legged, long-necked. Deliberately NOT a round blob - it is the
     one silhouette in the game built from verticals, which is why a mounted
@@ -168,8 +170,8 @@ def unicorn(coat="#F3EFE4", mane=RAINBOW, tail=RAINBOW, horn=GOLD, wings=None,
         parts.append(S.curve(x, 18 + i * 1.2, x + 14, 34 + i * 2,
                              x + 6, 58 + i * 2.2, w=5.2, colour=c))
 
-    parts.append(S.ell(16, 34, 6, 4.5, "#E9B9BE", s=False))          # muzzle
-    parts += S.eyes(26, 26, 8, 6.5, asym=1.3, pupil=0.26)
+    parts.append(S.ell(16, 34, 6, 4.5, PAL.GEAR["unicorn_muzzle"], s=False))          # muzzle
+    parts += S.eyes(26, 26, 8, 6.5, asym=1.3, pupil=0.26, face="today")     # the mount is the player's: no panic
     return parts
 
 
@@ -216,11 +218,11 @@ def shoulder_plates():
 def visor():
     """A band worn across the eyes, with a strap that goes round the skull -
     the first version floated in front of the face with nothing holding it."""
-    parts = S.fuse([S.ell(48, 52, 27, 9.5, "#7FD4E8"),
+    parts = S.fuse([S.ell(48, 52, 27, 9.5, PAL.GEAR["ice"]),
                     S.ell(48, 52, 29, 4.5, STEEL_DARK)])
     parts.append(S.ell(57, 50, 7, 3.0, EYE, s=False))
     parts.append(S.line([(24, 46), (19, 28)], STEEL_DARK, 2.6))
-    parts += S.fuse([S.ell(18, 24, 4.2, 4.2, "#7FD4E8")])
+    parts += S.fuse([S.ell(18, 24, 4.2, 4.2, PAL.GEAR["ice"])])
     return parts
 
 
@@ -282,21 +284,21 @@ def EVOLUTIONS():
     rider = xform(the_cat(seated=True), dx=58.0, dy=17.0, scale=0.33)
     out["stage_4_rainbow_cavalry"] = unicorn(blanket=RAINBOW) + rider
 
-    out["stage_5_alicorn"] = (unicorn(wings="#CFE4F5",
-                              mane=["#CFE4F5", "#B9D6EE", "#A8C8E4"],
-                              tail=["#CFE4F5", "#B9D6EE", "#A8C8E4"],
-                              blanket=["#A8C8E4", "#CFE4F5", "#B9D6EE", "#8FC7D6", "#A8C8E4"])
+    out["stage_5_alicorn"] = (unicorn(wings=PAL.GEAR["alicorn"][0],
+                              mane=[PAL.GEAR["alicorn"][0], PAL.GEAR["alicorn"][1], PAL.GEAR["alicorn"][2]],
+                              tail=[PAL.GEAR["alicorn"][0], PAL.GEAR["alicorn"][1], PAL.GEAR["alicorn"][2]],
+                              blanket=[PAL.GEAR["alicorn"][2], PAL.GEAR["alicorn"][0], PAL.GEAR["alicorn"][1], PAL.GEAR["rainbow"][4], PAL.GEAR["alicorn"][2]])
                              + rider)
 
     out["stage_6_void_unicorn"] = (
-        unicorn(coat="#6A5F86", mane=["#B9A6E8"] * 3 + ["#8E7FC9"] * 4,
-                tail=["#B9A6E8", "#8E7FC9", "#6E5FA8"], horn="#D8CBF2",
+        unicorn(coat=PAL.GEAR["nightmare_coat"], mane=[PAL.GEAR["nightmare_mane"]] * 3 + [PAL.GEAR["nightmare_mane_dark"]] * 4,
+                tail=[PAL.GEAR["nightmare_mane"], PAL.GEAR["nightmare_mane_dark"], PAL.GEAR["nightmare_deep"]], horn=PAL.GEAR["nightmare_horn"],
                 starfield=True,
-                blanket=["#8E7FC9", "#B9A6E8", "#6E5FA8", "#D8CBF2", "#8E7FC9"])
+                blanket=[PAL.GEAR["nightmare_mane_dark"], PAL.GEAR["nightmare_mane"], PAL.GEAR["nightmare_deep"], PAL.GEAR["nightmare_horn"], PAL.GEAR["nightmare_mane_dark"]])
         + rider)
 
     out["stage_7_the_last_unicorn"] = (
-        halo() + unicorn(wings="#EFCE86", starfield=True, blanket=RAINBOW) + rider)
+        halo() + unicorn(wings=PAL.GEAR["halo_wings"], starfield=True, blanket=RAINBOW) + rider)
 
     return out
 

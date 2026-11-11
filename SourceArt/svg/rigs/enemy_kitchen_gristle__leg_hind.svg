@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_kitchen_gristle" data-layer="leg_hind" data-order="-2" data-pivot="97.13 99.00" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="87.8,106.4 90.8,115.8 93.3,120.4 97.9,123.1 103.2,123.2 107.8,120.6 110.5,116.1 110.6,110.8 108.8,101.1 106.1,96.2 101.3,93.3 95.7,93.3 90.8,96.0 87.9,100.8" fill="#2A1A33" stroke="none"/>
+<ellipse cx="103.1" cy="114.5" rx="14.4" ry="9.0" fill="#2A1A33" stroke="none"/>
+<polygon points="91.4,105.5 94.4,114.9 96.0,117.8 98.9,119.6 102.3,119.6 105.2,118.0 107.0,115.1 107.0,111.7 105.2,102.0 103.5,98.8 100.3,96.9 96.6,96.8 93.4,98.6 91.5,101.8" fill="#CCAD45" stroke="none"/>
+<ellipse cx="103.1" cy="114.5" rx="10.7" ry="5.4" fill="#CCAD45" stroke="none"/>
+</g>
+</svg>

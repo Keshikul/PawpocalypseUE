@@ -8,7 +8,7 @@
 
 | Thing | Godot location | Count / size | Port |
 |---|---|---|---|
-| Art generators (the "sweet" grammar: ellipses, rounded rects, triangles, polylines, uniform ink outline) | `tools/make_sweet_art.py`, `sweet_ui.py`, `sweet_biomes.py`, `sweet_props.py`, `sweet_shapes.py`, `sweet_evolutions.py`, `sweet_input.py`, `make_ground_shadow.py`, `flatten_backdrop.py`, `palette.py` | 377 SVGs (8.7 MB) | **Copied into `tools/art/`** of this repo, unchanged except output paths. The SVGs stay generated: **never hand-edit one** |
+| Art generators (the "sweet" grammar: ellipses, rounded rects, triangles, polylines, uniform ink outline) | `tools/make_sweet_art.py`, `sweet_ui.py`, `sweet_biomes.py`, `sweet_props.py`, `sweet_shapes.py`, `sweet_evolutions.py`, `sweet_input.py`, `make_ground_shadow.py`, `flatten_backdrop.py`, `palette.py` | 377 SVGs (8.7 MB) | **Copied into `tools/art/`** of this repo in phase 6 (output paths changed); this project's own since D14 (2026-11-07), now 554 files with the restyle's own additions. The SVGs stay generated: **never hand-edit one** |
 | Backdrops | `assets/art/backdrops/backdrop_tier_N.png` (flattened) + biome scenes | 12 | Re-flattened PNGs; floor tiles and props per §4 |
 | Boba photos | `content/boba/*.png` -> `tools/boba_prep.py` | menus only | Copied; same prep |
 | Audio | `assets/audio/music` (Abstraction loops, OGG), `assets/audio/sfx/kenney` (201 Kenney CC0 OGG), `unicorn_neigh` (synthesised by `make_neigh.py`) | 83 MB in the repo (pruned to what plays at release) | Copied to `SourceAudio/` (LFS), imported per §6 |
@@ -46,19 +46,30 @@ tools/import_art.py (headless) ->  /Game/Pawpocalypse/Art/...           (T_*, co
   and generates nothing the game ships. Four UI drawings were hand-made in Godot (`app_icon`, `ui_menu_bug` / `discord` /
   `language`): their sources are `tools/art/hand/ui`.
 - **`py tools/art/build_art.py`** writes `SourceArt/svg` (committed, generated), mirroring Godot's `assets/art` folders: 390
-  files (the SVGs, the 12 backdrop floors, the ground shadow). `--check` regenerates into `build/` and fails on any byte that
-  differs from `SourceArt/svg` OR from the Godot game's `assets/art` (Boba's photos aside): **byte-identical to Godot's**
-  (2026-11-05), and `palette.py --gd` reproduces Godot's `palette.gd` exactly. Seen to fail: one ink hex changed, 738
-  differences. Gate `art generators reproduce`.
+  files in phase 6 (the SVGs, the 12 backdrop floors, the ground shadow), 554 today (R5 added the rig layers in `rigs/`).
+  `--check` regenerates into `build/` and fails on any byte that differs from `SourceArt/svg`. Until D14 it also compared
+  with the Godot game's `assets/art` (byte-identical, 2026-11-05); since then the look is this project's own and only the
+  committed set counts. Seen to fail: one ink hex changed, 738 differences. Gate `art generators reproduce`.
 - `tools/raster_svg.py` (groups `input`, 56 px; `cursor`, 40 px; since phase 6 slice 5a `chrome`, the theme's 9 nine-patch
   SVGs, and since 5b `icons`, 178 SVGs: both at the SVG's own size, as Godot imports them at `svg/scale=1.0`): reads
   `SourceArt/svg` (no longer copies from Godot); `--check` covers every group.
-- **`py tools/pack_atlas.py`**: the field's 107 sprites (39 enemy drawings, 7 bosses incl. `boss_generic` and `boss_add`, the
+- **`py tools/pack_atlas.py`**: the field's sprites (in phase 6: 107; 39 enemy drawings, 7 bosses incl. `boss_generic` and `boss_add`, the
   7 cat stages, 6 weapons, 10 hats, the kitten, the ground shadow; since slice 2 the 36 backdrop props: corner pieces at
   190 px, the title's tree at 264.5, the rest at 124.8) rasterised at 2x their largest drawn size and shelf-packed
-  into `SourceArt/png/atlas/field_<n>.png` (3 pages of 2048, 63 % full, 4 px extrusion) + `field.csv` (id, page, texel
+  into `SourceArt/png/atlas/field_<n>.png` (then 3 pages of 2048, 63 % full; today 249 sprites with the rig's layers, 4 pages,
+  75 %; 4 px extrusion) + `field.csv` (id, page, texel
   rect, UVs, native size). Not trimmed: every drawing is a square fitted by its longest edge and drawn centred, as Godot's
   Sprite2D draws it, so the cell IS the sprite. `--check` reproduces it (gate `field atlas reproduces`).
+- **The rig (R5, 2026-11-09).** A drawing in `tools/art/sweet_anatomy.py` marks its moving parts with `limb(name, pivot,
+  parts, motion, amp, hz, phase, back)`; `make_sweet_art` writes the static drawing as the rest pose (back layers, body,
+  front layers) and each layer as `SourceArt/svg/rigs/<stem>__<layer>.svg` (the whole 128 box, so the layers lie on each
+  other; the rig in the root's `data-` attributes). `pack_atlas.py` packs each layer at its drawing's size and adds the
+  rig to `field.csv` (`rig_of, rig_order, pivot_u, pivot_v, motion, amp, hz, phase`); `import_art.py --run atlas` copies
+  it into `FPawAtlasCell`; `UPawSpriteAtlas::Rig(cell)` lists a drawing's layers; the Realm view draws them, each turned
+  about its pivot (`PawLook::RigAngleDeg`, `RigPose`; swing = amp sin, lift = amp (1 - cos) / 2, the creature's own phase
+  added; layers 0.12 of a draw place apart in depth: closer, an overlapped layer drew black, `UPawSpriteRenderer::BodyZ`).
+  With every batch's layers the atlas is 249 sprites on 4 pages (75 %, 2026-11-10). `py tools/art/review_rig.py [--batch]`
+  draws the motion (the designer's review of the motion is still open).
 - `tools/import_art.py --run [input|chrome|icons|atlas|floors]` (headless): the glyphs, the chrome (`Art/UI/Chrome/T_ui_*`)
   and the icons (`Art/UI/Icons/T_*` + `DA_Icons`, `UPawIconSet`, rewritten whole) as UI textures (no mips); the atlas as `T_Atlas_Field_<n>` (BC7,
   sRGB, mips, Never Stream, World group, clamped) and `DA_FieldAtlas` (`UPawSpriteAtlas`, rewritten whole) in
@@ -103,6 +114,35 @@ to add; deleted with the spikes 2026-11-04: `git show 10c118e:tools/spikes/s3_ra
   `PcGodotLook.h` maps Godot's palette (frozen at the fork: `tools/art/palette_godot_snapshot.json`) to ours, so a test that
   compares a Godot fixture's colour still proves WHICH colour is drawn where (`Pc::PcFromGodot`); the generator refuses an
   ambiguous map (one Godot colour that became two of ours). Before R0 it read the Godot repo's `palette.gd`.
+- **The field effects' look (R5, D3, 2026-11-09)**: `tools/art/fx_look.py` holds the approved values (the aura's white lift
+  and Bone ring, the strike paw's size, arc trail and fade, the crit colour, from `palette.py`); `tools/gen_fx_look.py` writes
+  `Source/Pawpocalypse/Realm/PawFxLook.h` with them and the strike paw's shapes, read from `ui_cursor_paw_closed`'s drawing
+  in `make_sweet_art.py` (ellipses tessellated; drawn by `FPawFxCanvas` as polygons and ink outlines, in the swipe's band, so
+  the paw sits on top of its arc and claws: a translucent atlas sprite would draw under the band). Redraw the cursor in R6,
+  re-run the generator, and the strike paw follows. L0 checks the header is current; `Pawpocalypse.Realm.Vfx.Look` checks
+  what is drawn.
+- **The look lint (R5, 2026-11-09)**: `tools/art/look_lint.py` checks the field's drawings against the look spec (WORKLIST-
+  RESTYLE §4, §6 step 2): every colour a token or a token's grammar shade (`sweet_shapes.tint()` is recorded while every
+  generator runs in-process, so a derived colour counts only if its base is allowed), one ink at one width, flat, each body clear
+  of every floor it ships on, eyes that read at 56 px; since R5 also `unique` (no two characters' bodies within `UNIQUE_MIN`),
+  `rig` (layers sharing a depth never overlap over a 2.5 s loop) and `crossing` (no polygon outline crosses itself: the tube
+  caps' bow-tie, HANDOFF-LOG (87)). Its KNOWN table held the faults the art had when it was written (94) and only shrinks:
+  23 left (2026-11-10), all the cat's pale coats on the light and dark floors, a look decision for the designer
+  (`palette.PROPS` and `palette.GEAR` named the props' and the cat's gear colours, which removed the literals). The faces (designer, 2026-11-09): the cat keeps its face; every
+  enemy draws `sweet_shapes.PREY_FACE = "panic"` (worried brows, tiny pupils, no shine); bosses and the unicorn mount pass
+  `face="today"`. **One colour per character** (designer, 2026-11-09: "no same shade is used twice"): `palette.py` ENEMIES / BOSSES / PLAYER
+  give every enemy kind, boss and the player its own body (CIE76 >= `UNIQUE_MIN` 16 from every other, the cat's belly and
+  stripes included) and accent (>= `ACCENT_MIN` 10), inside a window that keeps each one itself and clear of its floors;
+  rule 8 checks them, `look_lint`'s `unique` rule checks what is drawn. The anatomy pass (R5 batch 2, approved and written
+  2026-11-09: mouse and its flier and golden copy, rat and the slime rat, the 12 gristles, moth, vole, hamster): `tools/art/sweet_anatomy.py` draws enemies from parts with two
+  new grammar primitives, `sweet_shapes.tube` (a tapered limb, tail, snout or neck) and `oval` (a tilted ellipse), both
+  polygons that `fuse()` grows by exactly the line width; `tools/art/review_anatomy.py` puts each beside today's at game size
+  and lints the new drawings before anything is written. Written since (each approved on the canvas): batch 3, the birds;
+  batch 4, dog, hound, ant, cockroach; batch 5, toad, crocodile, bat, dust bunny, robot mouse and the sludge cat (take A,
+  "rising out of its puddle"; the ghost kept today's drawing). Drawn and WAITING for the designer: the imp (its wing
+  rebuilt) and the bosses (`sweet_anatomy` `tyrant`, `foreman`, `litter_king`, `void_god`: nothing ships until approved).
+  **The props** (R5, approved 2026-11-10): the 36 drawn in `sweet_biomes.PROP_DRAW` with more shape (a silhouette that says
+  what each is, one level of detail, one light), same stems, ideas and colours; nothing in a prop may read as a face.
 - `tools/art/palette.py` is the single source of every colour. Add an emitter: `py tools/art/palette.py --cpp` writes
   `Source/Pawpocalypse/UI/PawTokens.h` (as Godot's `--gd` writes `palette.gd`). A test compares the header with `palette.py`
   (Godot's `check_mirror` did the same for `palette.gd`).
@@ -168,7 +208,8 @@ the settings (Master x Music / SFX; mute), the 1.2 s crossfade in dB, a track wi
 real-time clocks. What plays when follows Godot's hookups: a progress observer (a new game or a load bumps
 `UPawGameSubsystem::ProgressEpoch` and is heard as nothing), the field's events from the realm, the biome's music on a biome
 change, the UI's clicks (dock tabs, the buy multiplier, a refused purchase, the pause menu, the title's cluster), the title's
-music. Godot's double plays kept (F40). `unicorn_neigh` plays since slice 6a (the Unicorn ceremony's two whinnies, with
+music. Each sound plays once (F40, fixed 2026-11-11, D16: Godot plays five of them twice, layered, from a signal hookup and
+a direct call; `Pawpocalypse.Audio.When`). `unicorn_neigh` plays since slice 6a (the Unicorn ceremony's two whinnies, with
 `boss_defeated`'s fanfare, through `UPawAudioSubsystem::PlayFrom`). Not in this slice: `boba_cameo` (its caller, slice 6c), the
 language list's click (phase 7), the credits screen's rows (the CREDITS.md is still empty in Godot), `make_neigh.py` (the
 neigh is Godot's WAV, copied). **The Output device** (2026-11-05; settings_manager.gd `_apply_output_device`): the
@@ -196,14 +237,15 @@ on again. Never in the editor. The pad-audio toast: doc 05 §3. Tests `Pawpocaly
 - **Prune**: only files referenced by `DT_AudioEvents` are imported (Godot pruned 130 of 180 unplayed files, 80 MiB). A test
   asserts both directions (every referenced file imported; nothing imported that nothing plays).
 - WASAPI is the 5.8 Windows backend: test a headset unplug/replug `[KB U/14 §1]`.
-- **Licences** (third-party register, `docs/third-party.md` to create in phase 6): Kenney CC0; Abstraction music (credit
+- **Licences** (third-party register, `docs/third-party.md`: not created yet, due before release, phase 8): Kenney CC0; Abstraction music (credit
   required; author does not endorse AI-related use; designer's call, kept; never in the trailer); fonts OFL (the texts in `SourceArt/fonts`); the trailer music
   (Loyalty Freak Music, CC0) is trailer-only.
 
 ## 7. Animation and VFX art
 
-- No frame animation: single drawings with a per-instance pulse and liveliness, done in the sprite material's vertex shader
-  (doc 04 §5.1). If run cycles arrive later, `tools/make_anim_atlas.py`/`export_anim_atlas.py` already produce atlases; the
+- No frame animation: single drawings with a per-instance pulse and liveliness (as built on the CPU, in each sprite's
+  transform: doc 04 §5.1), and since R5 the rig: moving parts as their own layers turned about a pivot (§2). If run cycles
+  arrive later, `tools/make_anim_atlas.py`/`export_anim_atlas.py` already produce atlases; the
   material reads a frame index from per-instance data.
 - VFX: planned as SDF geometry and small Niagara bursts; **built (phase 6 slice 3) as Godot's own draw calls** tessellated on the
   CPU (`FPawFxCanvas`, `FPawVfx`; doc 04 §7 as built): no VFX textures at all.

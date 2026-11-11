@@ -1,5 +1,7 @@
 """Regenerate PawCore's Godot ground-truth fixtures by running the REAL Godot code.
 
+The scratch copy gets the port's fixes to Godot's faults first (D16, tools/godot_fixes.py); the Godot repo is only read.
+
 PawCore's L1 tests compare against what Godot itself computes, not against what we think it computes:
   amounts  Amounts.short over 4,403 values, English and a 10000-grouping language  -> Tests/Data/amounts_godot.tsv
   combat   CombatResolver over 5,000 random CombatStats snapshots                  -> Tests/Data/combat_godot.tsv (first 2,000)
@@ -94,6 +96,7 @@ Godot: --godot-exe (default C:/Program Files/Godot/Godot.exe), --godot (default 
 """
 
 import argparse
+import godot_fixes  # tools/godot_fixes.py: the port's fixes to Godot's code (D16)
 import filecmp
 import os
 import re
@@ -154,6 +157,11 @@ def copy_project(godot, dest, reuse):
                  "unicorn_fixture.gd", "unicorn_fixture.tscn",
                  "amounts_values.txt"):
         shutil.copy2(SCRIPTS / name, dest / name)
+    # The port's fixes to Godot's code (D16, tools/godot_fixes.py), on this scratch copy only: a fixture then shows Godot's
+    # behaviour with the faults the port does not copy fixed, and every other row is still Godot's own.
+    applied = godot_fixes.apply_all(dest)
+    if applied:
+        print("the port's fixes applied to the scratch copy: %s" % ", ".join(applied), flush=True)
 
 
 def run_godot(exe, project, args, marker, log_path):

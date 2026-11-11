@@ -8,6 +8,7 @@
 #include "Audio/PawAudioBank.h"
 #include "Audio/PawAudioSubsystem.h"
 #include "AudioDeviceNotificationSubsystem.h"
+#include "Components/AudioComponent.h"
 #include "Core/PawGameSubsystem.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
@@ -246,6 +247,57 @@ bool FPawAudioRulesTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawAudioVoicesTest, "Pawpocalypse.Audio.Voices", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawAudioVoicesTest::RunTest(const FString& Parameters)
+{
+	// Review CR3 (2026-11-10): the sixteen voices and the two music players are made once and reused. Each was made again for
+	// every sound: a component that persists across level changes belongs to the audio device, not a world, so its GetWorld()
+	// is always null and the old check against the world never held. The 17th sound then never cut the oldest, and a looping
+	// track replaced inside its crossfade played on until the garbage collector took its component. The players here are
+	// made as the engine's are: in the transient package, in no world.
+	FAudioWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	UPawAudioSubsystem* A = W.Audio;
+	int32 Made = 0;
+	A->CreatePlayer = [&Made](USoundWave* Sound)
+	{
+		++Made;
+		UAudioComponent* C = NewObject<UAudioComponent>(GetTransientPackage());
+		C->SetSound(Sound);
+		return C;
+	};
+	for (int32 I = 0; I < 40; ++I)
+	{
+		W.Clock += 1.0;
+		A->Play(TEXT("boss_summon"));
+	}
+	TestEqual(TEXT("40 sounds on the 16 voices make 16 players"), Made, static_cast<int32>(UPawAudioSubsystem::Voices));
+	const int32 Voiced = Made;
+	for (const TCHAR* Track : { TEXT("menu"), TEXT("tier_1"), TEXT("menu"), TEXT("tier_1") })
+	{
+		A->PlayMusic(Track);
+		W.Clock += 0.5; // inside the 1.2 s crossfade: the track going out is the one coming back
+		A->TickOnce(0.0f);
+	}
+	TestEqual(TEXT("four tracks on the two music players make 2"), Made - Voiced, 2);
+	// Review CR4: the play log (for these tests) kept every sound for as long as the game ran; it keeps the newest 256.
+	A->ClearLog();
+	for (int32 I = 0; I < 10000; ++I)
+	{
+		A->Play(TEXT("boss_summon"));
+	}
+	TestEqual(TEXT("10,000 sounds leave the newest 256 in the log"), A->Played().Num(), 256);
+	TestEqual(TEXT("the newest is last"), A->Played().Last().Event, FString(TEXT("boss_summon")));
+	A->CreatePlayer = nullptr;
+	W.Close();
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawAudioWhenTest, "Pawpocalypse.Audio.When", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FPawAudioWhenTest::RunTest(const FString& Parameters)
@@ -260,26 +312,27 @@ bool FPawAudioWhenTest::RunTest(const FString& Parameters)
 	Pc::PcProgress& P = W.Game->Progress();
 	auto Step = [&W, A]() { W.Clock += 1.0; A->TickOnce(0.0f); };
 
-	// The progress observer: Godot's signal hookups and the direct calls beside them (F40: five play twice).
+	// The progress observer: Godot's signal hookups and the direct calls beside them. Godot played five events twice, layered;
+	// here each plays once (F40, a Godot fault the port does not copy: D16).
 	P.UpgradeLevels["paw_damage"] += 1;
 	Step();
 	TestEqual(TEXT("a purchase: one (the second inside 50 ms)"), W.Count(TEXT("purchase")), 1);
 	P.ReawakenCount += 1;
 	Step();
-	TestEqual(TEXT("a Reawaken: twice, layered"), W.Count(TEXT("reawaken")), 2);
+	TestEqual(TEXT("a Reawaken: once (F40)"), W.Count(TEXT("reawaken")), 1);
 	P.BranchLevels["unlock_aura"] += 1;
 	Step();
-	TestEqual(TEXT("a skill level: twice"), W.Count(TEXT("skill_purchase")), 2);
+	TestEqual(TEXT("a skill level: once (F40)"), W.Count(TEXT("skill_purchase")), 1);
 	P.Hand = { "a", "b", "c" };
 	Step();
-	TestEqual(TEXT("a new hand: twice"), W.Count(TEXT("card_offered")), 2);
+	TestEqual(TEXT("a new hand: once (F40)"), W.Count(TEXT("card_offered")), 1);
 	P.Hand = { "d", "e", "f" };
 	Step();
-	TestEqual(TEXT("a reroll: once more"), W.Count(TEXT("card_offered")), 3);
+	TestEqual(TEXT("a reroll: once more"), W.Count(TEXT("card_offered")), 2);
 	P.Hand.clear();
 	P.CardLevels["some_card"] = 1;
 	Step();
-	TestEqual(TEXT("a card taken: twice"), W.Count(TEXT("card_taken")), 2);
+	TestEqual(TEXT("a card taken: once (F40)"), W.Count(TEXT("card_taken")), 1);
 	P.AchievementsEarned.insert("first_blood");
 	Step();
 	TestEqual(TEXT("an achievement: once"), W.Count(TEXT("achievement_earned")), 1);
@@ -315,7 +368,7 @@ bool FPawAudioWhenTest::RunTest(const FString& Parameters)
 	A->OnFieldEvents({ Ev(Pc::PcFieldEventKind::BossPhase), Ev(Pc::PcFieldEventKind::BossDefeated),
 		Ev(Pc::PcFieldEventKind::BossTimeout) }, TEXT("tier_1"));
 	TestEqual(TEXT("a phase"), W.Count(TEXT("boss_phase")), 1);
-	TestEqual(TEXT("defeated: twice (F40)"), W.Count(TEXT("boss_defeated")), 2);
+	TestEqual(TEXT("defeated: once (F40)"), W.Count(TEXT("boss_defeated")), 1);
 	TestEqual(TEXT("a timeout leaves the boss's music on (as Godot)"), A->CurrentTrack(), FString(TEXT("boss")));
 	A->OnBossDismissed(TEXT("tier_1"));
 	TestEqual(TEXT("a Reawaken's dismissal brings the biome's back"), A->CurrentTrack(), FString(TEXT("tier_1")));

@@ -97,7 +97,7 @@ private:
 	bool bRunning = false;
 	double ViewW = 1920.0, ViewH = 1080.0;
 	Pc::PcRect DockRect;
-	bool bDockLeft = true;
+	bool bDockLeft = false;   // the default dock side is right (PcSettings)
 	TSet<FName> PauseHolds;
 	bool bPounceSwallowed = false;
 };

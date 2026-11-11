@@ -1,11 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
 <g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<rect x="10.9" y="46.9" width="106.2" height="22.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<rect x="19.9" y="62.9" width="20.2" height="58.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<rect x="87.9" y="62.9" width="20.2" height="58.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<rect x="14.0" y="50.0" width="100.0" height="16.0" rx="3.0" fill="#E89956" stroke="none"/>
-<rect x="23.0" y="66.0" width="14.0" height="52.0" rx="3.0" fill="#E89956" stroke="none"/>
-<rect x="91.0" y="66.0" width="14.0" height="52.0" rx="3.0" fill="#E89956" stroke="none"/>
-<rect x="14.0" y="54.5" width="100.0" height="7.0" rx="2.0" fill="#B3754C" stroke="none"/>
+<rect x="17.9" y="63.9" width="16.2" height="36.2" rx="5.1" fill="#2A1A33" stroke="none"/>
+<rect x="93.9" y="63.9" width="16.2" height="36.2" rx="5.1" fill="#2A1A33" stroke="none"/>
+<rect x="10.9" y="51.9" width="106.2" height="20.2" rx="6.1" fill="#2A1A33" stroke="none"/>
+<rect x="21.0" y="67.0" width="10.0" height="30.0" rx="2.0" fill="#CC8651" stroke="none"/>
+<rect x="97.0" y="67.0" width="10.0" height="30.0" rx="2.0" fill="#CC8651" stroke="none"/>
+<rect x="14.0" y="55.0" width="100.0" height="14.0" rx="3.0" fill="#E89956" stroke="none"/>
+<rect x="14.0" y="55.5" width="100.0" height="5.0" rx="2.0" fill="#EFBA8A" stroke="none"/>
+<polyline points="28.0,66.0 100.0,66.0" fill="none" stroke="#2A1A33" stroke-width="1.6"/>
+<rect x="30.9" y="25.9" width="26.2" height="32.2" rx="8.1" fill="#2A1A33" stroke="none"/>
+<rect x="29.9" y="21.9" width="28.2" height="12.2" rx="5.1" fill="#2A1A33" stroke="none"/>
+<rect x="34.0" y="29.0" width="20.0" height="26.0" rx="5.0" fill="#9BA2AD" stroke="none"/>
+<rect x="33.0" y="25.0" width="22.0" height="6.0" rx="2.0" fill="#797988" stroke="none"/>
+<rect x="38.0" y="39.0" width="12.0" height="10.0" rx="2.0" fill="#F0D27C" stroke="none"/>
+<polygon points="66.7,57.3 93.3,57.3 90.9,30.4 69.1,30.4" fill="#2A1A33" stroke="none"/>
+<polygon points="70.0,54.0 90.0,54.0 88.0,34.0 72.0,34.0" fill="#C25E4E" stroke="none"/>
+<polyline points="90.0,38.0 92.0,39.3 93.5,40.7 94.4,42.0 94.9,43.3 94.9,44.7 94.4,46.0 93.5,47.3 92.0,48.7 90.0,50.0" fill="none" stroke="#2A1A33" stroke-width="3.0"/>
 </g>
 </svg>

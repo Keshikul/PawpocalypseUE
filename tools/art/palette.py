@@ -76,6 +76,8 @@ LIGHT_V_MIN = 86.0        # a light-register ground is at least this bright
 DARK_V_MAX = 50.0         # a dark-register ground is at most this bright
 MIN_FROM_CAT = 26.0       # CIE76 between any creature accent and the cat's
 MIN_FROM_GROUND = 22.0    # CIE76 between a creature colour and its field
+UNIQUE_MIN = 16.0         # CIE76 between any two characters' bodies (rule 8: no shade used twice)
+ACCENT_MIN = 10.0         # CIE76 between an accent and every other body and accent
 
 
 def hsv(h_deg: float, s_pct: float, v_pct: float) -> str:
@@ -228,8 +230,8 @@ PLAYER = {
     "cat_body": CAT_BODY,
     "cat_accent": CAT_ACCENT,
     "cat_nose": CAT_NOSE,
-    "kitten_body": face("cream"),
-    "kitten_accent": header("coral"),
+    "kitten_body": "#BD966A",          # tan (R5, 2026-11-09): its own colour, clear of every floor (cream vanished on the Kitchen)
+    "kitten_accent": "#A07D5F",
     "unicorn_body": face("grey"),
 }
 
@@ -242,58 +244,57 @@ def body(h, s=30.0, v=95.0):
 
 # --- enemies -----------------------------------------------------------------
 #
-# (body, accent) = (face, header) of a Stacklands family, chosen per creature
-# against the grounds it actually stands on. A family is reused freely across
-# biomes and never twice IN one biome - two orange things on one floor is one
-# thing. Where a family's own face would vanish on a ground (a white gull on a
-# pale blue roof) the pair is swapped or the family changed, and the reason is
-# on the line.
+# ONE COLOUR PER ENEMY (designer, 2026-11-09: "make sure that every enemy has it's own color and player has own color
+# too. So no same shade is used twice"). Until then (body, accent) were Stacklands family faces and headers, eleven
+# families for some thirty characters, so one red was the rat, the seagull, the parrot, the hound and the imp. Now each
+# enemy kind, each boss and the player (the cat's body and stripes, the kitten) has a body of its own, at least
+# UNIQUE_MIN apart from every other (rule 8), inside a hue/saturation/value window that keeps it what it was (the rat
+# red, the mouse blue, the crow dark, the goose white), and still clear of every floor it ships on (rule 3). The accent
+# is the body shaded toward INK or tinted toward cream, except two: the goose's orange beak, and the dog's brown patches
+# (no shade of its body was free), at least ACCENT_MIN from every other colour here. A kind's biome copies share its colour: they are the
+# same enemy. Chosen by a search over those windows (2026-11-09); change one by hand and rule 8 says if it collides.
 
 ENEMIES = {
-    "mouse":        (header("blue"), face("blue")),     # the flying mouse ships in ALL twelve biomes, so like the cat it needs V60-70 and a hue no floor has: the idea card's blue
-    "rat":          FAMILIES["red"],                    # Stacklands' rat IS the red family
-    "vole":         FAMILIES["orange"],
-    "gristle":      (header("yellow"), face("orange")), # stands on all twelve floors; gold body, orange mark
-    "moth":         FAMILIES["coral"],
-    "dog":          (header("cream"), header("yellow")),# cream dog with a yellow collar
-    "goose":        (face("grey"), header("orange")),   # white goose, orange beak
+    "mouse":        ("#7795C7", "#60709B"),   # periwinkle
+    "flying_mouse": ("#BA9FD6", "#8F77A5"),   # lilac: the flier is its own enemy
+    "golden_mouse": ("#F0C63E", "#B5923B"),   # gold, the reward
+    "rat":          ("#C25D59", "#94494E"),   # brick red
+    "vole":         ("#D68C60", "#A26A52"),   # clay
+    "hamster":      ("#E6A34C", "#AE7A44"),   # honey
+    "gristle":      ("#CCAD45", "#9B8140"),   # mustard
+    "moth":         ("#F0B5A3", "#B58681"),   # peach
+    "dog":          ("#E0C89D", "#916C41"),   # biscuit, brown patches
+    "goose":        ("#E1E2F5", "#FA6E28"),   # lavender white, an orange beak
+    "ghost":        ("#C8F4FA", "#D7F5F6"),   # ice
+    "pigeon":       ("#A09AB8", "#7D7490"),   # dove grey
+    "seagull":      ("#E66653", "#EC9281"),   # coral red
+    "parrot":       ("#4BB84F", "#2D78C2"),   # parrot green; its wing, crest and tail macaw blue (R5: the wing is its largest colour)
+    "crow":         ("#5D8550", "#8CA77F"),   # moss
+    "toad":         ("#88BD60", "#AACE8A"),   # pea green
+    "crocodile":    ("#5FA388", "#8EBCA6"),   # jade
+    "sludge_cat":   ("#B6CC5E", "#8C9751"),   # bile
+    "bat":          ("#6467B2", "#5A599B"),   # indigo
+    "imp":          ("#C24663", "#943955"),   # raspberry
+    "hound":        ("#99533D", "#78423A"),   # rust
+    "slime_rat":    ("#84A9BD", "#99B7C5"),   # slate blue
+    "robot_mouse":  ("#93C7C2", "#749397"),   # tin-toy teal: no steel grey was free (the cat, its belly, the Foreman, the pigeon)
+    "ant":          ("#BD6039", "#D29376"),   # terracotta
+    "cockroach":    ("#6B4C31", "#BCAC9A"),   # chestnut
+    "dust_bunny":   ("#DABFE0", "#E2CCE3"),   # mauve fluff
+    # Drawn but shipped by no tier (UNSHIPPED): kept as they were, outside the one-colour rule.
     "squirrel":     FAMILIES["orange"],
-    "cockroach":    (face("dark"), face("orange")),     # accent is the orange FACE - the header is too pale on a dark shell
-    "toad":         FAMILIES["green"],
-    "crocodile":    FAMILIES["green"],
-    "pigeon":       (face("cream"), header("coral")),
-    "seagull":      FAMILIES["red"],                    # Stacklands' seagull is red too
-    "hamster":      FAMILIES["orange"],
-    "parrot":       FAMILIES["red"],
-    "slime_rat":    (header("slate"), face("blue")),    # slate body: the turf already has a blue mouse, a red rat, a green toad, a gold gristle and a white ghost
-    "robot_mouse":  (header("grey"), face("blue")),
-    "dust_bunny":   FAMILIES["cream"],
-    "sludge_cat":   FAMILIES["green"],
-    "golden_mouse": (header("yellow"), face("orange")),
     "ghost_mouse":  (face("grey"), header("blue")),     # white with blue marks - the grey header vanished on the coral turf
     "void_mouse":   (header("slate"), face("blue")),    # slate body clears the mythic purple; blue face marks
-    "crow":         (header("green"), face("green")),   # dark green body, light green sheen - dark bodies vanish on night floors
-    "hound":        FAMILIES["red"],
-    # Added 2026-09-14 so no mouse spawns past biome 3 (designer: "mice should
-    # not be spawning in the later biomes"). Each is checked against every
-    # floor it ships on like the rest; the bat is on all nine later floors and
-    # the blue face is the one family colour that clears all of them.
-    "bat":          FAMILIES["blue"],
-    "ghost":        (face("grey"), header("blue")),
-    "imp":          (face("red"), header("yellow")),
-    "ant":          (face("orange"), face("red")),      # the Kitchen's common, replacing its mouse
 }
 
 BOSSES = {
-    "park_tyrant":     FAMILIES["green"],
-    "rival_champion":  FAMILIES["orange"],
-    "factory_foreman": (header("slate"), header("yellow")),
-    "litter_king":     FAMILIES["coral"],
-    "void_god":        FAMILIES["blue"],
-    # boss.tscn's default texture and the minions a boss summons. Both
-    # appear in every biome, so both are checked against all twelve grounds.
-    "generic":         (header("yellow"), face("red")),   # gold body like the gristle, which already clears all twelve floors
-    "add":             FAMILIES["red"],
+    "park_tyrant":     ("#408F3B", "#396C39"),   # forest green: it clears its own Park
+    "rival_champion":  ("#CC7B35", "#9B5E34"),   # ginger
+    "factory_foreman": ("#727F8F", "#969EA7"),   # gunmetal
+    "litter_king":     ("#D1C67D", "#9F9267"),   # litter sand
+    "void_god":        ("#373F8A", "#333572"),   # deep indigo
+    "generic":         ("#C72C46", "#982740"),   # crimson: threat
+    "add":             ("#DB5E90", "#A64A74"),   # rose: its adds
 }
 
 
@@ -356,8 +357,8 @@ for _key in ("tier_1_backyard", "tier_4_rooftops", "tier_9_kitchen"):
 
 BIOME_CREATURES = {
     "tier_1_backyard": ["golden_mouse", "gristle", "moth", "mouse", "vole"],
-    "tier_2_alley": ["dog", "golden_mouse", "gristle", "mouse", "rat", "vole"],
-    "tier_3_park": ["golden_mouse", "goose", "gristle", "mouse", "pigeon", "rat", "vole"],
+    "tier_2_alley": ["dog", "flying_mouse", "golden_mouse", "gristle", "mouse", "rat", "vole"],
+    "tier_3_park": ["flying_mouse", "golden_mouse", "goose", "gristle", "mouse", "pigeon", "rat", "vole"],
     "tier_4_rooftops": ["bat", "golden_mouse", "gristle", "pigeon", "rat", "seagull"],
     "tier_5_sewers": ["bat", "crocodile", "golden_mouse", "gristle", "pigeon", "rat", "slime_rat"],
     "tier_6_turf": ["bat", "ghost", "golden_mouse", "gristle", "rat", "slime_rat", "toad"],
@@ -465,6 +466,33 @@ SKY = {
 
 # Materials the card and skill icons are drawn in. These used to be ad-hoc
 # hexes in make_sweet_art.py; each is now the family it obviously is.
+# The backdrop props' own colours (sweet_biomes.py), named (R5, 2026-11-09). They were literal hexes in the prop drawings,
+# the look lint's only colour faults outside the cast; naming them here makes them palette colours without changing a pixel.
+# A prop is scenery, never a character: "one colour per character" does not count them.
+PROPS = {
+    "fur": ("#B5A894", "#D6C9B5", "#EDE4D6"),       # the Vet's fur clump: shadow, coat, light
+    "bag": ("#564E52", "#6E6A63", "#959189"),       # the Alley's bin bag
+    "flowers": ("#E8B0C4", "#F0D27C", "#B49AD6"),   # the Park's flowers: pink, yellow, lilac
+    "rock": ("#9E93B5", "#B5ABC9"),                 # the Mythic Realm's rock and its light
+    "toaster": ("#C25E4E",),                        # the Kitchen toaster's knob
+}
+
+# The cat's gear: its weapons, its armour and its mounts' coats (sweet_evolutions.py, make_sweet_art.py), named (R5,
+# 2026-11-09). They were literal hexes; the designer keeps the cat's looks ("Keep today's cats looks"), so they are named
+# exactly as drawn, not moved to nearer tokens: no pixel changes. Not characters (the cat's table is PLAYER).
+GEAR = {
+    "rainbow": ["#EE9384", "#F3B87C", "#F0D989", "#A9D18C", "#8FC7D6", "#9AA4DC", "#BE9BD3"],  # a pastel rainbow, red pulled to coral
+    "steel": "#B9BFC9", "steel_dark": "#8A93A2",      # the armour (stages 2, 3) and the old Foreman's plates
+    "hoof": "#5E5566",
+    "unicorn_coat": "#F3EFE4", "unicorn_muzzle": "#E9B9BE",
+    "ice": "#7FD4E8",                                 # stage 3's frost: the visor, the weapon
+    "alicorn": ["#CFE4F5", "#B9D6EE", "#A8C8E4"],     # stage 5: wings and mane, pale to deep
+    "nightmare_coat": "#6A5F86", "nightmare_mane": "#B9A6E8", "nightmare_mane_dark": "#8E7FC9",
+    "nightmare_deep": "#6E5FA8", "nightmare_horn": "#D8CBF2",
+    "halo_wings": "#EFCE86",                          # stage 7
+    "haft": "#4A4266",                                # stage 6's weapon
+}
+
 MATERIALS = {
     "metal":      header("slate"),
     "metal_dark": face("slate"),
@@ -568,12 +596,54 @@ def check():
     # 6. The plum screens are readable (WCAG 2), focus shows, buy and threat differ in lightness.
     problems += plum_problems()
 
+    # 8. No shade used twice (designer, 2026-11-09): every character its own body colour, every accent its own.
+    problems += unique_problems()
+
     # 7. The UI on plum (R3): every text on every ground the screens draw it on.
     for fg, bg, need, why in UI_PAIRS:
         r = contrast(UI[fg], UI[bg])
         if r < need:
             problems.append("LOW CONTRAST: ui %s %s on %s %s is %.2f:1, %s needs %.1f" % (fg, UI[fg], bg, UI[bg], r, why, need))
     return problems
+
+
+UNSHIPPED = {"squirrel", "ghost_mouse", "void_mouse"}     # drawn, but no tier spawns them
+
+
+def characters() -> dict:
+    """name -> (body, accent) for every character on the field: the enemies that ship, the bosses, the player."""
+    out = {"enemy " + k: v for k, v in ENEMIES.items() if k not in UNSHIPPED}
+    out.update({"boss " + k: v for k, v in BOSSES.items()})
+    out["the cat"] = (CAT_BODY, CAT_ACCENT)
+    out["the kitten"] = (PLAYER["kitten_body"], PLAYER["kitten_accent"])
+    return out
+
+
+def unique_problems() -> list[str]:
+    bad = []
+    chars = characters()
+    names = sorted(chars)
+    # The cat's pale belly is the largest colour on the armoured stages (2, 3): a player colour too. The tint is
+    # sweet_shapes.tint()'s (body 60 % toward its cream), written out here so palette.py imports nothing.
+    belly = mix(CAT_BODY, "#FBF7EC", 0.60)
+    bodies = [(n, chars[n][0]) for n in names] + [("the cat's stripes", CAT_ACCENT), ("the cat's belly", belly)]
+    for i in range(len(bodies)):
+        for j in range(i + 1, len(bodies)):
+            d = distance(bodies[i][1], bodies[j][1])
+            if d < UNIQUE_MIN:
+                bad.append("SAME SHADE: %s %s and %s %s are %.1f apart (min %.0f)"
+                           % (bodies[i][0], bodies[i][1], bodies[j][0], bodies[j][1], d, UNIQUE_MIN))
+    for n in names:
+        if n == "the cat":
+            continue
+        acc = chars[n][1]
+        others = [(m, chars[m][0]) for m in names if m != n] + [(m + "'s accent", chars[m][1]) for m in names
+                                                                if m not in (n, "the cat")] + [("the cat's stripes", CAT_ACCENT)]
+        for m, c in others:
+            d = distance(acc, c)
+            if d < ACCENT_MIN:
+                bad.append("SAME SHADE: %s's accent %s and %s %s are %.1f apart (min %.0f)" % (n, acc, m, c, d, ACCENT_MIN))
+    return bad
 
 
 def _luminance(hex_colour: str) -> float:
@@ -650,7 +720,7 @@ def as_dict():
         "enemies": dict((k, {"body": v[0], "accent": v[1]}) for k, v in ENEMIES.items()),
         "bosses": dict((k, {"body": v[0], "accent": v[1]}) for k, v in BOSSES.items()),
         "backdrops": BACKDROPS,
-        "ui": UI, "sky": SKY, "materials": MATERIALS,
+        "ui": UI, "sky": SKY, "materials": MATERIALS, "props": PROPS, "gear": GEAR,
         "plum": PLUM,
     }
 
@@ -807,7 +877,7 @@ def markdown() -> str:
     L.append(row("---", "---", "---", "---"))
     why = {"cat_body": "V66 warm grey: the one mid-value body, clears both registers",
            "cat_accent": "dark face - the only near-black fill in the cast",
-           "cat_nose": "coral header", "kitten_body": "cream face", "kitten_accent": "coral header",
+           "cat_nose": "coral header", "kitten_body": "tan, its own", "kitten_accent": "tan shaded",
            "unicorn_body": "grey face"}
     for k, v in PLAYER.items():
         L.append(row(k, "`%s`" % v, hs(v), why[k]))

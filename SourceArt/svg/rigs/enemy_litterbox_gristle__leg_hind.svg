@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_litterbox_gristle" data-layer="leg_hind" data-order="-2" data-pivot="95.99 98.86" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="86.8,106.1 89.7,115.4 92.3,119.9 96.7,122.6 102.0,122.7 106.5,120.2 109.2,115.7 109.3,110.5 107.5,101.0 104.8,96.1 100.1,93.3 94.6,93.2 89.7,95.9 86.9,100.6" fill="#2A1A33" stroke="none"/>
+<ellipse cx="101.9" cy="114.1" rx="14.2" ry="8.9" fill="#2A1A33" stroke="none"/>
+<polygon points="90.3,105.3 93.3,114.5 94.9,117.4 97.7,119.1 101.1,119.2 104.0,117.6 105.7,114.7 105.8,111.4 104.0,101.8 102.2,98.7 99.1,96.8 95.5,96.7 92.3,98.5 90.4,101.6" fill="#CCAD45" stroke="none"/>
+<ellipse cx="101.9" cy="114.1" rx="10.6" ry="5.3" fill="#CCAD45" stroke="none"/>
+</g>
+</svg>

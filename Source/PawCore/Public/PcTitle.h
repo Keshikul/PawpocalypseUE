@@ -12,8 +12,20 @@ namespace Pc
 {
 	struct PcProgress;
 
+	// What the title says about the active slot's load in place of the counts (review CR2: the load's outcome reaches the
+	// player; F47, a Godot fault the port fixes, D16). Port-only: Godot has no newer-build refusal and ignored an unreadable
+	// slot.
+	enum class PcTitleNotice : uint8_t
+	{
+		None,
+		NewerBuild, // the active slot is a newer build's: Continue is off (nothing plays over it, nothing writes it)
+		Unreadable, // the active slot and its backup do not read: Continue opens the slots, never a fresh game over it
+		FromBackup, // the game was loaded from the slot's backup: said once; Continue plays it
+	};
+
 	// _refresh(): Continue needs a save on disk or progress in memory; Load needs a save. The status line is "Save found -
-	// {n} Reawaken(s), {mice} mice caught." (the game IN MEMORY's counts, whichever slot holds it) or "No save yet".
+	// {n} Reawaken(s), {mice} mice caught." (the game IN MEMORY's counts, whichever slot holds it) or "No save yet"; a
+	// notice (above) takes its place.
 	struct PcTitleMenu
 	{
 		bool bContinue = false;
@@ -21,8 +33,10 @@ namespace Pc
 		bool bSaveFound = false;
 		int64_t Reawakens = 0;
 		int64_t Kills = 0;
+		PcTitleNotice Notice = PcTitleNotice::None; // shown instead of the counts when not None
+		bool bContinueOpensSlots = false;           // Continue opens the slot screen instead of playing
 	};
-	PAWCORE_API PcTitleMenu TitleMenu(bool bAnySlotOnDisk, const PcProgress& P);
+	PAWCORE_API PcTitleMenu TitleMenu(bool bAnySlotOnDisk, const PcProgress& P, PcTitleNotice Notice = PcTitleNotice::None);
 
 	// PauseMenu.format_duration(): "{h}h {m}m" (m two digits), "{m}m {s}s" (s two digits), or "{s}s"; negative is 0.
 	enum class PcClockForm : uint8_t { HoursMinutes, MinutesSeconds, Seconds };

@@ -105,12 +105,19 @@ public:
 	// An effects band, this frame (an empty canvas clears it). The canvas's Z is the world Z of each vertex.
 	void SetFx(EPawFxBand Band, const FPawFxCanvas& Canvas, UMaterialInterface* FxMaterial);
 	int32 FxTriangles(EPawFxBand Band) const { return FxTris[static_cast<int32>(Band)]; }
+	// How many times a band's mesh section was cleared or created (the tests): each one rebuilds the mesh's collision body and
+	// its scene proxy (UProceduralMeshComponent: UpdateCollision + MarkRenderStateDirty).
+	int32 FxSectionRebuilds() const { return FxRebuilds; }
 	// The world Z of the Ground and Under bands (between the floor's props and the bodies).
 	static constexpr double GroundFxZ = 15.0;
 	static constexpr double UnderFxZ = 25.0;
 	// The world Z over every sprite (Godot's z 45-52 effects). Not above 300: the camera's automatic ortho planes clip Z 400
 	// (APawRealmView's constructor).
 	static constexpr double TopFxZ = 300.0;
+	// The mice's draw places (z 0) that get room in depth, MiceStep world units each (BodyZ): a mouse's place is 1 + its pool
+	// slot, so this must stay over max_live_enemies + 1 (Pawpocalypse.Realm checks it against the data).
+	static constexpr double MicePlaces = 400.0;
+	static constexpr double MiceStep = 0.4;
 	void EndFrame();
 
 	// What the last EndFrame drew in a layer, and the pool behind it (tests, the debug HUD, the bench).
@@ -159,6 +166,8 @@ private:
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<UProceduralMeshComponent>> FxMeshes;
 	int32 FxTris[static_cast<int32>(EPawFxBand::Count)] = {};
+	int32 FxRebuilds = 0;
+	bool FxFull[static_cast<int32>(EPawFxBand::Count)] = {}; // a band's mesh holds a section
 	int32 FillTriangles = 0;
 	double FillViewW = 0.0, FillViewH = 0.0;
 

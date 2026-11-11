@@ -1,6 +1,8 @@
 # Phase 6 slice 6: the Unicorn ceremony, the Reawaken banner, Boba, the tutorial (plan, 2026-11-07)
 
-**Status (2026-11-07, HANDOFF-LOG (63)): 6a DONE; next 6b.**
+**Status (2026-11-10): 6a DONE (HANDOFF-LOG (63)). 6b-6d wait for the restyle** (designer, 2026-11-07: restyle first;
+`WORKLIST-RESTYLE-2026-11-07.md`); they are built in the port's own look after R7, their rules and timing still exact
+against Godot. The surveys below are of the Godot repo on 2026-11-07: re-read the scripts before each slice.
 
 Surveyed 2026-11-07 (HANDOFF-LOG (63)) from the Godot repo as it is today: `scripts/systems/unicorn_ceremony.gd` (242 lines),
 `scripts/autoload/boba_cameo.gd` (367), `scripts/systems/tutorial.gd` (561) and Godot's own gate `ci/check_tutorial.gd` (503),

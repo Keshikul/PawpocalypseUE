@@ -239,8 +239,9 @@ namespace
 		std::map<std::string, int> Lines;
 		int PadColumnPinned = 0, PadColumnDetected = 0, PadColumnDefault = 0;
 		int SliderMovesStill = 0;
-		int StaleColumn = 0;
-		int TimeoutAtZero = 0; // the clock landing exactly on 0 (Godot: <= 0 gives up) // the controller column drawn from the last sync, not the pad detected since (F37)
+		int StaleColumn = 0; // the controller column drawn from the last sync, not the pad detected since (0 since F37 is fixed)
+		int NewPad = 0;      // moves in which the pad detected changed (F37's case: the page redraws now)
+		int TimeoutAtZero = 0; // the clock landing exactly on 0 (Godot: <= 0 gives up)
 	};
 
 	FResult Run(const std::string& Path)
@@ -255,9 +256,11 @@ namespace
 		Pc::PcSettings S;
 		Pc::PcControlsState C;
 		// The page redraws (sync) only when told: a control setting changed, the prompt family changed, a cell started or
-		// stopped listening. The controller column keeps the family of the last sync (F37).
+		// stopped listening, and the pad detected changed (F37, a Godot fault the port does not copy, D16: Godot's page missed a
+		// new pad while the prompts were pinned, and kept the old pad's buttons; the fixture is made with the fix).
 		Pc::PcFamily SyncedColumn = Pc::PcFamily::Xbox;
 		std::string LastFamily;
+		std::string LastDetected;
 		while (std::getline(In, Line))
 		{
 			if (Line.empty() || Line[0] == '#')
@@ -417,6 +420,9 @@ namespace
 			}
 			bSync = bSync || V.at("family") != LastFamily;
 			LastFamily = V.at("family");
+			R.NewPad += Op != "start" && V.at("detected") != LastDetected ? 1 : 0;
+			bSync = bSync || V.at("detected") != LastDetected;
+			LastDetected = V.at("detected");
 			(void)CBefore;
 
 			// --- what the page shows ---
@@ -481,7 +487,7 @@ TEST_CASE("Controls: every move on the page matches the real controls_panel.gd")
 	for (const auto& O : R.Ops) { Ops += O.first + " " + std::to_string(O.second) + ", "; }
 	for (const auto& L : R.Lines) { Lines += L.first + ":" + std::to_string(L.second) + " "; }
 	MESSAGE("rows " << R.Rows << "; " << Ops << "lines " << Lines << "; controller column pinned " << R.PadColumnPinned
-		<< ", detected " << R.PadColumnDetected << ", Xbox by default " << R.PadColumnDefault << "; still slider moves " << R.SliderMovesStill << "; a stale controller column " << R.StaleColumn << "; timeouts exactly at 0 " << R.TimeoutAtZero);
+		<< ", detected " << R.PadColumnDetected << ", Xbox by default " << R.PadColumnDefault << "; still slider moves " << R.SliderMovesStill << "; a stale controller column " << R.StaleColumn << "; a new pad " << R.NewPad << "; timeouts exactly at 0 " << R.TimeoutAtZero);
 	CHECK(R.Rows == 500);
 	// Every take of an event, every line, every reason the controller column has.
 	for (int T = 0; T <= 4; ++T)
@@ -496,7 +502,8 @@ TEST_CASE("Controls: every move on the page matches the real controls_panel.gd")
 	CHECK(R.PadColumnDetected > 100);
 	CHECK(R.PadColumnDefault > 20);
 	CHECK(R.SliderMovesStill > 3);
-	CHECK(R.StaleColumn > 5);
+	CHECK(R.StaleColumn == 0); // F37 fixed (D16)
+	CHECK(R.NewPad > 5);       // and its case covered
 	CHECK(R.TimeoutAtZero > 3);
 }
 

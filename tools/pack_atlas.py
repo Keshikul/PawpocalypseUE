@@ -23,7 +23,11 @@ read the sprite, never a neighbour (docs/04 §9).
 
 field.csv: id (the art's stem: enemy_backyard_mouse, player_cat_stage_4, ground_shadow, ...), page, x, y, w, h (the cell in
 texels, without the extrusion), u0, v0, u1, v1, native_w, native_h (the size Godot's texture had: the SVG's own width and
-height, or the PNG's; the game fits some art by it).
+height, or the PNG's; the game fits some art by it), then the rig (R5, 2026-11-09; empty for a sprite that is not a rig
+layer): rig_of (the drawing it is a layer of), rig_order (back layers < 0, the body 0, front layers > 0), pivot_u, pivot_v
+(where it turns, 0-1 across the square), motion (swing | lift), amp (degrees, clockwise on screen), hz, phase (0-1).
+RIG LAYERS: an enemy drawing with SourceArt/svg/rigs/<stem>__<layer>.svg (sweet_anatomy.limb; make_sweet_art writes them)
+packs every layer at the drawing's own size; the rig is read from the layer's data- attributes.
 
 --check: packs again into build/ and fails if a page or the manifest differs.
 """
@@ -112,8 +116,36 @@ def sprites() -> dict:
         if not src.exists():
             raise SystemExit("pack_atlas: %s is missing (py tools/art/build_art.py)" % src)
         out[s] = (src, ceil4(2.0 * px))
+        if s.startswith("enemy_"):
+            for layer in sorted((SVG / "rigs").glob(s + "__*.svg")):
+                if rig(layer)["rig-of"] == s:
+                    out[layer.stem] = (layer, ceil4(2.0 * px))
     out["ground_shadow"] = (SVG / "props" / "ground_shadow.png", None)
     return out
+
+
+RIG_COLUMNS = ["rig_of", "rig_order", "pivot_u", "pivot_v", "motion", "amp", "hz", "phase"]
+
+
+def rig(path: Path) -> dict:
+    """A rig layer's data- attributes (make_sweet_art.write_rig); {} for any other file."""
+    import re
+    if path.suffix != ".svg":
+        return {}
+    text = path.read_text(encoding="utf-8")
+    return dict(re.findall(r'data-([a-z-]+)="([^"]*)"', text[:text.index(">")]))
+
+
+def rig_row(path: Path) -> list:
+    a = rig(path)
+    if not a:
+        return [""] * len(RIG_COLUMNS)
+    if a["layer"] == "body":
+        return [a["rig-of"], a["order"], "", "", "", "", "", ""]
+    import re
+    view = float(re.search(r'viewBox="0 0 ([\d.]+) ', path.read_text(encoding="utf-8")[:600]).group(1))   # the grammar's box
+    px, py = (float(v) for v in a["pivot"].split())
+    return [a["rig-of"], a["order"], "%.6f" % (px / view), "%.6f" % (py / view), a["motion"], a["amp"], a["hz"], a["phase"]]
 
 
 def raster(src: Path, size):
@@ -172,12 +204,12 @@ def build(out: Path) -> int:
         img.save(out / ("field_%d.png" % i), optimize=False)
     with open(out / "field.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f, lineterminator="\n")
-        w.writerow(["id", "page", "x", "y", "w", "h", "u0", "v0", "u1", "v1", "native_w", "native_h"])
+        w.writerow(["id", "page", "x", "y", "w", "h", "u0", "v0", "u1", "v1", "native_w", "native_h"] + RIG_COLUMNS)
         for n in sorted(pos):
             p, x, y = pos[n]
             iw, ih = images[n].size
             w.writerow([n, p, x, y, iw, ih, "%.8f" % (x / PAGE), "%.8f" % (y / PAGE), "%.8f" % ((x + iw) / PAGE),
-                "%.8f" % ((y + ih) / PAGE), "%g" % native(spr[n][0])[0], "%g" % native(spr[n][0])[1]])
+                "%.8f" % ((y + ih) / PAGE), "%g" % native(spr[n][0])[0], "%g" % native(spr[n][0])[1]] + rig_row(spr[n][0]))
     texels = sum(i.width * i.height for i in images.values())
     print("pack_atlas: %d sprites, %d pages of %d (%.0f%% filled)" % (len(images), len(pages), PAGE,
         100.0 * texels / (len(pages) * PAGE * PAGE)))

@@ -243,7 +243,7 @@ TEST_CASE("Pause: every press matches the real pause_menu.tscn")
 {
 	const FResult R = RunPauseFixture(DataDir() + "/../Source/PawCore/Tests/Data/pause_godot.tsv");
 	MESSAGE("rows " << R.Rows << ", presses " << R.Presses << ", armed " << R.Armed << ", saved " << R.Saved << " (overwrites "
-		<< R.Overwrote << "), quit armed " << R.QuitArmed << ", main page with an overwrite armed (F34) " << R.StaleArm);
+		<< R.Overwrote << "), quit armed " << R.QuitArmed << ", back to the main page with an overwrite armed (F34: disarmed there, D16) " << R.StaleArm);
 	CHECK(R.Rows == 600);
 	CHECK(R.Armed > 200);
 	CHECK(R.Saved > 200);

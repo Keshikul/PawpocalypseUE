@@ -8,7 +8,7 @@
 
 namespace Pc
 {
-	PcTitleMenu TitleMenu(bool bAnySlotOnDisk, const PcProgress& P)
+	PcTitleMenu TitleMenu(bool bAnySlotOnDisk, const PcProgress& P, PcTitleNotice Notice)
 	{
 		PcTitleMenu Out;
 		const bool bProgress = P.LifetimeCatnipEver > 0.0 || P.ReawakenCount > 0;
@@ -17,6 +17,19 @@ namespace Pc
 		Out.bSaveFound = bAnySlotOnDisk;
 		Out.Reawakens = P.ReawakenCount;
 		Out.Kills = P.LifetimeKills;
+		Out.Notice = Notice;
+		if (Notice == PcTitleNotice::NewerBuild)
+		{
+			// The game in memory is not that slot's, and every write to the slot is refused: playing it would be a session
+			// that is never saved (CR2).
+			Out.bContinue = false;
+		}
+		else if (Notice == PcTitleNotice::Unreadable)
+		{
+			// F47: memory holds a fresh game, not the slot's; the player chooses (that slot fresh, or another).
+			Out.bContinue = true;
+			Out.bContinueOpensSlots = true;
+		}
 		return Out;
 	}
 

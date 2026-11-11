@@ -1,10 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
 <g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<rect x="28.9" y="48.9" width="70.2" height="70.2" rx="9.1" fill="#2A1A33" stroke="none"/>
-<rect x="22.9" y="36.9" width="82.2" height="22.2" rx="8.1" fill="#2A1A33" stroke="none"/>
-<rect x="32.0" y="52.0" width="64.0" height="64.0" rx="6.0" fill="#6B7485" stroke="none"/>
-<rect x="26.0" y="40.0" width="76.0" height="16.0" rx="5.0" fill="#6B7485" stroke="none"/>
-<rect x="26.0" y="44.5" width="76.0" height="7.0" rx="3.0" fill="#595B6E" stroke="none"/>
-<rect x="37.0" y="80.0" width="54.0" height="8.0" rx="3.0" fill="#595B6E" stroke="none"/>
+<polygon points="26.7,46.8 101.3,46.8 95.0,119.5 33.0,119.5" fill="#2A1A33" stroke="none"/>
+<rect x="19.9" y="36.9" width="88.2" height="18.2" rx="8.1" fill="#2A1A33" stroke="none"/>
+<polygon points="30.0,50.0 98.0,50.0 92.0,116.0 36.0,116.0" fill="#6B7485" stroke="none"/>
+<rect x="23.0" y="40.0" width="82.0" height="12.0" rx="5.0" fill="#6B7485" stroke="none"/>
+<polyline points="44.0,58.0 42.8,110.0" fill="none" stroke="#2A1A33" stroke-width="2.2"/>
+<polyline points="56.0,58.0 55.5,110.0" fill="none" stroke="#2A1A33" stroke-width="2.2"/>
+<polyline points="72.0,58.0 72.5,110.0" fill="none" stroke="#2A1A33" stroke-width="2.2"/>
+<polyline points="84.0,58.0 85.2,110.0" fill="none" stroke="#2A1A33" stroke-width="2.2"/>
+<rect x="23.0" y="43.5" width="82.0" height="5.0" rx="2.0" fill="#595B6E" stroke="none"/>
+<polyline points="30.0,52.0 98.0,52.0" fill="none" stroke="#2A1A33" stroke-width="2.2"/>
+<rect x="49.9" y="28.9" width="28.2" height="14.2" rx="7.1" fill="#2A1A33" stroke="none"/>
+<rect x="53.0" y="32.0" width="22.0" height="8.0" rx="4.0" fill="#6B7485" stroke="none"/>
+<polygon points="36.0,72.0 42.0,68.0 44.0,80.0 38.0,84.0" fill="#5F6476" stroke="none"/>
+<polygon points="84.0,80.0 83.9,84.0 83.6,87.8 83.1,91.2 82.5,94.1 81.7,96.2 80.9,97.5 80.0,98.0 79.1,97.5 78.3,96.2 77.5,94.1 76.9,91.2 76.4,87.8 76.1,84.0 76.0,80.0 76.1,76.0 76.4,72.2 76.9,68.8 77.5,65.9 78.3,63.8 79.1,62.5 80.0,62.0 80.9,62.5 81.7,63.8 82.5,65.9 83.1,68.8 83.6,72.2 83.9,76.0" fill="#9DA2A9" stroke="none"/>
 </g>
 </svg>

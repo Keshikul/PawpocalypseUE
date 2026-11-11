@@ -11,7 +11,8 @@
   generated     PcEnums.h and PcDataRows.h are exactly what tools/gen_pc_enums.py / gen_pc_data.py write (`--check`), the
                 game's Data/PawDataRows.h what tools/gen_paw_rows.py writes, UI/PawTokens.h what tools/gen_paw_tokens.py
                 writes (the Godot palette), ST_Data.csv what tools/gen_data_strings.py writes (the data names) and
-                ST_Tree.csv / PcTreeWording.h / PawTreeTables.h what tools/gen_tree_tables.py writes (skill_tree_ui.gd).
+                ST_Tree.csv / PcTreeWording.h / PawTreeTables.h what tools/gen_tree_tables.py writes (skill_tree_ui.gd),
+                Realm/PawFxLook.h what tools/gen_fx_look.py writes (the field effects' look, restyle D3).
   ui-rules      the game's UI code (Source/Pawpocalypse/UI, tests excepted) holds no colour value but the generated
                 PawTokens.h (no FLinearColor(/FColor( literal, no FromHex/FromSRGBColor), no hard-coded player text
                 (FText::FromString, LOCTEXT, NSLOCTEXT; AsCultureInvariant only in PawText.cpp, for numbers); every string-
@@ -128,7 +129,8 @@ def check_generated():
     # The game's DataTable row structs, from the Data/*.csv headers (tools/gen_paw_rows.py).
     for script, args in (("gen_paw_rows.py", ["--check"]), ("gen_paw_tokens.py", ["--check"]),
                          ("gen_data_strings.py", ["--check"]), ("gen_tree_tables.py", ["--godot", GODOT, "--check"]),
-                         ("gen_input_defaults.py", ["--check"]), ("fonts.py", ["--check"])):
+                         ("gen_input_defaults.py", ["--check"]), ("fonts.py", ["--check"]),
+                         ("gen_fx_look.py", ["--check"])):
         r = subprocess.run([sys.executable, str(ROOT / "tools" / script)] + args, capture_output=True, text=True)
         if r.returncode != 0:
             bad.append("%s --check: %s" % (script, (r.stdout + r.stderr).strip()[-300:]))
@@ -257,6 +259,7 @@ def self_test():
         tokens.write_bytes(original)
 
     for planted in (UI / "PawTreeTables.h", UI / "PawFontSpec.h", CORE / "Public" / "PcTreeWording.h",
+                    ROOT / "Source" / "Pawpocalypse" / "Realm" / "PawFxLook.h",
                     ROOT / "Content" / "Pawpocalypse" / "Localization" / "Strings" / "ST_Tree.csv"):
         original = planted.read_bytes()
         try:

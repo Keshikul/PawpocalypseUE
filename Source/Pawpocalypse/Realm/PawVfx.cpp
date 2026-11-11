@@ -9,6 +9,7 @@
 #include "PcProgress.h"
 #include "PcStats.h"
 #include "Realm/PawFieldLook.h"
+#include "Realm/PawFxLook.h"
 #include "Realm/PawRealmSim.h"
 #include "Render/PawSpriteRenderer.h"
 
@@ -55,17 +56,17 @@ namespace
 	constexpr int32 ClawCount = 3;
 	constexpr double ClawLength = 26.0, ClawGap = 9.0, ClawWidth = 4.5, ClawAt = 0.35;
 	const FColorG SwipeColor(0.996f, 0.965f, 0.918f, 1.0f);
-	const FColorG CritColor(1.0f, 0.42f, 0.72f, 0.95f);
+	// Restyle D3 (2026-11-09): crits and earned crits in Butter (PawFxLook::Crit), not Godot's pinks (1, 0.42, 0.72, 0.95)
+	// and (1, 0.62, 0.86): pink is the reward colour. The widths are Godot's: an earned crit stays the widest.
 	constexpr double CritWidthScale = 1.5;
-	const FColorG EarnedColor(1.0f, 0.62f, 0.86f, 1.0f);
 	constexpr double EarnedWidthScale = 2.0;
 	// vfx_beam.gd
 	constexpr double TipFraction = 0.28, MinLengthPx = 1.0;
 	// aura_ring.gd
 	constexpr int32 AuraSegments = 64;
-	constexpr double AuraRingWidth = 2.5;
-	const FColorG AuraRingColor(0.965f, 0.761f, 0.361f, 0.72f);
-	const FColorG AuraFillColor(0.965f, 0.761f, 0.361f, 0.14f);
+	// Restyle D3 (2026-11-09): the plain aura is PawFxLook's (a white lift, a Bone ring with a Plum edge), not Godot's gold
+	// ring (0.965, 0.761, 0.361, 0.72) 2.5 px and its 14 % fill. The Unicorn's rainbow keeps Godot's look.
+	constexpr double RainbowRingWidth = 2.5;
 	constexpr double RainbowHueCycle = 0.12, RainbowSaturation = 0.52, RainbowRingAlpha = 0.68, RainbowFillAlpha = 0.14;
 	constexpr double RainbowArcSpan = 0.55;
 	constexpr int32 RainbowArcCount = 12;
@@ -114,6 +115,41 @@ namespace
 		C.A = static_cast<float>(C.A * K);
 		return C;
 	}
+	// PawFxLook's strike paw at Tip, the drawing's up (its toes) turned to Motion, at opacity Alpha.
+	void DrawStrikePaw(FPawFxCanvas& Out, const FVector2D& Tip, const FVector2D& Motion, double Alpha)
+	{
+		using namespace PawFxLook;
+		const FVector2D Up = Motion.GetSafeNormal();
+		if (Alpha <= 0.0 || Up.IsNearlyZero())
+		{
+			return;
+		}
+		// The rotation taking (0, -1) to Up (screen y down): x' = c x - s y, y' = s x + c y with s = Up.X, c = -Up.Y.
+		const double Sn = Up.X, Cs = -Up.Y;
+		const double K = StrikePawPx / StrikePawBox, Half = StrikePawBox * 0.5;
+		TArray<FVector2D, TInlineAllocator<32>> Points;
+		for (const FStrikePawPart& Part : StrikePawParts)
+		{
+			Points.Reset();
+			for (int32 I = 0; I < Part.Count; ++I)
+			{
+				const double X = (StrikePawPoints[Part.First + I][0] - Half) * K, Y = (StrikePawPoints[Part.First + I][1] - Half) * K;
+				Points.Add(Tip + FVector2D(Cs * X - Sn * Y, Sn * X + Cs * Y));
+			}
+			const FColorG Colour(Part.R / 255.0f, Part.G / 255.0f, Part.B / 255.0f, static_cast<float>(Alpha));
+			if (Part.bOutline)
+			{
+				const FVector2D Close = Points[0]; // a copy: TArray refuses to add one of its own elements
+				Points.Add(Close);
+				Out.Polyline(Points, Colour, StrikePawStroke * K);
+			}
+			else
+			{
+				Out.Polygon(Points, Colour);
+			}
+		}
+	}
+
 	FVector2D Rotate(const FVector2D& V, double A)
 	{
 		const double C = FMath::Cos(A), S = FMath::Sin(A);
@@ -374,7 +410,7 @@ void FPawVfx::OnFrameEvents(const FContext& C)
 		case K::Pounce:
 		{
 			const bool bAuto = (E.Flags & Flag::Auto) != 0;
-			// Player.lock_after_pounce: the Cone of Shame's ring, as long as the root (a child of the cat: F39).
+			// Player.lock_after_pounce: the Cone of Shame's ring, as long as the root, round the cat (F39 fixed: D16).
 			const double Lock = Pc::JobPounceLockSec(D, P);
 			if (Lock > 0.0)
 			{
@@ -651,7 +687,9 @@ void FPawVfx::DrawEffect(const FFx& E, const FContext& C, FPawFxCanvas& Out) con
 		{
 			return;
 		}
-		const FVector2D Centre = E.bA ? C.Cat + E.At : E.At; // a child of the cat keeps its spawn point as an offset (F39)
+		// A ring on the cat is drawn round the cat where it is now: Godot's added its spawn point to the cat's position, so it
+		// drew at twice the cat's position (F39, a Godot fault the port does not copy: D16).
+		const FVector2D Centre = E.bA ? C.Cat : E.At;
 		Out.Arc(Centre, R, 0.0, Tau, BurstSegments, Scaled(E.Color, 1.0 - Ease), E.Width);
 		return;
 	}
@@ -695,10 +733,11 @@ void FPawVfx::DrawEffect(const FFx& E, const FContext& C, FPawFxCanvas& Out) con
 			return;
 		}
 		auto World = [&E](const FVector2D& Local) { return E.At + Rotate(Local, E.Angle); };
-		const FColorG Stroke = E.bB ? EarnedColor : E.bA ? CritColor : SwipeColor;
+		const FColorG Stroke = E.bA ? PawFxLook::Crit : SwipeColor;
 		const double Width = E.bB ? SwipeWidth * EarnedWidthScale : SwipeWidth * (E.bA ? CritWidthScale : 1.0);
 		const double Lead = -ArcSpan * 0.5 + ArcSpan * Sweep;
-		const double Span = ArcSpan * 0.55;
+		// Restyle D3: the arc is the trail of the paw at its tip, shorter than Godot's (PawFxLook::StrikeArcTrail).
+		const double Span = ArcSpan * 0.55 * PawFxLook::StrikeArcTrail;
 		const double Start = Lead - Span;
 		TArray<FVector2D, TInlineAllocator<21>> Points, Echo;
 		for (int32 I = 0; I <= SwipeSegments; ++I)
@@ -730,6 +769,9 @@ void FPawVfx::DrawEffect(const FFx& E, const FContext& C, FPawFxCanvas& Out) con
 			}
 		}
 		Out.Polyline(Echo, Scaled(Stroke, Alpha * 0.45), Width * 0.55);
+		// Restyle D3: the clutching paw (ui_cursor_paw_closed's drawing) at the arc's tip, its toes along the motion, on top.
+		DrawStrikePaw(Out, World(FVector2D(FMath::Cos(Lead), FMath::Sin(Lead)) * E.Radius),
+			Rotate(FVector2D(-FMath::Sin(Lead), FMath::Cos(Lead)), E.Angle), FMath::Min(1.0, Alpha * PawFxLook::StrikePawFadeGain));
 		return;
 	}
 	case EKind::Beam:
@@ -880,13 +922,15 @@ void FPawVfx::Draw(const FContext& C, FPawFxCanvas& Ground, FPawFxCanvas& Under,
 			{
 				const double Hue = Fposmod(BaseHue + static_cast<double>(I) / RainbowArcCount * RainbowArcSpan, 1.0);
 				Over.Arc(C.Cat, AuraRadius, Step * I, Step * I + Step * 1.05, FMath::Max(4, AuraSegments / RainbowArcCount),
-					WithAlpha(FPawFxCanvas::FromHsv(Hue, RainbowSaturation, 1.0), RainbowRingAlpha), AuraRingWidth);
+					WithAlpha(FPawFxCanvas::FromHsv(Hue, RainbowSaturation, 1.0), RainbowRingAlpha), RainbowRingWidth);
 			}
 		}
 		else
 		{
-			Over.Circle(C.Cat, AuraRadius, AuraFillColor);
-			Over.Arc(C.Cat, AuraRadius, 0.0, Tau, AuraSegments, AuraRingColor, AuraRingWidth);
+			Over.Circle(C.Cat, AuraRadius, PawFxLook::AuraLift);
+			Over.Arc(C.Cat, AuraRadius, 0.0, Tau, AuraSegments, WithAlpha(InkColor, PawFxLook::AuraInkAlpha),
+				PawFxLook::AuraRingWidth + PawFxLook::AuraInkEdge * 2.0);
+			Over.Arc(C.Cat, AuraRadius, 0.0, Tau, AuraSegments, PawFxLook::AuraRing, PawFxLook::AuraRingWidth);
 		}
 	}
 	// The golden sparkles (z 2, children of the mice: after the cat in the tree), then the slams (z 2, spawned later still).

@@ -24,6 +24,9 @@
 
 #include "PcSettings.h"
 
+struct FDisplayMetrics;
+struct FPlatformRect;
+
 #include "PawSettingsSubsystem.generated.h"
 
 class IPawSaveStorage;
@@ -54,7 +57,7 @@ public:
 	const Pc::PcSettings& Get() const { return Settings; }
 	// EffectBudget(): 0 with effects off, else by quality (0.35 / 0.70 / 1).
 	double EffectBudget() const { return Pc::EffectBudget(Settings); }
-	bool IsDockOnLeft() const { return Settings.DockSide != "right"; }
+	bool IsDockOnLeft() const { return Settings.DockSide == "left"; }
 
 	// The setters (settings_manager.gd set_*): store with Godot's clamp, write the file, apply.
 	void SetMasterVolume(double V);
@@ -97,6 +100,10 @@ public:
 	// Whether the video settings may reach the engine: never in the editor (the designer's own editor), never in a run with
 	// no settings storage (the bench, the tour: the command line rules), and only with a game viewport.
 	static bool MayApplyToEngine(bool bEditor, bool bStored, bool bViewport);
+	// The window's monitor (Godot's DisplayServer.window_get_current_screen()): its whole rectangle (fullscreen's size) and its
+	// work area (where a window is fitted and centred). True when the window's centre is on a known monitor.
+	static bool WindowMonitor(const FDisplayMetrics& Metrics, const FVector2D& WindowCentre, FPlatformRect& OutDisplay,
+		FPlatformRect& OutWork);
 	int32 GetWrites() const { return Writes; }
 	bool IsStored() const { return Storage.IsValid(); }
 

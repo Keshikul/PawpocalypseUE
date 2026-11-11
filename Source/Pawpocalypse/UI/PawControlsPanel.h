@@ -153,5 +153,6 @@ private:
 	bool bSyncing = false;
 	FTSTicker::FDelegateHandle Ticker;
 	FDelegateHandle FamilyHandle;
+	FDelegateHandle DetectedHandle;
 	FDelegateHandle ControlsHandle;
 };

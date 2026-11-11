@@ -138,6 +138,78 @@ TEST_CASE("Boss: summoning buys the bait all-or-nothing; refused, nothing is spe
 	CHECK(A.P.BaitSpentByBiome["tier_3"] == A.B.BaitRequired);
 }
 
+TEST_CASE("Boss: a save during the fight is the save from before the summon (F36, D16); a fight that ended keeps its cost")
+{
+	const Pc::PcGameData& D = Game();
+	// The file a save would write, from a copy (CaptureSave banks the live kills into the progress it is handed).
+	auto File = [&D](const Pc::PcProgress& P, const Pc::PcSummonPayment* FightUp)
+	{
+		Pc::PcProgress Copy = P;
+		return Pc::WriteSaveFile(Pc::CaptureSave(D, Copy, Pc::PcSlotExtras(), 1.0, FightUp), "test");
+	};
+
+	Fight A(D);
+	CHECK(Pc::FightPayment(A.F) == nullptr);
+	const std::string Before = File(A.P, nullptr);
+	const double Catnip = A.P.Catnip;
+	REQUIRE(Pc::SummonFieldBoss(A.F, D, A.P));
+	const Pc::PcSummonPayment* Paid = Pc::FightPayment(A.F);
+	REQUIRE(Paid != nullptr);
+	CHECK(Paid->BiomeId == "tier_3");
+	CHECK(Paid->Bait == A.B.BaitRequired);
+	CHECK(Paid->Catnip == A.B.BaitCostCatnip);
+	CHECK(A.B.BaitRequired > 0); // both halves of the payment are seen
+	CHECK(A.B.BaitCostCatnip > 0.0);
+	// The game in memory paid and fights on; the file is the one from before the summon, byte for byte.
+	CHECK(A.P.Catnip == Catnip - A.B.BaitCostCatnip);
+	CHECK(A.P.BaitSpentByBiome["tier_3"] == A.B.BaitRequired);
+	CHECK(File(A.P, Paid) == Before);
+	CHECK(File(A.P, nullptr) != Before); // without the refund the file carries the spend (Godot's way)
+	Pc::PcProgress Copy = A.P;
+	const Pc::PcSaveState S = Pc::CaptureSave(D, Copy, Pc::PcSlotExtras(), 1.0, Paid);
+	CHECK(S.Catnip == Catnip);
+	CHECK(S.BaitSpent.count("tier_3") == 0);
+
+	// Out of time, it leaves with the bait: the cost of losing stands, and a save says so.
+	A.F.AddTimer = 1e9;
+	A.Unshield();
+	A.Cat(A.F.BossX, A.F.BossY);
+	A.Steps(1);
+	A.Cat(-5000.0, -5000.0);
+	A.Steps(static_cast<int>(std::ceil(A.B.TimeLimitSec / Step)) + 2);
+	REQUIRE_FALSE(A.F.bBossUp);
+	CHECK(Pc::FightPayment(A.F) == nullptr);
+
+	// A second summon's payment is its own, not the two added up; a save taken after it keeps the first fight's cost.
+	const std::string AfterLoss = File(A.P, nullptr);
+	REQUIRE(Pc::SummonFieldBoss(A.F, D, A.P));
+	REQUIRE(Pc::FightPayment(A.F) != nullptr);
+	CHECK(Pc::FightPayment(A.F)->Bait == A.B.BaitRequired);
+	CHECK(File(A.P, Pc::FightPayment(A.F)) == AfterLoss);
+	// Won: the ledger records it, nothing is given back.
+	Pc::DamageFieldBoss(A.F, D, A.P, A.In, A.B.TotalHp * 2.0, 0.0);
+	CHECK_FALSE(A.F.bBossUp);
+	CHECK(Pc::FightPayment(A.F) == nullptr);
+	// Dismissed (a Reawaken): nothing is given back either.
+	Fight C(D);
+	REQUIRE(Pc::SummonFieldBoss(C.F, D, C.P));
+	Pc::DismissFieldBoss(C.F);
+	CHECK(Pc::FightPayment(C.F) == nullptr);
+
+	// AUDIT pays the summon in Catnip only (no Bait): the payment is what was taken, so all of it comes back.
+	Fight Au(D);
+	Au.P.BranchLevels["audit"] = 1;
+	REQUIRE(Pc::AuditCatnipMultiple(D, Au.P) > 0.0);
+	const std::string AuBefore = File(Au.P, nullptr);
+	const double AuCost = Pc::SummonCatnipCost(D, Au.P, Au.B);
+	REQUIRE(Pc::SummonFieldBoss(Au.F, D, Au.P));
+	REQUIRE(Pc::FightPayment(Au.F) != nullptr);
+	CHECK(Pc::FightPayment(Au.F)->Bait == 0);
+	CHECK(Pc::FightPayment(Au.F)->Catnip == AuCost);
+	CHECK(AuCost > Au.B.BaitCostCatnip);
+	CHECK(File(Au.P, Pc::FightPayment(Au.F)) == AuBefore);
+}
+
 TEST_CASE("Boss: its shield turns over on the phase's clock, and it relocates the instant its window opens")
 {
 	const Pc::PcGameData& D = Game();

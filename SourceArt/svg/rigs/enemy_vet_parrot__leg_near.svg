@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_vet_parrot" data-layer="leg_near" data-order="3" data-pivot="55.11 99.20" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.000" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polyline points="55.1,101.0 54.2,110.2" fill="none" stroke="#2A1A33" stroke-width="5.5"/>
+<polyline points="55.1,101.0 54.2,110.2" fill="none" stroke="#3E7944" stroke-width="3.3"/>
+<polyline points="54.2,110.2 47.8,113.9" fill="none" stroke="#2A1A33" stroke-width="2.0"/>
+<polyline points="54.2,110.2 51.9,113.9" fill="none" stroke="#2A1A33" stroke-width="2.0"/>
+</g>
+</svg>

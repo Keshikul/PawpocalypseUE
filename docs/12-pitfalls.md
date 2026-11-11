@@ -16,7 +16,7 @@
 | Overkill chaining would clear the board every frame | "never chains" test |
 | Stardust multiplier keyed to the balance made the tree a trap | Keyed to `stardust_granted_ever`; test buys a node and checks the multiplier did not fall |
 | A refused boss summon ate the bait | Test |
-| Boss timeout auto-travelled the player back into the fight | Timeout turns auto-travel off; test |
+| Boss timeout and travel (an old handoff line said the timeout sent the player back a biome and turned auto-travel off; Godot 4.7.1 does neither) | The port follows the code: the boss withdraws with its adds, the bait is spent, nothing else (`PcField` boss tests; doc 02 §4) |
 | A DPS-coupled spawner made density a property of the cat | Spawn rate test: Paw Damage 200 changes the rate by exactly nothing |
 | Kitten pool sized from the base cap: deep runs paid for invisible kittens | Pool-grows-to-owned test |
 | Three skill branches unbuyable for a day while every gate passed | Playthrough test buys through the real UI path; tree seating test both directions |
@@ -108,8 +108,8 @@
 | Tints and translucency a shade off | A Godot `modulate` multiplies sRGB values (2D, no HDR); Unreal multiplies linear | The linear tint is `m^2.2` (`PawLook::Modulate`); translucent blending stays linear (a known small difference, doc 04 §5.1) |
 | A ported Godot layout drifts by an ulp | Godot's `Vector2` / `Rect2` are float32, its script numbers double | Round to float exactly where Godot makes a Vector2 (`PcBackdrop`, the one L0 `FLOAT_IS_THE_SPEC` exception); the fixture compares to the float |
 | A replayed Godot random layout differs | A `RandomNumberGenerator` object's `randf()` takes two outputs in float32, unlike the global `randf()`; the GLOBAL `randf_range` is `randd()`: three outputs, in doubles (a shadow RNG drifted after one draw, 2026-11-06); seeds come from Godot's own `hash()` | `PcGodotRng`, `GodotHashString`, `GodotHashBiomeConfig`, proven on the `backdrop` fixture (KB Godot/03) |
-| An effect lands at twice its place | Godot: `global_position` set before `add_child` is a plain position; under a moved parent it doubles (F39) | Copy Godot until decided; measured in Godot itself |
-| One sound plays twice, layered | Godot plays it from a signal hookup AND from the code beside the emit; a zero interval lets both through (F40) | Copy Godot until decided (`Pawpocalypse.Audio.When` asserts the doubles) |
+| An effect lands at twice its place | Godot: `global_position` set before `add_child` is a plain position; under a moved parent it doubles (F39) | Fixed in the port (D16, 2026-11-11): the rings sit round the cat and follow it (`Pawpocalypse.Realm.Vfx.RingOnCat`); Godot itself still draws them at twice the cat's place (measured there) |
+| One sound plays twice, layered | Godot plays it from a signal hookup AND from the code beside the emit; a zero interval lets both through (F40) | Fixed in the port (D16, 2026-11-11): each sound plays once (`Pawpocalypse.Audio.When` asserts one of each); Godot still plays the five twice |
 | Effects (or any sprite) vanish above a certain height | The ortho camera's automatic clip planes cut world Z 400 with the camera at Z 1000; explicit planes clipped more (unexplained) | Keep every band in Z 0..300; `Pawpocalypse.Realm.Vfx.Canvas` asserts it (doc 04 §6) |
 | A test crashes the editor and the run says PASS | The runner counted completed tests only | `run_automation.py` fails on a started test without a result and on `=== Critical error: ===` |
 | An engine gate refuses: "an Unreal editor is running" | The previous gate's editor was still exiting | `run_automation.py` waits up to 30 s for this project's processes |
@@ -127,14 +127,18 @@
 | A Godot fixture run sits for half an hour and fails "did not finish" | A GDScript parse error in the fixture (e.g. `:=` on an untyped value) leaves headless Godot idle, never quitting | Run Godot once by hand on the scratch copy and read stdout (KB Godot/03) |
 | A probe subclass of a Godot `_draw()` node records nothing | The script's `draw_*` calls bind to the native methods; a subclass cannot intercept them | The fixture recompiles the script's own source with only its draw calls renamed to recorders (`tools/godot_fixtures/rainbow_fixture.gd`; KB Godot/03) |
 | A fixture of a node with `_process` does not reproduce | `_ready` turns processing on; a frame awaited before freezing it steps it by the wall clock | `set_process(false)` straight after `add_child`, no frame between (KB Godot/03) |
+| One layer of a rigged creature drew as a pure black silhouette (R5, 2026-11-09) | Masked layers a hair apart in depth, and then at the SAME depth: under the engine default `r.EarlyZPassOnlyMaterialMasking=1` the mask is applied only in the depth pre-pass, and the colour pass (depth EQUAL) paints a layer's transparent texels (RGB 0) over the other's | `r.EarlyZPassOnlyMaterialMasking=False` (`DefaultEngine.ini`; `Look.Atlas` asserts it) and room in depth for the mice's places (`UPawSpriteRenderer::BodyZ`; doc 04 §4) (HANDOFF-LOG (79), (80)) |
+| A rounded limb's end looked like a fan (designer, 2026-11-10) | Every tube's round cap was walked from the wrong edge, so the outline crossed itself into a bow-tie at each end | Fixed in `sweet_shapes._tube_pts`; `look_lint` rule `crossing` fails any polygon outline that crosses itself (the old caps gave 263) (HANDOFF-LOG (87)) |
+| Two rig layers sharing a depth overlap and fight | `sweet_anatomy.depths` lets layers that never touch share a depth; a pose can make them touch | `look_lint` rule `rig`: layers at one depth never overlap at any of 50 moments of the 2.5 s loop (HANDOFF-LOG (80)) |
+| The packaged frame gate fails on draw calls after a UI change, the scene unchanged | `paw.Bench` counts the WHOLE frame (`GNumDrawCallsRHI`); the HUD (Slate batches by texture: every icon and plate its own) is in it | Split it: rerun with `--exec "showflag.Rendering 0"` (the scene off) and subtract (KB U/15 §6; doc 01 Q11) (HANDOFF-LOG (89)) |
 | A sabotage run started by mistake ran the whole list for hours | `sabotage_pawcore.py` / `sabotage_realm.py` with no `--only` run EVERY sabotage; a filter that matches nothing hands them none | Count the names before starting (a shell guard on the expected number); stopping a run mid-sabotage can leave that source sabotaged: check every target is its original text (HANDOFF-LOG (63)) |
 
-## 4. 2D-in-Unreal traps (research, to be verified by the spikes)
+## 4. 2D-in-Unreal traps (from the research; settled by the spikes and the build)
 
 | Symptom | Cause | Fix |
 |---|---|---|
 | Colours wrong/washed out | Tonemapper, auto exposure | doc 04 §3 + colour gate |
-| Creatures overlap in the wrong order / flicker | Translucency sorts per component; never inside an instanced component | Depth from Y with masked sprites (doc 04 §4) |
+| Creatures overlap in the wrong order / flicker | Translucency sorts per component; never inside an instanced component | Masked sprites with Godot's draw order as depth (z, then tree: doc 04 §4) |
 | Jagged sprite edges | Masked = 1-bit alpha | FXAA (spike S1, doc 04 §10). Not MSAA (masked outlines are inside the quad) and not the Alpha to Coverage flag (broken on desktop) |
 | Pad returns to the wrong row after switching keyboard -> pad | Common UI re-applies `GetDesiredFocusTarget()` on a device change; the remembered row was stale | Track the remembered row on every focus change (doc 05 §2 rule 8) |
 | A navigation test passes with a rule missing | The walk only took shortest paths | Press every rule (doc 04 §10, S4) |
@@ -143,14 +147,14 @@
 | Layers missing for the first seconds of a packaged run | Components are not drawn until their PSOs are precached | Warm-up before measuring; PSO check in phase 8 |
 | Field drawn too small (0.57x) in a window, right in a capture | Default `MaintainYFOV`: ortho width = visible height | `OrthoWidth = 1080` + `MaintainYFOV` on the camera (doc 04 §6) |
 | Colour readback all black, or every colour off by one gamma step | Offscreen runs have no back buffer; render target gamma | Scene capture + `RTF_RGBA8` + `bForceLinearGamma=false` (doc 04 §3.5) |
-| Smeared fast fliers | Temporal AA | Forward + MSAA or FXAA |
+| Smeared fast fliers | Temporal AA | FXAA (spike S1; no AA vs FXAA is Q9) |
 | Effect rings invisible | Additive blend over the light paper floor: no headroom (2026-10-31, `[Verified]`) | Translucent effects over light biomes (doc 04 §5.1) |
 | Shadows missing under bodies | The shadow centred so close under the disc that the body covers all but a faded sliver | Centre it at the feet (0.45 x size below), check a screenshot |
 | Blurry sprites | Streaming / mips | Never Stream; right raster size |
 | Fringes around small sprites | Atlas mip bleeding | Padding + extrusion |
 | Low fps with many sprites | One Actor/component each | Instanced renderer, entities as data |
 | Cursor lags | Software cursor interpolation | Hardware cursors (verify packaged) |
-| Idle game burns power in the background | No throttle | Unfocused frame cap from focus events, measured |
+| Idle game burns power in the background | No throttle | Unfocused frame cap from focus events, measured: not in Godot, so after parity (doc 01 Q10) |
 | Floor seams or stretching on ultrawide | Field grows with aspect | Tiling floors, seam shots per aspect |
 | Big download for a small game | Engine baseline 150-320 MB | Trim plugins for Game target, Shipping, `-nodebuginfo`, no prereqs in the Steam depot |
 | Huge Steam patches | Pak padding/IoStore layout | Measure; 1 MiB alignment per Valve; chunk by churn |

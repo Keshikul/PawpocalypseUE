@@ -83,7 +83,18 @@ in Slate" option §5.3). The spike decides; the gate keeps it honest.
 scene-tree order: the mice (enemy.tscn, z 0, in pool order; the boss a later child of the same node), the kittens (z 1), the
 cat (z 2; its weapon z 3, its hat z 4), the boss's adds (z 3), the ground shadows on one layer under everything (z -1). A
 kitten is drawn over every mouse whatever their Y. The port follows that order (`PawLook::Order` in
-`Realm/PawFieldLook.h`: Z = 100 + (z x 2000 + tree position) x 0.01); the Y-sorted plan below was never built. In Unreal:
+`Realm/PawFieldLook.h`: order = z x 2000 + tree position; `UPawSpriteRenderer::BodyZ` turns it into a depth); the Y-sorted
+plan below was never built.
+
+**As built since R5's rig (2026-11-09, HANDOFF-LOG (79), (80)):** a rigged creature draws as overlapping masked layers (its
+legs, wings, tail and body) a fraction of a draw place apart, so the mice's real places get room in depth: `BodyZ` gives z 0
+places 0..400 (`MicePlaces`; a mouse's place is 1 + its pool slot, under `max_live_enemies` + 1) 0.4 world units each, Z
+30..190; the rest of z 0 (the boss) 190..191.6; z 1-5 (kittens, the cat, its weapon and hat, the adds) 192..287; a creature's
+layers sit 0.12 of a place apart (0.048 units). **Masked layers at the same depth drew black** until
+`r.EarlyZPassOnlyMaterialMasking=False` (`DefaultEngine.ini`): under the engine default the mask is applied only in the depth
+pre-pass and the colour pass (depth EQUAL) paints a layer's transparent texels (RGB 0) over the other's. Tests: `Look.Atlas`
+asserts the cvar is off and at most three layers each side; the Realm test that every place stays under `MicePlaces`.
+In Unreal:
 
 - The camera looks straight down the -Z axis at the XY plane; field pixel (x, y) maps to world (x, -y) with
   `1 field px = 1 unreal unit`.
@@ -139,8 +150,8 @@ draws a cell of the field atlas (`UPawSpriteAtlas`, `DA_FieldAtlas`; doc 07 §2)
 (`M_Sprite`: opaque art, per-pixel depth), SOFT (`M_SpriteSoft`, translucent: art whose tint has alpha < 1, the shielded mouse,
 the illusory kitten, the dying boss, and the whitened signature glow) and SHADOW (the ground shadow). 9 custom floats: linear
 tint RGBA, the cell's U0 V0 U1 V1 (mirrored by swapping U0/U1), whiten. Translucent bands keep their order by
-`SetTranslucentSortPriority` (as of slice 3: backdrop fill -1 < zones / ground effects 0 < shadows 1 < under effects 2 < soft sprites 3 < over effects 4 < the old ring effects 5). Two pages: 9 sprite and shape components in
-all. The view (`APawRealmView::DrawCreatures`) draws Godot's look from `Realm/PawFieldLook.h`: sizes, the breathing pulse,
+`SetTranslucentSortPriority` (as of slice 3: backdrop fill -1 < zones / ground effects 0 < shadows 1 < under effects 2 < soft sprites 3 < over effects 4 < the old ring effects 5). Two pages then: 9 sprite and shape components in
+all; since R5 four pages (the rig's layers, 249 cells), 12 sprite components. The view (`APawRealmView::DrawCreatures`) draws Godot's look from `Realm/PawFieldLook.h`: sizes, the breathing pulse,
 facing, tints multiplied as Godot multiplies them (a modulate is sRGB-space: the linear tint is m^2.2), the glow, the cat's
 stage / weapon / hat / hop, the boss's twitch, shield tint and death sequence, the adds' pulse, the shadows' placement.
 Measured (editor, `Pawpocalypse.Realm.View`): 320 mice + 20 kittens, draw 0.068 ms. Known difference: Godot blends
@@ -190,8 +201,8 @@ cost at 700 elements. Choose by measurement; the world-space renderer is the def
   size (kitten roam bounds, boss position, spawn edges, `playable_bounds()`) re-derives.
 - **The UI matches**: DPI scale rule ShortestSide with a linear curve 1080 -> 1.0 (and 2160 -> 2.0), so UMG and the field
   share one "logical pixel". Full-rect widgets use anchors, never offsets.
-- `playfield_rect()` excludes the dock (left by default, flippable): read the dock's real geometry, never assume a side
-  or that the field starts at x = 0 (Godot rule).
+- `playfield_rect()` excludes the dock (on the right by default since 2026-11-09, flippable): read the dock's real
+  geometry, never assume a side or that the field starts at x = 0 (Godot rule).
 - **Screen-space to field**: `field_x = mouse_x / DPIScale`, `field_y = mouse_y / DPIScale` (orthographic: no
   deprojection needed; still route through one function so the pad's virtual cursor and the mouse share it).
 - **Resolution option** changes the WINDOW size; internal render size is the window's (no fixed internal resolution):
@@ -262,7 +273,7 @@ From `Knowledge/2D/01` applied to Pawpocalypse. Each one is a test or a logged s
 | **HUD at 15 Hz from dirty flags; hidden tabs idle** | Godot's achievements tab cost 39 ms/s while hidden |
 | **Effects quality setting honoured by every spawner** (floor of one in "reduced") | Godot gate rule |
 | **Travel without a level load** (doc 03 §4) | Scene changes were Godot's worst frames (135-150 ms) |
-| **Budgets**: 60 fps at 1280x800 on a Deck-class GPU; < 50 draw calls for the field at peak; game thread < 4 ms at peak on the dev PC | Godot measured p99 4.55 ms; the port must not be slower |
+| **Budgets**: 60 fps at 1280x800 on a Deck-class GPU; < 50 draw calls for the field at peak; game thread < 4 ms at peak on the dev PC | Godot measured p99 4.55 ms; the port must not be slower. **Measured packaged 2026-11-10 (HANDOFF-LOG (85), (89))**: 68.7 draw calls for the whole frame (`paw.Bench` counts the frame, `GNumDrawCallsRHI`), 42.6 with the scene off (`showflag.Rendering 0`): the field ~26, the HUD and the fixed passes ~43 (2026-11-04: 34.6 in all, before phase 6's art and the R2-R4 HUD). GPU 0.47 ms. The gate FAILS on the whole-frame count: the budget is the designer's call (doc 01 Q11). Game thread inconclusive (another project's engine jobs ran alongside) |
 
 ## 10. Spike results
 

@@ -24,6 +24,7 @@ def main():
     ap.add_argument("--seconds", type=float, default=20.0)
     ap.add_argument("--res", default="1280x800")
     ap.add_argument("--timeout", type=float, default=300.0)
+    ap.add_argument("--exec", default="", help="console commands run before the bench, comma-separated (e.g. paw.Rig 0)")
     args = ap.parse_args()
 
     game = os.path.join(args.build, "Windows", "Pawpocalypse")
@@ -40,7 +41,7 @@ def main():
 
     w, h = args.res.lower().split("x")
     cmd = [exe, "/Game/Pawpocalypse/Maps/L_Realm", "-NoSave", "-windowed", "-ResX=%s" % w, "-ResY=%s" % h, "-log", "-stdout",
-           "-ExecCmds=r.VSync 0,t.MaxFPS 0,paw.Bench %g" % args.seconds]
+           "-ExecCmds=r.VSync 0,t.MaxFPS 0,%spaw.Bench %g" % ((args.exec + ",") if args.exec else "", args.seconds)]
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=args.timeout)
         text = r.stdout + r.stderr

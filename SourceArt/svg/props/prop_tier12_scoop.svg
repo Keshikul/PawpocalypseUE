@@ -1,10 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
 <g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<ellipse cx="52.0" cy="88.0" rx="33.1" ry="27.1" fill="#2A1A33" stroke="none"/>
-<rect x="65.9" y="49.9" width="52.2" height="20.2" rx="9.1" fill="#2A1A33" stroke="none"/>
-<ellipse cx="52.0" cy="88.0" rx="30.0" ry="24.0" fill="#EEE2AC" stroke="none"/>
-<rect x="69.0" y="53.0" width="46.0" height="14.0" rx="6.0" fill="#EEE2AC" stroke="none"/>
-<ellipse cx="52.0" cy="88.0" rx="19.0" ry="15.0" fill="#B3A688" stroke="none"/>
-<polyline points="76.0,62.0 110.0,56.0" fill="none" stroke="#B7AA8A" stroke-width="3.0"/>
+<polygon points="83.0,77.6 100.3,65.4 119.6,55.2 122.8,52.5 124.1,48.5 123.2,44.4 120.5,41.2 116.5,39.9 112.4,40.8 91.7,50.6 73.0,62.4 69.8,66.0 68.9,70.6 70.4,75.0 74.0,78.2 78.6,79.1" fill="#2A1A33" stroke="none"/>
+<polygon points="81.3,75.0 98.8,62.8 118.2,52.5 120.2,50.8 121.0,48.3 120.5,45.8 118.8,43.8 116.3,43.0 113.8,43.5 93.2,53.2 74.7,65.0 72.6,67.3 72.0,70.4 73.0,73.3 75.3,75.4 78.4,76.0" fill="#EEE2AC" stroke="none"/>
+<ellipse cx="112.0" cy="50.0" rx="3.4" ry="2.6" fill="#2A1A33" stroke="none"/>
+<polygon points="13.7,72.2 85.5,62.9 94.3,105.8 26.7,117.3" fill="#2A1A33" stroke="none"/>
+<polygon points="18.0,74.0 82.0,66.0 90.0,104.0 30.0,114.0" fill="#EEE2AC" stroke="none"/>
+<polygon points="26.0,80.0 78.0,72.0 84.0,100.0 34.0,108.0" fill="#C3B691" stroke="none"/>
+<rect x="37.5" y="79.0" width="5.0" height="22.0" rx="2.0" fill="#2A1A33" stroke="none"/>
+<rect x="49.5" y="79.0" width="5.0" height="22.0" rx="2.0" fill="#2A1A33" stroke="none"/>
+<rect x="61.5" y="79.0" width="5.0" height="22.0" rx="2.0" fill="#2A1A33" stroke="none"/>
+<rect x="73.5" y="79.0" width="5.0" height="22.0" rx="2.0" fill="#2A1A33" stroke="none"/>
+<ellipse cx="56.0" cy="76.0" rx="10.1" ry="8.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="56.0" cy="76.0" rx="7.0" ry="5.0" fill="#70954F" stroke="none"/>
+<polyline points="84.0,64.0 110.0,50.0" fill="none" stroke="#F3EAC6" stroke-width="2.2"/>
 </g>
 </svg>

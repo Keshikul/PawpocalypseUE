@@ -1,0 +1,10 @@
+<svg data-rig-of="enemy_bat" data-layer="wing_r" data-order="-1" data-pivot="75.69 88.85" data-motion="swing" data-amp="-22.0" data-hz="3.20" data-phase="0.000" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="71.6,100.5 80.2,105.6 88.8,104.3 96.3,106.9 110.3,95.7 115.7,96.0 125.0,82.1 123.3,71.8 125.0,50.0 96.4,62.9 71.2,86.9" fill="#2A1A33" stroke="none"/>
+<polygon points="75.7,98.6 83.5,102.5 91.3,100.5 97.1,102.5 106.9,92.7 111.7,93.7 120.5,83.0 119.5,74.2 122.5,53.8 97.1,67.4 75.7,86.9" fill="#6467B2" stroke="none"/>
+<polyline points="75.7,86.9 122.5,53.8" fill="none" stroke="#504C86" stroke-width="1.9"/>
+<polyline points="75.7,86.9 120.5,83.0" fill="none" stroke="#504C86" stroke-width="1.9"/>
+<polyline points="75.7,86.9 106.9,92.7" fill="none" stroke="#504C86" stroke-width="1.9"/>
+<polyline points="75.7,86.9 91.3,100.5" fill="none" stroke="#504C86" stroke-width="1.9"/>
+</g>
+</svg>

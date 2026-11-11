@@ -256,6 +256,12 @@ void UPawControlsPanel::NativeConstruct()
 		{
 			FamilyHandle = D->OnFamilyChanged.AddWeakLambda(this, [this](Pc::PcFamily) { Sync(); });
 		}
+		// A pad of another family picked up while the prompts are pinned changes the pad detected, not the family: the
+		// controller column redraws too (F37, a Godot fault the port does not copy: D16).
+		if (!DetectedHandle.IsValid())
+		{
+			DetectedHandle = D->OnDetectedChanged.AddWeakLambda(this, [this](Pc::PcFamily) { Sync(); });
+		}
 	}
 	Sync();
 }
@@ -266,9 +272,11 @@ void UPawControlsPanel::NativeDestruct()
 	{
 		D->OnControlsChanged.Remove(ControlsHandle);
 		D->OnFamilyChanged.Remove(FamilyHandle);
+		D->OnDetectedChanged.Remove(DetectedHandle);
 	}
 	ControlsHandle.Reset();
 	FamilyHandle.Reset();
+	DetectedHandle.Reset();
 	StopTicker();
 	Super::NativeDestruct();
 }

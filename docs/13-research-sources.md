@@ -55,6 +55,6 @@ The knowledge base's own sources are in `C:\Games\Knowledge\Unreal\26-sources.md
 ## Not found / open
 - No shipped-game postmortem of a 2D game built on Unreal 5 turned up; the plan relies on spikes instead.
 - No authoritative statement on Paper2D's maintenance status for 5.6-5.8.
-- (2026-10-28: the first two are now measured in spike S1, doc 04 §10: exact colour reached; material alpha-to-coverage broken on desktop forward.)
 - No current (5.x) source on exact colour matching through the tonemapper, on MSAA alpha-to-coverage quality in 5.8, or on IoStore
-  with SteamPipe deltas.
+  with SteamPipe deltas. (2026-10-28: the first two of these were measured in spike S1, doc 04 §10: exact colour reached;
+  material alpha-to-coverage broken on desktop forward. IoStore and SteamPipe deltas: phase 8.)

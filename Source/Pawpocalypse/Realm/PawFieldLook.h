@@ -87,6 +87,36 @@ namespace PawLook
 	inline double PulseY(double T, double Phase) { return 1.0 + PulseAmplitude * FMath::Sin((T * PulseHz + Phase) * UE_DOUBLE_TWO_PI); }
 	// SpriteLiveliness.phase_for: stable per instance, in [0, 1).
 	inline double PhaseFor(uint64 Key) { return static_cast<double>((Key * 2654435761ull) % 1000ull) / 1000.0; }
+	// The rig (restyle R5, 2026-11-09, the port's own look: Godot has none): a layer's turn in degrees, clockwise on screen as
+	// drawn, at time T (seconds) for a creature whose own phase is Own (turns). Swing: Amp sin; lift: Amp (1 - cos) / 2, so 0
+	// at rest. tools/art/review_rig.py draws with the same formula.
+	inline double RigAngleDeg(bool bLift, double Amp, double Hz, double Phase, double Own, double T)
+	{
+		const double A = (Hz * T + Phase + Own) * UE_DOUBLE_TWO_PI;
+		return bLift ? Amp * (1.0 - FMath::Cos(A)) * 0.5 : Amp * FMath::Sin(A);
+	}
+	// Where a rig layer's quad goes: the drawing is centred at (X, Y), W x H, mirrored when bFlip; the layer turns Deg degrees
+	// (as drawn) about its pivot (U, V across the square). The pivot stays put; the quad's centre swings round it.
+	struct FRigPose
+	{
+		double X = 0.0, Y = 0.0;
+		double Angle = 0.0;  // radians, clockwise on screen (FPawSprite::Angle)
+	};
+	inline FRigPose RigPose(double X, double Y, double W, double H, bool bFlip, double U, double V, double Deg)
+	{
+		double Px = (U - 0.5) * W;
+		const double Py = (V - 0.5) * H;
+		double A = FMath::DegreesToRadians(Deg);
+		if (bFlip)
+		{
+			Px = -Px;
+			A = -A;
+		}
+		// The centre sits at -P from the pivot; clockwise on screen with y down is (x cos - y sin, x sin + y cos).
+		const double C = FMath::Cos(A), S = FMath::Sin(A);
+		return { X + Px - Px * C + Py * S, Y + Py - Px * S - Py * C, A };
+	}
+
 	// SpriteLiveliness.face: the new flip state given the old one and a horizontal speed.
 	inline bool Face(bool bFlipped, double Dx) { return FMath::Abs(Dx) < FacingDeadzonePxPerSec ? bFlipped : Dx > 0.0; }
 
@@ -169,4 +199,16 @@ namespace PawLook
 		O.Height = CatPx * W * RelY; // hats and weapons are square drawings
 		return O;
 	}
+	// Where an overlay is drawn for the cat facing right (bFlip) or left (its drawing's own way): the hat and the weapon mirror
+	// with the cat, as one figure (F38, a Godot fault the port does not copy, D16: Godot flipped only the cat's picture, so a
+	// cat steered right wore its hat behind its ears and held its weapon behind its back).
+	inline FOverlay FacingOverlay(const FOverlay& O, bool bFlip)
+	{
+		FOverlay M = O;
+		M.X = bFlip ? -O.X : O.X;
+		return M;
+	}
+	// The weapon is drawn leaning right: mirrored while the cat faces left. The hat mirrors as the cat does.
+	inline bool WeaponFlipX(bool bFlip) { return !bFlip; }
+	inline bool HatFlipX(bool bFlip) { return bFlip; }
 }

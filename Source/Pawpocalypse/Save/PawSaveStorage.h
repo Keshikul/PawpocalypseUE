@@ -6,6 +6,9 @@
 // Where the save's bytes live (docs/08 §2). The save subsystem only ever names entries ("slot_0", "slot_0_tmp", ...); the
 // backend decides what an entry is. Every method may be called from the save subsystem's writer thread, one call at a time
 // (its pipe never runs two writes at once), and from the game thread for reads (after the writes are flushed).
+// One exception (review CR19, 2026-11-10): the settings (UPawSettingsSubsystem) read and write their own entry, "settings",
+// on the game thread, outside that pipe. Safe while it is another entry than every slot, the platform backend keeps no state
+// between calls, and the memory backend locks each call.
 class PAWPOCALYPSE_API IPawSaveStorage
 {
 public:

@@ -22,6 +22,7 @@
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "GenericPlatform/GenericApplication.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -367,6 +368,68 @@ bool FPawSettingsGodotTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSettingsWindowMonitorTest, "Pawpocalypse.UI.Settings.WindowMonitor", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawSettingsWindowMonitorTest::RunTest(const FString& Parameters)
+{
+	// Review CR20 (2026-11-10): fullscreen took the primary display's size, and a window was fitted and centred in the
+	// primary's work area, wherever the window was. Godot uses the window's current screen (settings_manager.gd _usable_size,
+	// _centre_window; WINDOW_MODE_FULLSCREEN). Two monitors: a 1080p primary, a 1440p one to its right.
+	FDisplayMetrics M;
+	M.PrimaryDisplayWidth = 1920;
+	M.PrimaryDisplayHeight = 1080;
+	M.PrimaryDisplayWorkAreaRect = FPlatformRect(0, 0, 1920, 1040);
+	FMonitorInfo A;
+	A.bIsPrimary = true;
+	A.DisplayRect = FPlatformRect(0, 0, 1920, 1080);
+	A.WorkArea = FPlatformRect(0, 0, 1920, 1040);
+	FMonitorInfo B;
+	B.DisplayRect = FPlatformRect(1920, 0, 4480, 1440);
+	B.WorkArea = FPlatformRect(1920, 0, 4480, 1400);
+	M.MonitorInfo = { A, B };
+	FPlatformRect Display, Work;
+	UPawSettingsSubsystem::WindowMonitor(M, FVector2D(3200.0, 700.0), Display, Work);
+	TestTrue(TEXT("a window on the second monitor: fullscreen at its size"), Display.Left == 1920 && Display.Right == 4480
+		&& Display.Bottom == 1440);
+	TestTrue(TEXT("and a window fitted and centred in its work area"), Work.Left == 1920 && Work.Right == 4480 && Work.Bottom == 1400);
+	UPawSettingsSubsystem::WindowMonitor(M, FVector2D(900.0, 500.0), Display, Work);
+	TestTrue(TEXT("on the primary: the primary"), Display.Right == 1920 && Display.Bottom == 1080 && Work.Bottom == 1040);
+	UPawSettingsSubsystem::WindowMonitor(M, FVector2D(-500.0, -500.0), Display, Work);
+	TestTrue(TEXT("off every monitor: the primary"), Display.Right == 1920 && Work.Bottom == 1040);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSettingsFullscreenGreysTest, "Pawpocalypse.UI.Settings.FullscreenGreys", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawSettingsFullscreenGreysTest::RunTest(const FString& Parameters)
+{
+	// F35 (a Godot fault the port does not copy, D16): Resolution means nothing while fullscreen owns the window's size, and
+	// Godot greyed it only as the dialog opened: ticked in the open dialog, the list stayed live (a size picked there changed
+	// nothing). Here the box greys it at once, and un-ticked gives it back. (No window moves: the editor never applies video.)
+	FSettingsWorld W;
+	if (!W.Open(*this, false))
+	{
+		W.Close();
+		return false;
+	}
+	UPawSettingsDialog* D = W.OpenDialog(*this);
+	UComboBoxString* Res = D ? D->GetOption(TEXT("ResolutionOption")) : nullptr;
+	if (!TestNotNull(TEXT("the dialog's Resolution list"), Res))
+	{
+		W.Close();
+		return false;
+	}
+	const bool bWasFull = W.Settings->Get().bFullscreen;
+	TestEqual(TEXT("opened: Resolution live unless fullscreen"), Res->GetIsEnabled(), !bWasFull);
+	D->ToggleFullscreen();
+	TestEqual(TEXT("the box ticked or not: Resolution follows at once"), Res->GetIsEnabled(), !W.Settings->Get().bFullscreen);
+	D->ToggleFullscreen();
+	TestEqual(TEXT("and back"), Res->GetIsEnabled(), !W.Settings->Get().bFullscreen);
+	TestEqual(TEXT("the setting is back as it was"), W.Settings->Get().bFullscreen, bWasFull);
+	W.Close();
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSettingsLookTest, "Pawpocalypse.UI.Settings.Look", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FPawSettingsLookTest::RunTest(const FString& Parameters)
@@ -668,11 +731,12 @@ bool FPawSettingsAppliesTest::RunTest(const FString& Parameters)
 	}
 	TestTrue(TEXT("the dialog holds the field"), W.Realm->IsPaused());
 	// The menu side: the HUD's dock follows at once.
-	TestTrue(TEXT("the dock starts on the left"), W.Hud->IsDockOnLeft() && W.Hud->IsDockDrawnOnLeft());
-	D->PickDock(1);
-	TestFalse(TEXT("Menu side: Right moves the dock"), W.Hud->IsDockOnLeft() || W.Hud->IsDockDrawnOnLeft());
+	// The dock starts on the right (the default since 2026-11-09, designer: "i want it to be on the right").
+	TestTrue(TEXT("the dock starts on the right"), !W.Hud->IsDockOnLeft() && !W.Hud->IsDockDrawnOnLeft());
 	D->PickDock(0);
-	TestTrue(TEXT("and back"), W.Hud->IsDockOnLeft() && W.Hud->IsDockDrawnOnLeft());
+	TestTrue(TEXT("Menu side: Left moves the dock"), W.Hud->IsDockOnLeft() && W.Hud->IsDockDrawnOnLeft());
+	D->PickDock(1);
+	TestFalse(TEXT("and back"), W.Hud->IsDockOnLeft() || W.Hud->IsDockDrawnOnLeft());
 	// The video settings reach the applier; in the editor never the engine.
 	const int32 Before = W.Settings->GetVideoApplied().Count;
 	D->PressSection(Pc::PcSettingsSection::Video);
@@ -681,7 +745,8 @@ bool FPawSettingsAppliesTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("1280 wide"), W.Settings->GetVideoApplied().Width, 1280);
 	D->ToggleFullscreen();
 	TestTrue(TEXT("fullscreen applied"), W.Settings->GetVideoApplied().bFullscreen);
-	TestTrue(TEXT("Resolution stays live until the dialog opens again (as Godot)"), D->GetOption(TEXT("ResolutionOption"))->GetIsEnabled());
+	TestFalse(TEXT("Resolution greys at once (F35 fixed, D16; Godot waited for the dialog to open again)"),
+		D->GetOption(TEXT("ResolutionOption"))->GetIsEnabled());
 	D->PickFps(3);
 	TestEqual(TEXT("the cap applied"), W.Settings->GetVideoApplied().MaxFps, static_cast<int64>(120));
 	D->ToggleVsync();

@@ -134,24 +134,14 @@ was not cooked (fixed with `MapsToCook`, doc 10 §1).
 
 ## Phase 3 - progression UI
 
-**Status 2026-11-01 (HANDOFF-LOG (21))**: slice 1 DONE: the Common UI root layout and the HUD (status row, zone plate, wave
-line, Catches XP bar, Pounce clock, boss panel; the dock with six tabs, badges, side flip and the Upgrades page with bulk buy
-and hold-to-buy), the field measured beside the dock, the string tables and the colour tokens; `PcHud` (the decisions) in
-PawCore. Next: the other dock pages (Realms with gates and Bait, Reawaken with confirm, Catches, Achievements with claims,
-Jobs), then the card pick, the skill tree, the ceremonies, the victory screen.
-Slice 2 DONE (HANDOFF-LOG (22)): the Realms page (gates, here, bosses, Bait, auto-travel) and the Reawaken page (payout,
-multiplier, two-press confirm, the reset). Next: Catches, Achievements (claims), Jobs; then the card pick.
-Slice 3 DONE (HANDOFF-LOG (23)): the Catches page (every card, held or what stands in the way; the auto-pick box), the
-Achievements page (rows, Claim, Claim all, the summary) and the Jobs page; Territory wins after a Reawaken (F20, decided
-2026-11-01). Every dock page is built. Next: the card pick screen, then the skill tree, the ceremony and the job picker.
-Slice 4 DONE (HANDOFF-LOG (24)): the card pick screen (Menu stack, the field held by a pause holder, the guard, Take / Banish /
-Reroll, pad rows; doc 05 §6.1). Next: the skill tree screen, then the ceremony and the job picker.
-Slice 5 started (HANDOFF-LOG (24)): the skill tree's PawCore half, `PcTreeLayout` (exact against Godot). Next: the tree screen (generated labels / blurbs / colours, the canvas, links and rings, states, pan / zoom, tooltip, the Reawaken spend step).
-Slice 5 DONE (HANDOFF-LOG (25)): the skill tree screen, browse and the Reawaken spend step. Next: the Reawaken ceremony and the job picker around the spend step, then the achievement toast, then the victory screen (phase 3's remaining steps).
-Slice 6 DONE (HANDOFF-LOG (26)): the Reawaken ceremony (HUD top layer, the field runs under it, held with the field) and the job picker (Modal stack, `PcHud JobPicker` exact against the real job_picker.gd, Union Rules' second ask), in hud.gd's order around the spend step (doc 05 §6.3). Next: the victory screen. (Godot has no achievement toast: hud.gd only refreshes the list and the tab badge, the sound is phase 6.)
-Slice 7 DONE (HANDOFF-LOG (27)): the victory screen (Modal stack, the field held; `PcProgress RaisesVictory` and `PcHud DurationParts` exact against the real hud.tscn's VictoryScreen; Godot's DEFAULT-theme look, measured; doc 05 §6.3), and numbers printed Godot's way everywhere (ungrouped, culture-invariant; designer 2026-11-02). Every phase 3 screen in the steps below is built except the Unicorn ceremony (with the tree's art, phase 6). Next: side-by-side screenshots of the card pick, the tree, the job picker and the victory screen against Godot (the exit criterion's tour), then `Paw.Playthrough` through the UI entry points, then the nightly `-Full`.
-Exit tour DONE (HANDOFF-LOG (28)): `py tools/godot_tour.py`, twelve shots side by side with Godot (`build/tour/compare/`). Fixed from it: the job picker's look (Godot's default theme, F21 for the designer) and the Realms auto-travel box (hidden until owned); the dims measure equal. Left: art, fonts, tab icons, tutorial (phase 6). Next: `Paw.Playthrough` through the UI entry points, then the nightly `-Full`.
-Playthrough DONE (HANDOFF-LOG (29)): `Pawpocalypse.UI.Playthrough`, a whole run through the UI's entry points (reset, real kills, the dock, travel, the five bosses by Bait, the ending, the Reawaken with its ceremony, 74 nodes in the spend step, the starting biome, kills again); invariants only; 4 sabotages caught. It found F22 (the Realms page ignores this cycle's passage; Godot as it is, pinned). **Every phase 3 exit criterion is met but the packaged-build gate** (CLAUDE.md: packaged gates close every phase), which waits for the designer to ask for a package. Next: the nightly `-Full`; then phase 4.
+**DONE 2026-11-02, but the packaged gate (met in phase 4's, 2026-11-04)**, in seven slices (HANDOFF-LOG (21)-(29)): the
+Common UI root layout and the HUD (status row, zone plate, wave line, XP bar, Pounce clock, boss panel; the dock with six
+tabs, badges, side flip and the Upgrades page with bulk buy and hold-to-buy), `PcHud` (the decisions) in PawCore, the
+string tables and the colour tokens (21); the Realms and Reawaken pages (22); the Catches, Achievements and Jobs pages, and
+Territory wins after a Reawaken (F20) (23); the card pick screen (24); the skill tree screen, browse and the Reawaken spend
+step, `PcTreeLayout` exact against Godot (24, 25); the Reawaken ceremony and the job picker in hud.gd's order (26); the
+victory screen and numbers printed Godot's way (27). Exit: the screenshot tour beside Godot (28: F21 found) and
+`Pawpocalypse.UI.Playthrough`, a whole run through the UI's entry points (29: F22 found). Godot has no achievement toast.
 
 **Steps**: Common UI root layout; HUD screen with the dock (6 tabs, badges, side flip), status row, Pounce clock, XP bar, boss
 banner; shop rows with bulk buy and hold-repeat; Realms with gates and Bait; Reawaken tab + confirm + ceremony; card pick; skill tree
@@ -200,7 +190,7 @@ boss engaged, ceremony); previous-version load test; designer's save dir untouch
   / rename sequence).
 - Busy-state saves: the card hand `Pawpocalypse.UI.CardPick.SavedHand` (a hand on screen comes back up, F24); the ceremony
   `Pawpocalypse.UI.Ceremony.Resumes` (a Reawaken in progress resumes at the spend step, F29); a boss engaged
-  `Pawpocalypse.Save.MidFight` (new: the save loads, the boss not beaten, nothing up; the Bait paid stays spent: F36).
+  `Pawpocalypse.Save.MidFight` (new: the save loads, the boss not beaten, nothing up; the Bait paid stays spent: F36; since 2026-11-11 the summon's Bait and Catnip come back, the designer's call).
 - Previous-version load: `Pawpocalypse.Save.Versions` (v5 resets as Godot does and is written back; a newer build's file is
   never read or overwritten).
 - The designer's files untouched: `Pawpocalypse.Save.Sandbox`; the settings share the slots' sandbox
@@ -289,7 +279,8 @@ the Range's step), `Pawpocalypse.UI.Rainbow.*`, 26 PawCore + 17 realm sabotages 
 `docs/WORKLIST-SLICE6-2026-11-07.md` (6a the Unicorn ceremony, 6b the Reawaken banner, 6c Boba, 6d the tutorial). **6a DONE**:
 `PcTween` + `PcUnicornCeremony` exact against the real unicorn_ceremony.gd (fixture `unicorn`), `UPawUnicornCeremony` over
 the tree, `Pawpocalypse.UI.Unicorn.*`, 19 PawCore + 8 realm sabotages CAUGHT, the tour's `unicorn` shot beside Godot.
-**The restyle (D14) runs before 6b-6d** (designer, 2026-11-07; `docs/WORKLIST-RESTYLE-2026-11-07.md`): R0-R4 DONE 2026-11-08 (HANDOFF-LOG (66), (68), (70)); the plain-text pass applied 2026-11-09 (D15, (72)). **Next: R5** (the field), then R6-R7; then 6b, the Reawaken banner; Boba; the tutorial; the exit tours.
+**The restyle (D14) runs before 6b-6d** (designer, 2026-11-07; the section below). Then 6b, the Reawaken banner; 6c, Boba;
+6d, the tutorial; the exit tours.
 
 **Exit criteria progress (2026-11-05)**: the 12 biomes + the title seen beside Godot (`--set biomes`; one stage, no bosses side
 by side yet); pruned audio both ways (`Pawpocalypse.Audio.Bank`); not yet: the colour gate on a package, every audio event
@@ -301,7 +292,22 @@ primitives (planned SDF shapes + Niagara; built as Godot's draw calls) with the 
 Boba cameo in menus; tutorial overlay (eleven cues); UI motion.
 
 **Exit criteria**: colour gate green on the packaged build; screenshot tour of all 12 biomes x 7 stages x 5 bosses reviewed against
-Godot; every audio event plays once in a tour (logged); pruned audio both directions; tutorial gate green.
+Godot (since D14 for layout, state and behaviour: the look is the port's own and is reviewed on the concept canvas); every
+audio event plays once in a tour (logged); pruned audio both directions; tutorial gate green.
+
+## The restyle (D14, inside phase 6)
+
+The designer, 2026-11-07: "The unreal version does not have to match godot" and "Plum everywhere." The plan, its decisions
+and each step's exit are in `docs/WORKLIST-RESTYLE-2026-11-07.md`; the reference is the concept canvas
+(https://claude.ai/artifact/3wbqpr2HT4daaSmtHtNT2K). Status 2026-11-10:
+- **R0-R4 DONE** (HANDOFF-LOG (65)-(70)): the palette is `tools/art/palette.py`, Plum ink, M PLUS Rounded 1c, plum chrome
+  with Deep Plum edges and one solid shadow, Butter focus and selection, the 16 px text floor, every screen fits at 150 % UI.
+  The plain-text pass (D15) on top (HANDOFF-LOG (71), (72)). Committed and pushed as `b0ce7be`.
+- **R5, the field: drawn; waiting on the designer's last reviews** (HANDOFF-LOG (73)-(90), uncommitted): D3 (the aura, the
+  strike paw, crits) built; the look lint everyday; the faces; the anatomy pass with one colour per character (batches 2-5
+  written); the rig (wings and legs as moving layers) in the game; the props redrawn and written. Waiting: the bosses and the
+  imp (drawn, on the canvas), the rig's motion, the cat's pale coats (look lint KNOWN 23), the packaged frame gate (doc 01 Q11).
+- **R6** (icons, badges, cards) and **R7** (sign-off): to come.
 
 ## Phase 7 - localisation
 
@@ -313,7 +319,7 @@ font coverage test green (`tools/check_font_coverage.py`, everyday since R2); no
 
 ## Phase 8 - hardening and packaging
 
-**Steps**: all gates in `tools/check_all.ps1` with `-Fast`; packaged gates; the packaged soak at 5x for the whole game and 20x for 30
+**Steps**: every gate in `tools/check_all.ps1` (everyday and `-Full`); packaged gates (a `tools/package.ps1`, doc 10 §2); the packaged soak at 5x for the whole game and 20x for 30
 minutes; Steam Deck / 1280x800 performance pass; package script with listing audit; chunking + patch-size measurement (doc 10 §3);
 PSO precache check; Shipping build; crash/log collection.
 
@@ -322,8 +328,8 @@ Godot build on the same PC; 60 fps at 1280x800 on the Deck-class target; a one-n
 
 ## Phase 9 - parity sign-off
 
-**Steps**: side-by-side review (same save imported into both builds if Q3 = yes; same biome/stage screenshots; pawsim length report
-unchanged); the designer plays the Unreal build; differences become tickets: "port bug" or "design change for later", never both.
+**Steps**: side-by-side review (the same game state set up in both builds by their cheats: no Godot save importer, Q3 = no; same
+biome/stage screenshots; pawsim length report unchanged); the designer plays the Unreal build; differences become tickets: "port bug" or "design change for later", never both.
 
 **Exit criteria**: the designer signs off; the Unreal build becomes the shipping build; the Godot project is archived (its `/data`
 exporter and `_godot_file` columns retired, doc 06 §2).

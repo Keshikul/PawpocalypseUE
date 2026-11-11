@@ -1,10 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
 <g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<rect x="36.9" y="42.9" width="54.2" height="82.2" rx="7.1" fill="#2A1A33" stroke="none"/>
-<rect x="29.9" y="31.9" width="68.2" height="24.2" rx="7.1" fill="#2A1A33" stroke="none"/>
-<rect x="40.0" y="46.0" width="48.0" height="76.0" rx="4.0" fill="#F6BBAD" stroke="none"/>
-<rect x="33.0" y="35.0" width="62.0" height="18.0" rx="4.0" fill="#F6BBAD" stroke="none"/>
-<rect x="33.0" y="40.0" width="62.0" height="8.0" rx="3.0" fill="#BD8E8B" stroke="none"/>
-<polyline points="50.0,60.0 50.0,116.0" fill="none" stroke="#BD8E8B" stroke-width="3.0"/>
+<rect x="33.9" y="44.9" width="56.2" height="74.2" rx="6.1" fill="#2A1A33" stroke="none"/>
+<rect x="27.9" y="35.9" width="68.2" height="20.2" rx="6.1" fill="#2A1A33" stroke="none"/>
+<rect x="43.9" y="23.9" width="20.2" height="20.2" rx="5.1" fill="#2A1A33" stroke="none"/>
+<rect x="61.9" y="23.9" width="20.2" height="20.2" rx="5.1" fill="#2A1A33" stroke="none"/>
+<rect x="37.0" y="48.0" width="50.0" height="68.0" rx="3.0" fill="#F6BBAD" stroke="none"/>
+<rect x="31.0" y="39.0" width="62.0" height="14.0" rx="3.0" fill="#F6BBAD" stroke="none"/>
+<rect x="47.0" y="27.0" width="14.0" height="14.0" rx="2.0" fill="#687081" stroke="none"/>
+<rect x="65.0" y="27.0" width="14.0" height="14.0" rx="2.0" fill="#687081" stroke="none"/>
+<polyline points="38.0,60.0 86.0,60.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="50.0,60.0 50.0,72.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="74.0,60.0 74.0,72.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="38.0,72.0 86.0,72.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="40.0,72.0 40.0,84.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="62.0,72.0 62.0,84.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="84.0,72.0 84.0,84.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="38.0,84.0 86.0,84.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="50.0,84.0 50.0,96.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="74.0,84.0 74.0,96.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="38.0,96.0 86.0,96.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="40.0,96.0 40.0,108.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="62.0,96.0 62.0,108.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="84.0,96.0 84.0,108.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="38.0,108.0 86.0,108.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="50.0,108.0 50.0,116.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<polyline points="74.0,108.0 74.0,116.0" fill="none" stroke="#2A1A33" stroke-width="1.8"/>
+<rect x="31.0" y="43.5" width="62.0" height="5.0" rx="2.0" fill="#B98B88" stroke="none"/>
+<ellipse cx="54.0" cy="28.0" rx="5.0" ry="2.4" fill="#2A1A33" stroke="none"/>
+<ellipse cx="72.0" cy="28.0" rx="5.0" ry="2.4" fill="#2A1A33" stroke="none"/>
 </g>
 </svg>

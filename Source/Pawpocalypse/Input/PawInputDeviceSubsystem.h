@@ -53,6 +53,11 @@ public:
 
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnFamilyChanged, Pc::PcFamily);
 	FOnFamilyChanged OnFamilyChanged;
+	// The pad DETECTED changed, the family or not: the Controls page's controller column follows it (F37, a Godot fault the
+	// port does not copy, D16: Godot's page heard only the family, which a pinned prompt style holds, and kept the old pad's
+	// buttons).
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnDetectedChanged, Pc::PcFamily);
+	FOnDetectedChanged OnDetectedChanged;
 	// A setting changed and this subsystem has acted on it (the bindings applied, the prompt style read): what draws a prompt
 	// or a binding listens HERE, not to the settings, so it never redraws from the map before the remap reached it (Godot's
 	// InputDevice.bindings_changed).
@@ -89,6 +94,8 @@ public:
 	// Godot's test: a button (BaseButton) with focus, and the last thing used was not the pointer.
 	static bool FocusPromptShown(bool bFocusedButton, bool bLastWasPointer) { return bFocusedButton && !bLastWasPointer; }
 	UPawPromptIcon* GetFocusPrompt() const { return FocusPrompt; }
+	// How many times the prompt's placing searched the widget tree for the focused button (the pad tour).
+	int64 GetPromptPathSearches() const { return PromptPathSearches; }
 
 	// The tests' hook: the pad last detected (Godot's fixtures name families XInput never reports), the family refreshed as a
 	// claim would (OnFamilyChanged when it moves).
@@ -102,8 +109,11 @@ public:
 	bool TakeActionDown(const TCHAR* Action);
 	// THE DOCK TAKES ITS KEYS FIRST (dock_navigator.gd _input consumes them): while this answers true for a key, the event is
 	// consumed here, before any widget, Slate's navigation or Common UI's analog cursor (which would turn pad A into a click:
-	// a second press). This subsystem's processor is the FIRST registered. The HUD sets it.
-	TFunction<bool(const FKey&)> ConsumeForDock;
+	// a second press). This subsystem's processor is the FIRST registered. The HUD sets it when it activates and clears it when
+	// it is destructed, its OWN only: on a travel a new HUD can activate before the old one goes (review CR13).
+	void SetDockConsumer(const UObject* Owner, TFunction<bool(const FKey&)> Consume);
+	void ClearDockConsumer(const UObject* Owner);
+	bool HasDockConsumer() const { return static_cast<bool>(ConsumeForDock); }
 	bool ConsumesKey(const FKey& Key) const { return ConsumeForDock && ConsumeForDock(Key); }
 	// The paw: closed while the left button is held (the tests read it; the engine's cursor follows only in a game).
 	bool IsPawClosed() const { return bPawClosed; }
@@ -132,6 +142,8 @@ private:
 	void Observe(const Pc::PcDeviceEvent& E);
 	bool Tick(float DeltaSeconds);
 	void PlaceFocusPrompt();
+	void NoteDetected();
+	Pc::PcFamily NotifiedDetected = Pc::PcFamily::Keyboard; // PcDeviceState's start
 
 	Pc::PcDeviceState State;
 	// What the bindings were last applied from (apply() runs again only when one of these changes: controls_changed).
@@ -158,6 +170,9 @@ private:
 	TObjectPtr<UPawPromptIcon> FocusPrompt;
 	TWeakObjectPtr<UWidget> DockArea;
 	bool bDockLeft = false;
+	TFunction<bool(const FKey&)> ConsumeForDock;
+	TWeakObjectPtr<const UObject> DockConsumerOwner;
+	int64 PromptPathSearches = 0;
 	double ToastLeft = 0.0;
 	struct FPadAudioWatch
 	{

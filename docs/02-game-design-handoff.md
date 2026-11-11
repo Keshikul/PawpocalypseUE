@@ -19,7 +19,9 @@
 - **Tone is load-bearing.** The cat is mean, not cuddly. The comedy is the gap between the sparkly presentation
   (Rainbow Poop, Stardust, unicorns) and the animal's contempt. Keep the sparkly vocabulary. **Never name anything
   cutely**; names read like a spiteful animal's idea of fun (Giblets, Rigor, Spite, Bloodlust, Rainbow Gut). The art
-  is chubby and big-eyed (the "sweet" grammar): that is the FORM; expressions stay derpy and contemptuous.
+  is chubby and big-eyed (the "sweet" grammar): that is the FORM; expressions stay derpy and contemptuous. (The port's
+  own look since D14, R5: the cat keeps its face; enemies wear the "panic" face and real anatomy, "not indistinct blobs";
+  the cat is never "unimpressed", there are no grudges: designer, 2026-11-08/09.)
   Store/public copy: no "spiteful cat" phrasing (designer), keep player text short.
 - **Length is an outcome, not a target** (designer, 2026-10-01). pawsim: the Litter King at ~6h 11m after 9
   Reawakens; the 5x soak of a build: ~10h game time, 10 Reawakens. Never tune toward a number of hours; the fix for
@@ -60,7 +62,7 @@ share), **never with evolution or the weapon multiplier** (`combat_resolver.gd` 
 said "with evolution": the game never has, and pawsim's `kitten_dps_each` explains how that claim was invented and removed). With nothing in range they **roam** (slower than hunt speed, so "spotted something" reads with no other cue): a frozen kitten reads as broken AI. The pool **grows to what the player owns** (it was once sized from the base cap and a deep run paid for invisible kittens). Kitten share of damage: ~43% at ten minutes, ~6.5% at the end; it must never reach zero |
 | **Pounce** | Active burst (LMB / RT) worth `pounce_damage_seconds` (2.0) **seconds of player DPS** (never a flat number: the curve spans ten orders of magnitude), radius 160 px, cooldown 5 s, x`pounce_vulnerable_multiplier` (5) inside an enemy's vulnerable window. **Capped on the PRODUCT** of its dials at `pounce_max_aura_multiple` (2.0) x aura DPS (uncapped it measured 90.6% of all damage); the timing bonus sits OUTSIDE the cap. The cooldown is a clock disc in the field's bottom corner opposite the dock. Pounce slams the floor and leaves a crater zone (3 s). On a pad it fires on RT's press EDGE only |
 | **Rainbow Poop** | Periodic AoE ground zone (`poop_cooldown_sec` 8, duration 3, radius 250, `poop_aura_fraction` 0.35 of player DPS), its own node under the Unicorn |
-| **Overkill** | A killing blow's WASTED damage splashes to the **nearest** survivor and **never chains** (late-game per-frame damage dwarfs whole HP pools; a chain would clear the board every frame). `take_damage()` returns the excess. The **Overkill bounty** pays Catnip for damage with nowhere to go, priced in the victim's own reward, exponent 0.4, capped at `overkill_bounty_max_multiple` (4x) |
+| **Overkill** | A killing blow's WASTED damage splashes to the **nearest** survivor and **never chains** (late-game per-frame damage dwarfs whole HP pools; a chain would clear the board every frame). `take_damage()` returns the excess. The **Overkill bounty** pays Catnip for damage with nowhere to go, priced in the victim's own reward: `min(w, w^0.4)` times it for a surplus of `w` times the victim's HP (`overkill_bounty_exponent` 0.4: linear below 1x, sub-linear above, never switched off). `overkill_bounty_max_multiple` (4x) is read only when the exponent is 0, which does not ship (corrected 2026-11-10: this line said "capped at 4x", as Godot's GDD still does: F50) |
 | **Prism** | Beams between targets; a beam kill pays a Spectrum bonus (the Prism chain under the Unicorn) |
 | **Execute** | Capped additive shop line: kills below a HP fraction outright |
 
@@ -323,10 +325,11 @@ The Litter King dies in the Litterbox Dimension, stage 7 is granted, the **victo
 
 ## 13. Presentation and UX rules
 
-- **Layout**: the realm fills the window; the **dock is on the LEFT** (flippable in Settings > Controls > Menu side)
+- **Layout**: the realm fills the window; the **dock is on the RIGHT by default** (designer, 2026-11-09: "mirror the
+  ui"; made in Godot first, `settings_manager.gd`, uncommitted there; flippable in Settings > Controls > Menu side)
   with six icon-only tabs that fit one row: Upgrades, Reawaken, Realms, Catches, Achievements, Jobs. **Every menu is a
-  tab in the dock** (no floating panels). The **status readout** (currencies, zone bar) sits top-right, mirrored
-  opposite the dock. Currency never goes inside a tab.
+  tab in the dock** (no floating panels). The **status readout** (currencies, zone bar) sits at the top opposite the
+  dock. Currency never goes inside a tab.
 - **Badges mean something NEW** (Realms: a biome open by both gates and deeper than any reached this run; Jobs: unseen;
   Reawaken: the SUGGESTED Reawaken; Achievements: a star by its count). The selected tab survives a biome change.
 - **The skill tree is its own full-screen page** (from the Reawaken ceremony, the quick-access bar or T). **Settings
@@ -350,7 +353,9 @@ The Litter King dies in the Litterbox Dimension, stage 7 is granted, the **victo
 - **Auto-travel and auto-pick-card live in the SAVE SLOT** (a new game starts with both off).
 - **The Achievements list and other heavy lists refresh only while visible**; per-kill events raise dirty flags spent
   at 15 Hz; anything the player CAUSES updates immediately.
-- **Animation**: single drawings with a pulse and per-instance liveliness; no run cycles yet.
+- **Animation**: single drawings with a pulse and per-instance liveliness; no run cycles. The port adds a rig (R5,
+  designer 2026-11-09): enemies' wings, legs and tails are separate layers turned about a pivot (a flap, a step), a
+  presentation change only (doc 07 §3).
 - **Audio**: one event table; `mouse_killed` is the hottest event, capped near 9/s.
 - **Report a bug** and **Discord** links are the only external links.
 

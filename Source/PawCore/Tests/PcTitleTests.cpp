@@ -3,6 +3,7 @@
 #include "ThirdParty/doctest/doctest.h"
 #include "PcCsv.h"
 #include "PcHud.h"
+#include "PcSave.h"
 #include "PcStats.h"
 #include "PcTitle.h"
 
@@ -189,15 +190,21 @@ namespace
 				: "You have not cleared the final boss yet.";
 			CHECK(Unescape(V.at("leaderboard")) == Para + Last);
 
-			// The five cards: an empty or unreadable slot reads Empty and offers no Delete.
+			// The five cards. An empty slot reads Empty; one whose file does not read (the fixture's junk slot, no backup)
+			// says so (F47, the port's fix: the fixture is made from Godot with it, tools/godot_fixes.py); only a slot
+			// with a game offers Delete.
 			for (int S = 0; S < 5; ++S)
 			{
 				CAPTURE(S);
 				const std::string Pre = "s" + std::to_string(S) + "_";
 				const bool bFilled = Int(V.at(Pre + "reawakens")) >= 0;
-				CHECK((V.at(Pre + "delete") == "1") == bFilled);
-				std::string Want = "Empty\n\nStart a new game here.";
-				if (bFilled)
+				const bool bExists = V.at("has_slots").find(static_cast<char>('0' + S)) != std::string::npos;
+				const Pc::PcSlotState State = Pc::ClassifySlot(bExists,
+					bFilled ? Pc::PcSaveReadError::None : Pc::PcSaveReadError::BadHeader, false, Pc::PcSaveReadError::Empty);
+				CHECK((V.at(Pre + "delete") == "1") == (State == Pc::PcSlotState::Readable));
+				std::string Want = State == Pc::PcSlotState::Unreadable ? "Cannot be read\n\nStart a new game here."
+					: "Empty\n\nStart a new game here.";
+				if (State == Pc::PcSlotState::Readable)
 				{
 					++R.Filled;
 					const double Unix = Hex(V.at(Pre + "unix"));
@@ -206,7 +213,7 @@ namespace
 					Want = "Reawaken " + V.at(Pre + "reawakens") + "\n" + Clock(Hex(V.at(Pre + "play"))) + " played\n"
 						+ Kills(Int(V.at(Pre + "kills"))) + "\n\nLast saved\n" + When(Unix, Now);
 				}
-				else if (V.at("has_slots").find(static_cast<char>('0' + S)) != std::string::npos)
+				else if (State == Pc::PcSlotState::Unreadable)
 				{
 					++R.Unreadable;
 				}
@@ -259,6 +266,56 @@ TEST_CASE("Title: the long suite runs all 3,000 title rows" * doctest::test_suit
 {
 	const TitleResult R = RunTitleFixture(DataDir() + "/../build/title_godot_full.tsv");
 	CHECK(R.Rows == 3000);
+}
+
+TEST_CASE("Title: the load's outcome reaches the player; nothing plays over a slot that cannot be read (CR2, F47)")
+{
+	// Port-only rules (Godot has no newer-build refusal and ignored an unreadable slot): no fixture row carries a notice.
+	Pc::PcProgress Fresh;
+	Pc::PcProgress Played;
+	Played.LifetimeCatnipEver = 5e6;
+	Played.ReawakenCount = 2;
+	for (const bool bOnDisk : { false, true })
+	{
+		CAPTURE(bOnDisk);
+		for (const Pc::PcProgress* P : { &Fresh, &Played })
+		{
+			const Pc::PcTitleMenu Plain = Pc::TitleMenu(bOnDisk, *P);
+			CHECK(Plain.Notice == Pc::PcTitleNotice::None);
+			CHECK_FALSE(Plain.bContinueOpensSlots);
+			// A newer build's slot: Continue is off whatever memory holds (every write to that slot is refused).
+			const Pc::PcTitleMenu Newer = Pc::TitleMenu(bOnDisk, *P, Pc::PcTitleNotice::NewerBuild);
+			CHECK(Newer.Notice == Pc::PcTitleNotice::NewerBuild);
+			CHECK_FALSE(Newer.bContinue);
+			CHECK_FALSE(Newer.bContinueOpensSlots);
+			CHECK(Newer.bLoad == Plain.bLoad);
+			// Unreadable: Continue is on and opens the slots (memory holds a fresh game, not the slot's).
+			const Pc::PcTitleMenu Broken = Pc::TitleMenu(bOnDisk, *P, Pc::PcTitleNotice::Unreadable);
+			CHECK(Broken.bContinue);
+			CHECK(Broken.bContinueOpensSlots);
+			// From the backup: said, and Continue plays it as usual.
+			const Pc::PcTitleMenu Backup = Pc::TitleMenu(bOnDisk, *P, Pc::PcTitleNotice::FromBackup);
+			CHECK(Backup.Notice == Pc::PcTitleNotice::FromBackup);
+			CHECK(Backup.bContinue == Plain.bContinue);
+			CHECK_FALSE(Backup.bContinueOpensSlots);
+		}
+	}
+
+	// The slot cards' states: what the file and its backup say.
+	using E = Pc::PcSaveReadError;
+	using St = Pc::PcSlotState;
+	CHECK(Pc::ClassifySlot(false, E::Empty, true, E::None) == St::Empty); // a lone backup is not a slot
+	CHECK(Pc::ClassifySlot(true, E::None, false, E::Empty) == St::Readable);
+	CHECK(Pc::ClassifySlot(true, E::None, true, E::BadCrc) == St::Readable);
+	CHECK(Pc::ClassifySlot(true, E::NewerFormat, true, E::None) == St::NewerBuild); // never judged by its backup
+	for (const E Broken : { E::Empty, E::BadHeader, E::BadLength, E::BadCrc, E::BadJson })
+	{
+		CAPTURE(static_cast<int>(Broken));
+		CHECK(Pc::ClassifySlot(true, Broken, true, E::None) == St::ReadableFromBackup);
+		CHECK(Pc::ClassifySlot(true, Broken, false, E::None) == St::Unreadable);
+		CHECK(Pc::ClassifySlot(true, Broken, true, E::BadCrc) == St::Unreadable);
+		CHECK(Pc::ClassifySlot(true, Broken, true, E::NewerFormat) == St::Unreadable);
+	}
 }
 
 TEST_CASE("Title: the date past a week is the stamp's UTC day, across eras and leap days")

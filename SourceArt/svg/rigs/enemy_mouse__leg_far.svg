@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_mouse" data-layer="leg_far" data-order="-2" data-pivot="67.31 103.13" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="60.1,108.3 62.5,118.8 64.0,122.0 66.9,124.0 70.5,124.3 73.7,122.8 75.7,119.9 76.0,116.4 74.5,105.7 72.9,102.2 69.8,100.1 66.0,99.8 62.6,101.4 60.4,104.5" fill="#2A1A33" stroke="none"/>
+<ellipse cx="70.2" cy="118.5" rx="9.2" ry="6.5" fill="#2A1A33" stroke="none"/>
+<polygon points="63.0,107.8 65.4,118.3 66.3,120.1 67.9,121.2 69.9,121.4 71.7,120.5 72.9,118.9 73.0,116.9 71.6,106.2 70.6,104.2 68.8,102.9 66.5,102.7 64.5,103.7 63.2,105.5" fill="#7795C7" stroke="none"/>
+<ellipse cx="70.2" cy="118.5" rx="6.3" ry="3.5" fill="#7795C7" stroke="none"/>
+</g>
+</svg>

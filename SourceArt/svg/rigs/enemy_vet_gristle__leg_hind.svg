@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_vet_gristle" data-layer="leg_hind" data-order="-2" data-pivot="96.73 98.93" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="87.5,106.3 90.4,115.6 93.0,120.2 97.5,123.0 102.8,123.0 107.4,120.5 110.1,116.0 110.2,110.7 108.4,101.1 105.7,96.2 100.9,93.3 95.3,93.2 90.4,95.9 87.5,100.7" fill="#2A1A33" stroke="none"/>
+<ellipse cx="102.7" cy="114.3" rx="14.3" ry="9.0" fill="#2A1A33" stroke="none"/>
+<polygon points="91.0,105.4 94.0,114.7 95.6,117.7 98.5,119.4 101.9,119.5 104.8,117.8 106.5,114.9 106.6,111.6 104.8,101.9 103.0,98.7 99.9,96.8 96.2,96.8 93.0,98.6 91.1,101.7" fill="#CCAD45" stroke="none"/>
+<ellipse cx="102.7" cy="114.3" rx="10.7" ry="5.3" fill="#CCAD45" stroke="none"/>
+</g>
+</svg>

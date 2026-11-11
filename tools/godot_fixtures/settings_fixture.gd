@@ -33,7 +33,7 @@ const DEFAULTS := {
 	"master_volume": 1.0, "music_volume": 0.45, "sfx_volume": 1.0, "muted": false, "output_device": "Default",
 	"fullscreen": false, "vsync": true, "graphics_quality": 2, "max_fps": 0, "effects_enabled": true,
 	"language": "system", "last_slot": 0, "resolution_index": 2, "confirm_reawaken": true, "tutorial_tips": true,
-	"prompt_style": "auto", "dock_side": "left", "show_prompts": true, "swap_confirm_back": false, "swap_sticks": false,
+	"prompt_style": "auto", "dock_side": "right", "show_prompts": true, "swap_confirm_back": false, "swap_sticks": false,
 	"invert_x": false, "invert_y": false, "cursor_speed": 1.0, "stick_deadzone": 0.2,
 }
 
@@ -104,6 +104,15 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 20261104
+	# DEFAULTS is a copy of settings_manager.gd's: it must be the script's own, or every load row starts from a stale value
+	# (the dock side's default moved to right, 2026-11-09, and this copy still said left).
+	var fresh: Node = load("res://scripts/autoload/settings_manager.gd").new()
+	for key in DEFAULTS:
+		if fresh.get(key) != DEFAULTS[key]:
+			push_error("settings_fixture: DEFAULTS[%s] = %s, settings_manager.gd has %s" % [key, DEFAULTS[key], fresh.get(key)])
+			get_tree().quit(1)
+			return
+	fresh.free()
 	var dialog := load("res://scenes/ui/settings_dialog.tscn").instantiate() as SettingsDialog
 	add_child(dialog)
 	await get_tree().process_frame

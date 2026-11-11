@@ -1,0 +1,24 @@
+<svg data-rig-of="enemy_rooftop_seagull" data-layer="body" data-order="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="87.1,95.0 86.5,99.3 84.8,103.4 82.0,107.1 78.4,110.2 74.0,112.5 69.1,113.9 64.0,114.4 58.9,113.9 54.0,112.5 49.6,110.2 46.0,107.1 43.2,103.4 41.5,99.3 40.9,95.0 41.5,90.7 43.2,86.6 46.0,82.9 49.6,79.8 54.0,77.5 58.9,76.1 64.0,75.6 69.1,76.1 74.0,77.5 78.4,79.8 82.0,82.9 84.8,86.6 86.5,90.7" fill="#2A1A33" stroke="none"/>
+<polygon points="53.1,103.7 64.0,125.0 74.9,103.7" fill="#2A1A33" stroke="none"/>
+<ellipse cx="62.2" cy="71.1" rx="17.5" ry="16.6" fill="#2A1A33" stroke="none"/>
+<ellipse cx="56.7" cy="109.7" rx="7.4" ry="6.5" fill="#2A1A33" stroke="none"/>
+<ellipse cx="69.5" cy="109.7" rx="7.4" ry="6.5" fill="#2A1A33" stroke="none"/>
+<polygon points="84.2,95.0 83.7,98.7 82.2,102.2 79.8,105.3 76.6,107.9 72.8,109.9 68.5,111.1 64.0,111.5 59.5,111.1 55.2,109.9 51.4,107.9 48.2,105.3 45.8,102.2 44.3,98.7 43.8,95.0 44.3,91.3 45.8,87.8 48.2,84.7 51.4,82.1 55.2,80.1 59.5,78.9 64.0,78.5 68.5,78.9 72.8,80.1 76.6,82.1 79.8,84.7 82.2,87.8 83.7,91.3" fill="#E66653" stroke="none"/>
+<polygon points="56.7,106.0 64.0,120.7 71.3,106.0" fill="#E66653" stroke="none"/>
+<ellipse cx="62.2" cy="71.1" rx="14.7" ry="13.8" fill="#E66653" stroke="none"/>
+<ellipse cx="56.7" cy="109.7" rx="4.6" ry="3.7" fill="#E66653" stroke="none"/>
+<ellipse cx="69.5" cy="109.7" rx="4.6" ry="3.7" fill="#E66653" stroke="none"/>
+<ellipse cx="64.0" cy="98.7" rx="11.9" ry="10.1" fill="#F2B6A7" stroke="none"/>
+<polygon points="51.5,68.0 35.3,73.4 33.0,74.7 31.5,76.9 31.4,79.6 32.6,81.9 34.9,83.4 37.6,83.5 54.5,81.6 57.7,79.9 59.6,76.9 59.8,73.3 58.1,70.1 55.1,68.1" fill="#2A1A33" stroke="none"/>
+<polygon points="52.1,70.8 35.9,76.2 34.9,76.8 34.2,77.8 34.2,79.0 34.7,80.0 35.7,80.7 36.9,80.7 53.9,78.8 55.8,77.8 56.9,76.0 57.0,73.9 56.0,72.0 54.2,70.9" fill="#F2C65B" stroke="none"/>
+<ellipse cx="41.0" cy="79.4" rx="2.0" ry="1.7" fill="#D86061" stroke="none"/>
+<ellipse cx="55.7" cy="67.4" rx="7.1" ry="7.1" fill="#F6F6F6" stroke="#2A1A33"/>
+<ellipse cx="55.7" cy="68.0" rx="0.9" ry="0.9" fill="#2A1A33" stroke="none"/>
+<polyline points="57.5,56.7 50.0,59.2" fill="none" stroke="#2A1A33" stroke-width="2.6"/>
+<ellipse cx="68.6" cy="67.4" rx="8.6" ry="8.6" fill="#F6F6F6" stroke="#2A1A33"/>
+<ellipse cx="68.6" cy="68.1" rx="1.1" ry="1.1" fill="#2A1A33" stroke="none"/>
+<polyline points="66.5,54.6 75.5,57.5" fill="none" stroke="#2A1A33" stroke-width="2.6"/>
+</g>
+</svg>

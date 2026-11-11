@@ -7,6 +7,7 @@
 #include "Tickable.h"
 
 #include "PcSave.h"
+#include "PcTitle.h"
 
 #include "PawSaveSubsystem.generated.h"
 
@@ -23,6 +24,15 @@ enum class EPawLoadOutcome : uint8
 	Corrupt,           // neither the slot nor its backup reads: nothing was applied
 	NewerBuild,        // written by a newer build: never read, never overwritten
 	Disabled,          // saving is off (-NoSave, or an automated run with no sandbox)
+};
+
+// What became of one write (SaveGame's ticket): a screen that says "Saved" asks (review CR15).
+enum class EPawWriteResult : uint8
+{
+	NotQueued, // nothing was queued (saving off, no game data): nothing was written
+	Pending,
+	Written,
+	Failed,    // refused (a newer build's slot) or the disk said no
 };
 
 // SaveManager's port (save_manager.gd; docs/08 §2): five slots, the active one, the moments that save, the atomic write
@@ -64,20 +74,37 @@ public:
 	static FString SlotName(int32 Slot);
 	bool HasSlot(int32 Slot);
 	bool HasAnySave();
-	// slot_summary(): what the slot holds, without applying it. False for an empty or unreadable slot.
+	// slot_summary(): what the slot holds, without applying it (a broken slot whose backup reads: the backup's, which is
+	// what a load would play). False for an empty, unreadable or newer build's slot.
 	bool ReadSlotSummary(int32 Slot, Pc::PcSlotSummary& Out);
+	// What the slot holds, for the title's cards and presses (review CR2, F47); OutSummary filled when it reads.
+	Pc::PcSlotState SlotState(int32 Slot, Pc::PcSlotSummary* OutSummary = nullptr);
 	void DeleteSlot(int32 Slot);
 	int32 GetActiveSlot() const { return ActiveSlot; }
+
+	// --- what the title says about the last load (review CR2, F47) --------------------------------------------------------
+	// Set by a load of the active slot (at startup, a discard, a load from the slots): a newer build's slot, an unreadable
+	// one, or a game that came from the backup. Cleared when a game is put in a slot (a new game, a save to a slot), by the
+	// next load, and by the title once the player plays (ClearTitleNotice).
+	Pc::PcTitleNotice GetTitleNotice() const { return TitleNotice; }
+	int32 GetTitleNoticeSlot() const { return TitleNoticeSlot; }
+	void ClearTitleNotice() { TitleNotice = Pc::PcTitleNotice::None; }
 
 	// --- saving and loading --------------------------------------------------------------------------------------------
 	// Save at the end of this frame, however many things ask.
 	void RequestSave();
 	// Write now (the pause menu's Save, a Reawaken, a new game creating its slot). Slot >= 0 also makes it the active slot.
-	void SaveGame(int32 Slot = -1);
+	// A boss fight in progress is written as if its summon had not happened (F36). Returns the write's ticket for
+	// GetWriteResult; 0 when nothing was queued (saving off, no data).
+	int64 SaveGame(int32 Slot = -1);
+	EPawWriteResult GetWriteResult(int64 Ticket) const;
 	// The unprompted save (the timer, focus loss, quit): skipped while there is nothing to keep.
 	void Autosave();
 	// Loads a slot into the live game (-1: the active one). Sets the active slot when something was applied.
 	EPawLoadOutcome LoadGame(int32 Slot = -1);
+	// Leaving without saving (the pause menu's discard): the game goes back to the active slot as last written, or to a fresh
+	// game when nothing was ever written there (F51, a Godot fault the port does not copy: D16).
+	void DiscardUnsaved();
 	EPawLoadOutcome GetLastLoad() const { return LastLoad; }
 	// Blocks until every queued write has finished.
 	void Flush();
@@ -95,11 +122,17 @@ public:
 	// The digest the end-of-frame save compares (public for the tests).
 	uint64 SaveWorthyDigest() const;
 	double GetAutosaveClock() const { return AutosaveClock; }
+	// The window losing focus (alt-tab, the overlay), as the tests send it.
+	void NoteFocusLostForTest() { OnActivationChanged(false); }
 
 private:
 	UPawGameSubsystem* Game() const;
+	const class UPawRealmSubsystem* RunningRealm() const;
 	bool IsWorldPaused() const;
-	void QueueWrite(int32 Slot, TArray<uint8>&& Bytes);
+	// A game is being played (a realm runs): the unprompted saves happen only then (review CR21).
+	bool IsRealmRunning() const;
+	int64 QueueWrite(int32 Slot, TArray<uint8>&& Bytes);
+	void SetLoadNotice(int32 Slot, EPawLoadOutcome Outcome);
 	void SeedDigest();
 	void RememberSlot();
 	void StartOnLastSlot();
@@ -112,6 +145,10 @@ private:
 	UE::Tasks::FTask LastWrite;
 	int32 ActiveSlot = 0;
 	EPawLoadOutcome LastLoad = EPawLoadOutcome::NotTried;
+	Pc::PcTitleNotice TitleNotice = Pc::PcTitleNotice::None;
+	int32 TitleNoticeSlot = 0;
+	uint32 RestoredFromBackup = 0; // the slots the startup recovery finished from their backup (bit per slot)
+	int64 NextTicket = 0;
 	bool bEnabled = false;
 	bool bInitialized = false;
 	bool bSaveRequested = false;

@@ -4,7 +4,9 @@
 // page's two-press overwrite, the quit button's two-press "Save and quit to menu" with its discard, the status line, and
 // what each slot's caption says. The game module draws them (UPawPauseMenu) and does the saving and the leaving.
 //
-// AS GODOT HAS IT (finding F34, open): going back to the main page does NOT disarm an overwrite; only closing the menu does.
+// F34 FIXED HERE, NOT COPIED (D16, 2026-11-11): going back to the main page disarms an overwrite, as Godot's own comment
+// promises (Godot left it armed: one press then overwrote the slot). The fixture `pause` is made from Godot with the same fix
+// (tools/godot_fixes.py).
 
 #include "PcCore.h"
 

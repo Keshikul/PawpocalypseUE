@@ -118,6 +118,24 @@ namespace
 			Disk->Put(UPawSaveSubsystem::SlotName(Slot), TArray<uint8>(reinterpret_cast<const uint8*>(Junk), 10));
 		}
 
+		// A save a newer build wrote (its container format past this build's).
+		void PutNewer(int32 Slot, int64 Reawakens)
+		{
+			Pc::PcSaveState S;
+			S.ReawakenCount = Reawakens;
+			S.LifetimeCatnipEver = 10.0;
+			std::string File = Pc::WriteSaveFile(S, "future");
+			File.replace(0, 9, "PAWSAVE 7");
+			Disk->Put(UPawSaveSubsystem::SlotName(Slot), TArray<uint8>(reinterpret_cast<const uint8*>(File.data()), static_cast<int32>(File.size())));
+		}
+
+		TArray<uint8> Bytes(const FString& Name)
+		{
+			TArray<uint8> Out;
+			Disk->Read(Name, Out);
+			return Out;
+		}
+
 		void Wipe()
 		{
 			for (int32 I = 0; I < UPawMainMenu::SlotCount; ++I)
@@ -532,6 +550,130 @@ bool FPawTitleLoadTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("its kills"), W.P().LifetimeKills, static_cast<int64_t>(4321));
 	TestEqual(TEXT("slot 5 is active"), W.Save->GetActiveSlot(), 4);
 	TestFalse(TEXT("the slot screen is gone"), W.Menu->IsLayerShown(UPawMainMenu::ELayer::Slots));
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTitleLoadOutcomesTest, "Pawpocalypse.UI.Title.LoadOutcomes", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// Review CR2 and F47 (a Godot fault the port fixes, D16): every load outcome reaches the player through the title, and
+// nothing plays over a slot this build cannot read. A newer build's slot: said, Continue off, its card refuses. An
+// unreadable one: said, Continue opens the slots, its card starts a new game there and the old file is kept aside. A game
+// from the backup: said once.
+bool FPawTitleLoadOutcomesTest::RunTest(const FString& Parameters)
+{
+	FTitleWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	// The loads below that meet a broken file say so in the log (the unreadable one, the two backups).
+	AddExpectedError(TEXT("is corrupt"), EAutomationExpectedErrorFlags::Contains, 3, false);
+	AddExpectedError(TEXT("and its backup are unreadable"), EAutomationExpectedErrorFlags::Contains, 1, false);
+	const int32 A = W.Save->GetActiveSlot();
+	const int32 Other = (A + 2) % UPawMainMenu::SlotCount;
+	const FString Name = UPawSaveSubsystem::SlotName(A);
+	auto Status = [&W]() { return S(W.Menu->GetStatusText()); };
+
+	// 1. A newer build's save in the active slot, as at startup.
+	W.PutNewer(A, 7);
+	const TArray<uint8> NewerBytes = W.Bytes(Name);
+	W.Game->NewGame();
+	TestTrue(TEXT("newer: refused"), W.Save->LoadGame(A) == EPawLoadOutcome::NewerBuild);
+	W.Menu->Refresh();
+	TestEqual(TEXT("newer: the status says why"), Status(),
+		FString::Printf(TEXT("Slot %d is from a newer version. Update the game to play it."), A + 1));
+	TestFalse(TEXT("newer: Continue is off (a session there would never be saved)"), W.Menu->GetMenuButton(0)->GetIsEnabled());
+	TestTrue(TEXT("newer: Load is on"), W.Menu->GetMenuButton(2)->GetIsEnabled());
+	TestTrue(TEXT("newer: New Game has the selection"), W.Menu->GetTopDefault() == W.Menu->GetMenuButton(1));
+	W.Menu->PressContinue();
+	TestEqual(TEXT("newer: Continue plays nothing"), W.Plays, 0);
+	W.Menu->PressLoad();
+	TestEqual(TEXT("newer: its card"), S(W.Menu->GetSlotText(A)), FString(TEXT("Newer version\n\nUpdate the game to play this save.")));
+	TestTrue(TEXT("newer: no Delete"), W.Menu->GetSlotDelete(A)->GetVisibility() == ESlateVisibility::Collapsed);
+	W.Menu->PressSlot(A);
+	TestEqual(TEXT("newer: its card plays nothing"), W.Plays, 0);
+	TestTrue(TEXT("newer: the slots stay up"), W.Menu->GetTopLayer() == UPawMainMenu::ELayer::Slots);
+	TestTrue(TEXT("newer: the file untouched"), W.Bytes(Name) == NewerBytes);
+	// Another slot, empty: a new game there, and the title is plain again.
+	W.Menu->PressSlot(Other);
+	TestEqual(TEXT("newer: an empty slot plays"), W.Plays, 1);
+	TestEqual(TEXT("newer: in that slot"), W.Save->GetActiveSlot(), Other);
+	W.Save->Flush();
+	TestTrue(TEXT("newer: still untouched"), W.Bytes(Name) == NewerBytes);
+	W.Menu->Refresh();
+	TestFalse(TEXT("newer: the notice is gone once a game is in a slot"), Status().StartsWith(TEXT("Slot ")));
+	TestTrue(TEXT("newer: Continue is back"), W.Menu->GetMenuButton(0)->GetIsEnabled());
+
+	// 2. The active slot and its backup unreadable (F47): Godot played a fresh game over it without a word.
+	W.Wipe();
+	W.Save->SaveGame(A); // A active again (the game in memory: nothing worth keeping)
+	W.Save->Flush();
+	W.PutJunk(A);
+	W.Disk->Put(Name + TEXT("_bak"), TArray<uint8>({ 1, 2, 3 }));
+	const TArray<uint8> JunkBytes = W.Bytes(Name);
+	W.Game->NewGame();
+	W.Plays = 0;
+	TestTrue(TEXT("unreadable: refused"), W.Save->LoadGame(A) == EPawLoadOutcome::Corrupt);
+	W.Menu->Refresh();
+	TestEqual(TEXT("unreadable: the status says so"), Status(), FString::Printf(TEXT("Slot %d could not be read. Choose a slot."), A + 1));
+	TestTrue(TEXT("unreadable: Continue is on"), W.Menu->GetMenuButton(0)->GetIsEnabled());
+	W.Menu->PressContinue();
+	TestEqual(TEXT("unreadable: Continue plays no fresh game over it"), W.Plays, 0);
+	TestTrue(TEXT("unreadable: it opens the slots"), W.Menu->GetTopLayer() == UPawMainMenu::ELayer::Slots);
+	TestTrue(TEXT("unreadable: on that slot's card"), W.Menu->GetTopDefault() == W.Menu->GetSlotCard(A));
+	TestEqual(TEXT("unreadable: its card"), S(W.Menu->GetSlotText(A)), FString(TEXT("Cannot be read\n\nStart a new game here.")));
+	TestTrue(TEXT("unreadable: no Delete"), W.Menu->GetSlotDelete(A)->GetVisibility() == ESlateVisibility::Collapsed);
+	TestFalse(TEXT("unreadable: nothing kept aside yet"), W.Disk->Exists(Name + TEXT("_corrupt")));
+	W.Menu->PressSlot(A);
+	TestEqual(TEXT("unreadable: its card starts a game there"), W.Plays, 1);
+	W.Save->Flush();
+	TestTrue(TEXT("unreadable: the slot holds the new game"), W.Save->SlotState(A) == Pc::PcSlotState::Readable);
+	TestTrue(TEXT("unreadable: the old file kept aside"), W.Bytes(Name + TEXT("_corrupt")) == JunkBytes);
+	W.Menu->Refresh();
+	TestFalse(TEXT("unreadable: the notice is gone"), Status().StartsWith(TEXT("Slot ")));
+
+	// 3. A game loaded from the backup: said once (until the player plays).
+	W.Wipe();
+	W.PutSlot(A, 4, 40, 60.0, W.Clock - 30.0);
+	W.Disk->Put(Name + TEXT("_bak"), W.Bytes(Name));
+	W.PutJunk(A);
+	W.Game->NewGame();
+	W.Plays = 0;
+	TestTrue(TEXT("backup: loaded from it"), W.Save->LoadGame(A) == EPawLoadOutcome::LoadedFromBackup);
+	TestEqual(TEXT("backup: its game"), W.P().ReawakenCount, static_cast<int64_t>(4));
+	W.Menu->Refresh();
+	TestEqual(TEXT("backup: the status says so"), Status(), FString::Printf(TEXT("Slot %d was damaged. Its backup was loaded."), A + 1));
+	TestTrue(TEXT("backup: Continue is on"), W.Menu->GetMenuButton(0)->GetIsEnabled());
+	W.Menu->PressContinue();
+	TestEqual(TEXT("backup: Continue plays it"), W.Plays, 1);
+	W.Menu->Refresh();
+	TestFalse(TEXT("backup: said once"), Status().StartsWith(TEXT("Slot ")));
+	// The same when the startup recovery is what put the backup back (the slot broken before the game started).
+	W.Wipe();
+	W.PutSlot(A, 5, 50, 60.0, W.Clock - 30.0);
+	W.Disk->Put(Name + TEXT("_bak"), W.Bytes(Name));
+	W.PutJunk(A);
+	W.Save->RecoverInterruptedSaves();
+	TestTrue(TEXT("recovered: the slot reads again"), W.Save->SlotState(A) == Pc::PcSlotState::Readable);
+	TestTrue(TEXT("recovered: the load says it came from the backup"), W.Save->LoadGame(A) == EPawLoadOutcome::LoadedFromBackup);
+	W.Menu->Refresh();
+	TestEqual(TEXT("recovered: the status says so"), Status(), FString::Printf(TEXT("Slot %d was damaged. Its backup was loaded."), A + 1));
+	TestTrue(TEXT("recovered: a second load is plain"), W.Save->LoadGame(A) == EPawLoadOutcome::Loaded);
+	// A broken slot whose backup reads shows the backup's game on its card, and its card loads it.
+	W.Wipe();
+	W.PutSlot(Other, 6, 60, 60.0, W.Clock - 30.0);
+	W.Disk->Put(UPawSaveSubsystem::SlotName(Other) + TEXT("_bak"), W.Bytes(UPawSaveSubsystem::SlotName(Other)));
+	W.PutJunk(Other);
+	W.Plays = 0;
+	W.Menu->Refresh();
+	W.Menu->PressLoad();
+	TestTrue(TEXT("backup card: the backup's game"), S(W.Menu->GetSlotText(Other)).StartsWith(TEXT("Reawaken 6\n")));
+	TestTrue(TEXT("backup card: Delete offered"), W.Menu->GetSlotDelete(Other)->GetVisibility() != ESlateVisibility::Collapsed);
+	W.Menu->PressSlot(Other);
+	TestEqual(TEXT("backup card: it plays"), W.Plays, 1);
+	TestEqual(TEXT("backup card: that game"), W.P().ReawakenCount, static_cast<int64_t>(6));
 	W.Close();
 	return true;
 }

@@ -145,9 +145,11 @@ analog value first (`NativeOnPreviewKeyDown`, `NativeOnKeyUp`, `NativeOnPreviewM
 `NativeOnAnalogValueChanged`): Esc / B cancel the capture, not the dialog; a click or the wheel cancels a controller cell; a
 trigger's digital stand-in is swallowed and its analog value binds it past half way, as Godot. A prompt's binding is the
 FIRST of the action's Godot events for the device (the live map): one Unreal has no key for (a pad's Guide button) draws
-nothing, as Godot (`PawGlyphs::BindingFor`). The page redraws only when Godot's would (a control setting, the family, a cell
-listening): F37, the controller column can show a pad detected before. `Pawpocalypse.UI.Controls.MatchesGodot` (200 fixture rows
-on the shipped widgets, Slate's events through the dialog) and `.Dialog`; 12 PawCore and 9 game-module sabotages.
+nothing, as Godot (`PawGlyphs::BindingFor`). The page redraws when Godot's would (a control setting, the family, a cell
+listening) and when another pad is detected: F37, fixed 2026-11-11 (D16; Godot's controller column kept a pad detected
+before; `UPawInputDeviceSubsystem::OnDetectedChanged`, and the `controls` fixture is made from Godot with the same fix, a
+`detected_family_changed` signal). `Pawpocalypse.UI.Controls.MatchesGodot` (200 fixture rows on the shipped widgets,
+Slate's events through the dialog) and `.Dialog`; 12 PawCore and 9 game-module sabotages, 2 more since F37.
 
 **Slice 5a (2026-11-05, HANDOFF-LOG (49)): keys by position, the dock's held keys, the paw, the pad in the background.**
 - **Keys by POSITION, on any layout.** The plan assumed Windows `FKey`s are positions: they are NOT (`FWindowsApplication`
@@ -164,8 +166,10 @@ on the shipped widgets, Slate's events through the dialog) and `.Dialog`; 12 Paw
   Godot's `Input.is_action_pressed`; a tap between two frames is latched), on its own clock, for every device: up / down step
   the row at once, then after 0.35 s at 10 per second, wrapping; a press presses at once, then on a SHOP row only repeats after
   0.35 s at 4 rising to 12 per second (hold-to-buy: Space, Enter, pad A, LT); nothing selected, the first press or step
-  selects the remembered row. The dock TAKES those keys first (`ConsumeForDock`: the device subsystem's input processor is
-  registered FIRST and consumes them while the dock is active), so Slate's navigation and Common UI's analog cursor (which
+  selects the remembered row. The dock TAKES those keys first (the device subsystem's input processor is registered FIRST
+  and consumes them while the dock is active, through the consumer the HUD sets with `SetDockConsumer(Owner, Fn)`; a HUD
+  clears only its own, `ClearDockConsumer(Owner)`, so an old HUD's teardown never clears a newer one's: CR13), so Slate's
+  navigation and Common UI's analog cursor (which
   turns pad A into a click) never act on them twice. The port's old hold-to-buy (any button held down, the mouse too) is gone:
   Godot has none for the mouse. The dock's tab keys act on their own press; an echo is swallowed.
 - **The paw cursor** (§4): hardware cursors from `Content/Pawpocalypse/UI/Cursors/ui_cursor_paw_{open,closed}.png` (40 px,
@@ -301,11 +305,10 @@ re-applies the desired focus target when a modal closes: `UPawPauseMenu::ReturnF
   an asset is touched.
 - Seen in a `-game` run (`paw.Press`, `paw.Prompts`: Dev/PawShot.cpp): keycaps on the keys, Xbox glyphs after one pad
   press, PlayStation glyphs from the setting; the HUD, the pause menu, the tree, the title.
-- Not yet: the tutorial's prompts (the tutorial is phase 6), the Controls page's binding cells (slice 4c), a redraw on a
-  language change (phase 7). A remap redraws every prompt since slice 4b (`UPawInputDeviceSubsystem::OnControlsChanged`,
+- Not yet: the tutorial's prompts (phase 6 slice 6d), a redraw on a language change (phase 7). The Controls page's binding
+  cells since slice 4c. A remap redraws every prompt since slice 4b (`UPawInputDeviceSubsystem::OnControlsChanged`,
   fired after the live context is rebuilt; our key questions read the context we rebuilt, so Enhanced Input's own
-  `ControlMappingsRebuilt` is not needed for them). The tab names now share the strip with the
-  tab keys; "Achievements" touches the RB cap until the tab icons arrive (phase 6: Godot's tabs are icons).
+  `ControlMappingsRebuilt` is not needed for them). The tabs are icons since phase 6 slice 5b (Godot's are too).
 
 - Two separate questions, as in Godot: the **prompt family** (keyboard, Xbox, PlayStation, Steam Deck; an unknown pad draws
   as Xbox; **no Nintendo**, designer 2026-10-01) and the **cursor source** (mouse or stick). Both switch on a device's first
@@ -391,8 +394,7 @@ currency change) and `UPawRealmSubsystem` after a progress change, a summon and 
   colour) or "LEVEL n of max" (muted), the description at the level taking it gives (`{v}` / `{c}`, `PawText::CardNumber`), "This
   one costs you something.", Take, and Banish under it while a banish is held (smaller, alert-coloured). A hovered card, or one
   whose Take / Banish is selected, lifts to 1.06x over 0.09 s (render scale: 9 px a side fits the 20 px gap, so no z-order is
-  needed). Cards are pooled across deals (Dilated's bigger hands add one). The card art waits for phase 6 (the layout keeps its
-  place, as Godot's cards without art).
+  needed). Cards are pooled across deals (Dilated's bigger hands add one). The card pictures since phase 6 slice 5b (§7).
 - **No close, no Back** (Godot's header: the only exits are a card taken, or a banish that empties the deck). Reroll re-deals in
   place; a stale card (not in the live hand) logs an error and closes rather than trap the player.
 - **The guard** (`GuardAllows`): a press counts once `ModalGuardSec` (0.4 s, `MODAL_GUARD_MSEC`) has passed since the DEAL (a
@@ -408,11 +410,12 @@ currency change) and `UPawRealmSubsystem` after a progress change, a summon and 
 - Tests `Pawpocalypse.UI.CardPick.*` on the REAL root layout (its Slate built with `TakeWidget()`, so the stack activates what it
   holds). **Not covered**: the hover / focus lift (needs Slate hover), the held-key path through real Slate key events (the guard's
   notes are driven directly: phase 5's tours), hold-to-buy stopping under the pick (hold-to-buy itself is untested).
-- **Dock on the LEFT** by default, the status row and zone bar top-RIGHT, mirrored; **Settings > Controls > Menu side** flips
-  both. `UPawHudScreen::ApplyDockSide()` is the one place that knows a side; `playfield_rect()` reads where the dock IS.
+- **Dock on the RIGHT** by default (designer, 2026-11-09; it was left: Godot's `settings_manager.gd` changed first, the
+  settings fixtures regenerated), the status row and zone bar top-LEFT, mirrored; **Settings > Controls > Menu side** flips
+  both. The dev readout (`paw.DebugHud`) sits at the field's bottom corner away from the dock. `UPawHudScreen::ApplyDockSide()` is the one place that knows a side; `playfield_rect()` reads where the dock IS.
 - **Tabs**: Upgrades, Reawaken, Realms, Catches, Achievements, Jobs: icon-only, one row, badges that mean something NEW,
   selected tab remembered across travel (static/subsystem state). New page = a page widget + one `TabSpec` row.
-- **Shop rows** (15, never scroll): name, level, effect, price with currency icon, bulk amount; the enabled buy button is the
+- **Shop rows** (15; Godot's never scroll, the port's list scrolls since R4h so it fits at 150 % UI): name, level, effect, price with currency icon, bulk amount; the enabled buy button is the
   brightest thing; hold-to-repeat; disabled rows read `font_disabled_color`-equivalent (a Slate disabled state ignores the
   normal colour: set the disabled style explicitly).
 - **Status row**: transparent, `HitTestInvisible` except the two currency icons with tooltips (the Godot opaque panel once
@@ -428,8 +431,8 @@ currency change) and `UPawRealmSubsystem` after a progress change, a summon and 
 - Refresh: event-driven dirty flags spent at 15 Hz; hidden pages do nothing; no UMG property bindings `[KB U/09 §1]`.
 
 ### 6.2 Skill tree (`UPawSkillTreeScreen`)
-**Status 2026-11-02 (HANDOFF-LOG (24))**: the PawCore half is DONE: `PcTreeLayout` (branch order, the hex seating, limb push, separation, normalising, bounds, canvas, fit zoom, `nav_pick`, node states, links, cheapest / next affordable), every seat and pad pick EXACTLY Godot's on the shipping tree and 400 random trees. It reproduces Godot's 32-bit `Vector2` arithmetic: in plain double 4,496 pad picks and 147 seats differed (the lattice puts neighbours exactly on the 60 degree cone edge). NOTE: the tree today has **87 nodes** on a radial hex layout of six limbs (`TRUNK_WHEEL`), not one lattice; Stardust is spent ONLY in the Reawaken spend step (`open_for_spending`), browsing is read-only. The screen is next.
-**The screen, 2026-11-02 (HANDOFF-LOG (25))**: `UPawSkillTreeScreen` on the Menu stack (pause holder "tree"), as designed above: one canvas panel under a render transform (pan, zoom about the view's centre, fit on open), `UPawTreeLinks` painting links (owned only with both ends) and the rainbow / pulse / job rings under the nodes, `UPawTreeNode` (a Common button; the frame of its state in the trunk's colour, READY lerped a third of the way, unlocks heavier and rounder; the counter on ladders; the shine), gold halos breathing behind READY nodes, captions (BRANCH_LABELS), the hub plate, the Stardust line, +/- buttons, the legend, the tooltip (beside the mouse's node, docked bottom left for keys / pad). Browse: T / pad Y (the HUD), read-only, X. Spend: the HUD's Reawaken opens it (Continue; the cheapest node selected; a press buys; the two-press leave with the centre plate), then travels to the starting biome. Every word and colour of skill_tree_ui.gd is GENERATED (`tools/gen_tree_tables.py` -> ST_Tree.csv, PcTreeWording.h, PawTreeTables.h; L0 checks them current). **Placeholders**: key names for the glyphs (`PROMPT_*`, phase 5), the sky (skill_tree_sky.gd: since phase 6 slice 5d), no node icons (phase 6), the halo without its soft shadow, no hover lighten, no READY jitter (UiJuice), no Unicorn ceremony. (The ceremony before the spend step and the job picker after it: §6.3, 2026-11-02.)
+**Status 2026-11-02 (HANDOFF-LOG (24))**: the PawCore half is DONE: `PcTreeLayout` (branch order, the hex seating, limb push, separation, normalising, bounds, canvas, fit zoom, `nav_pick`, node states, links, cheapest / next affordable), every seat and pad pick EXACTLY Godot's on the shipping tree and 400 random trees. It reproduces Godot's 32-bit `Vector2` arithmetic: in plain double 4,496 pad picks and 147 seats differed (the lattice puts neighbours exactly on the 60 degree cone edge). NOTE: the tree today has **87 nodes** on a radial hex layout of six limbs (`TRUNK_WHEEL`), not one lattice; Stardust is spent ONLY in the Reawaken spend step (`open_for_spending`), browsing is read-only.
+**The screen, 2026-11-02 (HANDOFF-LOG (25))**: `UPawSkillTreeScreen` on the Menu stack (pause holder "tree"), as designed above: one canvas panel under a render transform (pan, zoom about the view's centre, fit on open), `UPawTreeLinks` painting links (owned only with both ends) and the rainbow / pulse / job rings under the nodes, `UPawTreeNode` (a Common button; the frame of its state in the trunk's colour, READY lerped a third of the way, unlocks heavier and rounder; the counter on ladders; the shine), gold halos breathing behind READY nodes, captions (BRANCH_LABELS), the hub plate, the Stardust line, +/- buttons, the legend, the tooltip (beside the mouse's node, docked bottom left for keys / pad). Browse: T / pad Y (the HUD), read-only, X. Spend: the HUD's Reawaken opens it (Continue; the cheapest node selected; a press buys; the two-press leave with the centre plate), then travels to the starting biome. Every word and colour of skill_tree_ui.gd is GENERATED (`tools/gen_tree_tables.py` -> ST_Tree.csv, PcTreeWording.h, PawTreeTables.h; L0 checks them current). **Placeholders then, filled since**: the glyphs (phase 5 slice 3b), the sky (skill_tree_sky.gd, phase 6 slice 5d), the node icons (5b), the READY jitter and the hover pop (UiJuice, 5c), the Unicorn ceremony (6a). Not built: the halo's soft shadow and the hover lighten. (The ceremony before the spend step and the job picker after it: §6.3, 2026-11-02.)
 - 87 nodes on a hex lattice, links drawn between them, pan and zoom, three node states, rings/halos/pulses.
 - Build: one C++ widget; **links and decorations drawn in `NativePaint`** (`FSlateDrawElement::MakeLines` with
   anti-aliasing, or `MakeSpline`), **nodes as `UCommonButtonBase` children** positioned in ONE canvas panel inside a
@@ -466,7 +469,7 @@ pick's (`GuardAllows`; the second ask restarts it). One column wired by `WireRow
 **Differences kept on purpose**: the ceremony sits under the Menu stack, so a tree browsed from under the flash draws over it
 (in Godot the frozen flash covers the tree); job_taken's save and the hat's ring arrive with phases 4 and 6. **The picker wears
 the game theme** (finding F21, decided 2026-11-03, fixed in Godot first: `_root.theme`): the theme's `WindowPanel` (paper, ink
-frame, content margins 22 / 20: `PawUi::WindowBrush()` / `WindowPadding()`, drawn as a rounded brush until the art, phase 6),
+frame, content margins 22 / 20: `PawUi::WindowBrush()` / `WindowPadding()`; the chrome's window art since phase 6 slice 5a, plum since R3),
 the theme's buttons, ink text (the note 17 px). Measured into `victory_look_godot.txt` (`jp.*`). Until 2026-11-03 Godot drew
 it in its DEFAULT theme (a CanvasLayer outside the themed Root), the title dark on dark.
 
@@ -491,8 +494,10 @@ the Game stack of L_Title, the game's first map: the player controller pushes it
 save; the status line counts the game IN MEMORY; the cards' play clock (`format_duration`: "{h}h {m}m" / "{m}m {s}s" / "{s}s"),
 kills ("{n}K kills", "%.1f"; Godot: "{n}K mice"), "last saved" (just now / min / hr / days, past a week the stamp's UTC date); the leaderboard's last
 line; the slot screen opens on the last slot used). One widget with Godot's layers, each a full-screen scrim: the slots
-(New Game and Load open the same picker; an empty card starts a game THERE, an occupied one loads it, no confirm), the
-leaderboard placeholder, the credits, the shared confirm (Cancel under the key; one-shot). `FocusTop` is `_focus_top`: only
+(New Game and Load open the same picker; an empty card starts a game THERE, an occupied one loads it, no confirm; since
+2026-11-11 (review CR2 with F47, D16) a newer build's card reads "Newer version" and does nothing, an unreadable one "Cannot
+be read" and starts a game there, the old file kept aside; the last load's outcome takes the status line's place: doc 08
+§2), the leaderboard placeholder, the credits, the shared confirm (Cancel under the key; one-shot). `FocusTop` is `_focus_top`: only
 the top layer is wired (`WireRows`; disabled menu rows dropped: a door that cannot open is a dead stop for a pad) and its
 default takes the selection; Back (the map's `back`: Esc / pad B) closes the top layer and on the menu asks "Quit Pawpocalypse?".
 Exit saves a game worth saving, then quits. **The save traps of HANDOFF-LOG (34) are closed here**: a new game is `NewGame`,
@@ -511,10 +516,14 @@ the cluster's icons (phase 6 slice 5b: no words on the plates) and their hover p
 Blueprint from its first build (`WBP_PauseMenu`), on the Menu stack, pause holder "pause". Its rules are `PcPause` (exact
 against the real pause_menu.tscn, fixture `pause`, every press of 600 rows in L1, 2,000 in the long suite): Continue; Save
 opens the five slots (an occupied one asks first: "OVERWRITE? press again" on the button, the status line on the main page;
-the second press writes and returns to the main page; an empty one writes at once); Back to Main Menu arms on its first press
+the second press writes and returns to the main page; an empty one writes at once; the write is waited for, and one that
+did not happen says "Slot {n} was not saved.": review CR15, 2026-11-11); Back to Main Menu arms on its first press
 ("Save and quit to menu", the selection stays on it) and its second saves the game and opens L_Title; "Quit WITHOUT saving"
-shows beside it while armed and leaves without writing; closing disarms both (reopened, one press never quits). **AS GODOT HAS
-IT**: an overwrite armed on the Save page survives Back to the main page (finding F34, open). The slot captions are read again
+shows beside it while armed and leaves without writing, dropping the unsaved game: Continue plays the slot as last written,
+or a fresh game if it never was (F51, fixed 2026-11-11, D16: Godot kept the unsaved game; `UPawSaveSubsystem::DiscardUnsaved`);
+closing disarms both (reopened, one press never quits). Leaving the Save page disarms its overwrite (F34, fixed 2026-11-11,
+D16: in Godot it survived Back, so one press overwrote a slot; the `pause` fixture is made from Godot with the same fix).
+The slot captions are read again
 each time the Save page opens and on arming, never between (Godot's are stale too). The HUD opens it on Esc / pad Start
 (`OpenPauseMenu`) only while nothing is on the Menu or Modal stack and nothing else holds the field, and not on the frame after
 something else let go (`_held_by_other_frame`: the Esc that closed the tree must not open this); the ceremony does not block
@@ -523,7 +532,7 @@ main page first) and pad Start closes from either page. Words: `PAUSE_*` in ST_U
 port has one key per slot form with it and one without. Seam for the tests: `OnLeave` (open L_Title).
 `Pawpocalypse.UI.Pause.*` (6 tests; the words equal Godot's on 300 fixture rows). Settings (since HANDOFF-LOG (40)) opens the
 settings popup; the menu steps aside (hidden, still holding the field) and comes back on Settings when it closes. **Not
-yet**: the "CEO on duty" photo beside the window and Boba's pause cameo (phase 6 slice 6). The open's click since phase 6 slice 4.
+yet**: the "CEO on duty" photo beside the window and Boba's pause cameo (phase 6 slice 6c). The open's click since phase 6 slice 4.
 
 **The settings popup, 2026-11-04 (HANDOFF-LOG (40); phase 4)**. **`UPawSettingsDialog`** (settings_dialog.tscn /
 settings_dialog.gd), a Widget Blueprint from its first build (`WBP_SettingsDialog`), on the **Modal** stack, pause holder
@@ -532,7 +541,8 @@ settings_manager.gd and settings_dialog.tscn, fixture `settings`: the settings.c
 changes on the live dialog per row, 1,000 rows in L1, 3,000 in the long suite). Three sections (Audio, Video, Controls) in a
 bar of toggles (the selected one wears the theme's pressed plate), a page each, Close. **Audio**: Master (step 0.05), Music and
 Sound Effects (0.01) sliders with their percent lines, "Mute all audio", Output. **Video**: Language (disabled, "System":
-phase 7), Resolution (the five window sizes; greyed while fullscreen as the dialog OPENS, as Godot: finding F35), Fullscreen,
+phase 7), Resolution (the five window sizes; greyed while fullscreen, at once when Fullscreen is ticked: F35, fixed
+2026-11-11, D16; Godot greyed it only as the dialog opened), Fullscreen,
 V-Sync, Graphics quality, Frame rate limit, Visual effects, the note. **Controls**: Button prompts, Menu side, their notes.
 The selection: the section bar, the page's live controls one per row (a disabled list drops out), Close; it opens on the
 page's first control. Esc / pad B close; Page Up / Down and LB / RB turn the section (not A / D or the arrows: those move a
@@ -543,13 +553,15 @@ from the settings on every open without counting as changes. **Godot's numbers, 
 and `round` gives -0 below zero where Godot gives +0); a volume line shows `roundi(value * 100)`; a file's volume out of 0..1
 is kept and shown (130%) while its slider rests at the end. Words: `SETTINGS_*` in ST_UI. `Pawpocalypse.UI.Settings.*` (6
 tests; the dialog equals Godot's on 300 fixture rows). **Not yet**: the Output list's system devices (Godot sets AudioServer.output_device; the sound plays since phase 6 slice 4,
-always to the default device: open); the language list (phase 7); the quick bar
-that opens it from the HUD (it waits on its icons); the separator's art (a plain rule).
+always to the default device: open); the language list (phase 7). Since built: the quick bar that opens it from the HUD
+(slice 5b), the separators' chrome (slice 5a).
 
 **The screenshot tour (2026-11-02, HANDOFF-LOG (28))**: `py tools/godot_tour.py` runs the same steps and state in both games
 (Godot: `tools/godot_fixtures/tour_probe.gd` in the sandboxed scratch copy, rendered; Unreal: the `paw.*` tour steps of
 `Dev/PawShot.cpp`, capped at 60 fps) and pairs the shots in `build/tour/compare/`. The dims measure equal to Godot's (the
-dock's paper under each: within 1/255). Differences left are the art, fonts, tab icons and tutorial of phase 6.
+dock's paper under each: within 1/255). Since then phase 6 brought the art, fonts and icons, and since D14 (2026-11-07) the
+look is the port's own: the tour compares layout, state and behaviour, not colours. `--set biomes` shoots the 12 biomes and
+the title; `--skip-godot` shoots the port alone.
 
 **Numbers are printed the Godot way (2026-11-02, designer: "match Godot")**. Godot formats an int with `str()` and decimals
 with `"%.Nf"`: never grouped, a '.' point in every language. `PawText::Count` (ungrouped digits), `TwoDigits` ("%02d") and
@@ -602,7 +614,8 @@ ceremonies, the tutorial overlay (`HitTestInvisible`, never focusable), cheat ov
   page, the achievement and job rows, Bait (Catnip's icon when Catnip is short), realm rows asking for Catnip, Claim / Claim
   all / Reawaken (Stardust). **The quick bar** (hud.tscn QuickSeparator / QuickBar / QuickStatus): four bare icon buttons
   (`UPawBareButtonStyle`, a TextureButton's look), mouse only (never focusable: the pad has Start and Y), Settings, the
-  tree (browse), Save ("Saved." under it), Save and back to the title. Elsewhere: the title's three plates, the card pictures,
+  tree (browse), Save ("Saved." under it; "Not saved." when nothing was queued or the writer refused it: review
+  CR15, 2026-11-11), Save and back to the title. Elsewhere: the title's three plates, the card pictures,
   the tree's node icons, the Pounce clock's paw. Not built: the custom tooltip (the engine tooltip shows the names).
 - **Motion (phase 6 slice 5c, 2026-11-06)**: Godot's UiJuice. `Pc::PcJuice` (PawCore) holds one control's scale and rotation
   and its two tweens (one per property, a new one kills the old; each starts from the value it finds; the punch's two legs
@@ -612,7 +625,8 @@ ceremonies, the tutorial overlay (`HitTestInvisible`, never focusable), cheat ov
   disabled check); a button the port keeps interactable where Godot disables it (the tree's nodes) is switched off with
   `SetHoverOff`. The effects setting stops the idle lean only. Where: hover on the shop rows, job buttons, tabs, travel rows,
   claim buttons, tree nodes, the title's cluster; lean on the Reawaken tab (and its hue glow) while a Reawaken is suggested
-  and its page is shut, on Bait while it calls (restarted every refresh as Godot does: F42), on a newly open biome's row,
+  and its page is shut, on Bait while it calls (a refresh leaves a running lean alone: F42, fixed 2026-11-11, D16; Godot
+  restarted it every refresh, so it never settled), on a newly open biome's row,
   on the zone plate while it shouts, on READY nodes in the spend step; punch on a bought shop row or tree node; pop-in on
   the tree's leaving plate. Tests `Pawpocalypse.UI.Juice.*` and the L1 `Juice` cases.
 - **The rainbows and the tree's sky (phase 6 slice 5d, 2026-11-07)**: Godot's three `_draw()` nodes, their shapes from
@@ -643,7 +657,8 @@ ceremonies, the tutorial overlay (`HitTestInvisible`, never focusable), cheat ov
   picked by sub-face index: no split) and Noto Sans Thai Medium as sub-fonts per culture and script `[KB U/09 §5]`.
   It is UMG's default font (`[SlateStyle] DefaultFontName`), so no widget names a font (L0 forbids engine fonts in UI
   code). Static faces only (Slate has no variable fonts). Licences: OFL, the texts in `SourceArt/fonts`.
-- Text sizes: body ~24-26 px at 1080p, never under 18 px; Deck floor 12 px at 1280x800 `[KB U/09 §7]`.
+- Text sizes: body ~24-26 px at 1080p; the floor is 16 px since R4b (`PawUi::UnderTextFloor`; `bake_widgets.py
+  --textfloor` raised the assets' smaller texts); the KB's Deck floor is 12 px at 1280x800 `[KB U/09 §7]`.
 - UI motion (`UiJuice`: press squash, hover lift, badge pop) as cheap widget transforms/tweens, not Sequencer animations
   (as built: the Motion bullet above).
 

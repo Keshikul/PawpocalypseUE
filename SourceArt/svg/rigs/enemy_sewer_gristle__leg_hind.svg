@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_sewer_gristle" data-layer="leg_hind" data-order="-2" data-pivot="98.77 99.26" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="89.3,106.8 92.3,116.3 94.9,121.0 99.5,123.8 104.9,123.9 109.6,121.3 112.4,116.6 112.5,111.3 110.7,101.4 107.9,96.4 103.0,93.5 97.3,93.4 92.3,96.2 89.4,101.1" fill="#2A1A33" stroke="none"/>
+<ellipse cx="104.8" cy="115.0" rx="14.7" ry="9.2" fill="#2A1A33" stroke="none"/>
+<polygon points="92.9,105.9 95.9,115.4 97.6,118.4 100.6,120.2 104.0,120.2 107.0,118.6 108.8,115.6 108.9,112.2 107.0,102.3 105.2,99.0 102.0,97.1 98.2,97.1 94.9,98.9 93.0,102.1" fill="#CCAD45" stroke="none"/>
+<ellipse cx="104.8" cy="115.0" rx="10.9" ry="5.4" fill="#CCAD45" stroke="none"/>
+</g>
+</svg>

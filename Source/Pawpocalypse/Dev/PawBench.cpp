@@ -30,6 +30,7 @@
 #include "RHIStats.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "Realm/PawRealmView.h"
+#include "Render/PawSpriteAtlas.h"
 #include "Render/PawSpriteRenderer.h"
 #include "RenderCore.h"
 #include "UnrealClient.h"
@@ -109,6 +110,12 @@ namespace
 			const Pc::PcField& F = Realm->GetSim().Field;
 			if (Warmup == 0.0)
 			{
+				// The debug overlay is not the game: off while the bench measures (review CR7: on in every Development build, it
+				// was inside the numbers and the draw calls this gate judges; 2026-11-10: one draw call of them).
+				if (IConsoleVariable* Overlay = IConsoleManager::Get().FindConsoleVariable(TEXT("paw.DebugHud")))
+				{
+					Overlay->Set(0, ECVF_SetByCode);
+				}
 				View->bSampleInput = false; // the bench drives the cat
 				P.UpgradeLevels["kitten_count"] = 20;
 				P.UpgradeLevels["paw_damage"] = 30;
@@ -161,7 +168,14 @@ namespace
 			// What is drawn is what is live (the view drew this frame's field before this ticker ran).
 			const UPawSpriteRenderer* R = View->GetRenderer();
 			const int32 Bodies = static_cast<int32>(F.LiveCount() + F.AwakeKittens() + static_cast<int64>(F.Adds.size())) + (F.bBossUp ? 1 : 0) + 1;
-			DrawMismatches += R && R->DrawnCount(EPawLayer::Bodies) == Bodies ? 0 : 1;
+			// A rigged mouse (R5) is drawn as its layers: its body layer is its one body, its wings and legs are beside it.
+			int32 Limbs = 0;
+			const UPawSpriteAtlas* At = R ? R->GetAtlas() : nullptr;
+			for (const FPawSprite& S : R ? R->LastSprites(EPawLayer::Bodies) : TArray<FPawSprite>())
+			{
+				Limbs += At && At->Cells.IsValidIndex(S.Cell) && !At->Cell(S.Cell).RigOf.IsEmpty() && At->Cell(S.Cell).RigOrder != 0 ? 1 : 0;
+			}
+			DrawMismatches += R && R->DrawnCount(EPawLayer::Bodies) - Limbs == Bodies ? 0 : 1;
 			// A shadow under each that stands: not the boss, not its adds (boss.tscn, boss_add.gd).
 			ShadowMismatches += R && R->DrawnCount(EPawLayer::Shadows) == static_cast<int32>(F.LiveCount() + F.AwakeKittens()) + 1 ? 0 : 1;
 			FloorMismatches += R && R->DrawnCount(EPawLayer::Floor) == 1 ? 0 : 1;
@@ -223,6 +237,12 @@ namespace
 			};
 			TArray<FString> Out;
 			Out.Add(FString::Printf(TEXT("viewport=%dx%d frames=%d adapter=%s mice(min)=%lld kittens=%lld held=%lld"), Size.X, Size.Y, FrameMs.Num(), *GRHIAdapterName, MinLive, F.AwakeKittens(), HeldFrames));
+			// The overlay's state (CR7), and the body pool against what the last frame drew (review CR18: the pool grows to the
+			// largest frame ever drawn and every frame uploads all of it, parked instances too).
+			const IConsoleVariable* Overlay = IConsoleManager::Get().FindConsoleVariable(TEXT("paw.DebugHud"));
+			const UPawSpriteRenderer* Sprites = View.GetRenderer();
+			Out.Add(FString::Printf(TEXT("debughud=%d pool(bodies)=%d drawn(bodies)=%d"), Overlay ? Overlay->GetInt() : -1,
+				Sprites ? Sprites->PoolSize(EPawLayer::Bodies) : -1, Sprites ? Sprites->DrawnCount(EPawLayer::Bodies) : -1));
 			Out.Add(Line(TEXT("frame_ms"), FrameMs));
 			Out.Add(Line(TEXT("game_ms"), GameMs));
 			Out.Add(Line(TEXT("render_ms"), RenderMs));

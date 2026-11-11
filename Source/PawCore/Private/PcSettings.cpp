@@ -683,7 +683,7 @@ namespace Pc
 		ReadString(Cfg, "controls", "dock_side", S.DockSide);
 		if (!SettingsIsDockSide(S.DockSide))
 		{
-			S.DockSide = "left";
+			S.DockSide = "right";
 		}
 		ReadBool(Cfg, "controls", "show_prompts", S.bShowPrompts, true);
 		ReadBool(Cfg, "controls", "swap_confirm_back", S.bSwapConfirmBack, true);

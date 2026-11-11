@@ -1,0 +1,9 @@
+<svg data-rig-of="enemy_rooftop_pigeon" data-layer="leg_near" data-order="-1" data-pivot="53.74 102.04" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.000" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polyline points="53.7,106.4 52.6,119.5" fill="none" stroke="#2A1A33" stroke-width="6.5"/>
+<polyline points="53.7,106.4 52.6,119.5" fill="none" stroke="#F6BBAD" stroke-width="3.9"/>
+<polyline points="52.6,119.5 45.0,123.8" fill="none" stroke="#2A1A33" stroke-width="2.4"/>
+<polyline points="52.6,119.5 49.9,123.8" fill="none" stroke="#2A1A33" stroke-width="2.4"/>
+<polyline points="52.6,119.5 54.8,123.8" fill="none" stroke="#2A1A33" stroke-width="2.4"/>
+</g>
+</svg>

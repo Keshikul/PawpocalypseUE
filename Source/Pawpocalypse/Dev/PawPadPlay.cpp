@@ -25,6 +25,7 @@
 #include "HAL/IConsoleManager.h"
 #include "Input/PawInputDeviceSubsystem.h"
 #include "Misc/App.h"
+#include "Misc/Paths.h"
 #include "PcCardDraw.h"
 #include "PcData.h"
 #include "PcField.h"
@@ -37,9 +38,11 @@
 #include "UI/PawHudScreen.h"
 #include "UI/PawMainMenu.h"
 #include "UI/PawPauseMenu.h"
+#include "UI/PawPrompts.h"
 #include "UI/PawRootLayout.h"
 #include "UI/PawSettingsDialog.h"
 #include "UI/PawSkillTreeScreen.h"
+#include "UnrealClient.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 
 #if !UE_BUILD_SHIPPING
@@ -337,6 +340,27 @@ namespace
 			return false;
 		});
 		WalkTo(TEXT("D-pad reaches Paw Damage"), []() -> UWidget* { return Hud() ? Hud()->GetRowButton(0) : nullptr; }, EKeys::Gamepad_DPad_Down);
+		// THE PRESS PROMPT AFTER THE TRAVEL (review CR1, 2026-11-10): the prompt was made and added to the viewport once, on the
+		// title, and the viewport removes a game-instance widget with the world it was added in, so after the travel to the
+		// realm keys and pad players never saw it again. Here, after that travel: on screen, at the focused dock row.
+		Expect(TEXT("the press prompt is on screen at the focused dock row (after the travel from the title)"), []()
+		{
+			const UGameInstance* G = GI();
+			const UPawInputDeviceSubsystem* D = G ? G->GetSubsystem<UPawInputDeviceSubsystem>() : nullptr;
+			const UPawPromptIcon* P = D ? D->GetFocusPrompt() : nullptr;
+			return P && P->IsInViewport() && P->GetVisibility() == ESlateVisibility::HitTestInvisible;
+		}, []()
+		{
+			const UGameInstance* G = GI();
+			const UPawInputDeviceSubsystem* D = G ? G->GetSubsystem<UPawInputDeviceSubsystem>() : nullptr;
+			const UPawPromptIcon* P = D ? D->GetFocusPrompt() : nullptr;
+			return P ? FString::Printf(TEXT("in the viewport %d, visibility %d"), P->IsInViewport() ? 1 : 0, static_cast<int32>(P->GetVisibility()))
+				: FString(TEXT("no prompt"));
+		});
+		Do(TEXT("a picture of the dock and its prompt"), []()
+		{
+			FScreenshotRequest::RequestScreenshot(FPaths::ProjectSavedDir() / TEXT("PadPlay/dock_prompt.png"), true, false);
+		}, 10);
 		Do(TEXT("level"), [this]() { Level = UpgradeLevel("paw_damage"); }, 0);
 		Press(EKeys::Gamepad_FaceButton_Bottom);
 		Expect(TEXT("A buys the selected row"), [this]() { return UpgradeLevel("paw_damage") == Level + 1; },
@@ -575,6 +599,41 @@ namespace
 			return S && S->HasSlot(0);
 		});
 		Expect(TEXT("the title now opens on Continue"), []() { return Title() && Focused(Title()->GetMenuButton(0)); });
+
+		// THE POINTER TAKES OVER (review CR10, 2026-11-10): with the pointer the last thing used the press prompt is hidden, and
+		// the search of the window's widgets that places it is not made at all (it ran every frame a button had the focus).
+		Do(TEXT("the pointer moves"), []()
+		{
+			FSlateApplication& S = FSlateApplication::Get();
+			for (int32 I = 0; I < 3; ++I)
+			{
+				const FVector2D From(400.0 + I * 12.0, 300.0), To(412.0 + I * 12.0, 306.0);
+				S.ProcessMouseMoveEvent(FPointerEvent(0, To, From, TSet<FKey>(), FKey(), 0.0f, FModifierKeysState()));
+			}
+		}, 10);
+		Expect(TEXT("the pointer is the last thing used"), []()
+		{
+			const UGameInstance* G = GI();
+			const UPawInputDeviceSubsystem* D = G ? G->GetSubsystem<UPawInputDeviceSubsystem>() : nullptr;
+			return D && D->GetFocusPrompt() && D->GetFocusPrompt()->GetVisibility() == ESlateVisibility::Collapsed;
+		});
+		Do(TEXT("searches so far"), [this]()
+		{
+			const UGameInstance* G = GI();
+			const UPawInputDeviceSubsystem* D = G ? G->GetSubsystem<UPawInputDeviceSubsystem>() : nullptr;
+			Count = D ? D->GetPromptPathSearches() : -1;
+		}, 20);
+		Expect(TEXT("with the pointer last used, the prompt searches nothing"), [this]()
+		{
+			const UGameInstance* G = GI();
+			const UPawInputDeviceSubsystem* D = G ? G->GetSubsystem<UPawInputDeviceSubsystem>() : nullptr;
+			return D && D->GetPromptPathSearches() == Count;
+		}, [this]()
+		{
+			const UGameInstance* G = GI();
+			const UPawInputDeviceSubsystem* D = G ? G->GetSubsystem<UPawInputDeviceSubsystem>() : nullptr;
+			return FString::Printf(TEXT("%lld searches in 20 frames"), D ? D->GetPromptPathSearches() - Count : -1);
+		});
 	}
 
 	FAutoConsoleCommand PadPlayCommand(TEXT("paw.PadPlay"), TEXT("paw.PadPlay: the pad-only playthrough and the focus tour (logs PADPLAY ...; quits)."),

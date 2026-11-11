@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_alley_gristle" data-layer="leg_hind" data-order="-2" data-pivot="100.05 99.11" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="90.4,106.7 93.5,116.4 96.1,121.2 100.8,124.0 106.3,124.1 111.1,121.4 113.9,116.7 114.0,111.3 112.1,101.3 109.3,96.3 104.3,93.3 98.6,93.2 93.5,96.0 90.5,100.9" fill="#2A1A33" stroke="none"/>
+<ellipse cx="106.2" cy="115.1" rx="14.8" ry="9.3" fill="#2A1A33" stroke="none"/>
+<polygon points="94.1,105.8 97.2,115.5 98.9,118.5 101.9,120.3 105.4,120.4 108.4,118.7 110.2,115.7 110.3,112.2 108.4,102.2 106.6,98.9 103.3,96.9 99.5,96.9 96.2,98.7 94.2,102.0" fill="#CCAD45" stroke="none"/>
+<ellipse cx="106.2" cy="115.1" rx="11.0" ry="5.5" fill="#CCAD45" stroke="none"/>
+</g>
+</svg>

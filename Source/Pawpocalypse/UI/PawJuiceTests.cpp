@@ -13,9 +13,14 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
+#include "PcCheats.h"
+#include "PcData.h"
 #include "PcEconomy.h"
+#include "PcField.h"
 #include "PcHud.h"
+#include "PcProgress.h"
 #include "PcTreeLayout.h"
+#include "Realm/PawRealmSim.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "Save/PawSettingsSubsystem.h"
 #include "UI/PawButton.h"
@@ -216,6 +221,63 @@ bool FPawJuiceHudTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the row is leaning"), !Near(Angle(Next), 0.0));
 	TestTrue(TEXT("its size untouched (scale is the hover's)"), Near(ScaleX(Next), 1.0));
 
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawJuiceBaitLeanTest, "Pawpocalypse.UI.Juice.BaitLean", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawJuiceBaitLeanTest::RunTest(const FString& Parameters)
+{
+	// F42 (a Godot fault the port does not copy, D16): the Bait button calls by leaning, like the Reawaken tab and the zone
+	// plate, but _refresh_bait_button() stopped the lean at its top and started it again at its end, 15 times a second while
+	// Catnip came in: it never finished a lean and trembled. Here a refresh leaves a running lean alone (each new lean draws
+	// a random angle: the draws count the restarts).
+	FJuiceWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	UPawHudScreen* Hud = W.Hud;
+	FPawJuice& J = Hud->GetJuice();
+	const Pc::PcGameData& D = W.D();
+	Pc::PcProgress& P = W.P();
+	const std::string BossRealm = D.Code.BossRealms.front();
+	const int32 BossIndex = static_cast<int32>(Pc::RealmIndex(D, BossRealm));
+	const Pc::PcBoss* Boss = D.FindBoss(D.Tiers[static_cast<size_t>(BossIndex)].BossData);
+	if (!TestNotNull(TEXT("the first boss"), Boss))
+	{
+		W.Close();
+		return false;
+	}
+	Pc::CheatUnlockAllTiers(D, P); // the ladder open (the cheat marks every boss beaten) ...
+	P.BossesDefeated.erase(BossRealm); // ... but this one: it stands in the way
+	P.BossesClearedThisCycle.erase(BossRealm);
+	TestTrue(TEXT("travel to the boss biome"), W.Realm->Travel(BossIndex));
+	P.TierKillCount += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
+	P.Catnip = 1e15;
+	TestTrue(TEXT("the Bait calls"), Pc::BaitButton(W.Realm->GetSim().Field, D, P).bCalling);
+	Hud->SelectTab(Pc::PcDockTab::Realms);
+	Hud->RefreshNow();
+	Hud->Pump(0.02);
+	UPawButton* Bait = Hud->GetBaitButton();
+	TestTrue(TEXT("the Bait button leans"), J.IsJittering(Bait));
+	const Pc::PcJuice* Lean = J.Find(Bait);
+	const uint64 Draws = Lean ? Lean->Draws : 0;
+	for (int32 I = 0; I < 5; ++I)
+	{
+		Hud->RefreshNow(); // a refresh 15 times a second while Catnip comes in
+	}
+	Lean = J.Find(Bait);
+	TestEqual(TEXT("five refreshes restart no lean"), Lean ? Lean->Draws : 0, Draws);
+	TestTrue(TEXT("still leaning"), J.IsJittering(Bait));
+	// No boss in the way any more: the lean stops.
+	P.BossesDefeated.insert(BossRealm);
+	P.BossesClearedThisCycle.insert(BossRealm);
+	Hud->RefreshNow();
+	Hud->Pump(0.02);
+	TestFalse(TEXT("no boss to call: still"), J.IsJittering(Bait));
 	W.Close();
 	return true;
 }

@@ -49,7 +49,7 @@ namespace Pc
 		bool bTutorialTips = true;
 		// Controls
 		std::string PromptStyle = "auto";
-		std::string DockSide = "left";
+		std::string DockSide = "right";      // settings_manager.gd: right by default (designer, 2026-11-09)
 		bool bShowPrompts = true;
 		bool bSwapConfirmBack = false;
 		bool bSwapSticks = false;

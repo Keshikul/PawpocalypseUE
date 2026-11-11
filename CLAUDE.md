@@ -1,15 +1,19 @@
 # PAWPOCALYPSE (Unreal) - Project Instructions
 
 > Written 2026-10-28 at the start of the port. If anything here disagrees with the code or `Data/`, **the code is right and this
-> file is a bug**: fix it in the same pass. Until parity (docs/11 phase 9) the **Godot game at `C:\Games\pawpocalypse` is the
-> specification**: where this project and the Godot code disagree on a rule or number, Godot is right. **The LOOK is the
-> exception (designer, 2026-11-07): "The unreal version does not have to match godot, they can be different." and "Plum
-> everywhere."** So is the player-facing TEXT since 2026-11-09 (D15: the port's own plain English, below). The look's reference is the concept canvas and `docs/WORKLIST-RESTYLE-2026-11-07.md`; the palette, the art
-> generators (`tools/art`) and every look test are this project's own. Rules, numbers, behaviour and timing still follow Godot.
+> file is a bug**: fix it in the same pass. **This is a standalone game** (designer, 2026-11-10, D16: "This is a standalone
+> version. If godot has rules or mechanics that don't make sense we should change them. Do not port faults from godot.").
+> The **Godot game at `C:\Games\pawpocalypse` is the reference**: where this project and the Godot code disagree on a rule or
+> number, Godot is right, unless Godot's rule is a fault (a bug, an inconsistency, a rule that makes no sense), which is fixed
+> here instead of copied (standing rules, below). **The LOOK is the port's own (designer, 2026-11-07): "The unreal version
+> does not have to match godot, they can be different." and "Plum everywhere."** So is the player-facing TEXT since
+> 2026-11-09 (D15: the port's own plain English, below). The look's reference is the concept canvas and
+> `docs/WORKLIST-RESTYLE-2026-11-07.md`; the palette, the art generators (`tools/art`) and every look test are this project's
+> own. Rules, numbers, behaviour and timing follow Godot, except its faults (D16).
 
 ## What this is
-A recreation of Pawpocalypse (2D idle/incremental cat-sim, Godot 4.7.1, itch 0.2.5) in **Unreal Engine 5.8.3** (launcher build
-5.8.3-58210709), C++. Same game: rules, numbers, content, sounds, controls, languages; its own look (the plum restyle, 2026-11-07). Windows/Steam first, built to port to
+A standalone recreation of Pawpocalypse (2D idle/incremental cat-sim, Godot 4.7.1, itch 0.2.5) in **Unreal Engine 5.8.3** (launcher build
+5.8.3-58210709), C++. Same game: rules, numbers, content, sounds, controls, languages, without Godot's faults (D16); its own look (the plum restyle, 2026-11-07) and words (D15). Windows/Steam first, built to port to
 PlayStation and Xbox: keyboard/mouse AND gamepad from day one. Single player, no networking.
 
 **Start every session with `docs/00-START-HERE.md`, then the newest entry of `docs/HANDOFF-LOG.md`; end every session that changed
@@ -30,9 +34,11 @@ never project names or design decisions.
 - **Sandbox every automated run** (saves, settings, input remaps): the designer's own game must stay byte-identical.
 - **No Lumen, no ray tracing** (designer, 2026-10-28), and none of Nanite, VSM, distance fields, Substrate, auto exposure, bloom,
   motion blur: the game is flat and unlit (docs/03 §7, docs/04).
-- **No design changes during the port** (the look excepted since 2026-11-07, D14: it is changed here only, never in Godot).
-  Open design questions are answered in Godot first, then re-exported
-  (`py tools/export_godot_data.py ...`). A difference is either a port bug or a design change for after parity, never both.
+- **Godot's faults are fixed here, never ported** (D16). A bug or an inconsistency is fixed as found; a change with a design
+  or balance trade-off is proposed to the designer (balance with `tools/pawsim.py` numbers) and made on a yes. Either way it
+  is made in this project only, never in the Godot repo, asserted by a test, and listed in doc 01 §5. Nothing else departs
+  from Godot (the look, D14, and the words, D15, are the port's own): every difference from Godot is either a port bug or a
+  listed change, never both.
 - **Player-facing text is plain and informative** (designer, 2026-11-09: "i do not want the text to be like a poem or any kind
   of language with character", "all the text should just be to the point informative information"): real numbers, not
   "increases crit"; one word per idea (the list: `VOCAB` in `tools/text_audit.py`; "increase", never "grows";
@@ -74,6 +80,11 @@ py tools/export_godot_data.py --godot C:/Games/pawpocalypse --out Data --catalog
 py tools/list_godot_code_constants.py --godot C:/Games/pawpocalypse --out docs/appendix-c-code-constants.md
 py tools/gen_paw_rows.py                                                 # DataTable row structs from the Data/*.csv headers
 py tools/gen_paw_tokens.py                                               # UI/PawTokens.h, the colours, from tools/art/palette.py (+ PcBackdropTones.h, Tests/PcGodotLook.h)
+py tools/gen_fx_look.py [--check]                                        # Realm/PawFxLook.h: the aura's, strike paw's and crit's look (D3) from tools/art/fx_look.py
+py tools/art/review_d3.py                                                # build/review/d3_aura_strike.png: the D3 review sheet (approved 2026-11-09)
+py tools/art/look_lint.py [--self-test | --known]                       # the field's drawings follow the look spec (tokens, one ink, flat, no outline crossing itself, clear of their floors, eyes); KNOWN only shrinks
+py tools/art/review_anatomy.py                                           # build/review/anatomy.png: the anatomy batch in sweet_anatomy.SPECIES / BATCH beside today's (R5)
+py tools/art/review_rig.py                                               # build/review/rig.gif + rig.png: the enemies' wings and legs moving (SourceArt/svg/rigs, R5)
 py tools/fonts.py [--check]                                              # UI/PawFontSpec.h: the font F_Paw's table (faces, typefaces, sub-fonts)
 py tools/import_fonts.py --run                                           # SourceArt/fonts -> FF_* faces + the composite F_Paw, headless (editor closed)
 py tools/check_font_coverage.py [--self-test]                            # every language's characters reach a face of F_Paw that has them
@@ -84,18 +95,19 @@ py tools/make_port_map.py --godot C:/Games/pawpocalypse --out docs/appendix-b-go
 powershell -ExecutionPolicy Bypass -File tools\build_pawcore_tests.ps1   # PawCore L1 tests, plain MSVC, seconds (-Long: long suite)
 powershell -ExecutionPolicy Bypass -File tools\check_all.ps1             # every gate (-Full: + negative tests and long runs)
 py tools/make_godot_fixtures.py [--only tree] [--check]                  # Godot ground truth (scratch copy, sandboxed)
+py tools/godot_fixes.py [--self-test]                                   # the port's fixes to Godot's faults (D16), applied to that scratch copy only
 py tools/sabotage_pawcore.py [--only NAME]                               # one-line PawCore sabotages; each must be CAUGHT
 py tools/run_automation.py [--no-build] [Pawpocalypse.Realm]             # engine automation tests, headless (editor closed; builds first)
 py tools/bake_widgets.py --run [--graft "Class=add:Part;swap:Old>New"]  # Widget Blueprints for UI classes that have none (never over one); --graft puts NEW parts into an existing one (restyle:Part a part's look, restyle:Code>Asset when an unnamed part's auto-name differs (names:x / codenames:x list both), props:Part a piece's settings, slot:Part its place and tilt, text:Part a text's whole look, remove:Part, wrap:Part>Wrapper moves the asset's part (children kept) into a new panel; add: takes a panel with children; all or nothing); --textfloor raises texts under 16 px; --recolour / --refont migrate the assets' saved colours / fonts
 py tools/art/build_art.py [--check]                                     # the art generators -> SourceArt/svg (--check: = the committed SourceArt/svg)
 py tools/raster_svg.py [--check]                                        # SourceArt/svg -> png (the glyphs: 56 px; the cursors; the chrome and icons 1:1)
-py tools/pack_atlas.py [--check]                                        # the field's sprites -> SourceArt/png/atlas (2 pages + field.csv)
+py tools/pack_atlas.py [--check]                                        # the field's sprites and rig layers -> SourceArt/png/atlas (4 pages + field.csv)
 py tools/import_art.py --run [input|chrome|icons|atlas|floors]                       # SourceArt -> T_* textures, DA_FieldAtlas, the floors, headless (editor closed)
 py tools/export_audio.py [--check]                                      # Godot's sound table -> Data/Audio*.csv + the played files -> SourceAudio/
 py tools/import_audio.py --run                                          # SourceAudio -> SW_* sounds + DA_AudioBank, headless (editor closed)
 py tools/create_input_assets.py --run                                    # IA_* / IMC_Pawpocalypse from Data/InputMap.csv (generated, never edited)
 py tools/sabotage_realm.py [--only NAME]                                 # game-module sabotages of the realm tests (UBT each, ~1 min)
-py tools/packaged_bench.py [--seconds 20]                                # L5: paw.Bench in the packaged build (build/package): frame gate
+py tools/packaged_bench.py [--seconds 20] [--exec "paw.Rig 0"]            # L5: paw.Bench in the packaged build (build/package): frame gate (--exec: console commands first, an A/B)
 py tools/godot_tour.py [--skip-godot] [--skip-ue] [--set biomes|fonts] [--res WxH] [--uiscale 1.5]   # the screenshot tour, both games -> build/tour/compare (opens windows)
 py tools/text_audit.py [--self-test | --banned]                         # player text over budget (short lines, short sentences), off-list words (VOCAB), banned words; drafts: the newest docs/TEXT-DRAFT-*.csv
 py tools/text_overrides.py [--self-test]                                # Data/TextOverrides.csv: the port's own English over Godot's (gen_data_strings / gen_tree_tables apply it)
@@ -110,14 +122,16 @@ py tools/trim_game_plugins.py                                            # rewri
   -SCCProvider=None -stdout`, editor closed, `unreal.log_warning` for output.
 - Never kill or close the designer's editor; check for running editor processes before headless runs; never two test runs at once.
 - Write Python to files and run them (heredocs break on this project's apostrophes).
-- `tools/check_all.ps1` is the one command that runs every gate (everyday set; `-Full` = nightly, ~10 h measured 2026-11-05/06). Run it before calling
+- `tools/check_all.ps1` is the one command that runs every gate (everyday set, ~6 min; `-Full` = nightly, ~10 h measured 2026-11-10). Run it before calling
   anything done: done is exit 0. Exit 2 means a gate was SKIPPED (an editor was open): not proven, not done. The engine gates
   run on the editor target it builds first; never on an older DLL. It builds the game target too (what a package compiles:
   editor-only API passes the editor build and breaks only there). Porting a Godot manager follows the recipe in docs/09 §7: real Godot fixture, coverage asserted, sabotages seen
   caught.
-- A designer decision that changes a Godot rule is made in the Godot repo first (left uncommitted for the designer), then the
-  fixtures are regenerated (`py tools/make_godot_fixtures.py --only <name>`) and PawCore follows. Godot findings: docs/01 §5, and the same list for the designer in the Godot repo's
-  `docs/pawpocalypse-port-findings.md` (the one Godot file the port writes without a decision; left uncommitted).
+- A Godot rule the port changes (D16) is changed here, never in the Godot repo: the port's code and its test assert the new
+  rule, and the Godot fixture it changes is made from Godot with the same fix (`tools/godot_fixes.py`: an exact
+  text replacement per finding, applied to `make_godot_fixtures.py`'s scratch copy only). Godot faults: doc 01 §5, and the same list
+  for the designer's Godot build (D12) in the Godot repo's `docs/pawpocalypse-port-findings.md` (the one Godot file the port
+  writes; left uncommitted).
 
 ## Folders
 ```

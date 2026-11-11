@@ -473,6 +473,10 @@ bool FPawRealmViewTest::RunTest(const FString& Parameters)
 		P.InfestationBonus = 1000.0;
 		bOk = TestTrue(TEXT("the realm starts"), Realm->StartRealm());
 		const Pc::PcGameData& D = Game->Data();
+		// A mouse's draw place is 1 + its pool slot (the first free one, so under max_live_enemies): the renderer's roomy
+		// mice band must cover every one (UPawSpriteRenderer::BodyZ; a rigged mouse's layers drew black when crowded in Z).
+		TestTrue(TEXT("every live mouse's draw place is in the mice's depth band"),
+			static_cast<double>(D.Code.MaxLiveEnemies) + 1.0 < UPawSpriteRenderer::MicePlaces);
 		const Pc::PcField& F = Realm->GetSim().Field;
 		for (int32 Frame = 0; bOk && Frame < 240 && F.LiveCount() < D.Code.MaxLiveEnemies - 5; ++Frame)
 		{
@@ -524,7 +528,21 @@ bool FPawRealmViewTest::RunTest(const FString& Parameters)
 		// boss and its adds have none: boss.tscn, boss_add.gd).
 		UPawSpriteRenderer* R = View->GetRenderer();
 		const int32 Bodies = static_cast<int32>(F.LiveCount() + F.AwakeKittens() + static_cast<int64_t>(F.Adds.size())) + (F.bBossUp ? 1 : 0) + 1;
-		TestEqual(TEXT("one body per live thing"), R->DrawnCount(EPawLayer::Bodies), Bodies);
+		// A rigged mouse (R5) is drawn as its layers: its body layer is its one body, its wings and legs are drawn beside it.
+		int32 Limbs = 0, LimbsWanted = 0;
+		for (const FPawSprite& S : R->LastSprites(EPawLayer::Bodies))
+		{
+			Limbs += Atlas->Cells.IsValidIndex(S.Cell) && !Atlas->Cell(S.Cell).RigOf.IsEmpty() && Atlas->Cell(S.Cell).RigOrder != 0 ? 1 : 0;
+		}
+		for (const int32 S : F.Live)
+		{
+			const Pc::PcEnemy& E = Game->Data().Enemies[static_cast<size_t>(F.Kind[static_cast<size_t>(S)])];
+			const TArray<FPawRigLayer>* Rig = Atlas->Rig(Atlas->Find(UTF8_TO_TCHAR(E.TexturePath.c_str())));
+			LimbsWanted += Rig ? Rig->Num() - 1 : 0;
+		}
+		TestEqual(TEXT("one body per live thing"), R->DrawnCount(EPawLayer::Bodies) - Limbs, Bodies);
+		TestEqual(TEXT("every rigged mouse's wings and legs"), Limbs, LimbsWanted);
+		TestTrue(TEXT("some rigged mice on this field"), LimbsWanted > 0);
 		TestEqual(TEXT("one shadow per mouse, kitten and the cat"), R->DrawnCount(EPawLayer::Shadows),
 			static_cast<int32>(F.LiveCount() + F.AwakeKittens()) + 1);
 		// Every body wears its own art, and Godot's draw order holds: the mice (z 0) under the kittens (z 1) under the cat (z 2).
@@ -568,6 +586,34 @@ bool FPawRealmViewTest::RunTest(const FString& Parameters)
 		TestTrue(TEXT("the pool holds at least what is drawn"), R->PoolSize(EPawLayer::Bodies) >= Bodies);
 		TestTrue(TEXT("the paw struck and killed"), Strikes > 0 && Kills > 0);
 		TestTrue(TEXT("every strike and kill made its effect"), Spawned >= Strikes + Kills);
+
+		// Review CR5 (2026-11-10): an empty effects band is cleared once, when it empties, not every frame: each clear (and each
+		// create) rebuilds the mesh's collision body and its scene proxy, and three bands did it every frame, empty or not.
+		{
+			const FPawFxCanvas Empty{};
+			for (const EPawFxBand B : { EPawFxBand::Ground, EPawFxBand::Under, EPawFxBand::Over })
+			{
+				R->SetFx(B, Empty, FillMaterial); // whatever the hunt left in them goes
+			}
+			const int32 Before = R->FxSectionRebuilds();
+			for (int32 Frame = 0; Frame < 60; ++Frame)
+			{
+				for (const EPawFxBand B : { EPawFxBand::Ground, EPawFxBand::Under, EPawFxBand::Over })
+				{
+					R->SetFx(B, Empty, FillMaterial);
+				}
+			}
+			TestEqual(TEXT("60 frames of empty effects bands rebuild no section"), R->FxSectionRebuilds() - Before, 0);
+			FPawFxCanvas Ring;
+			Ring.SetZ(UPawSpriteRenderer::GroundFxZ);
+			Ring.Circle(FVector2D(900.0, 500.0), 40.0, FLinearColor(1.0f, 1.0f, 1.0f, 0.5f));
+			R->SetFx(EPawFxBand::Ground, Ring, FillMaterial);
+			TestEqual(TEXT("an effect drawn: one section made"), R->FxSectionRebuilds() - Before, 1);
+			TestEqual(TEXT("and drawn: its triangles"), R->FxTriangles(EPawFxBand::Ground), 64);
+			R->SetFx(EPawFxBand::Ground, Empty, FillMaterial);
+			TestEqual(TEXT("the band empties: one clear"), R->FxSectionRebuilds() - Before, 2);
+			TestEqual(TEXT("and draws nothing"), R->FxTriangles(EPawFxBand::Ground), 0);
+		}
 
 		// Settings > Video > Visual effects off: the same hunt spawns none (vfx_burst.gd honours the effect budget).
 		if (UPawSettingsSubsystem* Settings = GI->GetSubsystem<UPawSettingsSubsystem>())

@@ -753,11 +753,13 @@ void UPawSettingsDialog::ToggleMute()
 
 void UPawSettingsDialog::ToggleFullscreen()
 {
-	// Resolution is NOT greyed here: Godot only does that as the dialog opens.
 	if (UPawSettingsSubsystem* S = Settings())
 	{
 		S->SetFullscreen(!S->Get().bFullscreen);
 		if (FullscreenCheck) { FullscreenCheck->SetCheck(true, S->Get().bFullscreen); }
+		// Resolution greys at once: Godot greyed it only as the dialog opened, so in the same visit a size picked there
+		// changed nothing (F35, a Godot fault the port does not copy: D16).
+		if (ResolutionOption) { ResolutionOption->SetIsEnabled(!S->Get().bFullscreen); }
 	}
 }
 

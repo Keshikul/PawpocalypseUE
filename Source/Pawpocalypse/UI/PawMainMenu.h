@@ -203,4 +203,5 @@ private:
 	TWeakObjectPtr<UCommonActivatableWidgetStack> ModalStack;
 	TFunction<void()> ConfirmThen;
 	bool bConfirmSafeIsNo = true;
+	bool bContinueOpensSlots = false; // F47: the active slot cannot be read (Refresh)
 };

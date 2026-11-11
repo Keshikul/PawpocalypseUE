@@ -1138,4 +1138,24 @@ bool FPawInputPointerFieldTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawInputSteerPausedTest, "Pawpocalypse.Input.SteerPaused", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawInputSteerPausedTest::RunTest(const FString& Parameters)
+{
+	using ESteer = APawRealmView::ESteer;
+	// player.gd _process: R3's recentre first, else the stick while it has the cursor, else the pointer; the Cone of Shame
+	// roots the cat (every path).
+	TestTrue(TEXT("the stick steers"), APawRealmView::SteerBy(false, false, false, true, true) == ESteer::Stick);
+	TestTrue(TEXT("R3 recentres first"), APawRealmView::SteerBy(false, false, true, true, true) == ESteer::Recentre);
+	TestTrue(TEXT("else the pointer"), APawRealmView::SteerBy(false, false, false, false, true) == ESteer::Pointer);
+	TestTrue(TEXT("nothing to steer with"), APawRealmView::SteerBy(false, false, false, false, false) == ESteer::Nothing);
+	TestTrue(TEXT("rooted: nothing"), APawRealmView::SteerBy(false, true, true, true, true) == ESteer::Nothing);
+	// Review CR6 (2026-11-10): a paused field (a card pick, the tree, a menu) is steered by nothing, as Godot's player stops
+	// with the paused tree. The stick kept steering here: the pointer warped onto the cat under the menu every frame.
+	TestTrue(TEXT("paused: the stick steers nothing"), APawRealmView::SteerBy(true, false, false, true, true) == ESteer::Nothing);
+	TestTrue(TEXT("paused: R3 recentres nothing"), APawRealmView::SteerBy(true, false, true, true, true) == ESteer::Nothing);
+	TestTrue(TEXT("paused: the pointer steers nothing"), APawRealmView::SteerBy(true, false, false, false, true) == ESteer::Nothing);
+	return true;
+}
+
 #endif

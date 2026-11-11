@@ -1,9 +1,10 @@
 # The restyle: the plum look (plan, 2026-11-07)
 
-**Status (2026-11-08 night, HANDOFF-LOG (70)): R0-R4 DONE (R4 closed on its exit criteria; its open faults wait on R6 art
-and the designer's words); next R5 (the field).** 2026-11-09: the designer's text pass is in (D15, HANDOFF-LOG (72)).
-Committed and pushed through R4 and the text pass as `b0ce7be` (2026-11-09). D1 answered: M PLUS Rounded 1c. D2 answered: the
-cat stays grey. Designer: restyle now, before slice 6's 6b-6d. Written after a design review of the concept in the browser (§3).
+**Status (2026-11-10, HANDOFF-LOG (90)): R0-R4 DONE** (committed and pushed with the text pass, D15, as `b0ce7be`).
+**R5 (the field) drawn; waiting on the designer's last reviews** (uncommitted): the bosses and the imp (on the canvas), the
+rig's motion, the cat's pale coats (look lint KNOWN 23), the packaged frame gate's draw-call budget (doc 01 Q11). **Next: R6.**
+D1 answered: M PLUS Rounded 1c. D2: the cat stays grey. D3: aura D, strike S3, crit Butter. Designer: restyle now, before
+slice 6's 6b-6d. Written after a design review of the concept in the browser (§3).
 
 ## 1. What was decided, and what it changes
 
@@ -27,7 +28,7 @@ cat stays grey. Designer: restyle now, before slice 6's 6b-6d. Written after a d
 |---|---|---|
 | D1 | **Font.** A: M PLUS Rounded 1c (Black titles and numbers, ExtraBold text), one family. B: Dela Gothic One titles + Nunito 800/900 text. | **A.** Covers all Latin and Cyrillic languages, Vietnamese and Japanese; only ko/zh/th fall back to Noto; one look in every language. The logo is art (never translated), so it may use any face, Lilita One included. |
 | D2 | **The cat's colour.** The concept drew a ginger cat; the game's cat is warm grey on purpose (`palette.py` rule 4: it must clear every ground, light and dark). | **Keep grey**, give it the concept's expression and proportions. Ginger fails rule 4 on the Backyard lawn and the Litterbox sand and changes a design decision the restyle does not need. |
-| D3 | **The paw cursor and the aura** (design review finds 1 and 2, §3). | Decide on the review sheet in R5; recommendations there. |
+| D3 | **The paw cursor and the aura** (design review finds 1 and 2, §3). | Decide on the review sheet in R5; recommendations there. **2026-11-09: the sheet is on the canvas** (board "Review: D3, the aura and the paw strike", `py tools/art/review_d3.py`): auras A-E, strikes S1-S3, crit colours. **ANSWERED 2026-11-09 (designer: "Recommended")**: aura **D** (white lift 10 % + Bone ring, Plum edge), strike **S3** (the clutching paw rides the arc), crit **Butter**. **Built** (HANDOFF-LOG (73)): `tools/art/fx_look.py` -> `tools/gen_fx_look.py` -> `Realm/PawFxLook.h` -> `PawVfx.cpp`; `Pawpocalypse.Realm.Vfx.Look`. |
 
 ## 3. Design review of the concept (2026-11-07, every board seen rendered in the browser)
 
@@ -62,15 +63,15 @@ Open, to settle in the phase that owns them:
   fills, no gradients, no glow; one shadow, solid, straight down (panels 8 px, buttons 4-5 px at 1080p). Rounded corners
   16-30 px. Pressed buttons sink by their shadow.
 - **Faces.** The cat: half-lidded, mismatched, one fang; never sparkly (never "unimpressed": designer, 2026-11-08). Prey: wide eyes, tiny pupils, a sweat
-  drop when hunted. Mean, not cute; chubby, not baby.
+  drop when hunted. **Superseded 2026-11-09 (review batch 1): the cat keeps today's face; prey panic (brows, tiny pupils), no drop.** Mean, not cute; chubby, not baby.
 - **Type.** D1's family; titles and numbers in the heavy weight with a Plum outline and a solid drop shadow; text never
   below the floor in §5.
 
 ## 5. Phases
 
-Before R0: **finish phase 6 slice 6 (6b, 6c, 6d)** as planned in `WORKLIST-SLICE6`. They port behaviour against Godot
-fixtures and their pieces will be restyled with everything else; restyling first would mean styling screens that do not
-exist yet. Each phase below ends as every slice does: everyday `check_all` exit 0, sabotages seen CAUGHT, docs, HANDOFF-LOG.
+The plan first put phase 6's 6b-6d before R0; the designer chose the restyle first (2026-11-07), so the Reawaken banner,
+Boba and the tutorial are built in the new look after R7 (`WORKLIST-SLICE6`). Each phase below ends as every slice does:
+everyday `check_all` exit 0, sabotages seen CAUGHT, docs, HANDOFF-LOG.
 
 ### R0: unhook the look from Godot (1 session)
 
@@ -115,7 +116,7 @@ exist yet. Each phase below ends as every slice does: everyday `check_all` exit 
 
 ### R2: fonts (2 sessions; replaces phase 7's font work)
 
-> **DONE 2026-11-07 night (WORKLIST-NIGHT-2026-11-07, HANDOFF-LOG (66))**: as built in docs/07 §5. F_Paw (M PLUS Rounded
+> **DONE 2026-11-07 night (the night of 2026-11-07, HANDOFF-LOG (66))**: as built in docs/07 §5. F_Paw (M PLUS Rounded
 > 1c + Noto CJK `.ttc` by sub-face + Noto Thai), coverage gate (22 languages, self-test fails both ways), every text in
 > F_Paw (UMG's default font; the assets followed: their fonts equalled the default), titles and numbers in Black
 > (`PawUi::Heavy`, grafted by `restyle:`). Not done here: the pseudo-locale / 150 % tour (the port has neither translations
@@ -129,7 +130,7 @@ exist yet. Each phase below ends as every slice does: everyday `check_all` exit 
 
 ### R3: chrome (2 sessions)
 
-> **Colour flip DONE 2026-11-08 night (WORKLIST-NIGHT-2026-11-07 item 8, HANDOFF-LOG (66))**: `palette.py` UI = the plum
+> **Colour flip DONE 2026-11-08 night (the night of 2026-11-07, HANDOFF-LOG (66))**: `palette.py` UI = the plum
 > values below (rule 7: thirteen UI pairs, all pass; tightest the boss banner 4.52:1); a new `field_label` token (Bone, the
 > fill of labels over the field). The migration is ROLE-AWARE: `PawUi::ForEachColourRole` / `IsTextColour` (a text
 > widget's or text style's ColorAndOpacity, a piece's TextColour = text; shadows, outlines, tints, brushes = surfaces),
@@ -167,7 +168,7 @@ exist yet. Each phase below ends as every slice does: everyday `check_all` exit 
   them with `bake_widgets.py --graft "Class=restyle:Part"` (never re-bake).
 - Exit: `Pawpocalypse.UI.Chrome` asserts the new brushes; every screen in the tour wears plum chrome.
 
-**Inventory (night 2026-11-07, item 7 of `WORKLIST-NIGHT-2026-11-07.md`; read from the sources):**
+**Inventory (the night of 2026-11-07, HANDOFF-LOG (66); read from the sources):**
 - **The flip is data, three ways.** The `UI` tokens in `palette.py` reach (a) the code through `PawTokens.h`, (b) the
   nine-patch chrome through `sweet_ui.py` (buttons x 4 states, panel, window, dock, slot, card frame, bar track and fill:
   re-rastered, re-imported under the same names), (c) the Widget Blueprints' saved colour values through `--recolour`.
@@ -205,8 +206,9 @@ exist yet. Each phase below ends as every slice does: everyday `check_all` exit 
   icon) and the tree's captions (they scale with the player's zoom).
 - **R4c the title**, **R4d the HUD**, **R4e the dock**, **R4f the skill tree**, **R4g the rest** (card pick, pause,
   settings, controls, job picker, victory, ceremonies, toasts, prompts): each against its board. Layout moves go into the
-  assets by graft (`slot:Part` copies a part's slot from the code layout). Kept on purpose, not the canvas: the dock stays on
-  the LEFT (Godot's layout, the field's framing and every focus tour); no new player-facing words (the concept's tagline,
+  assets by graft (`slot:Part` copies a part's slot from the code layout). Kept on purpose, not the canvas: the dock stayed
+  on the LEFT (Godot's layout; since 2026-11-09 on the RIGHT by default, the designer's "mirror the ui", HANDOFF-LOG (81));
+  no new player-facing words (the concept's tagline,
   "Biome 1 of 12", the kittens strip's lines) without the designer.
 - **R4h the checks**: `padplay_tour.py` focus tours; the tour at 1280x800 and at 150 % (Slate's application scale); the
   sheets beside the boards.
@@ -232,8 +234,8 @@ exist yet. Each phase below ends as every slice does: everyday `check_all` exit 
   shot before retaking it.
 - **R4d DONE (the HUD over the field)**: the currencies as plum pills (heavy Bone numbers, no outline); the wave line on its
   plum plate (`WavePlate`; the plate hides with it: `UPawHudScreen::WaveShown`); the XP bar a raised track, Deep Plum edge,
-  Butter fill; the zone bar's edge Deep Plum. Kept on purpose: the counters top right, away from the dock (the board's
-  top left is where our dock is). **Found:** a graft `add:` failed on an auto-name the asset already held
+  Butter fill; the zone bar's edge Deep Plum. Kept on purpose: the counters opposite the dock (top right then; top left
+  since the dock moved right, 2026-11-09). **Found:** a graft `add:` failed on an auto-name the asset already held
   (`HorizontalBox_0`) after a `remove:` had run, and the asset was saved without the currencies: a graft is now ALL OR
   NOTHING (an op FAILED saves nothing); grafted parts' inner widgets are named. Sabotages `wave_plate_flat`,
   `wave_plate_left_behind`.
@@ -286,9 +288,31 @@ exist yet. Each phase below ends as every slice does: everyday `check_all` exit 
 ### R5: the field (4-6 sessions)
 - Regenerate every creature (46 enemies, 7 bosses, the cat's 7 stages and base, 6 weapons, the kitten), the 36 props and
   the 12 backdrops in Plum ink; the faces per §4 (an expression pass in `sweet_shapes.py`: brows, half-lids, the fang).
-- Settle the paw strike and the aura (§3 finds 1, 2) on a review sheet first.
-- **Every creature goes through the review loop (§6).**
-- Exit: atlas rebuilt (`pack_atlas.py`), the packaged frame gate (`packaged_bench.py`) unchanged, all 12 biomes in the tour.
+- Settle the paw strike and the aura (§3 finds 1, 2) on a review sheet first. **Done 2026-11-09 (D3: aura D, strike S3, crit
+  Butter; built).** Lesson for the creature sheets: draw the cat from the stage art the game draws (`player_cat_stage_N`, whose
+  drawing leaves room inside its 175 px box), not `player_cat_base` (fills its box: 1.5x too big on the D3 sheet).
+- **Every creature goes through the review loop (§6).** Status 2026-11-10, each with its HANDOFF-LOG entry:
+  - **The look lint** (`tools/art/look_lint.py`, everyday, (74)): KNOWN started at the 94 faults today's art had; **23 left**,
+    all the cat's pale coats on the light and dark floors (the cat keeps its looks: the designer's call).
+  - **Batch 1, the faces** (75): "Keep today's cats looks. Panic for enemies but without the drop." Written; bosses and the
+    unicorn keep today's eyes.
+  - **The anatomy pass** (designer: "most enemies look like indistinct blobs ... it needs a bit more anatomy and shape";
+    drawings in `tools/art/sweet_anatomy.py`, sheets by `py tools/art/review_anatomy.py`). Batch 2 (mouse, rat, gristle,
+    moth, vole, hamster) written (76) with **one colour per character** ("no same shade is used twice": `palette.py` rule
+    8, look lint `unique`); batch 3, the birds, written (78); batch 4, dog, hound, ant, cockroach, written (80); batch 5
+    written (83) but the ghost (today's kept, the designer's pick) and **the imp (its wing rebuilt: WAITING)**; the sludge
+    cat redone, take A written (89).
+  - **The rig** (78-80): wings, legs and tails as layers (`sweet_anatomy.limb()`, `SourceArt/svg/rigs`), turned by the
+    Realm view; in the game and proven. **The motion is WAITING** for the designer (board "Review: R5, the rig").
+  - **The bosses** (84, 86, 87): redone with poses ("Redo bosses"), merged into `sweet_anatomy` but not shipped: **WAITING**.
+  - **The props** (89, 90): redrawn with more shape, same stems, ideas and colours; approved and written
+    (`sweet_biomes.PROP_DRAW`), seen on all 12 floors.
+  - The 12 floors were regenerated in Plum ink in R1.
+  - The canvas's Style board rule 3 still says the cat is "unimpressed" (the designer's ban, 2026-11-08): the designer's
+    call to edit.
+- Exit: atlas rebuilt (`pack_atlas.py`: done, 249 sprites), the packaged frame gate (`packaged_bench.py`) unchanged (FAILS
+  on draw calls since before R5: the field ~26, the HUD ~43; the budget is the designer's call, doc 01 Q11), all 12 biomes
+  in the tour (done, 2026-11-10).
 
 ### R6: icons, badges, cards (2-3 sessions)
 - 79 skill icons, 31 card pictures, 20 job pictures, 41 achievement badges, tab and quick icons, currency icons, cursors,
@@ -305,10 +329,11 @@ Rough total: 18-26 sessions, not measured.
 Every new or redrawn creature, and every screen, is checked against the canvas before it is written into the game.
 
 **The creature review loop** (R5, and every new enemy after the restyle):
-1. **Generate a review sheet, write nothing**: `make_sweet_art.py --only <id>` draws the creature at its in-game size
-   (`EnemyData.sprite_target_px`: 56-108 px) and at 2x, on the lawn, on its own biome's floor, on a plum panel, and beside
-   the cat at the same scale.
-2. **Look-lint (automated; new `tools/art/look_lint.py`, an everyday gate once R5 starts):** every fill and stroke is a
+1. **Generate a review sheet, write nothing**: as built, the batch is `sweet_anatomy.SPECIES` / `BATCH` and
+   `py tools/art/review_anatomy.py` draws each beside today's at its in-game size (`EnemyData.sprite_target_px`: 56-108 px;
+   a boss at 256 x 0.9) and at 2x, on its own biome's floor, with a crowd; `py tools/art/review_rig.py --batch` animates
+   the batch's layers. A one-off redraw (the sludge cat, the props) uses a scratch draft and its own sheet.
+2. **Look-lint (automated: `tools/art/look_lint.py`, an everyday gate since 2026-11-09):** every fill and stroke is a
    `palette.py` token; every outline is INK at the standard width; no gradient, filter or opacity on a body; the palette
    rules (distance from the cat, separation from every ground it ships on); at 56 px the eyes still cover at least the
    pixel count a check sets on the current cast. Negative test: one off-palette fill must FAIL.
@@ -316,11 +341,12 @@ Every new or redrawn creature, and every screen, is checked against the canvas b
    "Original, plum menus", so it is judged next to the reference at the same scale.
 4. **Design review (Claude, with the design guidance):** the checklist below, written into the board's notes as pass or a
    named fault.
-5. **The designer approves on the canvas** (a comment). Only then `--write`, import, atlas.
+5. **The designer approves** (on the canvas or in the session). Only then is it written into the generator, built,
+   rasterised, packed and imported, and seen in the game.
 
-**Screens** (R3, R4): `godot_tour.py --ref look` shoots each screen in the game and composes it beside the PNG of its
-canvas board (exported once per canvas revision into `build/look/ref/`, gitignored), into `build/look/compare/`. Reviewed
-with the same checklist; differences are either fixed or recorded as a deliberate change to the canvas.
+**Screens** (R3, R4): planned as `godot_tour.py --ref look` (each shot beside its canvas board's PNG); not built. As done
+in R3-R4: the tour's shots (`godot_tour.py --skip-godot`, `--res`, `--uiscale`) read beside the boards' sources, with the
+same checklist; differences are either fixed or recorded as a deliberate change to the canvas.
 
 **The checklist:**
 - Silhouette: chubby (ellipse-first), readable as itself at 56 px, distinct from the cat and from its biome-mates.

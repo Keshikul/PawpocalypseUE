@@ -570,6 +570,11 @@ bool FPawPauseLeavesTest::RunTest(const FString& Parameters)
 	TestFalse(TEXT("closed"), M->IsActivated());
 	TestFalse(TEXT("the field let go"), W.Realm->IsPaused());
 	TestFalse(TEXT("disarmed"), M->GetState().bExitPending);
+	// And drops what was not saved (F51, D16): never saved, so a fresh game; Continue cannot play the discarded one.
+	TestEqual(TEXT("the discarded game is dropped (never saved: a fresh game)"), W.P().LifetimeKills, static_cast<int64>(0));
+	W.P().ReawakenCount = 6;
+	W.P().LifetimeKills = 4321;
+	W.P().LifetimeCatnipEver = 50.0;
 	// Save and quit: the second press writes the active slot, then leaves.
 	W.Hud->Pump(1.0 / 60.0);
 	GFrameCounter += 2;
@@ -589,6 +594,43 @@ bool FPawPauseLeavesTest::RunTest(const FString& Parameters)
 	}
 	TestFalse(TEXT("closed"), M->IsActivated());
 	TestFalse(TEXT("the field let go"), W.Realm->IsPaused());
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawPauseDiscardTest, "Pawpocalypse.UI.Pause.DiscardDrops", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawPauseDiscardTest::RunTest(const FString& Parameters)
+{
+	// F51 (a Godot fault the port does not copy, D16; found 2026-11-10): "Leaves without writing" kept the game in memory, so
+	// Continue played the discarded progress and the title's autosave wrote it within 30 s. The discard goes back to the save.
+	FPauseWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	W.P().LifetimeKills = 100;
+	W.P().LifetimeCatnipEver = 50.0;
+	W.Save->SaveGame();
+	W.Save->Flush();
+	W.P().LifetimeKills = 999; // played on, not saved
+	UPawPauseMenu* M = W.FromHud(*this);
+	if (!M)
+	{
+		W.Close();
+		return false;
+	}
+	M->PressMainMenu();
+	M->PressDiscard();
+	TestEqual(TEXT("the discard leaves"), W.Leaves, 1);
+	TestEqual(TEXT("the game is the save again, the unsaved play dropped"), W.P().LifetimeKills, static_cast<int64>(100));
+	W.Save->Flush();
+	Pc::PcSlotSummary Summary;
+	if (TestTrue(TEXT("the slot is still there"), W.Save->ReadSlotSummary(W.Save->GetActiveSlot(), Summary)))
+	{
+		TestEqual(TEXT("and still the saved game"), Summary.Kills, static_cast<int64_t>(100));
+	}
 	W.Close();
 	return true;
 }
@@ -677,6 +719,32 @@ bool FPawPauseOverwriteTest::RunTest(const FString& Parameters)
 	M->PressSlot(4);
 	TestEqual(TEXT("an empty slot: no asking"), S(M->GetStatusText()), FString(TEXT("Saved to slot 5.")));
 	TestTrue(TEXT("written"), W.Save->HasSlot(4));
+	// Review CR15: "Saved" only for a write that happened. A newer build's slot refuses every write (the writer logs it) ...
+	AddExpectedError(TEXT("the slot holds a newer build"), EAutomationExpectedErrorFlags::Contains, 1, false);
+	{
+		Pc::PcSaveState Future;
+		Future.LifetimeCatnipEver = 1.0;
+		std::string File = Pc::WriteSaveFile(Future, "future");
+		File.replace(0, 9, "PAWSAVE 7");
+		W.Disk->Put(UPawSaveSubsystem::SlotName(0), TArray<uint8>(reinterpret_cast<const uint8*>(File.data()), static_cast<int32>(File.size())));
+	}
+	const TArray<uint8> Future = [&W]() { TArray<uint8> B; W.Disk->Read(UPawSaveSubsystem::SlotName(0), B); return B; }();
+	M->PressSave();
+	M->PressSlot(0);
+	M->PressSlot(0);
+	TestEqual(TEXT("a refused write says so"), S(M->GetStatusText()), FString(TEXT("Slot 1 was not saved.")));
+	TArray<uint8> After;
+	W.Disk->Read(UPawSaveSubsystem::SlotName(0), After);
+	TestTrue(TEXT("and the newer save is untouched"), After == Future);
+	M->PressSave();
+	M->PressSlot(4);
+	M->PressSlot(4);
+	TestEqual(TEXT("a write that happens says Saved again"), S(M->GetStatusText()), FString(TEXT("Saved to slot 5.")));
+	// ... and with saving off nothing is written at all.
+	W.Save->UseStorageForTest(nullptr);
+	M->PressSave();
+	M->PressSlot(1);
+	TestEqual(TEXT("saving off says so"), S(M->GetStatusText()), FString(TEXT("Slot 2 was not saved.")));
 	M->PressContinue();
 	TestEqual(TEXT("never left"), W.Leaves, 0);
 	W.Close();

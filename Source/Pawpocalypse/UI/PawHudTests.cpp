@@ -27,6 +27,7 @@
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "Input/PawInputDeviceSubsystem.h"
 #include "Misc/AutomationTest.h"
 #include "UI/PawWidgets.h"
 #include "PcAchievements.h"
@@ -299,8 +300,13 @@ bool FPawHudPressTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("and paid for it"), P.Catnip, 0.0);
 	TestTrue(TEXT("the row answers on the frame"), S(W.Hud->GetRowButton(Paw)->GetLabel()).StartsWith(TEXT("Paw Damage (Lv 1)")));
 	TestEqual(TEXT("Catnip answers too"), S(W.Hud->GetCatnipText()), S(PawText::Amount(0.0)));
+	// A press it cannot pay buys nothing, and still answers on the frame: Catnip changed behind the HUD's back (no tick
+	// between), so only the press's own refresh shows the new amount (2026-11-10: this half was unasserted, and the
+	// hud_press_waits_for_refresh sabotage, which drops that refresh, was MISSED in the nightly).
+	P.Catnip = Cost * 0.5;
 	W.Hud->PressRow(Paw);
 	TestEqual(TEXT("a press it cannot pay buys nothing"), Pc::UpgradeLevel(P, "paw_damage"), int64_t(1));
+	TestEqual(TEXT("a denied press answers on the frame too"), S(W.Hud->GetCatnipText()), S(PawText::Amount(Cost * 0.5)));
 
 	// A Kitten Count press re-counts the realm's kittens (Godot's upgrade_purchased -> _sync_kitten_count).
 	const int64_t Before = W.Realm->GetSim().Field.AwakeKittens();
@@ -343,6 +349,41 @@ bool FPawHudDockTest::RunTest(const FString& Parameters)
 	W.Hud->ReportDockForSize(FVector2D(1280.0, 800.0));
 	TestTrue(TEXT("scaled: the dock in field units"), FMath::IsNearlyEqual(W.Realm->GetDock().W, 568.0 * 1080.0 / 800.0, 1e-9));
 	W.Hud->SetDockOnLeft(true);
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawHudDockConsumerTest, "Pawpocalypse.UI.Hud.DockConsumer", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawHudDockConsumerTest::RunTest(const FString& Parameters)
+{
+	// Review CR13 (2026-11-10): the dock takes its keys first through the device subsystem's consumer, which the HUD sets when
+	// it activates and cleared, whoever had set it, when it was destructed. On a travel a new HUD can activate before the old
+	// one's Slate goes: the old one's destruct then took the dock's keys from the new one, and pad A pressed a dock row twice
+	// again (the bug fixed in HANDOFF-LOG (49)).
+	FHudWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	UPawInputDeviceSubsystem* D = W.GI->GetSubsystem<UPawInputDeviceSubsystem>();
+	UPawHudScreen* Newer = CreateWidget<UPawHudScreen>(W.GI, PawUi::Resolve<UPawHudScreen>());
+	if (!TestNotNull(TEXT("the device subsystem"), D) || !TestNotNull(TEXT("a second HUD"), Newer))
+	{
+		W.Close();
+		return false;
+	}
+	TSharedPtr<SWidget> OldSlate = W.Hud->TakeWidget();
+	TSharedPtr<SWidget> NewSlate = Newer->TakeWidget();
+	W.Hud->ActivateWidget();
+	Newer->ActivateWidget();
+	TestTrue(TEXT("the newer HUD's dock takes its keys"), D->HasDockConsumer());
+	OldSlate.Reset(); // the old HUD's Slate goes: its NativeDestruct
+	TestTrue(TEXT("the old HUD's destruct leaves the newer HUD's consumer"), D->HasDockConsumer());
+	Newer->DeactivateWidget();
+	NewSlate.Reset();
+	TestFalse(TEXT("the newer HUD's own destruct clears it"), D->HasDockConsumer());
 	W.Close();
 	return true;
 }

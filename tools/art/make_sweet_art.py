@@ -49,6 +49,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import palette as PAL
 import sweet_shapes as S
 import sweet_evolutions as EVO
+import sweet_anatomy as A
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 # ART LIVES IN A FOLDER NAMED FOR WHAT IT IS, since the 2026-09-11 restructure.
@@ -250,41 +251,24 @@ def _spec(name, **over):
     return spec
 
 
-def _mouse(token=None, **over):
-    parts = S.creature(_spec("mouse", **over))
+def _mouse(token=None):
+    parts = A.mouse()                  # R5 anatomy (designer, 2026-11-09: "Direction's good")
     return parts + (token() if token and BIOME_TOKENS else [])
 
 
-def _rat(token=None, **over):
-    parts = S.creature(_spec("rat", **over))
+def _rat(token=None):
+    parts = A.rat()
     return parts + (token() if token and BIOME_TOKENS else [])
 
 
 def _flying_mouse():
-    """Mouse plus moth wings.
-
-    THE SAME MISTAKE AS THE UNICORN, MADE TWICE. The first pair sat at (58,62)
-    and (74,50), which is inside the body, so the mouse covered them completely
-    and the flier was indistinguishable from the common mouse. A wing has to
-    BREAK THE OUTLINE. The body tops out around y=64 and ends near x=110, so
-    these climb up and back out of both. Rooted under the body, tips in clear
-    air - that is what makes it a wing and not a placard."""
-    w = "#E4D2F2"
-    far = S.fuse([S.ell(88, 52, 25, 16, w), S.ell(102, 36, 20, 13, w),
-                  S.ell(112, 22, 15, 10, w)])
-    # BEHIND THE HEAD, 2026-09-30. At (76,62) r21 the near wing reached back to
-    # x=55 and sat on the face - the head is centred at x=48, r25 - covering
-    # the right eye. From x=76 it clears the head and still breaks the back.
-    near = S.fuse([S.ell(96, 58, 20, 13, S.shade(w, 0.12)),
-                   S.ell(106, 44, 16, 10, S.shade(w, 0.12))])
-    body = S.creature(S.CAST()["mouse"])
-    return far + body + near
+    """The mouse with wings (R5 anatomy: sweet_anatomy.flying_mouse; the old flier's wing rule is kept there)."""
+    return A.flying_mouse()
 
 
 def _golden_mouse():
-    g = _spec("mouse", fur=PAL.ENEMIES["golden_mouse"][0],
-              mark=PAL.ENEMIES["golden_mouse"][1])
-    return S.creature(g) + _sparkle([(96, 52, 4.5), (26, 60, 3.2), (74, 36, 3.8)])
+    g = A.mouse(*PAL.ENEMIES["golden_mouse"])
+    return g + _sparkle([(100, 58, 4.5), (14, 62, 3.2), (70, 40, 3.8)])
 
 
 def _signature_mouse():
@@ -324,29 +308,6 @@ def _void_mouse():
         S.ell(70, 68, 1.6, 1.6, PAL.EYE, s=False)]
 
 
-def _bat():
-    """The flier for biomes 4-12. Two wing fans of three triangles each, the
-    same construction as the flying mouse's, on a round body with no tail and
-    tall pointed ears - the silhouette says bat before the colour does."""
-    c, m = PAL.ENEMIES["bat"]
-    parts = S.fuse([S.tri([(14, 70), (30, 40), (44, 66)], c),
-                    S.tri([(28, 74), (38, 34), (52, 64)], c),
-                    S.tri([(42, 76), (54, 40), (58, 70)], c),
-                    S.tri([(114, 70), (98, 40), (84, 66)], c),
-                    S.tri([(100, 74), (90, 34), (76, 64)], c),
-                    S.tri([(86, 76), (74, 40), (70, 70)], c),
-                    S.ell(64, 74, 26, 24, c),
-                    S.tri([(46, 58), (50, 30), (60, 56)], c),
-                    S.tri([(68, 56), (78, 30), (82, 58)], c)])
-    parts += [S.tri([(48, 58), (52, 40), (58, 57)], S.tint(m, 0.2), s=False),
-              S.tri([(70, 57), (76, 40), (80, 58)], S.tint(m, 0.2), s=False),
-              S.ell(64, 84, 12, 8, m, s=False)]
-    parts += S.eyes(64, 70, 11, 9, asym=1.2)
-    parts += [S.tri([(56, 86), (59, 94), (62, 86)], PAL.EYE, s=False),
-              S.tri([(66, 86), (69, 94), (72, 86)], PAL.EYE, s=False)]
-    return parts
-
-
 def _ghost():
     """A sheet ghost. A tall dome that ends in three scallops, so it reads as
     cloth rather than as a body; no feet, no tail, nothing a mouse has."""
@@ -375,57 +336,17 @@ def _imp():
     return parts
 
 
-def _ant():
-    """Three beads in a row, six legs, two antennae. The Kitchen's common:
-    a pantry has ants, and an ant is nothing like a mouse from any angle."""
-    c, m = PAL.ENEMIES["ant"]
-    parts = S.fuse([S.ell(34, 84, 18, 15, c), S.ell(64, 86, 15, 13, c), S.ell(96, 82, 21, 17, c)])
-    parts.append(S.ell(96, 90, 11, 6, S.tint(c, 0.35), s=False))
-    for x in (46, 62, 78):
-        parts.append(S.line([(x, 96), (x - 8, 116)], S.INK, 2.2))
-        parts.append(S.line([(x, 96), (x + 8, 116)], S.INK, 2.2))
-    parts.append(S.curve(24, 72, 10, 50, 14, 40, w=2.0))
-    parts.append(S.curve(38, 70, 36, 46, 44, 38, w=2.0))
-    parts += [S.ell(14, 40, 3, 3, m), S.ell(44, 38, 3, 3, m)]
-    parts += S.eyes(34, 80, 8, 7, asym=1.2)
-    return parts
-
-
 def _nightlife():
     return [
-        (art("enemy_kitchen_ant.svg"), 128, _ant),
-        (art("enemy_bat.svg"), 128, _bat),
+        (art("enemy_kitchen_ant.svg"), 128, A.ant),
+        (art("enemy_bat.svg"), 128, A.bat),
         (art("enemy_portal_ghost.svg"), 128, _ghost),
         (art("enemy_mythic_imp.svg"), 128, _imp),
     ]
 
 
-def _robot_mouse():
-    """SQUARE EVERYWHERE. The bible gives the robot mouse 'square blobs, not
-    round' as its one cue, and it is the only creature in the game built from
-    rectangles - which is also why sweet_shapes grew a rect primitive."""
-    c, m = PAL.ENEMIES["robot_mouse"]
-    body = S.fuse([S.rect(80, 92, 52, 40, c, r=5), S.rect(48, 68, 44, 40, c, r=5),
-                   S.rect(28, 46, 17, 17, c, r=3), S.rect(68, 46, 17, 17, c, r=3),
-                   S.rect(60, 118, 13, 12, c, r=2), S.rect(94, 118, 13, 12, c, r=2)])
-    parts = body + [
-        S.rect(28, 46, 8, 8, m, r=2, s=False), S.rect(68, 46, 8, 8, m, r=2, s=False),
-        S.rect(76, 100, 34, 16, S.tint(c, 0.55), r=3, s=False),
-        S.line([(110, 86), (126, 74)], S.INK, 2.6),
-        S.ell(126, 72, 4.0, 4.0, m),
-    ]
-    parts += S.eyes(48, 66, 13, 11, asym=1.22)
-    parts.append(S.rect(48, 84, 14, 5, m, r=1, s=False))
-    return parts
-
-
 def _slime_rat():
-    parts = S.creature(S.CAST()["slime_rat"])
-    c = PAL.ENEMIES["slime_rat"][0]
-    for x, r in ((54, 6.0), (78, 7.5), (100, 5.5)):
-        parts.append(S.ell(x, 112, r, r * 1.5, c))
-        parts.append(S.ell(x, 122, r * 0.6, r * 0.8, c))
-    return parts
+    return A.slime_rat()
 
 
 def _vermin():
@@ -437,7 +358,7 @@ def _vermin():
         (art("enemy_mouse_golden.svg"), 128, _golden_mouse),
         # The ghost mouse and the void mouse left the game on 2026-09-14 - no
         # mouse past biome 3. Their drawings stay below; see _nightlife().
-        (art("enemy_factory_robot_mouse.svg"), 128, _robot_mouse),
+        (art("enemy_factory_robot_mouse.svg"), 128, A.robot_mouse),
         (art("enemy_rat.svg"), 128, lambda: _rat()),
         (art("enemy_park_rat.svg"), 128, lambda: _rat(_leaf)),
         (art("enemy_sewer_rat.svg"), 128, lambda: _rat(_drip)),
@@ -473,68 +394,11 @@ GRISTLE_TIERS = ["tier_1_backyard", "tier_2_alley", "tier_3_park",
 
 
 def _gristle(biome):
-    """THE FIRST VERSION CAME OUT CUTE, which for this creature is the one
-    unacceptable result. It had a round head-ball perched on a round body with
-    big high eyes, and twelve adorable chicks is not what "not an animal - meat"
-    means. Three things were wrong and all three were structural:
-
-      * THE HEAD WAS A SEPARATE SPHERE. Gristle has no head. It has an END that
-        happens to have eyes in it. A distinct ball on top of a distinct body is
-        the universal read for "animal", so the mass is now ONE low wide lump
-        with the eyes set into its front, no neck, no join.
-      * THE EYES WERE TOO BIG AND TOO HIGH. Large eyes high on a round form is
-        the exact recipe for a baby bird. They are small now, set low and deep
-        in the mass, and still the widest mismatch in the game at 1.35.
-      * IT STOOD TALL. Meat sags. The silhouette is wider than it is high now,
-        which is also what keeps it from colliding with the vole in tier_2 -
-        the vole is a squat ROUND potato, this is a squat WIDE slab.
-    """
-    import math
-    import random
-    i = GRISTLE_TIERS.index(biome)
-    t = i / 11.0                       # 0 at the backyard, 1 in the litterbox
-    rng = random.Random("gristle:" + biome)
-
-    fur, mark = PAL.ENEMIES["gristle"]
-    grow = 0.84 + 0.34 * t
-    cx, cy = 70.0, 96.0
-
-    # One low wide slab, then lumps that break its edge. Wider than tall.
-    lumps = [S.ell(cx, cy, 42 * grow, 22 * grow, fur)]
-    for _ in range(4 + int(round(4 * t))):
-        a = rng.uniform(0, 6.283)
-        r = rng.uniform(0.6, 1.0)
-        lumps.append(S.ell(cx + 36 * grow * r * math.cos(a),
-                           cy + 17 * grow * r * math.sin(a),
-                           rng.uniform(10, 20) * grow,
-                           rng.uniform(8, 15) * grow, fur))
-
-    # Stubby feet, inside the union so the thing sits on the ground rather than
-    # floating above a stray ellipse - which is what the first version did.
-    for fx in (52, 84):
-        lumps.append(S.ell(fx, 114, 9 * grow, 6, fur))
-
-    # Spikes climb with the tier: none in the backyard, a ridge by the litterbox.
-    for _ in range(int(round(6 * t))):
-        a = rng.uniform(3.4, 6.1)
-        bx = cx + 34 * grow * math.cos(a)
-        by = cy + 18 * grow * math.sin(a)
-        lumps.append(S.tri([(bx - 7, by + 4), (bx + rng.uniform(-7, 7), by - 20 * grow),
-                            (bx + 7, by + 4)], fur))
-    parts = S.fuse(lumps)
-
-    parts.append(S.ell(cx - 2, cy + 9, 27 * grow, 11 * grow, S.tint(fur, 0.55), s=False))
-    for _ in range(3 + int(round(3 * t))):
-        parts.append(S.ell(cx + rng.uniform(-30, 30) * grow,
-                           cy + rng.uniform(-14, 12) * grow,
-                           rng.uniform(4, 9), rng.uniform(4, 7), mark, s=False))
-
-    # Eyes set INTO the front of the mass - small, low, and badly matched.
-    ex, ey = cx - 30 * grow, cy - 8 * grow
-    parts += S.eyes(ex, ey, 10, 6.5, asym=1.35, pupil=0.30)
-    parts.append(S.ell(ex - 2, ey + 13, 3.4, 2.6, S.shade(fur, 0.55), s=False))
-    parts.append(S.curve(ex - 9, ey + 17, ex - 1, ey + 21, ex + 8, ey + 16, w=1.8))
-    return parts
+    """R5 anatomy (designer, 2026-11-09): a knuckle-walking brute (sweet_anatomy.gristle). The old idea survives in it:
+    one creature in every biome for fifty hours, so its mass, lumps and spikes climb with the tier (t, 0 in the
+    Backyard, 1 in the Litterbox), and its lumps are seeded by the biome's name so each biome's gristle is always the
+    same gristle."""
+    return A.gristle(GRISTLE_TIERS.index(biome) / 11.0, biome)
 
 
 def _gristles():
@@ -547,8 +411,7 @@ def _gristles():
                 "vets": "vet", "factory": "factory", "litterbox": "litterbox"}[short]
         out.append((art("enemy_%s_gristle.svg" % name), 128,
                     (lambda bb: (lambda: _gristle(bb)))(b)))
-    out.append((art("enemy_alley_vole.svg"), 128,
-                lambda: S.creature(S.CAST()["vole"])))
+    out.append((art("enemy_alley_vole.svg"), 128, A.vole))
     return out
 
 
@@ -556,49 +419,23 @@ def _gristles():
 # ----------------------------------------------------------------- birds ----
 # Four cues, no two alike, none of them colour: goose = NECK, pigeon = NO NECK,
 # seagull = WINGS OUT, parrot = HOOKED BEAK + CREST, crow = CORNERS.
+# R5 anatomy batch 3 (designer, 2026-11-09: "These look great"): the birds are drawn in sweet_anatomy, each keeping
+# its cue and gaining bird anatomy (a teardrop body, a folded wing, tail feathers, legs with toes, a two-part beak).
 
 
 def _goose(token=None):
-    parts = S.creature(S.CAST()["goose"])
+    parts = A.goose()
     return parts + (token() if token and BIOME_TOKENS else [])
-
-
-def _parrot():
-    """Crest and hook. Both are added here rather than in the spec because a
-    crest is a fan of triangles and a hook is a curve, and the spec grammar
-    speaks in blobs."""
-    fur, mark = PAL.ENEMIES["parrot"]
-    crest = S.fuse([S.tri([(42, 40), (34, 12), (52, 34)], mark),
-                    S.tri([(50, 36), (50, 8), (62, 32)], mark),
-                    S.tri([(58, 38), (68, 16), (68, 40)], mark)])
-    parts = crest + S.creature(S.CAST()["parrot"])
-    beak = S.fuse([S.tri([(34, 46), (12, 56), (34, 62)], PAL.GOLD)])
-    parts += beak
-    parts.append(S.curve(20, 54, 24, 64, 32, 62, w=2.4))
-    return parts
-
-
-def _crow():
-    """Folded wings as hard triangles - the one bird outline with corners."""
-    fur, mark = PAL.ENEMIES["crow"]
-    parts = S.fuse([S.tri([(58, 70), (104, 66), (86, 104)], fur),
-                    S.tri([(62, 78), (112, 88), (74, 106)], fur)])
-    parts = parts + S.creature(S.CAST()["crow"])
-    parts += S.fuse([S.tri([(34, 50), (6, 58), (34, 64)], S.shade(fur, 0.45))])
-    parts.append(S.tri([(96, 92), (128, 104), (94, 104)], mark, s=True))
-    return parts
 
 
 def _birds():
     return [
         (art("enemy_goose.svg"), 128, lambda: _goose()),
         (art("enemy_park_goose.svg"), 128, lambda: _goose(_leaf)),
-        (art("enemy_rooftop_pigeon.svg"), 128,
-         lambda: S.creature(S.CAST()["pigeon"])),
-        (art("enemy_rooftop_seagull.svg"), 128,
-         lambda: S.creature(S.CAST()["seagull"])),
-        (art("enemy_vet_parrot.svg"), 128, _parrot),
-        (art("enemy_mythic_crow.svg"), 128, _crow),
+        (art("enemy_rooftop_pigeon.svg"), 128, A.pigeon),
+        (art("enemy_rooftop_seagull.svg"), 128, A.seagull),
+        (art("enemy_vet_parrot.svg"), 128, A.parrot),
+        (art("enemy_mythic_crow.svg"), 128, A.crow),
     ]
 
 
@@ -607,7 +444,7 @@ def _birds():
 
 
 def _moth(token=None):
-    parts = S.creature(S.CAST()["moth"])
+    parts = A.moth()
     return parts + (token() if token and BIOME_TOKENS else [])
 
 
@@ -621,36 +458,22 @@ def _squirrel():
     return plume + S.creature(S.CAST()["squirrel"])
 
 
-def _sludge_cat():
-    """Sags: drips off the bottom, and the ears droop rather than stand."""
-    parts = S.creature(S.CAST()["sludge_cat"])
-    c = PAL.ENEMIES["sludge_cat"][0]
-    for x, r in ((58, 6.5), (82, 8.0), (104, 5.5)):
-        parts.append(S.ell(x, 114, r, r * 1.6, c))
-        parts.append(S.ell(x, 124, r * 0.55, r * 0.75, c))
-    return parts
-
-
 def _oddities():
     return [
-        (art("enemy_dog.svg"), 128, lambda: S.creature(S.CAST()["dog"])),
-        (art("enemy_alley_dog.svg"), 128,
-         lambda: S.creature(S.CAST()["dog"]) + _can()),
-        (art("enemy_portal_hound.svg"), 128,
-         lambda: S.creature(S.CAST()["hound"])),
+        # R5 anatomy batch 4 (designer, 2026-11-09: "Go"): the dog, the hound and the cockroach in sweet_anatomy.
+        (art("enemy_dog.svg"), 128, A.dog),
+        (art("enemy_alley_dog.svg"), 128, lambda: A.dog() + _can()),
+        (art("enemy_portal_hound.svg"), 128, A.hound),
         (art("enemy_moth.svg"), 128, lambda: _moth()),
         (art("enemy_backyard_moth.svg"), 128, lambda: _moth(_clover)),
-        (art("enemy_kitchen_cockroach.svg"), 128,
-         lambda: S.creature(S.CAST()["cockroach"])),
-        (art("enemy_turf_toad.svg"), 128, lambda: S.creature(S.CAST()["toad"])),
-        (art("enemy_sewer_crocodile.svg"), 128,
-         lambda: S.creature(S.CAST()["crocodile"])),
-        (art("enemy_vet_hamster.svg"), 128,
-         lambda: S.creature(S.CAST()["hamster"])),
+        (art("enemy_kitchen_cockroach.svg"), 128, A.cockroach),
+        # R5 anatomy batch 5 (designer, 2026-11-09; the ghost stays today's, the imp's wing is rebuilt for review):
+        (art("enemy_turf_toad.svg"), 128, A.toad),
+        (art("enemy_sewer_crocodile.svg"), 128, A.crocodile),
+        (art("enemy_vet_hamster.svg"), 128, A.hamster),
         (art("enemy_squirrel.svg"), 128, _squirrel),
-        (art("enemy_litterbox_dust_bunny.svg"), 128,
-         lambda: S.creature(S.CAST()["dust_bunny"])),
-        (art("enemy_litterbox_sludge_cat.svg"), 128, _sludge_cat),
+        (art("enemy_litterbox_dust_bunny.svg"), 128, A.dust_bunny),
+        (art("enemy_litterbox_sludge_cat.svg"), 128, A.sludge_cat),
     ]
 
 
@@ -672,7 +495,7 @@ def _tyrant():
     parts = body
     parts.append(S.ell(78, 104, 32, 17, S.tint(b, 0.55), s=False))
     parts += S.fuse([S.tri([(30, 18), (6, 24), (30, 30)], PAL.GOLD)])
-    parts += S.eyes(44, 16, 9, 8, asym=1.3)
+    parts += S.eyes(44, 16, 9, 8, asym=1.3, face="today")
     for i in range(3):
         parts.append(S.ell(52 + i * 6, 44 + i * 14, 6, 5, m, s=False))
     return parts
@@ -707,14 +530,14 @@ def _foreman():
              S.ell(52, 116, 12, 7, b), S.ell(88, 116, 12, 7, b)]
     parts = S.fuse(lumps)
     parts.append(S.ell(68, 102, 32, 13, S.tint(b, 0.5), s=False))
-    parts += S.fuse([S.rect(44, 62, 34, 16, "#B9BFC9", r=2),
-                     S.rect(96, 64, 28, 14, "#B9BFC9", r=2)])
-    parts.append(S.rect(70, 92, 40, 12, "#8A93A2", r=2))
+    parts += S.fuse([S.rect(44, 62, 34, 16, PAL.GEAR["steel"], r=2),
+                     S.rect(96, 64, 28, 14, PAL.GEAR["steel"], r=2)])
+    parts.append(S.rect(70, 92, 40, 12, PAL.GEAR["steel_dark"], r=2))
     for x in (54, 70, 86):
-        parts.append(S.ell(x, 92, 2.6, 2.6, S.shade("#8A93A2", 0.3), s=False))
+        parts.append(S.ell(x, 92, 2.6, 2.6, S.shade(PAL.GEAR["steel_dark"], 0.3), s=False))
     # Bigger and clear of the plating. At 8px on a mass this size the eyes
     # disappeared entirely and the foreman read as furniture, not a creature.
-    parts += S.eyes(42, 80, 15, 11, asym=1.35, pupil=0.3)
+    parts += S.eyes(42, 80, 15, 11, asym=1.35, pupil=0.3, face="today")
     parts.append(S.ell(42, 98, 4.0, 3.0, S.shade(b, 0.5), s=False))
     return parts
 
@@ -732,7 +555,7 @@ def _litter_king():
     parts += crown
     for x in (52, 66, 80):
         parts.append(S.ell(x, 26, 3.0, 3.0, m, s=False))
-    parts += S.eyes(66, 54, 14, 11, asym=1.3)
+    parts += S.eyes(66, 54, 14, 11, asym=1.3, face="today")
     parts.append(S.ell(66, 70, 4.0, 3.0, S.shade(b, 0.5), s=False))
     return parts
 
@@ -775,7 +598,7 @@ def _boss_generic():
     parts = S.fuse([S.ell(66, 92, 44, 32, b), S.ell(66, 54, 28, 25, b),
                     S.ell(46, 120, 13, 7, b), S.ell(88, 120, 13, 7, b)])
     parts.append(S.ell(66, 100, 32, 18, S.tint(b, 0.55), s=False))
-    parts += S.eyes(66, 52, 13, 10, asym=1.3)
+    parts += S.eyes(66, 52, 13, 10, asym=1.3, face="today")
     parts.append(S.ell(66, 68, 4.0, 3.0, S.shade(b, 0.5), s=False))
     parts.append(S.curve(56, 74, 66, 80, 76, 74, w=2.2))
     return parts
@@ -789,7 +612,7 @@ def _boss_add():
     parts = S.fuse([S.ell(64, 82, 30, 26, b), S.ell(50, 112, 10, 6, b),
                     S.ell(78, 112, 10, 6, b)])
     parts.append(S.ell(64, 88, 20, 12, S.tint(b, 0.55), s=False))
-    parts += S.eyes(64, 78, 11, 8, asym=1.3)
+    parts += S.eyes(64, 78, 11, 8, asym=1.3, face="today")
     parts.append(S.ell(64, 92, 3.2, 2.4, S.shade(b, 0.5), s=False))
     return parts
 
@@ -1534,8 +1357,8 @@ def _weapon_3():
     """Cyber Cat: a blaster. The only weapon with a straight barrel."""
     return (S.fuse([S.rect(70, 62, 76, 26, METAL, r=6),
                     S.rect(44, 92, 24, 40, METAL_DARK, r=5)])
-            + [S.rect(84, 62, 40, 10, "#7FD4E8", r=3),
-               S.ell(110, 62, 12, 15, "#7FD4E8", s=True),
+            + [S.rect(84, 62, 40, 10, PAL.GEAR["ice"], r=3),
+               S.ell(110, 62, 12, 15, PAL.GEAR["ice"], s=True),
                S.ell(110, 62, 5, 7, PAL.EYE, s=False)])
 
 
@@ -1553,9 +1376,9 @@ def _weapon_5():
     # The feathers sit ALONG the haft as a fletching, not as two clouds beside
     # it. Tapered, overlapping, and rooted on the shaft.
     return (_haft(24, 110, 80, 40, PAPER_W, 9.0)
-            + S.fuse([S.tri([(72, 48), (104, 6), (92, 52)], "#CFE4F5")])
-            + S.fuse([S.tri([(46, 88), (28, 72), (56, 74)], "#CFE4F5"),
-                      S.tri([(38, 98), (18, 84), (48, 86)], "#CFE4F5")]))
+            + S.fuse([S.tri([(72, 48), (104, 6), (92, 52)], PAL.GEAR["alicorn"][0])])
+            + S.fuse([S.tri([(46, 88), (28, 72), (56, 74)], PAL.GEAR["alicorn"][0]),
+                      S.tri([(38, 98), (18, 84), (48, 86)], PAL.GEAR["alicorn"][0])]))
 
 
 def _weapon_6():
@@ -1563,11 +1386,11 @@ def _weapon_6():
     # A SWEEP, not a paddle. The blade was one fat ellipse and read as a
     # lollipop; a scythe is a long thin curve that TAPERS to a point, so it is
     # built from three narrowing triangles fanned off the haft's top.
-    return (_haft(30, 116, 66, 40, "#4A4266", 10.0)
-            + S.fuse([S.tri([(62, 46), (118, 30), (74, 22)], "#B9A6E8"),
-                      S.tri([(74, 24), (120, 30), (104, 12)], "#B9A6E8"),
-                      S.tri([(60, 40), (86, 18), (68, 16)], "#B9A6E8")])
-            + [S.line([(66, 34), (112, 28)], "#D8CBF2", 3.0)])
+    return (_haft(30, 116, 66, 40, PAL.GEAR["haft"], 10.0)
+            + S.fuse([S.tri([(62, 46), (118, 30), (74, 22)], PAL.GEAR["nightmare_mane"]),
+                      S.tri([(74, 24), (120, 30), (104, 12)], PAL.GEAR["nightmare_mane"]),
+                      S.tri([(60, 40), (86, 18), (68, 16)], PAL.GEAR["nightmare_mane"])])
+            + [S.line([(66, 34), (112, 28)], PAL.GEAR["nightmare_horn"], 3.0)])
 
 
 def _weapon_7():
@@ -2728,8 +2551,28 @@ def write_batch(items, allow_new=False):
                      "  this tool only overwrites files the game already loads" % rel)
         # newline="\n": the repo stores LF, and a Windows text-mode write turned
         # every line of all 201 files into a CRLF change.
-        target.write_text(S.to_svg(fn(), S.SIZE, px=px), encoding="utf-8", newline="\n")
+        parts = fn()
+        target.write_text(S.to_svg(A.rest_pose(parts), S.SIZE, px=px), encoding="utf-8", newline="\n")
+        write_rig(target.stem, parts, px)
         print("  %-52s %dpx" % (rel, px))
+
+
+def write_rig(stem, parts, px):
+    """A rigged drawing's layers (sweet_anatomy.limb), each the whole 128 box so they lie on each other exactly:
+    <art>/rigs/<stem>__<layer>.svg, the rig in the root's data- attributes (tools/pack_atlas.py reads them). Order: the
+    back layers count up to -1, the body is 0, the front layers 1 up (sweet_anatomy.depths: a layer may name its own)."""
+    layers = A.rig_layers(parts)
+    if not layers:
+        return
+    folder = ROOT / ART / "rigs"
+    folder.mkdir(parents=True, exist_ok=True)
+    for (name, meta, ps), order in zip(layers, A.depths(layers)):
+        attrs = 'data-rig-of="%s" data-layer="%s" data-order="%d"' % (stem, name, order)
+        if meta:
+            attrs += (' data-pivot="%.2f %.2f" data-motion="%s" data-amp="%.1f" data-hz="%.2f" data-phase="%.3f"'
+                      % (meta["pivot"][0], meta["pivot"][1], meta["motion"], meta["amp"], meta["hz"], meta["phase"]))
+        svg = S.to_svg(ps, S.SIZE, px=px).replace("<svg ", "<svg %s " % attrs, 1)
+        (folder / ("%s__%s.svg" % (stem, name))).write_text(svg, encoding="utf-8", newline="\n")
 
 
 def main():

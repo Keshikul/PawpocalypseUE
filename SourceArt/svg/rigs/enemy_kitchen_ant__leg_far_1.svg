@@ -1,0 +1,6 @@
+<svg data-rig-of="enemy_kitchen_ant" data-layer="leg_far_1" data-order="-1" data-pivot="64.97 97.62" data-motion="swing" data-amp="18.0" data-hz="2.00" data-phase="0.000" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polyline points="65.0,97.6 68.0,103.7 67.0,118.1" fill="none" stroke="#2A1A33" stroke-width="5.7"/>
+<polyline points="65.0,97.6 68.0,103.7 67.0,118.1" fill="none" stroke="#A05238" stroke-width="2.7"/>
+</g>
+</svg>

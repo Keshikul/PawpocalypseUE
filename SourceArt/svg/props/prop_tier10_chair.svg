@@ -1,13 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
 <g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<rect x="22.9" y="73.9" width="82.2" height="28.2" rx="8.1" fill="#2A1A33" stroke="none"/>
-<rect x="22.9" y="30.9" width="82.2" height="50.2" rx="9.1" fill="#2A1A33" stroke="none"/>
-<rect x="24.9" y="92.9" width="18.2" height="30.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<rect x="84.9" y="92.9" width="18.2" height="30.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<rect x="26.0" y="77.0" width="76.0" height="22.0" rx="5.0" fill="#9BA2AD" stroke="none"/>
-<rect x="26.0" y="34.0" width="76.0" height="44.0" rx="6.0" fill="#9BA2AD" stroke="none"/>
-<rect x="28.0" y="96.0" width="12.0" height="24.0" rx="3.0" fill="#9BA2AD" stroke="none"/>
-<rect x="88.0" y="96.0" width="12.0" height="24.0" rx="3.0" fill="#9BA2AD" stroke="none"/>
-<rect x="34.0" y="41.0" width="60.0" height="30.0" rx="5.0" fill="#7F808E" stroke="none"/>
+<rect x="25.9" y="87.9" width="12.2" height="32.2" rx="5.1" fill="#2A1A33" stroke="none"/>
+<rect x="89.9" y="87.9" width="12.2" height="32.2" rx="5.1" fill="#2A1A33" stroke="none"/>
+<rect x="29.0" y="91.0" width="6.0" height="26.0" rx="2.0" fill="#9BA2AD" stroke="none"/>
+<rect x="93.0" y="91.0" width="6.0" height="26.0" rx="2.0" fill="#9BA2AD" stroke="none"/>
+<rect x="23.9" y="29.9" width="80.2" height="52.2" rx="11.1" fill="#2A1A33" stroke="none"/>
+<rect x="19.9" y="77.9" width="88.2" height="24.2" rx="9.1" fill="#2A1A33" stroke="none"/>
+<rect x="27.0" y="33.0" width="74.0" height="46.0" rx="8.0" fill="#8596C3" stroke="none"/>
+<rect x="23.0" y="81.0" width="82.0" height="18.0" rx="6.0" fill="#8596C3" stroke="none"/>
+<rect x="36.0" y="41.0" width="56.0" height="30.0" rx="6.0" fill="#737DA6" stroke="none"/>
+<polyline points="64.0,44.0 64.0,70.0" fill="none" stroke="#2A1A33" stroke-width="1.6"/>
+<ellipse cx="50.0" cy="50.0" rx="2.0" ry="2.0" fill="#5C5E82" stroke="none"/>
+<ellipse cx="78.0" cy="50.0" rx="2.0" ry="2.0" fill="#5C5E82" stroke="none"/>
+<ellipse cx="50.0" cy="62.0" rx="2.0" ry="2.0" fill="#5C5E82" stroke="none"/>
+<ellipse cx="78.0" cy="62.0" rx="2.0" ry="2.0" fill="#5C5E82" stroke="none"/>
+<polyline points="28.0,84.0 100.0,84.0" fill="none" stroke="#B4BDD3" stroke-width="2.4"/>
+<rect x="24.9" y="110.4" width="78.2" height="11.2" rx="5.1" fill="#2A1A33" stroke="none"/>
+<rect x="28.0" y="113.5" width="72.0" height="5.0" rx="2.0" fill="#9BA2AD" stroke="none"/>
 </g>
 </svg>

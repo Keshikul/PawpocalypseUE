@@ -244,7 +244,8 @@ void UPawPauseMenu::RefreshMain()
 		FFormatNamedArguments Args;
 		Args.Add(TEXT("n"), PawText::Count(State.StatusSlot + 1));
 		StatusText->SetText(State.Status == Pc::PcPauseStatus::None ? FText::GetEmpty()
-			: PawText::Ui(State.Status == Pc::PcPauseStatus::Occupied ? TEXT("PAUSE_status_occupied") : TEXT("PAUSE_status_saved"), Args));
+			: PawText::Ui(State.Status == Pc::PcPauseStatus::Occupied ? TEXT("PAUSE_status_occupied")
+				: bLastSaveFailed ? TEXT("PAUSE_status_not_saved") : TEXT("PAUSE_status_saved"), Args));
 	}
 }
 
@@ -399,9 +400,14 @@ void UPawPauseMenu::PressSlot(int32 SlotIndex)
 	const Pc::PcPauseAction A = Pc::PausePressSlot(State, SlotIndex, S && S->HasSlot(SlotIndex));
 	if (A == Pc::PcPauseAction::SaveToSlot)
 	{
+		// Review CR15: "Saved to slot {n}." only for a write that happened. The game is held here, so the write is waited
+		// for (as Save and Quit does): saving off, a newer build's slot or a failed disk says "Slot {n} was not saved."
+		bLastSaveFailed = true;
 		if (S)
 		{
-			S->SaveGame(SlotIndex);
+			const int64 Ticket = S->SaveGame(SlotIndex);
+			S->Flush();
+			bLastSaveFailed = S->GetWriteResult(Ticket) != EPawWriteResult::Written;
 		}
 		ShowPage();
 		FocusPage(nullptr);
@@ -443,6 +449,10 @@ void UPawPauseMenu::Leave(bool bSave)
 			S->SaveGame();
 			S->Flush();
 		}
+	}
+	else if (UPawSaveSubsystem* S = Saves())
+	{
+		S->DiscardUnsaved(); // the discard drops what was not saved (F51, D16)
 	}
 	Pc::PauseLeave(State);
 	RefreshMain();

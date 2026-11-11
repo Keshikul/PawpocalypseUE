@@ -1,0 +1,8 @@
+table,key,proposed,note
+ST_UI,TITLE_status_newer,Slot {n} is from a newer version. Update the game to play it.,"NEW (review CR2). The title's status line when the active slot was saved by a newer build (a rolled-back beta, a Cloud save from another PC). Continue is off for it; nothing is ever written over it."
+ST_UI,TITLE_slot_newer,Newer version\n\nUpdate the game to play this save.,"NEW (CR2). That slot's card in the slot picker (beside TITLE_slot_empty's ""Empty\n\nStart a new game here."")."
+ST_UI,TITLE_status_unreadable,Slot {n} could not be read. Choose a slot.,"NEW (CR2 with F47). The status line when the active slot and its backup are both unreadable: Continue opens the slot picker instead of playing a fresh game over it. The old file is kept as slot_N_corrupt."
+ST_UI,TITLE_slot_unreadable,Cannot be read\n\nStart a new game here.,"NEW (CR2, F47). That slot's card: pressing it starts a new game there (the old file stays as slot_N_corrupt)."
+ST_UI,TITLE_status_backup,Slot {n} was damaged. Its backup was loaded.,"NEW (CR2). Once, after a load that had to use the backup (the game then plays from the backup)."
+ST_UI,QUICK_save_failed,Not saved.,"NEW (CR15). Under the quick bar instead of ""Saved."" when saving is off or the write fails (today it says ""Saved."" either way)."
+ST_UI,PAUSE_status_not_saved,Slot {n} was not saved.,"NEW, optional (CR15's twin, to confirm in the code first): the pause menu's ""Saved to slot {n}."" may show for a write that fails the same way."

@@ -9,9 +9,9 @@
 // Time: a paused Godot tree runs no tween and no _process, so every effect freezes while the field is held (the view passes
 // a delta of 0 then).
 //
-// Kept from Godot on purpose (findings, the port copies them): the Cone of Shame's ring and the job ring are children of the
-// cat placed with global coordinates before they enter the tree, so they draw at the cat's position PLUS where they were
-// spawned (F39, usually off screen).
+// Not copied from Godot (D16): the Cone of Shame's ring and the job ring are children of the cat that Godot placed with
+// global coordinates before they entered the tree, so they drew at the cat's position PLUS where they were spawned (F39,
+// usually off screen). Here they are drawn round the cat, following it.
 
 #include "CoreMinimal.h"
 #include "PcField.h"

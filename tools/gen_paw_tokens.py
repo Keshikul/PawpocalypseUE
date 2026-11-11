@@ -149,13 +149,20 @@ def drawn(d):
     return flat({k: v for k, v in d.items() if k != "stacklands"})
 
 
+CHARACTERS = ("enemies.", "bosses.", "player.")
+
+
 def colour_pairs(snapshot, ui=True):
     """[(old, new, paths)] for every palette colour that changed since the snapshot. Refuses an ambiguous map: one old
     colour that became two different colours of ours would make a comparison (or a migration) unanswerable.
     ui=False leaves the UI table out: since R3 (plum panels) one old ink is two new colours there, told apart only by ROLE
-    (ui_role_pairs); the field, the sky and the art (the Godot fixtures, the tree's branches) never draw the UI table."""
+    (ui_role_pairs); the field, the sky and the art (the Godot fixtures, the tree's branches) never draw the UI table.
+    The characters' tables (enemies, bosses, player) are always left out: since R5 (2026-11-09, one colour per character)
+    one old Stacklands colour is several characters' now, and they are drawn only in the sprite art, never by code. No
+    Godot script reads them (checked 2026-11-09), so no Godot fixture records them; no widget or tree table holds them."""
     then = drawn(json.loads(Path(snapshot).read_text(encoding="utf-8")))
     now = drawn(palette.as_dict())
+    then = {p: v for p, v in then.items() if not p.startswith(CHARACTERS)}
     if not ui:
         then = {p: v for p, v in then.items() if not p.startswith("ui.")}
     pairs = {}

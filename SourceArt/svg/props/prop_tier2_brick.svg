@@ -1,7 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
 <g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<rect x="29.9" y="69.9" width="68.2" height="32.2" rx="7.1" fill="#2A1A33" stroke="none"/>
-<rect x="33.0" y="73.0" width="62.0" height="26.0" rx="4.0" fill="#D86061" stroke="none"/>
-<polyline points="36.0,86.0 92.0,86.0" fill="none" stroke="#A74C54" stroke-width="3.0"/>
+<rect x="20.9" y="80.9" width="62.2" height="26.2" rx="6.1" fill="#2A1A33" stroke="none"/>
+<polygon points="80.2,89.4 109.5,88.9 112.4,105.4 102.0,112.2 79.8,107.9" fill="#2A1A33" stroke="none"/>
+<rect x="24.0" y="84.0" width="56.0" height="20.0" rx="3.0" fill="#D86061" stroke="none"/>
+<polygon points="84.0,92.0 106.0,92.0 108.0,104.0 100.0,108.0 84.0,106.0" fill="#D86061" stroke="none"/>
+<rect x="27.0" y="85.0" width="50.0" height="6.0" rx="2.0" fill="#E28D8B" stroke="none"/>
+<polyline points="38.0,86.0 38.0,103.0" fill="none" stroke="#2A1A33" stroke-width="2.2"/>
+<polyline points="66.0,86.0 66.0,103.0" fill="none" stroke="#2A1A33" stroke-width="2.2"/>
+<polyline points="28.0,100.0 34.0,96.0" fill="none" stroke="#2A1A33" stroke-width="1.6"/>
+<polygon points="87.0,94.0 104.0,94.0 102.0,98.0 88.0,98.0" fill="#E28D8B" stroke="none"/>
+<polyline points="100.0,96.0 102.0,104.0" fill="none" stroke="#2A1A33" stroke-width="1.6"/>
 </g>
 </svg>

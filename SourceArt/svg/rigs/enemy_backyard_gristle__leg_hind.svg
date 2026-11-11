@@ -1,0 +1,8 @@
+<svg data-rig-of="enemy_backyard_gristle" data-layer="leg_hind" data-order="-2" data-pivot="100.48 99.00" data-motion="swing" data-amp="14.0" data-hz="2.00" data-phase="0.500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="90.8,106.6 93.9,116.4 96.6,121.2 101.3,124.0 106.7,124.1 111.5,121.4 114.4,116.7 114.5,111.2 112.6,101.2 109.8,96.1 104.8,93.1 99.0,93.0 93.9,95.9 90.9,100.8" fill="#2A1A33" stroke="none"/>
+<ellipse cx="106.6" cy="115.0" rx="14.9" ry="9.4" fill="#2A1A33" stroke="none"/>
+<polygon points="94.5,105.7 97.6,115.4 99.3,118.5 102.3,120.3 105.8,120.4 108.9,118.7 110.7,115.6 110.7,112.1 108.9,102.1 107.0,98.8 103.7,96.8 99.9,96.8 96.6,98.6 94.6,101.9" fill="#CCAD45" stroke="none"/>
+<ellipse cx="106.6" cy="115.0" rx="11.1" ry="5.5" fill="#CCAD45" stroke="none"/>
+</g>
+</svg>

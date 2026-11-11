@@ -171,6 +171,8 @@ public:
 	void PressQuickSettings();
 	void PressQuickSkills();
 	void PressQuickSave();
+	// "Saved." turns to "Not saved." once the writer reports the quick save's write failed (Pump calls it every frame).
+	void PollQuickSave();
 	void PressQuickQuit();
 	// The quit's last step (a test swaps it for the level change).
 	TFunction<void()> OnQuitToTitle;
@@ -326,6 +328,7 @@ private:
 	TObjectPtr<UPawButton> QuickQuit;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> QuickStatus;
+	int64 QuickSaveTicket = 0; // the quick save's write, until the writer says how it went (review CR15; Pump)
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> ClaimAllButton;
 	UPROPERTY()

@@ -2442,10 +2442,26 @@ namespace Pc
 	bool SummonFieldBoss(PcField& F, const PcGameData& D, PcProgress& P)
 	{
 		const PcBoss* B = BossOf(F, D);
-		if (!B || F.bBossUp || !BuyBait(D, P, *B))
+		if (!B || F.bBossUp)
 		{
 			return false;
 		}
+		// What BuyBait takes is measured, not recomputed: the Bait (none under Audit) and the Catnip, for F36's refund.
+		const std::string Biome = P.CurrentBiomeId;
+		const auto Spent = [&P, &Biome]()
+		{
+			const auto It = P.BaitSpentByBiome.find(Biome);
+			return It == P.BaitSpentByBiome.end() ? int64_t(0) : It->second;
+		};
+		const int64_t BaitBefore = Spent();
+		const double CatnipBefore = P.Catnip;
+		if (!BuyBait(D, P, *B))
+		{
+			return false;
+		}
+		F.SummonPaid.BiomeId = Biome;
+		F.SummonPaid.Bait = Spent() - BaitBefore;
+		F.SummonPaid.Catnip = CatnipBefore - P.Catnip;
 		// Boss.activate() in the middle of the field; _resummon_boss()'s fresh fight.
 		F.bBossUp = true;
 		F.BossHp = B->TotalHp;
@@ -2489,6 +2505,12 @@ namespace Pc
 		{
 			WithdrawBoss(F);
 		}
+	}
+
+	const PcSummonPayment* FightPayment(const PcField& F)
+	{
+		// Only while the fight is on: one that ended (won, timed out, dismissed) keeps its payment spent, as in Godot.
+		return F.bBossUp ? &F.SummonPaid : nullptr;
 	}
 
 	double PounceCooldownFraction(const PcField& F)

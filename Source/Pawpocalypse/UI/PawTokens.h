@@ -96,7 +96,7 @@ namespace PawTokens
 
 	// Colours the palette has retired (gen_paw_tokens.py retired()): no baked asset may still hold one
 	// (Pawpocalypse.UI.Widgets.Palette; py tools/bake_widgets.py --run --recolour migrates them).
-	inline const TArray<uint32> PALETTE_RETIRED = { 0x1A1A1A, 0x8F886F, 0xEBE5CF, 0xFFF6CF, 0xFFFDED };
+	inline const TArray<uint32> PALETTE_RETIRED = { 0x1A1A1A, 0x8F886F, 0xD86061, 0xEBE5CF, 0xEEE2AC, 0xF6BBAD, 0xFFF6CF, 0xFFFDED };
 
 	// Colours Godot authored as literals in scenes and scripts (palette.py LITERALS).
 	inline const FLinearColor CEREMONY_FLASH = SrgbF(0.972, 0.949, 1); // reawaken_ceremony.tscn Flash color

@@ -14,6 +14,8 @@
 // Pawpocalypse.UI.Tree.Zoom        zoom about the view's centre, clamped; Q's next affordable node.
 // Pawpocalypse.UI.Tree.Paint       the links (owned only with both ends), the rainbow verbs, the pulse, the job rings; the
 //                                  frames LOCKED < READY < OWNED in one series.
+// Pawpocalypse.UI.Tree.TipOnce     the tooltip is built when its node or numbers change, not every frame; the selection
+//                                  follows a node's focus event (review CR9).
 //
 // Negative tests: tools/sabotage_realm.py (`tree_*`).
 
@@ -232,6 +234,73 @@ bool FPawTreeBrowseTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("a browse never travels"), W.Realm->GetSim().Travels, Travels);
 	TestEqual(TEXT("still in the second biome"), static_cast<int64>(W.Realm->GetSim().Field.TierIndex), static_cast<int64>(1));
 	TestTrue(TEXT("it opens again"), W.Hud->OpenSkillTree(false));
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTreeTipOnceTest, "Pawpocalypse.UI.Tree.TipOnce", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// Review CR9: the tooltip's lines are built when its node or its numbers change, not every frame (NativeTick only places
+// it); the selection follows a node's focus event, not a scan of every node every frame.
+bool FPawTreeTipOnceTest::RunTest(const FString& Parameters)
+{
+	FTreeWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	W.P().Stardust = 1e12;
+	UPawSkillTreeScreen* Tree = W.OpenTree(*this, false);
+	if (!Tree)
+	{
+		W.Close();
+		return false;
+	}
+	auto Texts = [](const TArray<FText>& Lines)
+	{
+		TArray<FString> Out;
+		for (const FText& L : Lines)
+		{
+			Out.Add(L.ToString());
+		}
+		return FString::Join(Out, TEXT(" | "));
+	};
+	Tree->ShowTip(TEXT("instinct"), true);
+	const int32 Built = Tree->GetTipBuilds();
+	const FString Lines = Texts(Tree->GetTipLines());
+	TestFalse(TEXT("the tip has lines"), Lines.IsEmpty());
+	for (int32 Frame = 0; Frame < 60; ++Frame)
+	{
+		Tree->UpdateTip(); // NativeTick's tooltip step
+	}
+	TestEqual(TEXT("a second of frames builds nothing"), Tree->GetTipBuilds(), Built);
+	TestEqual(TEXT("still docked on the node"), Tree->GetTipBranch(), FString(TEXT("instinct")));
+	TestEqual(TEXT("with the same lines"), Texts(Tree->GetTipLines()), Lines);
+
+	// Its numbers change (a level): built again, once.
+	W.P().BranchLevels["instinct"] += 1;
+	Tree->UpdateTip();
+	Tree->UpdateTip();
+	TestEqual(TEXT("a new level builds it again, once"), Tree->GetTipBuilds(), Built + 1);
+	TestNotEqual(TEXT("with the new numbers"), Texts(Tree->GetTipLines()), Lines);
+
+	// Another node takes the focus: the selection and the docked tip follow it.
+	const FString Other = TEXT("unlock_aura");
+	Tree->NodeFocused(Other);
+	TestEqual(TEXT("the selection follows the node's focus"), Tree->LastSelected(), Other);
+	TestEqual(TEXT("and the tip docks on it"), Tree->GetTipBranch(), Other);
+	TestEqual(TEXT("built once"), Tree->GetTipBuilds(), Built + 2);
+	Tree->UpdateTip();
+	TestEqual(TEXT("and not again"), Tree->GetTipBuilds(), Built + 2);
+
+	int32 Told = 0;
+	for (const std::string& Id : Tree->GetLayout().Order)
+	{
+		const UPawTreeNode* N = Tree->GetNode(UTF8_TO_TCHAR(Id.c_str()));
+		Told += N && N->Screen.Get() == Tree ? 1 : 0;
+	}
+	TestEqual(TEXT("every node tells this screen of its focus"), Told, Tree->GetNodeCount());
 	W.Close();
 	return true;
 }

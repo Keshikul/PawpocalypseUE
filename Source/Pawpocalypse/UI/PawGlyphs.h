@@ -43,8 +43,10 @@ namespace PawGlyphs
 	PAWPOCALYPSE_API FText KeyLabel(const FKey& Key);
 	// The whole decision (PromptIcon.refresh): a glyph whose texture exists, else a keycap for a key, else blank.
 	PAWPOCALYPSE_API FPrompt PromptFor(const FString& Action, Pc::PcFamily Family);
-	// The texture of a stem (loaded once, then cached); null if there is none.
+	// The texture of a stem (loaded once, then held for the engine's life: UPawUiAssets); null if there is none.
 	PAWPOCALYPSE_API UTexture2D* Texture(const FString& Stem);
+	// How many times Texture went to the package (tests: a stem is looked for once).
+	PAWPOCALYPSE_API int32 TextureLoads();
 
 	// InputGlyphs.bbcode, as parts: the text with every {action} token replaced by that action's prompt. Only names that ARE
 	// actions are replaced ("{n}" passes through); an action with nothing to show on this device leaves nothing.

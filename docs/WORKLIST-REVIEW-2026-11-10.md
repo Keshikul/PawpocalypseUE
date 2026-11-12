@@ -340,7 +340,10 @@ bar and the pause menu say "Saved" only for a write that happened; write tickets
 (batch E: refund the summon's Bait and Catnip on a mid-fight save). **CR11 and CR14 done** the same day (HANDOFF-LOG
 (98)): `DA_Icons` held by an engine subsystem (`UPawIconCache`); the dock's tab, step and Jobs count seen and the tree's
 last node in a game-instance subsystem (`UPawUiMemory`), Godot's rules kept (the Jobs count seen starts again with every
-game, the rest lasts the session). **Still open**: F3 (the designer's), CR5 step 2, CR9, CR12, CR17.
+game, the rest lasts the session). **CR12 and CR9 done** the same day (HANDOFF-LOG (99)): the prompts' glyph textures (a
+missing one remembered), the resolved Widget Blueprint classes and `F_Paw` held by an engine subsystem (`UPawUiAssets`);
+the tree's tooltip built when its node or numbers change, placed every frame, and the selection following a node's focus
+event instead of a scan of 87 nodes. **Still open**: F3 (the designer's), CR5 step 2, CR17.
 
 **After batch C**, the frame gate's draw-call question (doc 01 Q11) should be re-asked with clean numbers: the scene's own
 count (`showflag.Rendering 0` split) without the debug overlay. **Measured** the night of 2026-11-10 on a quiet PC

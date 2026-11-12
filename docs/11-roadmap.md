@@ -232,7 +232,7 @@ the menus following a remap; `Pawpocalypse.Input.*` 16 tests). **4c DONE** (HAND
 (`FKey`s are the layout's, not positions: AZERTY and the designer's Turkish Q were wrong before), the dock's held keys
 (`PcDockRepeat`, exact against dock_navigator.gd; hold-to-buy on Space / A / LT; the dock takes its keys before Common UI),
 the paw cursors, pads ignored in the background; **5b DONE**, the pad-only playthrough with the focus tours
-(`py tools/padplay_tour.py`, 41 checks, nightly). Not ported: the unfocused frame cap (not in Godot: doc 01 Q10).
+(`py tools/padplay_tour.py`, 45 checks, nightly). Not ported: the unfocused frame cap (not in Godot: doc 01 Q10).
 **Phase 5's exit criteria**: met but the hand-checks on a real Xbox pad and a PlayStation pad through Steam Input, the paw
 cursor in a packaged build, and the AZERTY test on a real AZERTY keyboard (injected here); those wait for the designer.
 

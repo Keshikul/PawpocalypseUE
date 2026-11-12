@@ -186,8 +186,8 @@ sandboxed save folder: pad buttons and a trigger sent through `FSlateApplication
 title through a new game, the shop (a press, LT held 1.4 s, X), a card (the guard), travel, the first boss's Bait, a Reawaken
 (armed on Cancel, up, A), the tree (a node, B asks, B leaves), the pause menu, Settings (RB to Controls, B back onto Settings),
 save and quit, and the title on Continue; at the title, the dock, the card pick, the tree, the pause menu and the settings
-dialog THE FOCUS TOUR presses every direction and checks the focus is never lost. 41 checks. Found by it: pad A pressed a
-dock row twice (Common UI's simulated click and the dock; above), and the pause menu lost its return to Settings (Common UI
+dialog THE FOCUS TOUR presses every direction and checks the focus is never lost; the tree's selection and tooltip
+follow the focus (review CR9). 45 checks. Found by it: pad A pressed a dock row twice (Common UI's simulated click and the dock; above), and the pause menu lost its return to Settings (Common UI
 re-applies the desired focus target when a modal closes: `UPawPauseMenu::ReturnFocus`). In the nightly `-Full`
 ("L4 pad-only playthrough").
 

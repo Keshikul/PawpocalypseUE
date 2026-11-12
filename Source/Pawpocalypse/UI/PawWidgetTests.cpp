@@ -10,10 +10,14 @@
 #include "Components/TextBlock.h"
 #include "Engine/Blueprint.h"
 #include "Engine/Engine.h"
+#include "Engine/Font.h"
+#include "Engine/Texture2D.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
 #include "UI/PawButton.h"
+#include "UI/PawGlyphs.h"
+#include "UI/PawUiAssets.h"
 #include "Components/Border.h"
 #include "Components/Image.h"
 #include "Components/RichTextBlock.h"
@@ -383,4 +387,53 @@ bool FPawWidgetsParityTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawWidgetsHeldTest, "Pawpocalypse.UI.Widgets.Held", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// Review CR12: what the UI looks up on events is held by UPawUiAssets once looked up, so the GC cannot take it between two
+// prompts and the next lookup does not load it again, synchronously, mid-play. A forced GC proves nothing in the editor
+// (a loaded asset keeps RF_Standalone there): the test asserts the holder instead, and counts the glyph loads.
+bool FPawWidgetsHeldTest::RunTest(const FString& Parameters)
+{
+	UPawUiAssets* Held = UPawUiAssets::Get();
+	if (!TestNotNull(TEXT("the engine holds the UI's assets"), Held))
+	{
+		return false;
+	}
+
+	// A prompt's glyph: held, and a second redraw does not go to the package.
+	const PawGlyphs::FPrompt Prompt = PawGlyphs::PromptFor(TEXT("ui_accept"), Pc::PcFamily::Xbox);
+	if (!TestTrue(TEXT("Accept on an Xbox pad is a glyph"), Prompt.Kind == PawGlyphs::EKind::Glyph))
+	{
+		return false;
+	}
+	UTexture2D* Tex = PawGlyphs::Texture(Prompt.Stem);
+	TestNotNull(TEXT("its texture"), Tex);
+	TestTrue(TEXT("held"), Held->Glyphs.FindRef(Prompt.Stem) == Tex);
+	int32 Loads = PawGlyphs::TextureLoads();
+	PawGlyphs::Texture(Prompt.Stem);
+	TestEqual(TEXT("the next redraw loads nothing"), PawGlyphs::TextureLoads(), Loads);
+
+	// A stem with no texture (a keycap prompt): looked for once, then known to be missing.
+	const FString None = TEXT("input_xbox_nothing_cr12");
+	TestNull(TEXT("no texture for a stem with none"), PawGlyphs::Texture(None));
+	Loads = PawGlyphs::TextureLoads();
+	TestNull(TEXT("still none"), PawGlyphs::Texture(None));
+	TestEqual(TEXT("and not looked for again"), PawGlyphs::TextureLoads(), Loads);
+	TestTrue(TEXT("its absence is remembered"), Held->Glyphs.Contains(None));
+
+	// A baked Widget Blueprint class: held once resolved.
+	UClass* Native = UPawButtonStyle::StaticClass();
+	UClass* Resolved = PawUi::Resolve(Native);
+	TestTrue(TEXT("the button style resolves to its Blueprint"), Resolved && Resolved != Native && Resolved->ClassGeneratedBy != nullptr);
+	TestTrue(TEXT("the class is held"), Held->Classes.FindRef(Native) == Resolved);
+	PawUi::SetCodeLayoutForced(true);
+	TestEqual(TEXT("the code layout forgets the classes"), Held->Classes.Num(), 0);
+	PawUi::SetCodeLayoutForced(false);
+
+	// The game's font.
+	UFont* Font = PawUi::PawFont();
+	TestNotNull(TEXT("F_Paw"), Font);
+	TestTrue(TEXT("the font is held"), Held->Font == Font);
+	return true;
+}
 #endif

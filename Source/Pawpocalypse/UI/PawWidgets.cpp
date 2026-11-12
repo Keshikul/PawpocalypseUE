@@ -9,6 +9,7 @@
 #include "Styling/SlateTypes.h"
 #include "UI/PawFontSpec.h"
 #include "UI/PawUiKit.h"
+#include "UI/PawUiAssets.h"
 #include "Core/PawLog.h"
 #include "HAL/IConsoleManager.h"
 #include "Misc/PackageName.h"
@@ -35,13 +36,22 @@
 
 namespace
 {
-	TMap<TWeakObjectPtr<UClass>, TWeakObjectPtr<UClass>> GResolved;
+	// The resolved classes are UPawUiAssets' (review CR12: held, not weak: a class whose last widget went away was loaded
+	// again by the next one).
+	void ForgetResolved()
+	{
+		if (UPawUiAssets* Held = UPawUiAssets::Get())
+		{
+			Held->Classes.Reset();
+		}
+	}
+
 	bool GBaking = false;
 	const UClass* GBakeRoot = nullptr;
 	int32 GCodeLayout = 0;
 	FAutoConsoleVariableRef CodeLayoutVar(TEXT("paw.UI.CodeLayout"), GCodeLayout,
 		TEXT("1: build every screen and piece from its C++ layout, ignoring the baked Widget Blueprints (tests, comparison)."),
-		FConsoleVariableDelegate::CreateLambda([](IConsoleVariable*) { GResolved.Reset(); }));
+		FConsoleVariableDelegate::CreateLambda([](IConsoleVariable*) { ForgetResolved(); }));
 }
 
 namespace PawUi
@@ -71,9 +81,13 @@ namespace PawUi
 		{
 			return Native;
 		}
-		if (const TWeakObjectPtr<UClass>* Hit = GResolved.Find(Native); Hit && Hit->IsValid())
+		UPawUiAssets* Held = UPawUiAssets::Get();
+		if (Held)
 		{
-			return Hit->Get();
+			if (const TObjectPtr<UClass>* Hit = Held->Classes.Find(Native); Hit && *Hit)
+			{
+				return *Hit;
+			}
 		}
 		UClass* Out = Native;
 		const FString Package = AssetPathFor(Native);
@@ -89,19 +103,22 @@ namespace PawUi
 				UE_LOG(LogPaw, Warning, TEXT("UI: %s exists but holds no child of %s; using the code layout"), *Package, *Native->GetName());
 			}
 		}
-		GResolved.Add(Native, Out);
+		if (Held)
+		{
+			Held->Classes.Add(Native, Out);
+		}
 		return Out;
 	}
 
 	void ResetResolver()
 	{
-		GResolved.Reset();
+		ForgetResolved();
 	}
 
 	void SetCodeLayoutForced(bool bForced)
 	{
 		GCodeLayout = bForced ? 1 : 0;
-		GResolved.Reset();
+		ForgetResolved();
 	}
 
 	bool IsCodeLayoutForced()
@@ -301,12 +318,18 @@ namespace PawUi
 
 	UFont* PawFont()
 	{
-		static TWeakObjectPtr<UFont> Cached;
-		if (!Cached.IsValid())
+		// Held for the engine's life (review CR12: UPawUiAssets).
+		UPawUiAssets* Held = UPawUiAssets::Get();
+		if (Held && Held->Font)
 		{
-			Cached = LoadObject<UFont>(nullptr, PawFontSpec::Font);
+			return Held->Font;
 		}
-		return Cached.Get();
+		UFont* Font = LoadObject<UFont>(nullptr, PawFontSpec::Font);
+		if (Held)
+		{
+			Held->Font = Font;
+		}
+		return Font;
 	}
 
 	TArray<FString> UnderTextFloor(UObject* Object, bool bRaise)

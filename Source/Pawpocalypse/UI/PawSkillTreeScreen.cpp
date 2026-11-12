@@ -42,6 +42,14 @@ namespace
 	using namespace PawUi;
 	using Pc::PcTreeNodeState;
 
+	// The tooltip's digest (review CR9): everything its lines are made from, but the node.
+	bool SameTip(const Pc::PcTreeTip& A, const Pc::PcTreeTip& B)
+	{
+		return A.bKnown == B.bKnown && A.bUnlock == B.bUnlock && A.Owned == B.Owned && A.Max == B.Max && A.bMaxed == B.bMaxed
+			&& A.bShowNow == B.bShowNow && A.Next == B.Next && A.Cost == B.Cost && A.Reason == B.Reason && A.Rival == B.Rival
+			&& A.Parent == B.Parent && A.Gate == B.Gate && A.Have == B.Have && A.bBuyPrompt == B.bBuyPrompt;
+	}
+
 	// skill_tree_ui.gd / skill_tree.tscn / upgrade_tooltip.gd / skill_tree_connector_layer.gd (presentation constants).
 	constexpr double NodePx = Pc::TreeLayout::NodeSize;  // NODE_SIZE
 	constexpr double ContentTop = 130.0;                // ContentArea offset_top
@@ -353,6 +361,17 @@ void UPawTreeNode::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 	}
 }
 
+void UPawTreeNode::NativeOnAddedToFocusPath(const FFocusEvent& InFocusEvent)
+{
+	Super::NativeOnAddedToFocusPath(InFocusEvent);
+	// Review CR9: the screen learns of the focus from here (Slate raises it when focus enters this node, its inner button
+	// included), not by asking all 87 nodes every frame.
+	if (UPawSkillTreeScreen* S = Screen.Get())
+	{
+		S->NodeFocused(BranchId);
+	}
+}
+
 FText UPawTreeNode::GetCounter() const { return CounterText ? CounterText->GetText() : FText::GetEmpty(); }
 FLinearColor UPawTreeNode::GetFrameFill() const { return Frame ? Frame->Background.TintColor.GetSpecifiedColor() : FLinearColor::Transparent; }
 FLinearColor UPawTreeNode::GetFrameEdge() const { return Frame ? Frame->Background.OutlineSettings.Color.GetSpecifiedColor() : FLinearColor::Transparent; }
@@ -606,6 +625,7 @@ void UPawSkillTreeScreen::BuildCanvas()
 		const FVector2D C = V(Layout.Nodes.at(Utf8(Id)));
 		UPawTreeNode* N = T->ConstructWidget<UPawTreeNode>(PawUi::Resolve<UPawTreeNode>());
 		N->BranchId = Id;
+		N->Screen = this;
 		if (const Pc::PcSkillBranch* Branch = G->Data().FindBranch(Utf8(Id)))
 		{
 			N->SetIconPath(UTF8_TO_TCHAR(Branch->IconPath.c_str()));
@@ -892,80 +912,95 @@ void UPawSkillTreeScreen::ShowTip(const FString& Id, bool bDocked)
 		TipPanel->SetVisibility(ESlateVisibility::Collapsed);
 		return;
 	}
-	FText Title = PawText::TreeLabel(S);
-	if (!Tip.bUnlock)
+	// Review CR9: NativeTick shows the tip every frame (the mouse's node, or docked for the pad), but its lines (about eight
+	// formats, a glyph parse per line and a layout pass) are built again only when the node or the tip's numbers change.
+	// Placing it stays every frame's (a zoom or a drag moves the node).
+	const bool bRebuild = !bTipBuilt || Id != TipBuiltFor || !SameTip(Tip, TipBuilt);
+	const bool bWasHidden = TipPanel->GetVisibility() == ESlateVisibility::Collapsed;
+	if (bRebuild)
 	{
-		FFormatNamedArguments Args;
-		Args.Add(TEXT("name"), Title);
-		Args.Add(TEXT("owned"), PawText::Count(Tip.Owned));
-		Args.Add(TEXT("max"), PawText::Count(Tip.Max));
-		Title = PawText::Ui(TEXT("TREE_title_count"), Args);
-	}
-	TipTitle->SetText(Title);
-	TArray<TPair<FText, FLinearColor>> Lines;
-	Lines.Add({ PawText::TreeBlurb(S), PawTree::TipBlurb });
-	auto Effect = [&](int64 Level) { return PawText::TreeEffect(Pc::TreeEffectPhrases(D, S, Level)); };
-	if (Tip.bMaxed)
-	{
-		Lines.Add({ PawText::Ui(TEXT("TREE_fully")), PawTree::TipFully });
-		Lines.Add({ Effect(Tip.Owned), PawTokens::UI_TEXT });
-	}
-	else
-	{
-		if (Tip.bShowNow)
+		FText Title = PawText::TreeLabel(S);
+		if (!Tip.bUnlock)
 		{
+			FFormatNamedArguments Args;
+			Args.Add(TEXT("name"), Title);
+			Args.Add(TEXT("owned"), PawText::Count(Tip.Owned));
+			Args.Add(TEXT("max"), PawText::Count(Tip.Max));
+			Title = PawText::Ui(TEXT("TREE_title_count"), Args);
+		}
+		TipTitle->SetText(Title);
+		TArray<TPair<FText, FLinearColor>> Lines;
+		Lines.Add({ PawText::TreeBlurb(S), PawTree::TipBlurb });
+		auto Effect = [&](int64 Level) { return PawText::TreeEffect(Pc::TreeEffectPhrases(D, S, Level)); };
+		if (Tip.bMaxed)
+		{
+			Lines.Add({ PawText::Ui(TEXT("TREE_fully")), PawTree::TipFully });
+			Lines.Add({ Effect(Tip.Owned), PawTokens::UI_TEXT });
+		}
+		else
+		{
+			if (Tip.bShowNow)
+			{
+				FFormatNamedArguments A;
+				A.Add(TEXT("effect"), Effect(Tip.Owned));
+				Lines.Add({ PawText::Ui(TEXT("TREE_now"), A), PawTokens::UI_TEXT });
+			}
 			FFormatNamedArguments A;
-			A.Add(TEXT("effect"), Effect(Tip.Owned));
-			Lines.Add({ PawText::Ui(TEXT("TREE_now"), A), PawTokens::UI_TEXT });
+			A.Add(TEXT("effect"), Effect(Tip.Next));
+			Lines.Add({ PawText::Ui(TEXT("TREE_next"), A), PawTree::TipNext });
+			FFormatNamedArguments C;
+			C.Add(TEXT("n"), PawText::Count(Tip.Cost));
+			Lines.Add({ PawText::Ui(TEXT("TREE_cost"), C), PawTokens::UI_TEXT });
+			FFormatNamedArguments R;
+			switch (Tip.Reason)
+			{
+			case Pc::PcTreeTipReason::Closed:
+				R.Add(TEXT("branch"), PawText::TreeLabel(Tip.Rival));
+				Lines.Add({ PawText::Ui(TEXT("TREE_closed"), R), PawTree::TipReason });
+				break;
+			case Pc::PcTreeTipReason::NeedsParent:
+				R.Add(TEXT("branch"), PawText::TreeLabel(Tip.Parent));
+				Lines.Add({ PawText::Ui(TEXT("TREE_locked_parent"), R), PawTree::TipReason });
+				break;
+			case Pc::PcTreeTipReason::ReawakenGate:
+				R.Add(TEXT("n"), PawText::Count(Tip.Gate));
+				Lines.Add({ PawText::Ui(TEXT("TREE_locked_reawaken"), R), PawTree::TipReason });
+				break;
+			case Pc::PcTreeTipReason::BrowseOnly:
+				Lines.Add({ PawText::Ui(TEXT("TREE_browse")), PawTree::TipReason });
+				break;
+			case Pc::PcTreeTipReason::Short:
+				R.Add(TEXT("n"), PawText::Count(Tip.Have));
+				Lines.Add({ PawText::Ui(TEXT("TREE_have"), R), PawTree::TipShort });
+				break;
+			default:
+				break;
+			}
 		}
-		FFormatNamedArguments A;
-		A.Add(TEXT("effect"), Effect(Tip.Next));
-		Lines.Add({ PawText::Ui(TEXT("TREE_next"), A), PawTree::TipNext });
-		FFormatNamedArguments C;
-		C.Add(TEXT("n"), PawText::Count(Tip.Cost));
-		Lines.Add({ PawText::Ui(TEXT("TREE_cost"), C), PawTokens::UI_TEXT });
-		FFormatNamedArguments R;
-		switch (Tip.Reason)
+		if (Tip.bBuyPrompt)
 		{
-		case Pc::PcTreeTipReason::Closed:
-			R.Add(TEXT("branch"), PawText::TreeLabel(Tip.Rival));
-			Lines.Add({ PawText::Ui(TEXT("TREE_closed"), R), PawTree::TipReason });
-			break;
-		case Pc::PcTreeTipReason::NeedsParent:
-			R.Add(TEXT("branch"), PawText::TreeLabel(Tip.Parent));
-			Lines.Add({ PawText::Ui(TEXT("TREE_locked_parent"), R), PawTree::TipReason });
-			break;
-		case Pc::PcTreeTipReason::ReawakenGate:
-			R.Add(TEXT("n"), PawText::Count(Tip.Gate));
-			Lines.Add({ PawText::Ui(TEXT("TREE_locked_reawaken"), R), PawTree::TipReason });
-			break;
-		case Pc::PcTreeTipReason::BrowseOnly:
-			Lines.Add({ PawText::Ui(TEXT("TREE_browse")), PawTree::TipReason });
-			break;
-		case Pc::PcTreeTipReason::Short:
-			R.Add(TEXT("n"), PawText::Count(Tip.Have));
-			Lines.Add({ PawText::Ui(TEXT("TREE_have"), R), PawTree::TipShort });
-			break;
-		default:
-			break;
+			Lines.Add({ PawText::Ui(TEXT("TREE_buy")), PawTokens::UI_TEXT });
 		}
-	}
-	if (Tip.bBuyPrompt)
-	{
-		Lines.Add({ PawText::Ui(TEXT("TREE_buy")), PawTokens::UI_TEXT });
-	}
-	for (int32 I = 0; I < TipLines.Num(); ++I)
-	{
-		const bool bShow = I < Lines.Num();
-		TipLines[I]->SetVisibility(bShow ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
-		if (bShow)
+		for (int32 I = 0; I < TipLines.Num(); ++I)
 		{
-			TipLines[I]->SetTextColour(Lines[I].Value);
-			TipLines[I]->SetTemplate(Lines[I].Key);
+			const bool bShow = I < Lines.Num();
+			TipLines[I]->SetVisibility(bShow ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+			if (bShow)
+			{
+				TipLines[I]->SetTextColour(Lines[I].Value);
+				TipLines[I]->SetTemplate(Lines[I].Key);
+			}
 		}
+		bTipBuilt = true;
+		TipBuiltFor = Id;
+		TipBuilt = Tip;
+		++TipBuilds;
 	}
 	TipPanel->SetVisibility(ESlateVisibility::HitTestInvisible);
-	TipPanel->ForceLayoutPrepass();
+	if (bRebuild || bWasHidden)
+	{
+		TipPanel->ForceLayoutPrepass(); // its size this frame, for this frame's placement
+	}
 	const FVector2D TipSize = TipPanel->GetDesiredSize();
 	FVector2D At;
 	if (bDocked)
@@ -1213,26 +1248,31 @@ void UPawSkillTreeScreen::NativeTick(const FGeometry& Geometry, float DeltaSecon
 		bFollowing = FollowT < 1.0;
 		ApplyTransform();
 	}
-	// The selection follows focus continuously (spike S4); the tooltip follows the mouse's node or docks for the pad.
-	FString Hovered, Focused;
+	// The selection follows focus continuously (spike S4), by the nodes' focus events (NodeFocused); the tooltip follows the
+	// mouse's node or docks for the pad.
+	UpdateTip();
+	if (WarningPlate->GetVisibility() != ESlateVisibility::Collapsed)
+	{
+		if (UOverlaySlot* WS = Cast<UOverlaySlot>(WarningPlate->Slot))
+		{
+			WS->SetPadding(FMargin(0.0f, static_cast<float>(ViewSize.Y * WarnTop), 0.0f, 0.0f));
+		}
+	}
+}
+
+void UPawSkillTreeScreen::UpdateTip()
+{
+	const FString* Hovered = nullptr;
 	for (const TPair<FString, TObjectPtr<UPawTreeNode>>& N : Nodes)
 	{
 		if (N.Value->IsHovered())
 		{
-			Hovered = N.Key;
-		}
-		if (N.Value->HasAnyUserFocus() || N.Value->HasFocusedDescendants())
-		{
-			Focused = N.Key;
+			Hovered = &N.Key;
 		}
 	}
-	if (!Focused.IsEmpty() && Focused != LastSelectedRef())
+	if (Hovered)
 	{
-		OnNodeFocused(Focused);
-	}
-	if (!Hovered.IsEmpty())
-	{
-		ShowTip(Hovered, false);
+		ShowTip(*Hovered, false);
 	}
 	else if (!TipBranch.IsEmpty() && !bTipDocked)
 	{
@@ -1242,12 +1282,13 @@ void UPawSkillTreeScreen::NativeTick(const FGeometry& Geometry, float DeltaSecon
 	{
 		ShowTip(TipBranch, true);
 	}
-	if (WarningPlate->GetVisibility() != ESlateVisibility::Collapsed)
+}
+
+void UPawSkillTreeScreen::NodeFocused(const FString& Id)
+{
+	if (!Id.IsEmpty() && Id != LastSelectedRef() && Nodes.Contains(Id))
 	{
-		if (UOverlaySlot* WS = Cast<UOverlaySlot>(WarningPlate->Slot))
-		{
-			WS->SetPadding(FMargin(0.0f, static_cast<float>(ViewSize.Y * WarnTop), 0.0f, 0.0f));
-		}
+		OnNodeFocused(Id);
 	}
 }
 

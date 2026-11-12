@@ -4,6 +4,7 @@
 #include "Input/PawInputMap.h"
 #include "Input/PawKeyCodes.h"
 #include "UI/PawText.h"
+#include "UI/PawUiAssets.h"
 
 namespace PawGlyphs
 {
@@ -111,11 +112,7 @@ namespace PawGlyphs
 			return nullptr;
 		}
 
-		TMap<FString, TWeakObjectPtr<UTexture2D>>& TextureCache()
-		{
-			static TMap<FString, TWeakObjectPtr<UTexture2D>> Cache;
-			return Cache;
-		}
+		int32 GTextureLoads = 0;
 	}
 
 	bool BindingFor(const FString& Action, Pc::PcFamily Family, FKey& Out)
@@ -186,15 +183,28 @@ namespace PawGlyphs
 		{
 			return nullptr;
 		}
-		TMap<FString, TWeakObjectPtr<UTexture2D>>& Cache = TextureCache();
-		if (const TWeakObjectPtr<UTexture2D>* Found = Cache.Find(Stem); Found && Found->IsValid())
+		// Held for the engine's life, a stem with none included (review CR12: UPawUiAssets).
+		UPawUiAssets* Held = UPawUiAssets::Get();
+		if (Held)
 		{
-			return Found->Get();
+			if (const TObjectPtr<UTexture2D>* Found = Held->Glyphs.Find(Stem))
+			{
+				return *Found;
+			}
 		}
 		const FString Name = TEXT("T_") + Stem;
 		UTexture2D* Tex = LoadObject<UTexture2D>(nullptr, *(FString(TextureDir) / Name + TEXT(".") + Name), nullptr, LOAD_NoWarn | LOAD_Quiet);
-		Cache.Add(Stem, Tex);
+		++GTextureLoads;
+		if (Held)
+		{
+			Held->Glyphs.Add(Stem, Tex);
+		}
 		return Tex;
+	}
+
+	int32 TextureLoads()
+	{
+		return GTextureLoads;
 	}
 
 	FPrompt PromptFor(const FString& Action, Pc::PcFamily Family)

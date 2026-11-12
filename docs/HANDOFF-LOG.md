@@ -9,6 +9,73 @@ in whichever file holds it.
 
 ---
 
+## 2026-11-11 (99) - Review CR12 (what the UI looks up on events, held) and CR9 (the tree's tooltip built on change, focus by event); the nightly green; F3's numbers
+
+**Where the project is.** (98) is committed and pushed (`c982078`, at the designer's request). The designer asked what fits
+before the nightly and said go to CR12 then CR9 (no decision needed for either). Both are built and proven. The nightly
+`-Full` ran on them (2026-11-11 21:00:43 to 2026-11-12 06:54:36, `build/check_all_full_20261111.log`): **40 of 40 green,
+exit 0**. (99) is committed and pushed at the designer's request (2026-11-12, the commit after `c982078`). Nothing is
+uncommitted in this repo. The review's worklist has CR5 step 2 and CR17 left (a quiet PC); the rest open is the designer's.
+
+**What happened.**
+- **CR12**: the prompts' glyph textures (`PawGlyphs::Texture`), the Widget Blueprint classes `PawUi::Resolve` finds and
+  `F_Paw` (`PawUi::PawFont`) were cached weakly: the GC could take one nothing showed, and the next lookup (every prompt
+  redraws on a device switch) loaded it again, synchronously, mid-play. They are the engine subsystem `UPawUiAssets`'s now
+  (`UPROPERTY` maps, released in `Deinitialize`; the accessors keep their signatures). A glyph stem with NO texture (a
+  keycap prompt) is remembered too: the weak map could not tell "missing" from "collected", so every redraw of such a
+  prompt looked for the package again. A value the editor's force-delete nulls is looked up again. The code layout and
+  `ResetResolver` empty the classes as before. New test `Pawpocalypse.UI.Widgets.Held` (the holder holds the glyph, the
+  class and the font; a second lookup, and a missing stem's second lookup, load nothing: `PawGlyphs::TextureLoads`); no
+  forced GC, which proves nothing in the editor (`GARBAGE_COLLECTION_KEEPFLAGS` keeps `RF_Standalone` there). 6 sabotages,
+  1 retargeted (`font_umg_default_lost`).
+- **CR9**: the tree's tooltip was rebuilt every frame while shown (`Pc::TreeTip`, about eight `FText::Format`, a glyph
+  parse per line, a layout prepass), and the tick asked all 87 nodes for focus. Now `ShowTip` builds the lines only when the
+  node or the tip's numbers change (a digest of `Pc::PcTreeTip`), and places it every frame (a zoom or a drag moves the
+  node); the selection follows a node's focus by `UPawTreeNode::NativeOnAddedToFocusPath` -> `UPawSkillTreeScreen::NodeFocused`
+  (same rule: only when it is not already the selection). The hover read stays a per-node flag. New test
+  `Pawpocalypse.UI.Tree.TipOnce` (60 frames build nothing; a new level builds once, with the new numbers; another node's
+  focus moves the selection and docks the tip; every node tells its screen); L4 gains "the tree's selection and tooltip
+  follow the focus" after the tree's focus tour (45 checks), the real-window proof of the event. 4 sabotages, one of them
+  on L4 (`tree_focus_event_ignored`).
+- Proof: CR12 first: the new test, then `Pawpocalypse.UI` 92 of 92 and `Pawpocalypse.Input` 19 of 19; every realm sabotage
+  on `PawGlyphs.cpp` and `PawWidgets.cpp` and every one `.UI.Widgets.*` owns (24, `build/cr12_realm_sab.log`): 24 CAUGHT.
+  Then CR9: `Pawpocalypse.UI.Tree` 8 of 8; L4 45 of 45 (a real window, 16:54); every realm sabotage on the tree screen and
+  every one the tree tests own (53 with the new four, `build/cr9_realm_sab.log`): 53 CAUGHT, `tree_focus_event_ignored`
+  by L4; the clean build passes; `check_all` 27 of 27 green (17:31).
+- Knowledge base: U/02 §2 (the weak-cache fix verified: a subsystem's `UPROPERTY` maps, misses cached; the editor GC's keep
+  flags read in the source), U/08 §5.3 (the focus-path event in place of a per-frame focus scan; headless tests have no
+  focus); INDEX, U/00.
+- Docs: doc 00 (the UI row, 554 realm sabotages), doc 05 and doc 11 (L4: 45 checks), doc 09 (93 UI tests, 45 L4 checks,
+  554 realm sabotages), the review worklist (CR9, CR12 done).
+- **F3's numbers, for the designer** (no change made). pawsim has no jobs and no Patience, so they come from the game's own
+  stat formula on `Data/*.csv` (`build/f3_numbers.py`, output `build/f3_numbers.txt`, both gitignored: on the designer's
+  PC only, the numbers below are the record; the slope agrees with the long
+  suite's derivation, `PcLongTests.cpp`). Only Attack Speed's factors move: paw DPS ~ speed x crit factor, the aura ~ crit
+  factor, and Patience raises crit damage only below base speed. The Sphinx, crit 100%, 9 Reawakens, the run's first
+  biome (Attack Speed caps at 3 levels): with the paw alone, Patience 6+ makes the first level a loss (-6% to -23%), the
+  third pays it back (+18% to +61%), and at the cap Patience pays nothing (speed is past base): the best paw-only Sphinx
+  with Patience 10 equals one without it. With the aura (half the DPS), every Attack Speed level is a loss from Patience 5
+  (-7% to -47%; at biome 12, from Patience 8: -12% to -47%). Halving Patience does not fix the aura's case (-7% to -27% at
+  Patience 10). Patience read from the job's slowness only (the Sphinx's x0.5, never the shop's levels) removes the trap
+  in every build, but as written it is a buff to the best Sphinx: x1.85 with the aura, x3.00 paw only; about +60% at
+  level 10 (+6% a level) keeps the aura build's best where it is today.
+- **The nightly** (`-Full`, started by `build/full_tonight.sh` at 21:00, editor closed): 40 of 40 PASS, exit 0, 9 h 54 min.
+  PawCore sabotage 641 of 641 CAUGHT (3 h 17 min); Realm sabotage 554 of 554 CAUGHT (4 h 25 min); the pawsim parity sweep
+  1 h 22 min; the long suite 20 min (Attack Speed lowered DPS under Patience in 48,665 of 9,000,000 states: F3, counted by
+  design); the Godot fixtures 17 min; L4 45 of 45 (2 min). Docs 00 and 09 record it.
+- Committed and pushed at the designer's request ("Commit and push"), explicit paths.
+
+**Open.** The review's CR5 step 2 and CR17 (both want the bench on a quiet PC). The designer's: F3 (the numbers above;
+recommended: Patience read from the job's slowness only, +6% a level, its tree text drafted first), Q11 (the draw-call
+budget), R6, the hand checks of (96).
+
+**Next step.** Ask the designer for the F3 call (the options and numbers above). On a yes to the recommendation: the rule in
+`PcStats.cpp` (`PatienceCritBonus` from the job's speed, not `S.AttackSpeedMultiplier`); Patience's new levels in `Data/`
+(the first D16 change to a NUMBER: `tools/godot_fixes.py` carries code today, so how the CSV, pawsim's parity with the
+`.tres` and the Godot fixtures carry a data change is worked out first; never in the Godot repo); the long suite's
+exemption removed (then every Attack Speed decrease fails); the tree text drafted for the designer; doc 01 §5. On a quiet PC instead: CR17, then
+CR5 step 2, each with `packaged_bench.py` before and after.
+
 ## 2026-11-11 (98) - Review CR11 (the icon set's owner) and CR14 (the UI's memory, the game instance's); the nightly queued
 
 **Where the project is.** (97) is committed and pushed (`7277c49`, at the designer's request). The designer then asked for

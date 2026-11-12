@@ -526,6 +526,25 @@ namespace
 			return Now == Count + 1;
 		});
 		FocusTour(TEXT("the tree"), []() { const UPawSkillTreeScreen* T = Hud() ? Hud()->GetSkillTree() : nullptr; return T && T->IsActivated(); }, 2);
+		// Review CR9: the selection and the docked tooltip follow the pad's focus by the node's focus event (no scan): after
+		// the tour, both are the focused node's.
+		Expect(TEXT("the tree's selection and tooltip follow the focus"), []()
+		{
+			const UPawSkillTreeScreen* T = Hud() ? Hud()->GetSkillTree() : nullptr;
+			if (!T)
+			{
+				return false;
+			}
+			for (const std::string& Id : T->GetLayout().Order)
+			{
+				const FString Name = UTF8_TO_TCHAR(Id.c_str());
+				if (Focused(T->GetNode(Name)))
+				{
+					return T->LastSelected() == Name && T->GetTipBranch() == Name;
+				}
+			}
+			return false;
+		});
 		Press(EKeys::Gamepad_FaceButton_Right);
 		Expect(TEXT("the first B asks before starting the next run"), []()
 		{

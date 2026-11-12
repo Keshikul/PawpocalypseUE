@@ -20,6 +20,7 @@
 #include "CommonActivatableWidget.h"
 #include "CommonButtonBase.h"
 #include "PcTreeLayout.h"
+#include "PcTreeText.h"
 #include "UI/PawJuice.h"
 
 #include "PawSkillTreeScreen.generated.h"
@@ -94,6 +95,9 @@ public:
 	bool IsShining() const { return bShine; }
 
 	FString BranchId;
+	// The screen this node tells when focus enters it (review CR9: the selection follows focus by this event, not by asking
+	// every node every frame).
+	TWeakObjectPtr<class UPawSkillTreeScreen> Screen;
 	// The branch's picture (its icon_path), 56 px in the middle of the node (phase 6 slice 5b).
 	void SetIconPath(const FString& Path);
 	FString GetIconName() const;
@@ -103,6 +107,7 @@ public:
 
 protected:
 	virtual void NativeTick(const FGeometry& Geometry, float DeltaSeconds) override;
+	virtual void NativeOnAddedToFocusPath(const FFocusEvent& InFocusEvent) override;
 
 private:
 	void OnNodeReady();
@@ -155,6 +160,12 @@ public:
 	// The tooltip for a node, as the player reads it (shown docked or beside the node; hidden with an empty id).
 	void ShowTip(const FString& Id, bool bDocked);
 	FString GetTipBranch() const { return TipBranch; }
+	// NativeTick's tooltip step (public for the tests): the mouse's node, else the pad's docked tip, every frame.
+	void UpdateTip();
+	// How many times the tooltip's lines were built (review CR9: when the node or its numbers change, not every frame).
+	int32 GetTipBuilds() const { return TipBuilds; }
+	// A node took focus (its focus-path event): the selection follows it (spike S4), unless it already is the selection.
+	void NodeFocused(const FString& Id);
 
 	// The tree's motion (UiJuice, phase 6 slice 5c): NativeTick steps it; the tests read and drive it.
 	FPawJuice& GetJuice() { return Juice; }
@@ -260,6 +271,11 @@ private:
 	FVector2D DragLast = FVector2D::ZeroVector;
 	FString TipBranch;
 	bool bTipDocked = false;
+	// What the tooltip's lines were last built from (review CR9).
+	FString TipBuiltFor;
+	Pc::PcTreeTip TipBuilt;
+	bool bTipBuilt = false;
+	int32 TipBuilds = 0;
 	double HaloClock = 0.0;
 	double RefreshClock = 0.0;
 	// The pad: the right stick pans, the triggers zoom (held), the follow glides.

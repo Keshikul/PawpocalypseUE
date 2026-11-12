@@ -255,7 +255,7 @@ bool FPawJuiceBaitLeanTest::RunTest(const FString& Parameters)
 	P.BossesDefeated.erase(BossRealm); // ... but this one: it stands in the way
 	P.BossesClearedThisCycle.erase(BossRealm);
 	TestTrue(TEXT("travel to the boss biome"), W.Realm->Travel(BossIndex));
-	P.TierKillCount += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
+	P.BaitKillsByBiome[P.CurrentBiomeId] += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait; // the Bait bank (D17 E2)
 	P.Catnip = 1e15;
 	TestTrue(TEXT("the Bait calls"), Pc::BaitButton(W.Realm->GetSim().Field, D, P).bCalling);
 	Hud->SelectTab(Pc::PcDockTab::Realms);

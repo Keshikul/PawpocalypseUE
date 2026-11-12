@@ -348,7 +348,8 @@ since phase 6 slice 5b (§7); the fps readout, tooltips and the tutorial overlay
 **Slice 2 (2026-11-01, HANDOFF-LOG (22))**: the **Realms page** (the stage line naming the boss in the way, the hint, the Bait
 button in every biome with its five states, the auto-travel box, twelve rows in a scroll box: here / travel / boss (cleared) /
 earn more / locked, Cartography's reward, the newly-open row warmed) and the **Reawaken page** (progress toward the first or
-the suggested point, the payout with its Stardust disc, the total after, the multiplier now and after, the Unicorn line, the
+the suggested point, the payout with its Stardust disc, the total after, the multiplier now and after, the Catnip multiplier now and after
+(D17, 2026-11-12: `CatnipMultiplierText`), the Unicorn line, the
 button's four states, the two-press confirm that moves the selection to Cancel, Cancel, the "Ask before Reawakening" box;
 a tab change disarms). The reset runs `PcProgress` `Reawaken`, then the realm's `OnReawakened`, then travels to the starting
 biome (`Pc::ReawakenTravelIndex`: the first, or Territory's; designer 2026-11-01 "Territory wins", F20); the realm itself
@@ -421,7 +422,8 @@ currency change) and `UPawRealmSubsystem` after a progress change, a summon and 
 - **Status row**: transparent, `HitTestInvisible` except the two currency icons with tooltips (the Godot opaque panel once
   ate clicks aimed at mice). **Every widget over the field is `HitTestInvisible` or `SelfHitTestInvisible`** unless it must
   take input (a full-screen visible widget eats clicks: Godot's `MOUSE_FILTER_STOP` lesson).
-- **Reawaken tab**: progress to threshold, pending Stardust, multiplier before -> after, then the button; "Ask before
+- **Reawaken tab**: progress to threshold, pending Stardust, multiplier before -> after, the Catnip multiplier before ->
+  after (D17), then the button; "Ask before
   Reawakening" box; confirm moves focus to Cancel.
 - **Realms tab**: twelve rows; locked rows name the boss or the Catnip still needed; current biome visibly distinct from
   locked (set the DISABLED style explicitly); Bait button on every biome; "Bait ready" rainbow plate.

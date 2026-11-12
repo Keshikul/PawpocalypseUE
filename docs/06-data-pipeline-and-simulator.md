@@ -37,6 +37,11 @@ Conventions it writes (keep them for hand edits after the Godot project is retir
 - a reference to another resource is that resource's `id` (`spawn_pool`, `golden_enemy`, `boss_data`);
 - asset paths are still Godot `res://assets/art/...svg`: the importer maps them to visual-definition ids (doc 07 §4).
 
+**The port's own numbers (D16)**: since 2026-11-12 (F3, Patience's ladder) a number the port changes in Godot's data is an
+exact text replacement in `tools/godot_fixes.py`, which the exporter applies to each `.tres` it reads (`fixed_read`), so a
+re-export writes the port's number, never Godot's, and L0's data-export gate still holds. Never edit such a cell in
+`Data/` by hand (the gate fails), and never in the Godot repo. pawsim's `.tres` loader applies the same list.
+
 **After Godot is retired** the CSVs are edited directly; the exporter is deleted.
 
 It also writes **`Data/InputMap.csv`** (since 2026-11-04, `tools/export_input_map.py`): Godot's input map from
@@ -140,6 +145,16 @@ before it is trusted (the Godot rule: "a gate that has never failed has never be
   These limits carry over.
 - **A rule that changes what the player can reach is taught to pawsim in the same commit** (Godot rule, kept).
 - Shop re-stepping stays `py tools/shop_step.py --step N --write`, now writing CSV rows instead of 15 `.tres` files.
+- **D17 (2026-11-12) taught pawsim** E1 (a Reawaken keeps passage), E2 (the Bait bank, `bait_kills_by_biome`), E3
+  (`reawaken_catnip_multiplier()`, in `catnip_per_sec`) and the Unicorn's x1.5 (`_damage_scale`); the mirror compares the
+  Catnip multiplier too, and its self-test sabotages `reawaken_catnip_exponent`. `econ_review.py --proposal before_d17`
+  puts the old rules and numbers back in memory and reproduces the review's "today" exactly (406 min).
+- **pawsim has no waves** (found 2026-11-12): the game escalates a biome against its own kill bank (HP x1.35, reward x1.28 a
+  wave, `TierData.kills_per_wave`...), which Godot added after pawsim was copied. Rule 14 says pawsim should learn it.
+  `tools/econ_review.py` (the economy review, `docs/ECONOMY-REVIEW-2026-11-12.md`) adds waves on top of pawsim exactly as
+  PawCore derives them, logs every shop buy, tree level and Reawaken, and applies proposals IN MEMORY (`--proposal`, `Data/`
+  never written). With waves the game before D17 was 406 min against pawsim's 403; D17's is 112 min against pawsim's 163
+  (without waves). It is a measuring tool, not a gate.
 
 ## 8. The mirror test (Godot `check_mirror`, now stronger)
 

@@ -262,9 +262,26 @@ bool FPawRemapTest::RunTest(const FString& Parameters)
 		const FPawNavigationConfig Nav;
 		TestEqual(TEXT("the menus: A backs out"), static_cast<int32>(Nav.ActionOf(EKeys::Gamepad_FaceButton_Bottom)), static_cast<int32>(EUINavigationAction::Back));
 	}
+	// The steer keys the realm samples every frame, cached with the bindings (review CR17): the steer actions' keys.
+	auto SteerUnion = []()
+	{
+		TArray<FKey> Union;
+		for (const TCHAR* A : { TEXT("steer_left"), TEXT("steer_right"), TEXT("steer_up"), TEXT("steer_down") })
+		{
+			for (const FKey& K : PawInput::KeysOf(A, false))
+			{
+				Union.AddUnique(K);
+			}
+		}
+		return Union;
+	};
+	TestTrue(TEXT("the cached steer keys are the steer actions' keys"), PawInput::SteerKeys() == SteerUnion());
+	TestTrue(TEXT("the right stick steers (the cached keys)"), PawInput::SteerKeys().Contains(EKeys::Gamepad_RightX));
 	// Swap sticks: the left stick steers, the right one navigates.
 	Settings->SetSwapSticks(true);
 	TestTrue(TEXT("the left stick steers"), PawInput::IsSteerAxis(EKeys::Gamepad_LeftX) && !PawInput::IsSteerAxis(EKeys::Gamepad_RightX));
+	TestTrue(TEXT("the cached steer keys follow the swap"), PawInput::SteerKeys() == SteerUnion()
+		&& PawInput::SteerKeys().Contains(EKeys::Gamepad_LeftX) && !PawInput::SteerKeys().Contains(EKeys::Gamepad_RightX));
 	TestTrue(TEXT("the right stick is menu_up"), PawInput::KeyIs(EKeys::Gamepad_RightStick_Up, TEXT("menu_up")));
 	{
 		const FPawNavigationConfig Nav;

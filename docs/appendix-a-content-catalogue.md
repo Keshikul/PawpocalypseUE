@@ -25,11 +25,11 @@
 
 | id | display_name | total_hp | reward_catnip | time_limit_sec | bait_cost_catnip | bait_required | kills_per_bait | phase_hp_thresholds | phase_vulnerable_sec | phase_shield_sec |
 |---|---|---|---|---|---|---|---|---|---|---|
-| factory_foreman | The Foreman | 2.07098e+12 | 340000 | 3300 | 5252320 | 40 | 2200 | 0.75;0.50;0.25 | 3.0;2.2;1.6;1.1 | 1.0;1.8;2.4;3.0 |
-| litter_king | The Litter King | 8.0768e+12 | 1.156e+06 | 3700 | 17857900 | 40 | 2800 | 0.80;0.60;0.40;0.20 | 3.0;2.4;1.9;1.4;1.0 | 1.0;1.6;2.2;2.8;3.4 |
-| park_tyrant | The Park Tyrant | 2.93798e+06 | 1800.0 | 300.0 | 3400 | 40 | 240 | 0.5 | 3.5;2.5 | 1.0;1.5 |
-| rival_champion | The Rival Champion | 3.64195e+09 | 70000.0 | 800.0 | 133634 | 40 | 811 | 0.67;0.33 | 3.0;2.2;1.5 | 1.0;1.8;2.4 |
-| void_god | The Void God | 3.49125e+10 | 100000.0 | 2900.0 | 1544800 | 40 | 1500 | 0.67;0.33 | 3.0;2.0;1.2 | 1.0;2.0;2.8 |
+| factory_foreman | The Foreman | 6.42004e+13 | 340000 | 3300 | 5252320 | 40 | 2200 | 0.75;0.50;0.25 | 3.0;2.2;1.6;1.1 | 1.0;1.8;2.4;3.0 |
+| litter_king | The Litter King | 1.12268e+15 | 1.156e+06 | 3700 | 17857900 | 40 | 2800 | 0.80;0.60;0.40;0.20 | 3.0;2.4;1.9;1.4;1.0 | 1.0;1.6;2.2;2.8;3.4 |
+| park_tyrant | The Park Tyrant | 6.96301e+06 | 1800.0 | 300.0 | 3400 | 40 | 240 | 0.5 | 3.5;2.5 | 1.0;1.5 |
+| rival_champion | The Rival Champion | 7.42958e+09 | 70000.0 | 800.0 | 133634 | 40 | 811 | 0.67;0.33 | 3.0;2.2;1.5 | 1.0;1.8;2.4 |
+| void_god | The Void God | 5.51618e+11 | 100000.0 | 2900.0 | 1544800 | 40 | 1500 | 0.67;0.33 | 3.0;2.0;1.2 | 1.0;2.0;2.8 |
 
 ## Evolution stages (EvolutionData)
 
@@ -52,8 +52,8 @@
 | crit_chance | Crit Chance | ADDITIVE |  | 120.0 | 2.3131 | 0.18 | 0.3 | 0.015 | 0.02 |
 | currency_find | Currency Find | MULTIPLICATIVE | CURRENCY_FIND | 90.0 | 3.2611 | 1.1941 | -1.0 |  |  |
 | execute | Execute | ADDITIVE |  | 350.0 | 2.6996 | 0.048 | 0.08 | 0.004 | 0.005 |
-| kitten_count | Kitten Count | ADDITIVE | KITTEN_COUNT | 150.0 | 1.2 | 1.0 | 10.0 | 2.0 | 0.5 |
-| kitten_power | Kitten Power | MULTIPLICATIVE | KITTEN_POWER | 20.0 | 2.04 | 1.3 | -1.0 |  |  |
+| kitten_count | Kitten Count | ADDITIVE | KITTEN_COUNT | 150.0 | 1.35 | 2.0 | 10.0 | 2.0 | 0.5 |
+| kitten_power | Kitten Power | MULTIPLICATIVE | KITTEN_POWER | 20.0 | 3.6372 | 1.6 | -1.0 |  |  |
 | kitten_speed | Kitten Speed | MULTIPLICATIVE | KITTEN_SPEED | 45.0 | 2.195 | 1.5869 | 3.0 | 0.15 | 0.2 |
 | overkill | Overkill | ADDITIVE | OVERKILL | 900.0 | 1.9738 | 0.12 | 0.60 | 0.02 | 0.01 |
 | paw_damage | Paw Damage | MULTIPLICATIVE | PAW_DAMAGE | 6.0 | 3.4897 | 1.4185 | -1.0 |  |  |
@@ -169,13 +169,13 @@
 | instinct | Instinct |  |  | KITTEN_DAMAGE_ADDITIVE | 5;15;50;140;375;1000;2500;7000;17500;45000 | 0.35;0.58;0.85;1.15;1.5;1.9;2.3;2.7;3.1;3.5 |  |  |  |
 | unlock_aura | Aura |  | true | AURA_DAMAGE_MULTIPLICATIVE | 20 | 1 |  |  |  |
 | unlock_snare | Snare |  | true | AMBUSH_SNARE | 35 | 0.4 |  |  |  |
-| unlock_unicorn | Unicorn |  | true | POOP_DAMAGE_MULTIPLICATIVE | 2500 | 1 |  |  |  |
+| unlock_unicorn | Unicorn |  | true | DAMAGE_MULTIPLICATIVE | 2500 | 1.5 |  |  |  |
 | auto_bait | Auto-Bait | auto_travel | true | AUTO_BAIT | 480 | 1 |  |  |  |
 | butchers_rhythm | Butcher's Rhythm | claws | true | GUARANTEED_CRIT_SHARE | 400 | 0.1 |  |  |  |
 | job_blacksmith | Blacksmith | claws | true | GRANTS_JOB | 60 | 1.0 | blacksmith | tier_6 |  |
 | job_daredevil | Daredevil | claws | true | GRANTS_JOB | 60 | 1.0 | daredevil | tier_8 |  |
 | swarm_logic | Swarm Logic | claws |  | CROWD_DAMAGE | 70;220;700;2200;6800;21000;64000;195000;590000;1750000 | 1.05;1.1;1.15;1.2;1.26;1.32;1.38;1.44;1.5;1.6 |  |  |  |
-| unlock_overkill | Overkill | claws | true | OVERKILL_ADDITIVE | 65 | 0.02 |  |  |  |
+| unlock_overkill | Overkill | claws | true | OVERKILL_ADDITIVE | 65 | 0.1 |  |  |  |
 | unlock_pounce | Pounce | claws | true | POUNCE_DAMAGE_MULTIPLICATIVE | 20 | 1 |  |  |  |
 | second_opinion | Second Opinion | deadweight |  | REROLL_PER_LEVEL | 70;240;800;2600;8600 | 1;2;3;4;5 |  |  |  |
 | compound_interest | Compound Interest | fortune | true | CATNIP_INTEREST_REALTIME | 550 | 0.01 |  |  |  |
@@ -208,7 +208,7 @@
 | pied_piper | The Pied Piper | job_ratcatcher | true | SPAWN_AROUND_PLAYER | 560 | 280 |  |  |  |
 | traps | Traps | job_ratcatcher |  | SNARED_DAMAGE_MULTIPLICATIVE | 40;120;380;1150;3200;9000;24000;60000;150000;360000 | 1.1;1.2;1.3;1.41;1.52;1.63;1.74;1.84;1.92;2 |  |  |  |
 | inscrutable | Inscrutable | job_sphinx | true | DETERMINISTIC_CRIT | 560 | 1.0 |  |  |  |
-| patience | Patience | job_sphinx |  | CRIT_DAMAGE_FROM_SLOWNESS | 40;120;380;1150;3200;9000;24000;60000;150000;360000 | 0.2;0.4;0.6;0.8;1;1.2;1.4;1.6;1.8;2 |  |  |  |
+| patience | Patience | job_sphinx |  | CRIT_DAMAGE_FROM_SLOWNESS | 40;120;380;1150;3200;9000;24000;60000;150000;360000 | 0.06;0.12;0.18;0.24;0.3;0.36;0.42;0.48;0.54;0.6 |  |  |  |
 | riddle | Riddle | job_sphinx |  | CRIT_EXECUTE_CHANCE | 80;240;720;2200;6400;18000;48000;120000;300000;720000 | 0.05;0.1;0.15;0.2;0.25;0.3;0.35;0.4;0.45;0.5 |  |  |  |
 | audit | Audit | job_tax_collector | true | BAIT_IN_CATNIP | 560 | 3.0 |  |  |  |
 | compound | Compound | job_tax_collector |  | CATNIP_INTEREST | 40;120;380;1150;3200;9000;24000;60000;150000;360000 | 0.002;0.004;0.006;0.008;0.01;0.012;0.014;0.016;0.018;0.02 |  |  |  |
@@ -351,6 +351,7 @@ Every multiplier column is in `Data/JobData.csv`.
 | reawaken_mult_exponent | 0.5 |
 | reawaken_mult_scale | 2.5 |
 | reawaken_stardust_coefficient | 0.125 |
+| reawaken_catnip_exponent | 0.5 |
 | overkill_unlock_reawaken_count | 0 |
 | pounce_unlock_reawaken_count | 0 |
 | unicorn_unlock_reawaken_count | 0 |

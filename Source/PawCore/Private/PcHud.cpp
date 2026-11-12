@@ -442,6 +442,8 @@ namespace Pc
 		Page.TotalAfter = P.Stardust + Page.Pending;
 		Page.MultiplierNow = ReawakenMultiplier(D.Reawaken, P.StardustGrantedEver);
 		Page.MultiplierAfter = ProjectedReawakenMultiplier(D, P);
+		Page.CatnipMultiplierNow = ReawakenCatnipMultiplier(D, P);
+		Page.CatnipMultiplierAfter = ProjectedReawakenCatnipMultiplier(D, P);
 		Page.bReady = CanReawaken(D, P);
 		if (bConfirmArmed)
 		{

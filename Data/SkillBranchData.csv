@@ -54,7 +54,7 @@ nine_lives_insurance,Fine Print,POUNCE_INSURANCE,540,1.0,1,job_daredevil,true,re
 overflow,Overflow,OVERKILL_BOMB,520,10,2,unlock_overkill,true,res://assets/art/skills/skill_overflow.svg,true,,,,,data/skill_tree/overflow.tres
 overkill,Overkill Splash,OVERKILL_ADDITIVE,190;510;1300;3100;7200;16000;38000;82000;180000;400000,0.045;0.07;0.1;0.13;0.16;0.19;0.22;0.25;0.265;0.28,0,unlock_overkill,true,res://assets/art/skills/skill_overkill_splash.svg,,,,,,data/skill_tree/overkill.tres
 overtime,Overtime,CARD_REROLLS,60;220;800;2600;8000,1;2;3;4;5,0,job_engineer,true,res://assets/art/skills/skill_overtime.svg,,,,,,data/skill_tree/overtime.tres
-patience,Patience,CRIT_DAMAGE_FROM_SLOWNESS,40;120;380;1150;3200;9000;24000;60000;150000;360000,0.2;0.4;0.6;0.8;1;1.2;1.4;1.6;1.8;2,0,job_sphinx,true,res://assets/art/skills/skill_patience.svg,,,,,,data/skill_tree/patience.tres
+patience,Patience,CRIT_DAMAGE_FROM_SLOWNESS,40;120;380;1150;3200;9000;24000;60000;150000;360000,0.06;0.12;0.18;0.24;0.3;0.36;0.42;0.48;0.54;0.6,0,job_sphinx,true,res://assets/art/skills/skill_patience.svg,,,,,,data/skill_tree/patience.tres
 pickpocket,Pickpocket,SCAVENGE_ADDITIVE,80;240;720;2200;6400;18000;48000;120000;300000;720000,0.05;0.1;0.15;0.2;0.25;0.3;0.35;0.4;0.45;0.5,0,job_cat_burglar,true,res://assets/art/skills/skill_pickpocket.svg,,,,,,data/skill_tree/pickpocket.tres
 pied_piper,The Pied Piper,SPAWN_AROUND_PLAYER,560,280,1,job_ratcatcher,true,res://assets/art/skills/skill_pied_piper.svg,true,,,,,data/skill_tree/pied_piper.tres
 play_with_food,Play With Food,AMBUSH_PLAY_WITH_FOOD,25;75;230;700;1900;5200;14000;34000;85000;200000,1.1;1.2;1.3;1.4;1.5;1.6;1.7;1.8;1.9;2,1,unlock_snare,true,res://assets/art/skills/skill_play_with_food.svg,,,,,,data/skill_tree/play_with_food.tres
@@ -77,12 +77,12 @@ unicorn,Rainbow Gut,POOP_DAMAGE_MULTIPLICATIVE,80;240;650;1700;4200;10000;25000;
 union_rules,Union Rules,SECOND_JOB_SHARE,900,0.5,1,job_unemployed,true,res://assets/art/skills/skill_union_rules.svg,true,,,,,data/skill_tree/union_rules.tres
 unlock_aura,Aura,AURA_DAMAGE_MULTIPLICATIVE,20,1,0,,,res://assets/art/skills/skill_aura.svg,true,,,,,data/skill_tree/unlock_aura.tres
 unlock_full_spectrum,Full Spectrum,PRISM_SWEEP,9000,1,4,spectrum,true,res://assets/art/skills/skill_unlock_full_spectrum.svg,true,,,,,data/skill_tree/unlock_full_spectrum.tres
-unlock_overkill,Overkill,OVERKILL_ADDITIVE,65,0.02,0,claws,true,res://assets/art/skills/skill_overkill.svg,true,,,,,data/skill_tree/unlock_overkill.tres
+unlock_overkill,Overkill,OVERKILL_ADDITIVE,65,0.1,0,claws,true,res://assets/art/skills/skill_overkill.svg,true,,,,,data/skill_tree/unlock_overkill.tres
 unlock_poop,Rainbow Poop,POOP_DAMAGE_MULTIPLICATIVE,600,1,0,unlock_unicorn,true,res://assets/art/skills/skill_rainbow_poop.svg,true,,,,,data/skill_tree/unlock_poop.tres
 unlock_pounce,Pounce,POUNCE_DAMAGE_MULTIPLICATIVE,20,1,0,claws,true,res://assets/art/skills/skill_pounce.svg,true,,,,,data/skill_tree/unlock_pounce.tres
 unlock_prism,Prism,PRISM_BEAM,220,0.35,3,unlock_unicorn,true,res://assets/art/skills/skill_unlock_prism.svg,true,,,,,data/skill_tree/unlock_prism.tres
 unlock_reflex,Auto-Pounce,AUTO_POUNCE,30,1.1,0,unlock_pounce,true,res://assets/art/skills/skill_reflex.svg,true,,,,,data/skill_tree/unlock_reflex.tres
 unlock_snare,Snare,AMBUSH_SNARE,35,0.4,1,,,res://assets/art/skills/skill_snare.svg,true,,,,,data/skill_tree/unlock_snare.tres
-unlock_unicorn,Unicorn,POOP_DAMAGE_MULTIPLICATIVE,2500,1,0,,,res://assets/art/skills/skill_unicorn.svg,true,,,,,data/skill_tree/unlock_unicorn.tres
+unlock_unicorn,Unicorn,DAMAGE_MULTIPLICATIVE,2500,1.5,0,,,res://assets/art/skills/skill_unicorn.svg,true,,,,,data/skill_tree/unlock_unicorn.tres
 vitality,Vitality,KITTEN_COUNT,10;60;240;960;3300;10800;33000;96000;246000;600000,1;2;3;4;5;6;7;8;9;10,0,instinct,true,res://assets/art/skills/skill_vitality.svg,,,,,,data/skill_tree/vitality.tres
 whisker_trade,Feral Instinct,KITTEN_CRIT_SHARE,90;280;880;2700;8200;25000;76000;230000;700000;2100000,0.1;0.2;0.3;0.4;0.5;0.6;0.7;0.8;0.9;1,2,kitten_foreman,true,res://assets/art/skills/skill_whisker_trade.svg,,,,,,data/skill_tree/whisker_trade.tres

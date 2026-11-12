@@ -117,6 +117,10 @@ void UPawSpriteRenderer::BeginFrame(double LogicalW, double LogicalH)
 	{
 		S.Reset();
 	}
+	for (int32& N : SpriteCount)
+	{
+		N = 0;
+	}
 }
 
 FVector UPawSpriteRenderer::FieldToWorld(double X, double Y, double Z) const
@@ -186,7 +190,10 @@ void UPawSpriteRenderer::AddSprite(EPawLayer Layer, const FPawSprite& S)
 	{
 		return;
 	}
-	Sprites[static_cast<int32>(Layer)].Add(S);
+	++SpriteCount[static_cast<int32>(Layer)];
+#if !UE_BUILD_SHIPPING
+	Sprites[static_cast<int32>(Layer)].Add(S); // the tests' and the bench's record (review CR17: not in Shipping)
+#endif
 	if (!HasSprites() || !Atlas->Cells.IsValidIndex(S.Cell))
 	{
 		return;
@@ -262,7 +269,7 @@ void UPawSpriteRenderer::EndFrame()
 	for (int32 L = 0; L < static_cast<int32>(EPawLayer::Count); ++L)
 	{
 		const int32 Shape = ShapeIndex(static_cast<EPawLayer>(L));
-		Drawn[L] = Shape != INDEX_NONE ? Shapes[Shape].Drawn : Sprites[L].Num();
+		Drawn[L] = Shape != INDEX_NONE ? Shapes[Shape].Drawn : SpriteCount[L];
 	}
 }
 
@@ -381,7 +388,10 @@ void UPawSpriteRenderer::SetFx(EPawFxBand Band, const FPawFxCanvas& Canvas, UMat
 	if (Canvas.IsEmpty() || !FxMaterial)
 	{
 		// An empty band stays as it is. A clear rebuilds the mesh's collision body and its scene proxy, so it is made once,
-		// when the band empties, not every frame (review CR5: three bands did it every frame, empty or not).
+		// when the band empties, not every frame (review CR5: three bands did it every frame, empty or not). A busy band
+		// is still made again each frame: CR5 step 2 (a fixed-capacity, un-indexed list sent by UpdateMeshSection) was
+		// measured 2026-11-12 and made the render thread 1.1 -> 2.9 ms (a 10,000-triangle band resent as 49,000 vertices a
+		// frame), so it was taken back (HANDOFF-LOG (100)).
 		if (FxFull[B])
 		{
 			++FxRebuilds;

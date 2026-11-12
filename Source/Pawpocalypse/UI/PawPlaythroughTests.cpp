@@ -297,7 +297,7 @@ bool FPawPlaythroughTest::RunTest(const FString& Parameters)
 			break;
 		}
 		// Its bait: the kills a real fight takes hours to bank, and the Catnip it costs.
-		P.TierKillCount += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
+		P.BaitKillsByBiome[P.CurrentBiomeId] += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait; // the Bait bank (D17 E2)
 		P.Catnip += Pc::SummonCatnipCost(D, P, *Boss);
 		W.Hud->RefreshNow();
 		W.Hud->PressBait();
@@ -354,7 +354,8 @@ bool FPawPlaythroughTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("reawaken: the damage multiplier rose"), Pc::ReawakenMultiplier(D.Reawaken, P.StardustGrantedEver) > MultiplierWas);
 	TestEqual(TEXT("reawaken: the upgrades reset"), W.UpgradeLevels(), Pc::StartingUpgradeLevel(D, P) * static_cast<int64>(P.UpgradeLevels.size()));
 	TestEqual(TEXT("reawaken: this cycle's Catnip reset"), P.LifetimeCatnipThisCycle, 0.0);
-	TestTrue(TEXT("reawaken: the passage re-locks"), P.BossesClearedThisCycle.empty());
+	// D17 E1 (designer, 2026-11-12): a beaten boss stays beaten; Godot re-locked the passage here.
+	TestEqual(TEXT("reawaken: the passage stays open"), static_cast<int32>(P.BossesClearedThisCycle.size()), static_cast<int32>(D.Code.BossRealms.size()));
 	TestEqual(TEXT("reawaken: the power stays (every boss still beaten)"), static_cast<int32>(P.BossesDefeated.size()), static_cast<int32>(D.Code.BossRealms.size()));
 	TestEqual(TEXT("reawaken: the run's time stands"), P.FinalBossSeconds, FinalSeconds);
 	TestTrue(TEXT("reawaken: the ceremony plays"), W.Hud->GetCeremony()->IsPlaying());
@@ -422,21 +423,25 @@ bool FPawPlaythroughTest::RunTest(const FString& Parameters)
 	{
 		TestEqual(TEXT("out: the tree never resets"), Pc::BranchLevel(P, TCHAR_TO_UTF8(*KV.Key)), KV.Value);
 	}
-	// PASSAGE RE-LOCKS: the rule (is_biome_unlocked) shuts the biome behind the first boss again, even with this cycle's
-	// Catnip gates credited; only its kill opens it.
+	// A BEATEN BOSS STAYS BEATEN (D17 E1, designer 2026-11-12; Godot re-locked the passage here): with this cycle's Catnip
+	// gates credited, the biome behind the first boss is open at once, no rematch.
 	W.Hud->SelectTab(Pc::PcDockTab::Realms);
 	W.CreditCatnipGates();
-	const int32 FirstBoss = static_cast<int32>(Pc::RealmIndex(D, D.Code.BossRealms.front()));
+	const std::string FirstRealm = D.Code.BossRealms.front();
+	const int32 FirstBoss = static_cast<int32>(Pc::RealmIndex(D, FirstRealm));
 	const Pc::PcTier& Behind1 = D.Tiers[static_cast<size_t>(FirstBoss + 1)];
-	TestFalse(TEXT("out: the passage behind the first boss re-locked"), Pc::IsBiomeUnlocked(D, P, Behind1));
+	TestTrue(TEXT("out: the passage behind the first boss stays open"), Pc::IsBiomeUnlocked(D, P, Behind1));
 	// F22 (designer 2026-11-03, "that should not happen"): the Realms page asks the passage too, so a biome behind a boss
-	// not beaten this run is locked there and its button goes nowhere (Godot fixed first: is_passage_open).
+	// whose passage is shut is locked there and its button goes nowhere (Godot fixed first: is_passage_open). No passage is
+	// shut after this playthrough, so the first boss's is shut here by hand (the ledger, and so the stage, untouched).
+	P.BossesClearedThisCycle.erase(FirstRealm);
 	const int64_t Here = W.F().TierIndex;
 	const int32 Shut = Here != FirstBoss + 1 ? FirstBoss + 1 : FirstBoss + 2;
-	TestTrue(TEXT("out: F22, the biome behind the first boss is locked on the page"),
+	TestTrue(TEXT("out: F22, the biome behind a shut passage is locked on the page"),
 		Pc::RealmRow(D, P, Shut).Kind == Pc::PcRealmRowKind::Locked);
 	W.Hud->PressRealm(Shut);
-	TestEqual(TEXT("out: F22, the Realms page does not walk past an unbeaten boss"), W.F().TierIndex, Here);
+	TestEqual(TEXT("out: F22, the Realms page does not walk past a shut passage"), W.F().TierIndex, Here);
+	P.BossesClearedThisCycle.insert(FirstRealm);
 	// And the new run plays: kills pay again.
 	const int64 KillsWas = P.LifetimeKills;
 	W.Hunt(30.0, [&P, KillsWas]() { return P.LifetimeKills > KillsWas; });

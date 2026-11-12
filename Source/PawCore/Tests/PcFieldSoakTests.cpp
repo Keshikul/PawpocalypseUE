@@ -118,6 +118,7 @@ namespace
 		int64_t Biome = 0;
 		int64_t Fights = 0, Won = 0, TimedOut = 0;
 		std::string Problem;
+		std::vector<Pc::PcFieldEvent> Drained;
 
 		Player(const Pc::PcGameData& Data, uint64_t S) : D(Data), Seed(S)
 		{
@@ -225,7 +226,9 @@ namespace
 			Clock += Step;
 			++Steps;
 			Problem = Broken(F, D, P);
-			for (const Pc::PcFieldEvent& E : Pc::DrainFieldEvents(F))
+			Drained.clear();
+			Pc::DrainFieldEvents(F, Drained);
+			for (const Pc::PcFieldEvent& E : Drained)
 			{
 				Won += E.Kind == Pc::PcFieldEventKind::BossDefeated ? 1 : 0;
 				TimedOut += E.Kind == Pc::PcFieldEventKind::BossTimeout ? 1 : 0;
@@ -246,7 +249,7 @@ namespace
 				const Pc::PcBoss* Boss = D.FindBoss(D.Tiers[static_cast<size_t>(Biome)].BossData);
 				if (Boss && !F.bBossUp && Pc::BaitShortfall(D, P, *Boss) > 0)
 				{
-					P.TierKillCount += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
+					P.BaitKillsByBiome[P.CurrentBiomeId] += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
 				}
 				// The cat's own (manual) summon, when the bait is earned.
 				if (!F.bBossUp && Pc::CanSummonFieldBoss(F, D, P))

@@ -340,4 +340,31 @@ TEST_CASE("Economy rules from the Godot comments")
 	CHECK(Pc::BossesClearedForStage(D, Cycle, 2));
 }
 
+TEST_CASE("D17 E3: the Reawaken multiplies Catnip from kills by the square root of the damage multiplier")
+{
+	// Designer, 2026-11-12: the Reawaken multiplied damage only, and a run is paced by Catnip (runs 3-6 started exactly as
+	// fast as the one before). x1.37 a Reawaken at the gate's +250 % Stardust; 0 would switch it off.
+	const Pc::PcGameData& D = Game();
+	CHECK(D.Reawaken.ReawakenCatnipExponent == doctest::Approx(0.5));
+	Pc::PcProgress P;
+	CHECK(Pc::ReawakenCatnipMultiplier(D, P) == 1.0);
+	const double Plain = Pc::KillCatnip(D, P, 1000.0);
+	// Stardust ever such that the damage multiplier is exactly x2 (scale 2.5, exponent 0.5: (1 + 7.5 / 2.5) ^ 0.5).
+	P.StardustGrantedEver = 3.0 * D.Reawaken.ReawakenMultScale;
+	REQUIRE(Pc::ReawakenMultiplier(D.Reawaken, P.StardustGrantedEver) == doctest::Approx(2.0));
+	CHECK(Pc::ReawakenCatnipMultiplier(D, P) == doctest::Approx(std::sqrt(2.0)));
+	CHECK(Pc::KillCatnip(D, P, 1000.0) == Pc::WholeCatnip(Plain * std::sqrt(2.0)));
+	// Every Reawaken at the gate (+250 % Stardust ever) steps it by sqrt(sqrt(3.5)) = x1.37.
+	P.StardustGrantedEver = 1e6;
+	const double Before = Pc::ReawakenCatnipMultiplier(D, P);
+	P.StardustGrantedEver *= 1.0 + D.Reawaken.ReawakenMinGainFraction;
+	CHECK(Pc::ReawakenCatnipMultiplier(D, P) / Before == doctest::Approx(std::pow(3.5, 0.25)).epsilon(1e-4));
+	// The Reawaken tab's "after": the same curve at the Stardust ever after Reawakening now.
+	Pc::PcProgress Q;
+	Q.LifetimeCatnipEver = 1e10;
+	CHECK(Pc::ProjectedReawakenCatnipMultiplier(D, Q)
+		== doctest::Approx(Pc::ReawakenCatnipMultiplierFor(D.Reawaken, Pc::PendingStardust(D, Q))));
+	CHECK(Pc::ProjectedReawakenCatnipMultiplier(D, Q) > 1.0);
+}
+
 #endif

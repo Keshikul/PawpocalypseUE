@@ -156,6 +156,12 @@ namespace Pc
 	{
 		PcKillStep Out;
 		P.TierKillCount += 1;
+		// D17 E2: the Bait bank. Its own count, because the wave bank (TierKillsByBiome) goes with a Reawaken and the Bait
+		// earned toward a boss must not.
+		if (!P.CurrentBiomeId.empty())
+		{
+			P.BaitKillsByBiome[P.CurrentBiomeId] += 1;
+		}
 		P.LifetimeKills += 1;
 		P.KillsThisWave += 1;
 		P.KillsSinceTithe += 1;
@@ -443,10 +449,9 @@ namespace Pc
 		// Forget where the player stood: every biome behind tier 1 relocks, and clearing this is what makes the next
 		// begin_biome() register instead of returning early.
 		P.CurrentBiomeId.clear();
-		// Carrying banked wave progress forward would hand the second pass a boss gate already paid.
+		// The waves restart with the run. D17 (designer, 2026-11-12): a beaten boss stays beaten (E1) and Bait earned and
+		// spent is kept (E2); Godot cleared both, so every run re-farmed 40 Bait for every boss already beaten.
 		P.TierKillsByBiome.clear();
-		P.BaitSpentByBiome.clear();
-		P.BossesClearedThisCycle.clear();
 		P.ReawakenCount += 1;
 		// A NEW RUN ASKS AGAIN; the preference stays as the picker's default.
 		ClearRunJobs(P);
@@ -529,6 +534,7 @@ namespace Pc
 		P.TierKillCount = 0;
 		P.TierKillsByBiome.clear();
 		P.BaitSpentByBiome.clear();
+		P.BaitKillsByBiome.clear();
 		P.BossesClearedThisCycle.clear();
 		P.CurrentBiomeId.clear();
 		P.DeepestBiomeIndex = 0;

@@ -315,7 +315,9 @@ bool FPawHudPressTest::RunTest(const FString& Parameters)
 	P.Catnip = 1e9;
 	W.Hud->PressRow(W.RowOf("kitten_count"));
 	TestEqual(TEXT("Kitten Count bought"), Pc::UpgradeLevel(P, "kitten_count"), int64_t(1));
-	TestEqual(TEXT("a kitten woke in the realm"), W.Realm->GetSim().Field.AwakeKittens(), Before + 1);
+	// Two a buy since D17 E4 (the line's step, from the data).
+	TestEqual(TEXT("its kittens woke in the realm"), W.Realm->GetSim().Field.AwakeKittens(),
+		Before + static_cast<int64_t>(W.D().FindUpgrade("kitten_count")->EffectPerLevel));
 	W.Close();
 	return true;
 }
@@ -499,7 +501,7 @@ bool FPawHudBossTest::RunTest(const FString& Parameters)
 	}
 	Pc::CheatUnlockAllTiers(D, P);
 	TestTrue(TEXT("travel to the boss biome"), W.Realm->Travel(BossIndex));
-	P.TierKillCount += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
+	P.BaitKillsByBiome[P.CurrentBiomeId] += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait; // the Bait bank (D17 E2)
 	P.Catnip = 1e15;
 	TestTrue(TEXT("summoned"), W.Realm->SummonBoss());
 	W.Realm->AdvanceFrame(FPawRealmSim::Step);
@@ -653,6 +655,9 @@ bool FPawHudReawakenTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("the total after it"), S(W.Hud->GetTotalText()), FString::Printf(TEXT("Total: %s"), *S(PawText::Amount(2.0 * Pending))));
 	TestNotEqual(TEXT("which differs from the payout"), S(W.Hud->GetTotalText()), FString::Printf(TEXT("Total: %s"), *S(PawText::Amount(Pending))));
 	TestTrue(TEXT("the multiplier now and after"), S(W.Hud->GetMultiplierText()).StartsWith(TEXT("Damage multiplier 1.00x  →  ")));
+	// D17 E3: the Catnip line under it, the same curve's square root (x1.00 before any Reawaken, more after this one).
+	TestTrue(TEXT("the Catnip multiplier now and after"), S(W.Hud->GetCatnipMultiplierText()).StartsWith(TEXT("Catnip multiplier x1.00  →  x")));
+	TestFalse(TEXT("the Catnip multiplier rises with this Reawaken"), S(W.Hud->GetCatnipMultiplierText()).EndsWith(TEXT("x1.00")));
 	TestEqual(TEXT("the button"), S(W.Hud->GetReawakenButton()->GetLabel()), FString(TEXT("Reawaken (Reawaken 0)")));
 	TestFalse(TEXT("unlocked"), W.Hud->GetReawakenButton()->IsLocked());
 

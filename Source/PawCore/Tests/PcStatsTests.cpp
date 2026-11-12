@@ -227,4 +227,79 @@ TEST_CASE("Stats rules from the Godot comments")
 	CHECK(Pc::EffectiveCap(*Paw, Deep) == -1.0);
 }
 
+TEST_CASE("F3: Patience reads the job's slowness only; Attack Speed never lowers the Sphinx's damage")
+{
+	// D16, designer 2026-11-12. Godot paid Patience for the cat's FINAL attack speed, so every Attack Speed level shrank it:
+	// with the aura, from Patience 5 every level LOWERED damage (doc 01 §5 F3). The port reads the job's speed only.
+	const Pc::PcGameData& D = Game();
+	const Pc::PcSkillBranch* Patience = D.FindBranch("patience");
+	const Pc::PcJob* Sphinx = D.FindJob("sphinx");
+	REQUIRE(Patience);
+	REQUIRE(Sphinx);
+	REQUIRE(Patience->LevelEffects.size() == 10);
+	CHECK(Patience->LevelEffects.back() == doctest::Approx(0.6)); // +6% a level (the designer's numbers, Data/ via godot_fixes.py)
+	REQUIRE(Sphinx->AttackSpeedMultiplier < 1.0);
+
+	Pc::PcProgress P;
+	P.RunJob = "sphinx";
+	P.BranchLevels["patience"] = 10;
+	P.BranchLevels["unlock_aura"] = 1;
+	P.DeepestBiomeIndex = 11;
+	P.ReawakenCount = 9;
+	const double Want = D.Combat.CritMultiplier * Sphinx->CritDamageMultiplier
+		* (1.0 + Patience->LevelEffects.back() * (1.0 / Sphinx->AttackSpeedMultiplier - 1.0));
+	double LastDps = 0.0;
+	for (int64_t Level = 0; Level <= 6; ++Level)
+	{
+		P.UpgradeLevels["attack_speed"] = Level;
+		const Pc::PcCombatStats S = Pc::RebuildStats(D, P);
+		INFO("Attack Speed level " << Level << ", attack speed x" << S.AttackSpeedMultiplier);
+		CHECK(S.CritMultiplier == doctest::Approx(Want).epsilon(1e-12)); // the shop's levels never move it
+		const double Dps = Pc::PlayerDps(D.Combat, S);
+		CHECK(Dps >= LastDps); // and so a level never lowers paw + aura damage
+		LastDps = Dps;
+	}
+	// A job at full speed gets nothing from it, nor does a run with no job.
+	P.UpgradeLevels.clear();
+	P.RunJob = "blacksmith";
+	CHECK(Pc::RebuildStats(D, P).CritMultiplier == doctest::Approx(D.Combat.CritMultiplier * Pc::JobTerm(D, P, &Pc::PcJob::CritDamageMultiplier)));
+	P.RunJob.clear();
+	CHECK(Pc::RebuildStats(D, P).CritMultiplier == doctest::Approx(D.Combat.CritMultiplier));
+}
+
+TEST_CASE("D17 EU: owning the Unicorn multiplies paw and aura damage by x1.5, never the kittens; E4 and E5's numbers")
+{
+	// Designer, 2026-11-12: "Unicorn should be a damage step" (x1.5). It cost 2,500 Stardust and a ceremony and gave +13 %
+	// with Rainbow Poop. The multiplicative bracket, shared by the paw and the aura.
+	const Pc::PcGameData& D = Game();
+	const Pc::PcSkillBranch* Unicorn = D.FindBranch("unlock_unicorn");
+	REQUIRE(Unicorn);
+	REQUIRE(Unicorn->LevelEffects.size() == 1);
+	CHECK(Unicorn->LevelEffects[0] == doctest::Approx(1.5));
+	CHECK(Unicorn->EffectType == Pc::BranchEffectType::DAMAGE_MULTIPLICATIVE); // the tooltip reads "x1.5 damage"
+	Pc::PcProgress P;
+	P.BranchLevels["unlock_aura"] = 1;
+	P.BranchLevels["claws"] = 3;
+	P.UpgradeLevels["kitten_count"] = 2;
+	const Pc::PcCombatStats Without = Pc::RebuildStats(D, P);
+	P.BranchLevels["unlock_unicorn"] = 1;
+	const Pc::PcCombatStats With = Pc::RebuildStats(D, P);
+	CHECK(With.MultiplicativeDamageProduct == doctest::Approx(Without.MultiplicativeDamageProduct * 1.5));
+	CHECK(Pc::PawDps(D.Combat, With) == doctest::Approx(Pc::PawDps(D.Combat, Without) * 1.5));
+	CHECK(Pc::AuraDps(D.Combat, With) == doctest::Approx(Pc::AuraDps(D.Combat, Without) * 1.5));
+	CHECK(Pc::KittenDps(D.Combat, With) == doctest::Approx(Pc::KittenDps(D.Combat, Without)));
+	// E4: bigger kitten buys (the alternative measured 2026-10-01); E5: the Overkill unlock splashes 10 %.
+	const Pc::PcUpgrade* Power = D.FindUpgrade("kitten_power");
+	const Pc::PcUpgrade* Count = D.FindUpgrade("kitten_count");
+	REQUIRE(Power);
+	REQUIRE(Count);
+	CHECK(Power->EffectPerLevel == doctest::Approx(1.6));
+	CHECK(Power->CostGrowth == doctest::Approx(3.6372));
+	CHECK(Count->EffectPerLevel == doctest::Approx(2.0));
+	CHECK(Count->CostGrowth == doctest::Approx(1.35));
+	const Pc::PcSkillBranch* Overkill = D.FindBranch("unlock_overkill");
+	REQUIRE(Overkill);
+	CHECK(Overkill->LevelEffects.at(0) == doctest::Approx(0.1));
+}
+
 #endif

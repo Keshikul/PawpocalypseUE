@@ -282,7 +282,8 @@ TEST_CASE("Pounce: Kitten Mimic Pounce hits each kitten's own target for a share
 	const Pc::PcGameData& D = Game();
 	Pouncer A(D);
 	A.P.CardLevels["peer_pressure"] = 1;
-	A.P.UpgradeLevels["kitten_count"] = 2;
+	// Two kittens, whatever Kitten Count's step (two a level since D17 E4).
+	A.P.UpgradeLevels["kitten_count"] = static_cast<int64_t>(std::ceil(2.0 / D.FindUpgrade("kitten_count")->EffectPerLevel));
 	A.Refresh();
 	A.F.CatX = 100.0; // the kittens wake far from their prey (no contact this step)
 	A.F.CatY = 100.0;

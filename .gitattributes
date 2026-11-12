@@ -20,3 +20,5 @@
 *.svg text
 # CSVs stay LF on every checkout: a string table with CRLF doubles its line breaks, and Data/ is compared byte for byte
 *.csv text eol=lf
+# Godot fixtures (Source/PawCore/Tests/Data/*.tsv): the L1 readers split on LF; a checkout under core.autocrlf wrote CRLF
+*.tsv text eol=lf

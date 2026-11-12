@@ -124,7 +124,7 @@ namespace
 			{
 				return false;
 			}
-			P().TierKillCount += Pc::BaitShortfall(Data, P(), *Boss) * Boss->KillsPerBait;
+			P().BaitKillsByBiome[P().CurrentBiomeId] += Pc::BaitShortfall(Data, P(), *Boss) * Boss->KillsPerBait; // the Bait bank (D17 E2)
 			P().Catnip = 1e300;
 			if (!T.TestTrue(TEXT("summoned"), Realm->SummonBoss()))
 			{

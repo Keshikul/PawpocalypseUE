@@ -63,6 +63,7 @@ void UPawSpriteAtlas::PostEditChangeProperty(FPropertyChangedEvent& Event)
 
 int32 UPawSpriteAtlas::Find(const FString& Id) const
 {
+	++Finds;
 	Index();
 	const FString Key = Id.Contains(TEXT("/")) || Id.Contains(TEXT(".")) ? StemOf(Id) : Id;
 	const int32* Found = ById.Find(Key);

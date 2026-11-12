@@ -685,6 +685,14 @@ namespace Pc
 			{
 				C.Fail("upgrade.exponent_budget", "the uncapped multiplicative lines sum to a return exponent of " + Num(Total) + " against 0.80");
 			}
+
+			// D17 E3: Catnip x the Reawaken multiplier ^ reawaken_catnip_exponent. At 1 or more, Catnip feeds the Stardust
+			// grant, which feeds the multiplier: runs collapsed to 1-9 minutes (measured, docs/ECONOMY-REVIEW-2026-11-12.md).
+			const double CatnipExponent = D.Reawaken.ReawakenCatnipExponent;
+			if (!(CatnipExponent >= 0.0 && CatnipExponent < 1.0))
+			{
+				C.Fail("reawaken.catnip_exponent", "reawaken_catnip_exponent " + Num(CatnipExponent) + " is not in [0, 1)");
+			}
 		}
 	}
 
@@ -753,7 +761,7 @@ namespace Pc
 			"achievement.threshold", "achievement.target", "achievement.stardust",
 			"branch.levels", "ref.branch_parent", "branch.parent_required", "ref.branch_exclusive", "ref.branch_job", "ref.branch_boss", "branch.cycle",
 			"card.levels", "card.description", "card.cost", "card.weight", "card.monotone", "card.deck_shape",
-			"upgrade.damage_lines", "tier.wave_ramp", "tier.spawn_ladder", "upgrade.exponent_budget",
+			"upgrade.damage_lines", "tier.wave_ramp", "tier.spawn_ladder", "upgrade.exponent_budget", "reawaken.catnip_exponent",
 			"code.stage_ladder", "code.range",
 		};
 		return Rules;

@@ -150,7 +150,8 @@ int main(int Argc, char** Argv)
 
 	std::ostringstream Out;
 	Out << "name\tevolution_stage\tpaw_dps\taura_dps\tplayer_dps\tkitten_dps_each\tkitten_count\tcurrency_find\treawaken_multiplier\tpoop_dps"
-		<< "\tpending_stardust\treawaken_requirement\tcatnip_carryover\tstarting_level\tstarting_biome\tfortune_yield\tgolden\n";
+		<< "\tpending_stardust\treawaken_requirement\tcatnip_carryover\tstarting_level\tstarting_biome\tfortune_yield\tgolden"
+		<< "\treawaken_catnip_multiplier\n";
 	std::istringstream In(Text);
 	std::string Line;
 	int Rows = 0;
@@ -252,7 +253,7 @@ int main(int Argc, char** Argv)
 		{
 			Out << (T ? ";" : "") << Hex(Pc::GoldenChanceFor(D, P, D.Tiers[T]));
 		}
-		Out << '\n';
+		Out << '\t' << Hex(Pc::ReawakenCatnipMultiplier(D, P)) << '\n'; // D17 E3
 		++Rows;
 	}
 	if (Rows == 0)

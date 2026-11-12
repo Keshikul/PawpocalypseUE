@@ -21,8 +21,9 @@ namespace Pc
 			return std::max<int64_t>(P.DeepestBiomeIndex, 0);
 		}
 
-		// Patience pays the Sphinx (who swings at half speed) more the slower it swings; a pure function of another stat,
-		// so the resolver sees it for free.
+		// Patience pays a slow job (the Sphinx swings at half speed): per x (1 / the job's speed - 1). Godot read the cat's
+		// FINAL attack speed, so every Attack Speed level bought shrank it, and with the aura it lowered DPS (F3, a trap the
+		// shop sold). D16, designer 2026-11-12: the job's slowness only, +6% a level (Data/, through tools/godot_fixes.py).
 		double PatienceCritBonus(const PcGameData& D, const PcProgress& P, double AttackSpeed)
 		{
 			const double Per = BranchEffect(D, P, "patience");
@@ -267,8 +268,8 @@ namespace Pc
 		S.OverkillFraction = std::min(EffectTotal(Overkill, UpgradeLevel(P, "overkill")), EffectiveCap(Overkill, P));
 
 		S.CritMultiplier = D.Combat.CritMultiplier * JobTerm(D, P, &PcJob::CritDamageMultiplier);
-		// AFTER attack speed is final: Patience is a function of it.
-		S.CritMultiplier *= 1.0 + PatienceCritBonus(D, P, S.AttackSpeedMultiplier);
+		// Patience reads the job's speed, never the shop's levels (F3, D16): Attack Speed never lowers the cat's damage.
+		S.CritMultiplier *= 1.0 + PatienceCritBonus(D, P, JobTerm(D, P, &PcJob::AttackSpeedMultiplier));
 		// Evolution damage is a pure function of stage; the base is data (5.04 ^ 3 = x128 after the ladder was re-spread).
 		const int64_t Stage = EvolutionStage(D, P);
 		S.EvolutionDamageMultiplier = std::pow(D.Combat.EvolutionDamagePerStage, static_cast<double>(Stage - 1));
@@ -316,6 +317,11 @@ namespace Pc
 		if (BranchLevel(P, "claws") > 0)
 		{
 			S.MultiplicativeDamageProduct *= BranchEffect(D, P, "claws", "mult");
+		}
+		// D17 EU (designer, 2026-11-12): the Unicorn is a damage step (x1.5), in the same multiplicative bracket.
+		if (BranchLevel(P, "unlock_unicorn") > 0) // is_unicorn_owned()
+		{
+			S.MultiplicativeDamageProduct *= BranchEffect(D, P, "unlock_unicorn");
 		}
 		S.KittenAdditiveDamageSum += BranchEffect(D, P, "instinct");
 		if (BranchLevel(P, "unicorn") > 0)

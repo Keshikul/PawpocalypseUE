@@ -83,12 +83,14 @@ int32 FPawRealmSim::Advance(const Pc::PcGameData& D, Pc::PcProgress& P, double R
 		++StepsLastFrame;
 
 		int32 Travel = -1;
-		for (const Pc::PcFieldEvent& E : Pc::DrainFieldEvents(Field))
+		// Onto the frame's list, which keeps its storage across frames, as the field's queue does (review CR17).
+		const size_t First = FrameEvents.size();
+		Pc::DrainFieldEvents(Field, FrameEvents);
+		for (size_t I = First; I < FrameEvents.size(); ++I)
 		{
-			FrameEvents.push_back(E);
-			if (E.Kind == Pc::PcFieldEventKind::TravelRequested)
+			if (FrameEvents[I].Kind == Pc::PcFieldEventKind::TravelRequested)
 			{
-				Travel = E.Slot;
+				Travel = FrameEvents[I].Slot;
 			}
 		}
 		if (Travel >= 0)

@@ -7,7 +7,7 @@ ST_UI,BOSS_out_of_time,{boss} — OUT OF TIME. It left and your Bait is spent.,"
 ST_UI,BOSS_defeated_first,{boss} DEFEATED\nEvolution Stage {n}: new biomes unlocked.,"{boss} DEFEATED
 Evolution Stage {n} — new realms are open.",
 ST_UI,REALMS_hint,"5 biomes have a boss. Buy its Bait to summon it. If the timer runs out, it leaves and the Bait is spent.","Five biomes hold a boss. Buy its Bait and it comes to you — if the timer runs out it leaves, and the Bait is spent.",
-ST_UI,REAWAKEN_blurb,Resets Catnip and upgrades. Stardust increases damage permanently. Spend it in the skill tree after you Reawaken.,Reawakening ends this life. Catnip and every base upgrade reset. Stardust raises your permanent damage multiplier and buys skill branches — and the tree can only be bought from in the screen that follows a Reawaken.,
+ST_UI,REAWAKEN_blurb,Resets Catnip and upgrades. Bosses stay beaten and Bait is kept. Stardust increases damage and Catnip permanently. Spend it in the skill tree after you Reawaken.,Reawakening ends this life. Catnip and every base upgrade reset. Stardust raises your permanent damage multiplier and buys skill branches — and the tree can only be bought from in the screen that follows a Reawaken.,
 ST_UI,REAWAKEN_progress_first,{earned} / {required} to your first Reawaken,{earned} / {required} earned toward your first Reawaken,
 ST_UI,REAWAKEN_progress_later,{earned} / {required} suggested. You can Reawaken now.,{earned} / {required} — suggested point to Reawaken (you may go now),
 ST_UI,REAWAKEN_multiplier,Damage multiplier x{now}  →  x{after},Damage multiplier {now}x  →  {after}x,
@@ -160,7 +160,7 @@ ST_Tree,TREE_aura_reach_blurb,Increases aura radius permanently. x1.08 to x2 ove
 ST_Tree,TREE_unlock_pounce_blurb,Unlocks Pounce ({pounce}): 2s of your damage at once. x5 on an enemy whose shield is down.,"Teaches you to POUNCE — a burst on {pounce}, worth more if you time it into a vulnerable window. Its two shop lines appear once you own it.","x5 = pounce_vulnerable_multiplier, on enemies with a shield cycle whose shield is down."
 ST_Tree,TREE_pounce_blurb,Increases Pounce damage. x1.18 to x2.9 over 10 levels.,Makes each Pounce hit harder. Needs Pounce.,
 ST_Tree,TREE_unlock_reflex_blurb,"Pounce fires automatically when ready, at x1.1 damage. It gets no x5 shield bonus.","Pounce fires itself the moment it is ready, and you earn more while the game is shut. The auto-fired burst is worth less than one you timed yourself — that is the trade.",Godot's text promises more earnings while the game is shut: offline earnings were removed 2026-09-10. Finding F44.
-ST_Tree,TREE_unlock_overkill_blurb,Unlocks overkill: damage past a kill. 2% of it hits the nearest enemy.,Damage past a mouse's last hit point splashes onto the nearest survivor instead of evaporating.,
+ST_Tree,TREE_unlock_overkill_blurb,Unlocks overkill: damage past a kill. 10% of it hits the nearest enemy.,Damage past a mouse's last hit point splashes onto the nearest survivor instead of evaporating.,
 ST_Tree,TREE_overkill_blurb,Increases the overkill that hits the nearest enemy. +4.5% to +28% over 10 levels.,Raises the share that splashes. Needs Overkill.,
 ST_Tree,TREE_unlock_unicorn_blurb,The cat rides the Unicorn. Unlocks the Unicorn skills.,"The cat rides a unicorn now, as is its right. Opens everything the Unicorn can be made to do.",
 ST_Tree,TREE_unlock_poop_blurb,"Unlocks Rainbow Poop: every 8s, a puddle that damages enemies for 3s.",Unlocks Rainbow Poop. It is exactly as unpleasant as it sounds and it kills things.,
@@ -185,7 +185,7 @@ ST_Tree,TREE_momentum_blurb,Each kill shortens the Pounce lock. -0.05s to -0.5s 
 ST_Tree,TREE_carry_blurb,"Standing still increases aura radius, in full after 3s. +5% to +50% over 10 levels.","Hold still and the sound carries. Your reach grows the longer you stay put, and resets the moment you move.",
 ST_Tree,TREE_misdirection_blurb,Ground enemies drift toward you. 10% to 100% strength over 10 levels.,Look over there. Ground mice wander toward you instead of away - the crowd the Magician gave up its kittens to gather.,
 ST_Tree,TREE_fence_blurb,"Each kill this wave increases Catnip per kill, up to 100 kills. +0.2% to +2% per kill.",Every job needs a buyer. Catnip climbs with each kill this wave and starts over when the wave turns.,
-ST_Tree,TREE_patience_blurb,Increases crit damage for each halving of attack speed. +20% to +200% over 10 levels.,"The slower the swing, the worse it lands. Crit damage rises with everything that has made you slow.",
+ST_Tree,TREE_patience_blurb,Increases crit damage with a job that lowers attack speed. +6% to +60% over 10 levels.,"The slower the swing, the worse it lands. Crit damage rises with everything that has made you slow.",F3 (D16 2026-11-12): Patience reads the job's slowness only; +6% a level
 ST_Tree,TREE_pickpocket_blurb,Escaped enemies still give Catnip. 5% to 50% of it over 10 levels.,Nothing leaves with its pockets full. Mice that wander off still pay you a share on the way out.,
 ST_Tree,TREE_long_lunch_blurb,"Standing still banks Catnip, in full after 10s. Your next kill adds 0.5 to 5 kills' worth.",Stand around long enough and it adds up. The bank empties into your next kill.,
 ST_Tree,TREE_levy_blurb,Every 100th kill gives x20 to x200 Catnip over 10 levels.,Everyone pays eventually. Every hundredth kill settles up in a lump.,
@@ -228,8 +228,8 @@ ST_Tree,TREE_curiosity_blurb,+1 card in every hand.,"One more card in every hand
 ST_Tree,TREE_second_helping_blurb,Reawaken gives half its Stardust now. The other half comes when you reach City Rooftops.,"Reawakening pays out twice. Once when you do it, and once more the next time you reach the Park - so the second half is a reason to go back out.","Godot's text says 'the Park' (biome 3); the code pays on reaching biome 4, City Rooftops (game_state.gd begin_biome, arrived >= 3, 0-based). Finding F44."
 ST_Tree,TREE_cartography_blurb,The Realms tab shows each biome's Catnip reward.,You have been reading ahead. The realm list says what a biome pays before you go there.,
 ST_Tree,TREE_deep_pockets_blurb,Bait earned in one biome counts in every biome.,Bait stops being stranded. What you earned anywhere counts everywhere.,
-ST_Tree,FX_POOP_DAMAGE_MULTIPLICATIVE__unlock_unicorn,unlocks the Unicorn,rides a unicorn,
 ST_Tree,FX_AUTO_POUNCE,auto-Pounce at x{v} damage,"Pounce fires itself, x{v}",
+ST_Tree,FX_CRIT_DAMAGE_FROM_SLOWNESS,+{v}% crit damage with a slow job,+{v}% crit damage for each halving of your attack speed,F3 (D16 2026-11-12): Patience reads the job's slowness only
 ST_Tree,FX_AURA_RADIUS_MULTIPLICATIVE,x{v} aura radius,x{v} aura size,
 ST_Tree,FX_AMBUSH_FUNNEL,an enemy turns back {v} times before it escapes,{v} bounces before a mouse may leave,
 ST_Tree,FX_AMBUSH_PLAY_WITH_FOOD,x{v} Catnip from enemies killed below 20% health,x{v} Catnip from a nearly-dead mouse,

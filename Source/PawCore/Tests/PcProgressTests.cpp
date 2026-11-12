@@ -550,7 +550,7 @@ TEST_CASE("Progress rules from the Godot comments")
 		CAPTURE(T.Id);
 		Pc::PcProgress P;
 		P.CurrentBiomeId = T.Id;
-		P.TierKillCount = Boss->BaitRequired * Boss->KillsPerBait;
+		P.BaitKillsByBiome[P.CurrentBiomeId] = Boss->BaitRequired * Boss->KillsPerBait;
 		P.Catnip = Boss->BaitCostCatnip - 1.0;
 		REQUIRE(Pc::IsBaitUnlocked(D, P, *Boss));
 		CHECK_FALSE(Pc::BuyBait(D, P, *Boss));
@@ -626,7 +626,7 @@ TEST_CASE("Progress rules from the Godot comments")
 		CHECK(P.Catnip == 0.0); // no Legacy
 		CHECK(P.BranchLevels.at("vitality") == 1);
 		CHECK(P.BossesDefeated.size() == 1);
-		CHECK(P.BossesClearedThisCycle.empty());
+		CHECK(P.BossesClearedThisCycle.size() == 1); // D17 E1: a beaten boss stays beaten
 		CHECK(P.JobsHeld.count("blacksmith") == 1);
 		CHECK(P.CurrentJob == "blacksmith");
 		CHECK(P.RunJob.empty());
@@ -697,6 +697,69 @@ TEST_CASE("Progress rules from the Godot comments")
 		CHECK(Pc::TickRealtimeInterest(D, P, 1.0) == 0.0);
 		CHECK(P.RealtimeInterestElapsed == 0.0);
 	}
+}
+
+TEST_CASE("D17 E1/E2: a Reawaken keeps a beaten boss beaten and the Bait earned toward the next; the waves restart")
+{
+	// Designer, 2026-11-12 (docs/ECONOMY-REVIEW-2026-11-12.md): Godot re-locked passage on every Reawaken and cleared the
+	// Bait with the waves, so every run re-farmed 40 Bait for every boss already beaten: 52 % of the game.
+	const Pc::PcGameData& D = Game();
+	const std::string First = D.Code.BossRealms[0];
+	const std::string Second = D.Code.BossRealms[1];
+	const Pc::PcTier* SecondTier = nullptr;
+	for (const Pc::PcTier& T : D.Tiers)
+	{
+		SecondTier = T.Id == Second ? &T : SecondTier;
+	}
+	REQUIRE(SecondTier);
+	const Pc::PcBoss* SecondBoss = D.FindBoss(SecondTier->BossData);
+	REQUIRE(SecondBoss);
+
+	Pc::PcProgress P;
+	P.LifetimeCatnipEver = 1e12;
+	Pc::MarkBossDefeated(D, P, First);
+	REQUIRE(Pc::EvolutionStage(D, P) == 2);
+	// Three Bait's worth of kills in the second boss's biome, one Bait spent on a summon that ran out of time.
+	Pc::BeginBiome(D, P, Second);
+	for (int64_t K = 0; K < 3 * SecondBoss->KillsPerBait; ++K)
+	{
+		Pc::IncrementKillCount(D, P);
+	}
+	P.BaitSpentByBiome[Second] = 1;
+	REQUIRE(Pc::BaitEarned(D, P, Second) == 3);
+	REQUIRE(Pc::CurrentWave(D, *SecondTier, P.TierKillCount) > 0);
+
+	REQUIRE(Pc::Reawaken(D, P, true).bDone);
+
+	// E1: the first boss stays beaten: its passage is open in the new run, and a biome behind it opens on Catnip alone.
+	CHECK(Pc::IsBossClearedThisCycle(P, First));
+	CHECK(Pc::BossesClearedForStage(D, P, 2));
+	const Pc::PcTier* Behind = nullptr;
+	for (const Pc::PcTier& T : D.Tiers)
+	{
+		Behind = (!Behind && T.RequiredEvolutionStage == 2) ? &T : Behind;
+	}
+	REQUIRE(Behind);
+	P.LifetimeCatnipThisCycle = Behind->CatnipToUnlock;
+	CHECK(Pc::IsBiomeUnlocked(D, P, *Behind));
+	// E2: the Bait earned and spent toward the unbeaten boss is kept...
+	CHECK(Pc::BaitEarned(D, P, Second) == 3);
+	CHECK(P.BaitSpentByBiome.at(Second) == 1);
+	// ...and the waves are not: back in the biome, the run starts at wave 0.
+	CHECK(P.TierKillsByBiome.empty());
+	Pc::BeginBiome(D, P, Second);
+	CHECK(P.TierKillCount == 0);
+	CHECK(Pc::CurrentWave(D, *SecondTier, P.TierKillCount) == 0);
+	// Kills keep paying into the same bank.
+	for (int64_t K = 0; K < SecondBoss->KillsPerBait; ++K)
+	{
+		Pc::IncrementKillCount(D, P);
+	}
+	CHECK(Pc::BaitEarned(D, P, Second) == 4);
+	// A new game forgets the bank.
+	Pc::NewGame(D, P);
+	CHECK(P.BaitKillsByBiome.empty());
+	CHECK(Pc::BaitEarned(D, P, Second) == 0);
 }
 
 #endif

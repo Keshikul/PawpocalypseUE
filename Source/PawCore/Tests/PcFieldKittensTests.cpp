@@ -31,6 +31,16 @@ namespace
 			const char* Env = std::getenv("PAWCORE_DATA_DIR");
 			std::vector<std::string> Errors;
 			REQUIRE(Pc::LoadGameData(Env ? Env : "Data", Data, Errors));
+			// These tests are the field's kitten pool (waking, slots, spread), counted one kitten per Kitten Count level.
+			// The shop sells two a buy since D17 E4 (asserted in PcStatsTests' D17 test); one a level keeps the counts here
+			// readable and independent of the shop's step.
+			for (Pc::PcUpgrade& U : Data.Upgrades)
+			{
+				if (U.Id == "kitten_count")
+				{
+					U.EffectPerLevel = 1.0;
+				}
+			}
 			bLoaded = true;
 		}
 		return Data;

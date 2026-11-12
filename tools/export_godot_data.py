@@ -10,6 +10,8 @@ by a headless editor script, read directly by pawsim and the C++ sim library).
 
 It also writes Data/InputMap.csv (tools/export_input_map.py: Godot's input map, one row per event) and Data/CodeConstants.csv (tools/export_code_constants.py: the gameplay constants living in Godot CODE, chosen
 by the reviewed Data/CodeConstantsMap.csv, which is source and never exported).
+Every .tres is read as the port fixes it (tools/godot_fixes.py, D16: since F3, 2026-11-12, a fix may change Godot's DATA):
+Godot's repo is never written, and a fresh export still equals Data/ (L0's data-export gate).
 
 Standard library only. Conventions (docs/07-data-pipeline.md):
   - one row per resource, first column `id` (lower-case string id, never an FName)
@@ -33,6 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from export_code_constants import export as export_code_constants  # noqa: E402
 from export_input_map import export as export_input_map  # noqa: E402
 from export_audio import export_tables as export_audio_tables  # noqa: E402
+from godot_fixes import fixed_read  # noqa: E402  (D16: the port's fixes to Godot's data, F3 the first)
 
 RE_EXT = re.compile(r'\[ext_resource type="(\w+)"[^\]]*path="([^"]+)"[^\]]*id="([^"]+)"\]')
 RE_HEADER = re.compile(r'\[gd_resource type="Resource" script_class="(\w+)"')
@@ -119,8 +122,8 @@ class Exporter:
 
     def script_info(self, res_path: str):
         if res_path not in self.script_cache:
-            with open(res_path_to_fs(self.root, res_path), encoding="utf-8") as f:
-                text = f.read()
+            # Through the port's fixes like every .tres (D17 E3 adds an @export the .tres sets: its type is here).
+            text = fixed_read(self.root, res_path_to_fs(self.root, res_path)).replace("\r\n", "\n").replace("\r", "\n")
             self.script_cache[res_path] = (parse_enums(text), parse_export_types(text))
         return self.script_cache[res_path]
 
@@ -129,12 +132,11 @@ class Exporter:
             rid = os.path.splitext(os.path.basename(res_path))[0]
             fs = res_path_to_fs(self.root, res_path)
             if fs.endswith(".tres") and os.path.exists(fs):
-                with open(fs, encoding="utf-8") as f:
-                    for line in f:
-                        m = re.match(r'^id = "(.*)"', line)
-                        if m:
-                            rid = m.group(1)
-                            break
+                for line in fixed_read(self.root, fs).splitlines():
+                    m = re.match(r'^id = "(.*)"', line)
+                    if m:
+                        rid = m.group(1)
+                        break
             self.id_cache[res_path] = rid
         return self.id_cache[res_path]
 
@@ -168,8 +170,8 @@ class Exporter:
         return raw
 
     def parse_tres(self, fs_path: str):
-        with open(fs_path, encoding="utf-8") as f:
-            text = f.read()
+        # As the port fixes it (tools/godot_fixes.py, D16): Data/*.csv carries the port's numbers, never Godot's faults.
+        text = fixed_read(self.root, fs_path).replace("\r\n", "\n").replace("\r", "\n")  # as open() in text mode read it
         hm = RE_HEADER.search(text)
         if not hm:
             return None

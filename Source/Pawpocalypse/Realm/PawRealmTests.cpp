@@ -375,7 +375,7 @@ bool FPawRealmReawakenTest::RunTest(const FString& Parameters)
 		FPawRealmSim Sim;
 		Sim.Start(*D, P);
 		Sim.Travel(*D, P, BossIndex);
-		P.TierKillCount += Pc::BaitShortfall(*D, P, *Boss) * Boss->KillsPerBait;
+		P.BaitKillsByBiome[P.CurrentBiomeId] += Pc::BaitShortfall(*D, P, *Boss) * Boss->KillsPerBait; // the Bait bank (D17 E2)
 		P.Catnip = 1e15;
 		TestTrue(TEXT("the boss is summoned"), Pc::SummonFieldBoss(Sim.Field, *D, P));
 		Sim.Advance(*D, P, 10.0 * FPawRealmSim::Step);
@@ -613,6 +613,34 @@ bool FPawRealmViewTest::RunTest(const FString& Parameters)
 			R->SetFx(EPawFxBand::Ground, Empty, FillMaterial);
 			TestEqual(TEXT("the band empties: one clear"), R->FxSectionRebuilds() - Before, 2);
 			TestEqual(TEXT("and draws nothing"), R->FxTriangles(EPawFxBand::Ground), 0);
+		}
+
+		// Review CR17: a steady frame looks no drawing up by name (the cells are kept while what they name stays), and a change
+		// of what they name (here the job, so the hat) shows at once.
+		if (const UPawSpriteAtlas* LookupAtlas = R->GetAtlas())
+		{
+			const std::string WasJob = P.RunJob;
+			const int32 SmithHat = LookupAtlas->Find(TEXT("hat_blacksmith"));
+			const int32 BurglarHat = LookupAtlas->Find(TEXT("hat_cat_burglar"));
+			auto HatDrawn = [R](int32 Cell)
+			{
+				return Cell != INDEX_NONE && R->LastSprites(EPawLayer::Overlays).ContainsByPredicate([Cell](const FPawSprite& S) { return S.Cell == Cell; });
+			};
+			P.RunJob = "blacksmith";
+			View->Draw(); // whatever changed since the last frame is looked up here, once
+			const int32 Finds = LookupAtlas->FindCount();
+			for (int32 Frame = 0; Frame < 30; ++Frame)
+			{
+				View->Draw();
+			}
+			TestEqual(TEXT("30 steady frames look up no drawing by name"), LookupAtlas->FindCount() - Finds, 0);
+			TestTrue(TEXT("and still draw the cat"), R->DrawnCount(EPawLayer::Bodies) > 0);
+			TestTrue(TEXT("and its job's hat"), HatDrawn(SmithHat));
+			P.RunJob = "cat_burglar";
+			View->Draw();
+			TestTrue(TEXT("another job: its hat at once"), HatDrawn(BurglarHat) && !HatDrawn(SmithHat));
+			P.RunJob = WasJob;
+			View->Draw();
 		}
 
 		// Settings > Video > Visual effects off: the same hunt spawns none (vfx_burst.gd honours the effect budget).

@@ -133,6 +133,7 @@ namespace
 					U.CapPerReawaken = 0.0;
 					U.EffectPerLevel = std::pow(U.CostGrowth, 0.95);
 				} },
+			{ "reawaken.catnip_exponent", [](PcGameData& D) { D.Reawaken.ReawakenCatnipExponent = 1.0; } },
 		};
 		return S;
 	}

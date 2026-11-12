@@ -92,6 +92,8 @@ public:
 	const TArray<FPawRigLayer>* Rig(int32 DrawingCell) const;
 	// How many times the lookup index was built (the tests).
 	int32 GetIndexBuilds() const { return IndexBuilds; }
+	// How many lookups by name were made (the tests: a steady frame of the realm makes none, review CR17).
+	int32 FindCount() const { return Finds; }
 
 	virtual void PostLoad() override;
 #if WITH_EDITOR
@@ -101,6 +103,7 @@ public:
 private:
 	void Index() const;
 	mutable int32 IndexBuilds = 0;
+	mutable int32 Finds = 0;
 	mutable bool bIndexed = false;
 	mutable int32 IndexedCells = -1;
 	mutable TMap<FString, int32> ById;

@@ -313,6 +313,7 @@ namespace Pc
 	// Kills every live mouse through the normal damage path (the cheat: it still pays and counts).
 	PAWCORE_API void KillAllEnemies(PcField& F, const PcGameData& D, PcProgress& P, const PcFieldInput& In);
 
-	// The events since the last drain, oldest first; the queue is emptied.
-	PAWCORE_API std::vector<PcFieldEvent> DrainFieldEvents(PcField& F);
+	// The events since the last drain, oldest first, appended to Out; the field's queue is emptied and keeps its capacity
+	// (review CR17: handing the vector out left the queue with none, so every step allocated it again).
+	PAWCORE_API void DrainFieldEvents(PcField& F, std::vector<PcFieldEvent>& Out);
 }

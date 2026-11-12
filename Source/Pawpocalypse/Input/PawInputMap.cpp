@@ -120,6 +120,8 @@ namespace PawInput
 			TArray<FEntry> InOrder; // in the context's order, a stand-in after its axis
 			struct FHalf { FString Action; FKey Key; float Sign = 1.0f; float DeadZone = 0.5f; };
 			TArray<FHalf> Halves;   // every axis half: which action, which key, which way, its dead zone
+			bool bSteerBuilt = false;
+			TArray<FKey> Steer;     // SteerKeys(), made on the first ask
 		};
 
 		FBindings& Bindings()
@@ -211,6 +213,26 @@ namespace PawInput
 			}
 		}
 		return Out;
+	}
+
+	const TArray<FKey>& SteerKeys()
+	{
+		FBindings& B = Bindings();
+		if (!B.bSteerBuilt)
+		{
+			B.bSteerBuilt = true;
+			for (const TCHAR* Steer : { TEXT("steer_left"), TEXT("steer_right"), TEXT("steer_up"), TEXT("steer_down") })
+			{
+				for (const FBindings::FEntry& E : B.InOrder)
+				{
+					if (E.Action == Steer && !E.bStandIn)
+					{
+						B.Steer.AddUnique(E.Key);
+					}
+				}
+			}
+		}
+		return B.Steer;
 	}
 
 	bool HasAction(const FString& GodotAction)

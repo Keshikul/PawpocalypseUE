@@ -50,6 +50,7 @@ namespace Pc
 		bool bAutoPickCard = false;                            // auto_pick_card
 		std::map<std::string, int64_t> TierKillCounts;         // tier_kill_counts {biome: kills}
 		std::map<std::string, int64_t> BaitSpent;              // bait_spent {biome: bait}
+		std::map<std::string, int64_t> BaitKills;              // bait_kills {biome: kills} (D17 E2; format 2)
 		std::set<std::string> BossesClearedCycle;              // bosses_cleared_cycle {biome: true}
 		std::set<std::string> JobsHeld;                        // jobs_held {id: true}
 		std::string CurrentJob;                                // current_job
@@ -153,7 +154,10 @@ namespace Pc
 	//   PAWSAVE <format> <crc32 of the body, 8 hex digits> <body length in bytes>\n<body>
 	// The format is the CONTAINER's version (a change to the file layout or a migration bumps it); the body's "version" is
 	// Godot's schema. Unknown keys are ignored and missing keys take their default, as Godot does with an @export.
-	constexpr int64_t PcSaveFormat = 1;
+	// 2 (D17, 2026-11-12): bait_kills, the Bait bank a Reawaken keeps. A format-1 file loads through the migration in
+	// ApplySave (its Bait is its kills this run; its beaten bosses stay beaten); a format-1 build refuses a format-2
+	// file ("newer"), so an older build cannot drop the bank or re-lock the bosses.
+	constexpr int64_t PcSaveFormat = 2;
 
 	PAWCORE_API std::string WriteSaveFile(const PcSaveState& S, const std::string& GameBuild);
 

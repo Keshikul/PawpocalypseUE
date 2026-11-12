@@ -73,7 +73,7 @@ The Godot game keeps its rules in autoloads (`GameState` 2,976 lines, `CombatRes
 | `PcTween`, `PcUnicorn` | phase 6 slice 6a: Godot's Tween sequencing (`PcTween`: steps, parallel tweeners, delays, callbacks, intervals, the leftover running on; easing by `TweenInterpolate`) and unicorn_ceremony.gd (`PcUnicornCeremony`: the timeline, the fiesta's bits, skip and fade, what it draws), exact against the real script within float32 (fixture `unicorn`) |
 
 **Status 2026-10-29**: built and proved against the real Godot code (doc 09 §7): `PcData` (+ generated `PcDataRows.h`,
-`PcEnums.h`, loader `PcCsv`), the validator `PcValidate` (57 rules), `PcFormat`, `PcRng`, `PcCombat`, `PcStats`, `PcEconomy`
+`PcEnums.h`, loader `PcCsv`), the validator `PcValidate` (58 rules), `PcFormat`, `PcRng`, `PcCombat`, `PcStats`, `PcEconomy`
 (prices, rewards, waves, biome gates, Reawaken, Bait, Legacy), `PcCards` + `PcCardDraw`, `PcTree`, `PcJobs`, `PcProgress`,
 `PcAchievements`. The gameplay constants that live in Godot code are `PcGameData::Code` (`PcConstants.h`), loaded from
 `Data/CodeConstants.csv` (doc 06 §5); a function that reads one takes the data. `PcEvents` became the field's own queue

@@ -398,16 +398,16 @@ fx	overtime	4	-	+4 rerolls every run
 fx	overtime	5	-	+5 rerolls every run
 fx	overtime	6	-	
 fx	patience	0	-	
-fx	patience	1	-	+20% crit damage for each halving of your attack speed
-fx	patience	2	-	+40% crit damage for each halving of your attack speed
-fx	patience	3	-	+60% crit damage for each halving of your attack speed
-fx	patience	4	-	+80% crit damage for each halving of your attack speed
-fx	patience	5	-	+100% crit damage for each halving of your attack speed
-fx	patience	6	-	+120% crit damage for each halving of your attack speed
-fx	patience	7	-	+140% crit damage for each halving of your attack speed
-fx	patience	8	-	+160% crit damage for each halving of your attack speed
-fx	patience	9	-	+180% crit damage for each halving of your attack speed
-fx	patience	10	-	+200% crit damage for each halving of your attack speed
+fx	patience	1	-	+6% crit damage for each halving of your attack speed
+fx	patience	2	-	+12% crit damage for each halving of your attack speed
+fx	patience	3	-	+18% crit damage for each halving of your attack speed
+fx	patience	4	-	+24% crit damage for each halving of your attack speed
+fx	patience	5	-	+30% crit damage for each halving of your attack speed
+fx	patience	6	-	+36% crit damage for each halving of your attack speed
+fx	patience	7	-	+42% crit damage for each halving of your attack speed
+fx	patience	8	-	+48% crit damage for each halving of your attack speed
+fx	patience	9	-	+54% crit damage for each halving of your attack speed
+fx	patience	10	-	+60% crit damage for each halving of your attack speed
 fx	patience	11	-	
 fx	pickpocket	0	-	
 fx	pickpocket	1	-	recover 5% from mice that wander off
@@ -597,7 +597,7 @@ fx	unlock_full_spectrum	0	-
 fx	unlock_full_spectrum	1	-	the beam sweeps instead of tracking
 fx	unlock_full_spectrum	2	-	
 fx	unlock_overkill	0	-	
-fx	unlock_overkill	1	-	unlocks Overkill, +2% splash
+fx	unlock_overkill	1	-	unlocks Overkill, +10% splash
 fx	unlock_overkill	2	-	
 fx	unlock_poop	0	-	
 fx	unlock_poop	1	-	unlocks Rainbow Poop
@@ -615,7 +615,7 @@ fx	unlock_snare	0	-
 fx	unlock_snare	1	-	unlocks Snare, ground mice 40% slower
 fx	unlock_snare	2	-	
 fx	unlock_unicorn	0	-	
-fx	unlock_unicorn	1	-	rides a unicorn
+fx	unlock_unicorn	1	-	x1.50 damage
 fx	unlock_unicorn	2	-	
 fx	vitality	0	-	
 fx	vitality	1	-	+1 kitten

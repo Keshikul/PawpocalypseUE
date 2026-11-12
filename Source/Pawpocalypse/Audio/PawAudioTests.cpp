@@ -329,6 +329,8 @@ bool FPawAudioWhenTest::RunTest(const FString& Parameters)
 	P.Hand = { "d", "e", "f" };
 	Step();
 	TestEqual(TEXT("a reroll: once more"), W.Count(TEXT("card_offered")), 2);
+	Step();
+	TestEqual(TEXT("the same hand a frame later: nothing more (the hand seen is kept, review CR17)"), W.Count(TEXT("card_offered")), 2);
 	P.Hand.clear();
 	P.CardLevels["some_card"] = 1;
 	Step();

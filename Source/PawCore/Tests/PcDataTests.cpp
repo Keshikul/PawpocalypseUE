@@ -157,7 +157,7 @@ TEST_CASE("Spot values match the CSV text")
 	CHECK(Anvil->Parent == "job_blacksmith");
 	const Pc::PcBoss* Foreman = D.FindBoss("factory_foreman");
 	REQUIRE(Foreman);
-	CHECK(Foreman->TotalHp == 2.07098e+12);
+	CHECK(Foreman->TotalHp == 6.42004e+13); // D17 E6 (2026-11-12): x31, re-priced for the new damage curve
 	CHECK(Foreman->PhaseHpThresholds == std::vector<double>{ 0.75, 0.50, 0.25 });
 	CHECK(D.Combat.BasePawDamage == 4.0);
 	CHECK(D.Combat.ShredMaxStacks == 10);

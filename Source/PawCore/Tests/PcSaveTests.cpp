@@ -3,6 +3,7 @@
 #include "ThirdParty/doctest/doctest.h"
 #include "PcCsv.h"
 #include "PcData.h"
+#include "PcEconomy.h"
 #include "PcJson.h"
 #include "PcProgress.h"
 #include "PcSave.h"
@@ -11,6 +12,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 #include <limits>
 #include <map>
@@ -844,6 +846,59 @@ TEST_CASE("Save: the slot summary reads the save, not the game")
 	CHECK(M.FinalBossSeconds == 3000.0);
 	CHECK(M.Bosses == 2);
 	CHECK(M.LastPlayedUnix == 1.8e9);
+}
+
+TEST_CASE("Save: format 2 carries the Bait bank; a format-1 file keeps its beaten bosses and its kills become its Bait (D17)")
+{
+	const Pc::PcGameData& D = Game();
+	const std::string First = D.Code.BossRealms[0];
+	const std::string Second = D.Code.BossRealms[1];
+	CHECK(Pc::PcSaveFormat == 2);
+	// Round trip: the bank comes back as it was.
+	Pc::PcSaveState S;
+	S.BaitKills[Second] = 2433;
+	S.TierKillCounts[Second] = 17;
+	Pc::PcSaveState Back;
+	std::string Why;
+	const std::string File = Pc::WriteSaveFile(S, "b");
+	REQUIRE(File.rfind("PAWSAVE 2 ", 0) == 0);
+	REQUIRE_MESSAGE(Pc::ReadSaveFile(File, Back, &Why) == Pc::PcSaveReadError::None, Why);
+	CHECK(Back.BaitKills == S.BaitKills);
+	Pc::PcProgress P;
+	Pc::ApplySave(D, P, Back, {});
+	CHECK(P.BaitKillsByBiome.at(Second) == 2433); // the bank, not this run's 17
+
+	// A format-1 file, as a build before D17 wrote it: no "bait_kills" key at all; a boss beaten in an earlier run, its
+	// passage re-locked by a Reawaken; kills toward the next boss in this run's map.
+	Pc::PcSaveState Old;
+	Old.Version = Pc::PcGodotSaveVersion;
+	Old.ReawakenCount = 2;
+	Old.BossesDefeated = { First };
+	Old.TierKillCounts[Second] = 1700;
+	std::string Body = Pc::WriteSaveFile(Old, "b");
+	Body = Body.substr(Body.find('\n') + 1);
+	const std::string Key = ",\n  \"bait_kills\": {}";
+	const size_t At = Body.find(Key);
+	REQUIRE(At != std::string::npos);
+	Body.erase(At, Key.size());
+	REQUIRE(Body.find("bait_kills") == std::string::npos);
+	char Header[96];
+	std::snprintf(Header, sizeof(Header), "PAWSAVE 1 %08x %llu\n", Pc::Crc32(Body), static_cast<unsigned long long>(Body.size()));
+	Pc::PcSaveState Read;
+	REQUIRE_MESSAGE(Pc::ReadSaveFile(Header + Body, Read, &Why) == Pc::PcSaveReadError::None, Why);
+	CHECK(Read.BaitKills.empty());
+	Pc::PcProgress Q;
+	Pc::ApplySave(D, Q, Read, {});
+	CHECK(Pc::IsBossClearedThisCycle(Q, First)); // E1: beaten stays beaten
+	CHECK(Pc::BossesClearedForStage(D, Q, 2));
+	CHECK(Q.BaitKillsByBiome.at(Second) == 1700); // E2: the Bait it held stays held
+	for (const Pc::PcTier& T : D.Tiers)
+	{
+		if (T.Id == Second)
+		{
+			CHECK(Pc::BaitEarned(D, Q, Second) == 1700 / D.FindBoss(T.BossData)->KillsPerBait);
+		}
+	}
 }
 
 #endif

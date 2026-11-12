@@ -93,6 +93,9 @@ namespace
 			Pr.CurrentBiomeId = D().Tiers[1].Id;
 			Pr.TierKillCount = 250;
 			Pr.BaitSpentByBiome[D().Code.BossRealms.front()] = 40;
+			// D17 E2: the Bait bank, kept through Reawakens (more than this run's kills, as in play: every kill counts in both).
+			Pr.BaitKillsByBiome[D().Code.BossRealms.front()] = 9700;
+			Pr.BaitKillsByBiome[D().Tiers[1].Id] = 1250;
 			Pr.JobsHeld = { D().Jobs.front().Id };
 			Pr.CurrentJob = D().Jobs.front().Id;
 			Pr.RunJob = D().Jobs.front().Id;
@@ -576,8 +579,8 @@ bool FPawSaveMidFightTest::RunTest(const FString& Parameters)
 	const std::string BiomeId = D.Tiers[static_cast<size_t>(Index)].Id;
 	// An earlier fight here was lost on time: its Bait stays spent (only the fight in progress is given back).
 	P.BaitSpentByBiome[BiomeId] = Boss->BaitRequired;
-	P.TierKillCount += Boss->BaitRequired * Boss->KillsPerBait; // the kills that paid for it (Bait held never reads below 0)
-	P.TierKillCount += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
+	P.BaitKillsByBiome[BiomeId] += Boss->BaitRequired * Boss->KillsPerBait; // the kills that paid for it (Bait held never reads below 0)
+	P.BaitKillsByBiome[BiomeId] += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait; // the Bait bank (D17 E2)
 	const double Cost = Pc::SummonCatnipCost(D, P, *Boss);
 	P.Catnip += Cost;
 	TestTrue(TEXT("the summon costs Catnip too (both halves of F36 are seen)"), Cost > 0.0 && Boss->BaitRequired > 0);

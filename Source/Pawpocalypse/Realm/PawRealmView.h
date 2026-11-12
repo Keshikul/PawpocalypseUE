@@ -23,6 +23,10 @@ class UTexture2D;
 namespace Pc
 {
 	struct PcFieldEvent;
+	struct PcGameData;
+	struct PcBoss;
+	struct PcEvolution;
+	struct PcJob;
 }
 
 // The realm on screen (docs/03 §3, docs/04 §5-6): the orthographic camera, the field drawn by UPawSpriteRenderer, the
@@ -183,7 +187,11 @@ private:
 	void Face(FMover& M, uint64 Serial, double X, double Dt);
 
 	Pc::PcBackdropLayout Backdrop;
-	FString BackdropKey;
+	// What the backdrop was laid out for: the biome (its tier index; INDEX_NONE for none) and the view's size in thousandths
+	// of a pixel (review CR17: a string made and compared every frame before).
+	bool bBackdropLaid = false;
+	int32 BackdropTier = INDEX_NONE;
+	int64 BackdropW = 0, BackdropH = 0;
 	TArray<int32> BackdropCells;    // per prop of the layout, its atlas cell
 	int32 BackdropBuildCount = 0;
 
@@ -192,7 +200,25 @@ private:
 	TArray<FMover> Mice;
 	TArray<FMover> Kittens;
 	TArray<int32> EnemyCells;       // per PcGameData::Enemies index, built with the atlas
+	// The other drawings the field names, looked up once and kept while the atlas, the data and what they name stay (review
+	// CR17: about seven lookups by name a frame, one of them through Printf).
+	struct FCells
+	{
+		const UPawSpriteAtlas* Atlas = nullptr;
+		const Pc::PcGameData* Data = nullptr;
+		int32 Shadow = INDEX_NONE, Kitten = INDEX_NONE, Add = INDEX_NONE;
+		const Pc::PcBoss* Boss = nullptr;
+		int32 BossCell = INDEX_NONE;
+		int64 Stage = -1;
+		const Pc::PcEvolution* Evo = nullptr;
+		int32 Cat = INDEX_NONE, Weapon = INDEX_NONE;
+		const Pc::PcJob* Job = nullptr;
+		int32 Hat = INDEX_NONE;
+	};
+	FCells Cells;
 	TMap<uint64, double> AddBorn;   // an add's serial -> the look clock when it first appeared (its pulse's age)
+	TSet<uint64> AddsNow;           // this frame's adds (kept: its storage is reused)
+	TMap<FKey, float> SteerAxes;    // the steer stick's axis values this frame (kept: its storage is reused, review CR17)
 	FBossDeath BossDeath;
 	FRandomStream LookRandom{ 0x5eed };
 	double LookClock = 0.0;         // seconds of unpaused play: the pulse, the glow (a paused Godot tree stops its _process)

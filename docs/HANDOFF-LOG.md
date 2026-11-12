@@ -9,6 +9,214 @@ in whichever file holds it.
 
 ---
 
+## 2026-11-12 (103) - The `if` audit (a report; no code changed); docs brought up to date; committed and pushed; the night planned
+
+**Where the project is.** On (102). The designer kept the approved Reawaken blurb ("Keep blurb"), asked "i've heard that
+sometime claude tends to overuse ifs in code. Can you audit for excessive if use?", then "Make sure all docs are up to date.
+Commit and push. Create an overnight plan". **(100)-(103) are committed and pushed** (one commit, explicit paths).
+**Tonight's plan: `docs/WORKLIST-NIGHT-2026-11-12.md`, waiting for the go** (the nightly on D17, which it has not had; a
+tree price pass measured as desk work; the audit's fixes 1-3 only if the designer says yes at the go).
+
+**What happened.**
+- **The audit** (report only). Without tests and generated files, the three modules hold 2,696 `if`s in 47,697 lines (5.7
+  per 100), over 2,297 functions: a median of 0 per function, 3 at the 90th percentile, 11 at the 99th; 3 functions nest 4
+  deep. Tests: 1,261 in 32,126 lines. `tools/`: 4.1 per 100 lines, 2 nested pairs that could merge. clang-tidy (Visual
+  Studio's LLVM 19.1.5) on PawCore with the branch checks found no needless `return true` / `return false` and no `else`
+  after `return`; it lists 10 conditions it would rewrite by De Morgan, 4 runs of identical cases in
+  `CardEffectRequirement`'s switch, and 10 functions over cognitive complexity 40 (`CheckTiers` 83, `BuildBackdrop` 76, the
+  generated `FromName` 76, `PcJson`'s `Value` 54, `BindingApply` 51; the rest 41-44). The scripts were one-off (scratch); the
+  method is in KB U/23 §5.
+- **Worth fixing** (the designer's call; none changes a rule, number, word or look):
+  1. Overkill tested three times on one path: the 7 `if (... Overkill > 0.0)` around `SplashOverkill` (`PcField.cpp`),
+     then `OverkillDamage`'s `<= 0`, then `SplashOverkill`'s `Damage <= 0`. Keep one, written `!(Damage > 0.0)` so a NaN
+     still stops.
+  2. The HUD's nine refreshes each look the game up and test that its data is ready, while only `RefreshNow` calls them
+     (and `RefreshJobs` once more, from a place that has checked).
+  3. A card's requirement is a string made from an enum, compared in two `if` chains (`CardRequirementMet`,
+     `PcCards.cpp:128`; `CardRequirementKey`, `PawHudScreen.cpp:106`): a typo compiles and means "always met" / "other".
+     An enum and a switch: a typo no longer compiles; a test covers every value (MSVC's C4062 is off by default).
+  4. `RebuildStats`' five `if (BranchLevel(P, X) > 0) S.Y *= BranchEffect(...)` (D17's Unicorn line among them): one helper
+     that gives x1 at level 0.
+  5. The "move the focus back" snippet (7 copies in 4 screens) and the per-screen `Realm()` / `Game()` lookups (about 10
+     classes): one shared helper each.
+  Fine as they are: the validator's one `if` per rule; the generated `FromName` chains; the `FKey` chains (no switch on an
+  `FKey`); the nested pointer checks over engine objects (35 flagged as "collapsible", 2 were plain conditions); the rules
+  keyed on one mechanic's id (Godot's shape); the dev runner `PawShot` (52 `if`s; a switch would read better).
+- **Docs up to date**: doc 01 Q12 now gives the built numbers (112 min, not the proposal's 155) and the open item; doc 05
+  the Reawaken page's Catnip multiplier line; doc 06 the economy before and after D17 with and without waves; doc 00;
+  this log (the blurb kept). Appendices B and C made again into scratch: identical to the committed ones. KB: U/01 §2.3.1
+  (clang-tidy on an engine-free module without a compile database), U/23 §5 (auditing agent-written code for redundant
+  branches; the NaN trap), both indexes.
+
+**Open.** The audit's fixes (1-3 a choice at tonight's go; 4-5 later). Everything open in (102) and (101). The text audit
+still reports the kept blurb over budget (a report, not a gate).
+
+**Next step.** The designer's go for `docs/WORKLIST-NIGHT-2026-11-12.md`: close the editor, and say yes or no to fixes 1-3.
+The night runs it; its closing entry is (104).
+
+## 2026-11-12 (102) - D17 built: the economy (a beaten boss stays beaten, Bait kept, the Reawaken pays Catnip, the Unicorn x1.5)
+
+**Where the project is.** On (101), nothing committed since (99) (the designer has not said to commit). The designer read the
+economy review and answered: "Unicorn should be a damage step. Make the changes for shorter denser game"; then the Unicorn
+x1.5 (recommended) and "Use these drafts" for the words. **D17 is built** (doc 01 D17, Q12 decided). `check_all` 27 of 27
+green on the end state, exit 0 (`build/check_all_d17.log`). The Godot repo is untouched (the gate says so).
+
+**What happened.**
+- **The rules (PawCore, and Godot's copy for the fixtures only, `tools/godot_fixes.py` E1-E6, EU: 22 new entries):**
+  E1 a Reawaken no longer clears `BossesClearedThisCycle` (a beaten boss stays beaten); E2 the Bait bank
+  `BaitKillsByBiome` (every kill, kept by a Reawaken, cleared by a new game; `BaitEarned` reads it; `BaitSpentByBiome` kept
+  too); E3 `KillCatnip` multiplies by `ReawakenCatnipMultiplier` = the damage multiplier ^ `reawaken_catnip_exponent` (0.5,
+  a new ReawakenConstantsData field; x1.37 a Reawaken), plus `ProjectedReawakenCatnipMultiplier` for the Reawaken tab; EU
+  `RebuildStats` multiplies the multiplicative damage bracket by `unlock_unicorn`'s effect (1.5, effect type now
+  DAMAGE_MULTIPLICATIVE: its tooltip line is the existing "x{v} damage"). Validator rule 58, `reawaken.catnip_exponent` in
+  [0, 1) (at 1 the Catnip feeds the Stardust feeds the multiplier: measured runs of 1-9 min).
+- **The data** (`Data/` re-exported through the fixes; `import_data` + `--check` PASS): Kitten Power x1.6 / growth 3.6372,
+  Kitten Count +2 / 1.35 (E4; the exponent budget 0.794 of 0.80); the Overkill unlock 0.1 (E5); boss HP x2.37 / x2.04 /
+  x15.8 / x31 / x139 (E6), fitted by fixed point so the FIRST fight at the moment its Bait is ready lasts 89 / 148 / 171 /
+  171 / 169 s (`tools/econ_review.py` now records it). The exporter and `gen_pc_data.py` read Godot's scripts through the
+  fixes too (E3's field is an @export); `PcDataRows.h` and `PawDataRows.h` regenerated.
+- **The save**: container format 2 with `bait_kills`; on load a boss on the ledger has its passage open, and a file with no
+  Bait bank takes its kills this run as its Bait (Godot's fixture side does the same). Test: a stored format-1 file.
+- **The Reawaken tab**: a new line "Catnip multiplier x{now} -> x{after}" (`CatnipMultiplierText`, grafted into
+  `WBP_HudScreen` with `bake_widgets --graft "PawHudScreen=add:CatnipMultiplierText"`), and the approved blurb. Text:
+  `ST_UI` (blurb changed, one key new), `Data/TextOverrides.csv` (the blurb's row; the Overkill unlock "10%"; the Unicorn's own
+  effect-line override removed), `ST_Tree` regenerated; drafts in `docs/TEXT-DRAFT-2026-11-12.csv`. **text_audit reports the
+  approved blurb over budget (161 chars, 4 sentences, > 120 / 3)**: a report, not a gate; raised with the designer.
+- **pawsim taught D17** (rule 14): E1, E2, E3 in `catnip_per_sec`, the Unicorn in `_damage_scale`; the mirror compares the
+  Catnip multiplier (new `pawcore_sim` column) and its self-test sabotages the exponent (12 of 12 caught). `econ_review.py`:
+  `today` is D17 (112 min, 13 Reawakens, waits over 3 min 4 %, the longest 4.0 min, nothing new at most 14 min) and
+  `--proposal before_d17` reproduces the review's old column exactly (406 min). Plain pawsim (no waves): 163 min, 13
+  Reawakens; pawsim on Godot's `.tres` through the fixes is identical to pawsim on `Data/`.
+- **Tests**: L1 204 of 204, 6.70 M assertions (+4: D17 E1/E2, E3, EU with E4/E5's numbers, save format 2). Every Godot
+  fixture made again (13 of 51 differ from the last commit, F3's included; `title` and `input_device` restored as committed,
+  wall-clock). Tests written for the old rules updated: the Reawaken check in PcProgressTests, the playthrough (passage stays
+  open; F22 is now tested on a passage shut by hand), every test that faked Bait through the wave counter (8 PawCore, 6
+  engine) writes the Bait bank, the kitten field tests count one kitten a level on a copy of the data (the shop's step is
+  asserted in the D17 test), two kitten-count tests ask for two kittens whatever the step, the Save round trip carries a Bait
+  bank, the Foreman's HP spot value, the mirror's Godot rows kept inside the kitten cap. **Sabotages**: PawCore 662 (+16 new,
+  1 retargeted from "the Reawaken keeps passage" to "re-locks"), each CAUGHT; realm 563 (+2 for the Catnip line, 1
+  retargeted), each CAUGHT.
+- Docs: 00, 01 (D17; Q12 decided), 02 (§1 length, §4 passage and Bait and boss HP, §6 kittens, §8 the Reawaken, §9 the
+  Unicorn, §14 rules 16-17), 03, 06 §7, 08 §2 (format 2), 09, the review's status. Knowledge base: U/17 §3 (a quoted heredoc
+  halved backslashes and wrote a real CR) and its INDEX line.
+
+**Open.** Everything open in (100) and (101) except Q12. The approved Reawaken blurb is over the text budget (4 sentences): the
+designer keeps it ("Keep blurb", 2026-11-12). Not measured by pawsim: coverage and the spatial unlocks (judge in
+`PcField`), jobs. The tree's last unlocks are still bought by Reawaken 8-10 (the review's "not met" item: a price pass once
+D17's Stardust curve is played). Nightly `-Full` on (102) when the PC is free (~10 h).
+
+**Next step.** The designer plays the new economy (a real run is the check pawsim cannot be). Then, on their word: commit
+(100)-(102) with explicit paths; the nightly; R6 or Q11.
+
+## 2026-11-12 (101) - The economy rethought and measured against today's (a proposal; nothing built)
+
+**Where the project is.** On (100), still uncommitted (the designer has not said to commit). The designer asked: "look into
+the economy again ... the player should never be left for long periods with nothing to buy. Every awakening should make the
+player feel stronger and unlocks should feel meaningful. Rethink the whole economy ... Then compare to our current economy."
+The answer is **`docs/ECONOMY-REVIEW-2026-11-12.md`** (doc 01 Q12, open). Nothing in `Data/`, PawCore or the game changed.
+
+**What happened.**
+- **Measured with a new tool, `tools/econ_review.py`**: pawsim (`--policy v4 --data csv`) plus the game's WAVES (pawsim has
+  none: found today, doc 06 §7; the tool derives each biome's HP and reward from its kill bank as PawCore does), a log of
+  every shop buy, tree level and Reawaken, and proposals applied in memory (`--proposal`, '+'-joined levers). Runs are
+  deterministic (~2.5 min); the repo tool reproduced the scratch numbers exactly (`build/econ/today|pass|recommended.json`).
+- **Today** (406 min of pawsim time, 11 Reawakens): **52 % of the game is the re-climb** to where the last run ended,
+  because passage re-locks on a Reawaken and each rematch needs 40 Bait paid in kills (9,600-112,000 a boss), which the
+  spawner caps and no Reawaken speeds up (17 of 22 boss fights are rematches; the last run is 59 min, 42 of them re-fighting
+  four beaten bosses). The Reawaken multiplies damage only, so income 2 min into runs 3-6 is x1.00-x1.09 the run before.
+  **44 % of play is in waits of over 3 min for a noticeable buy** (longest 25.8 min), 41 % of buys are noticeable (Kitten
+  Count/Power: 595 buys at 0.2 % / 1.8 %), nothing new for up to 70 min. The Overkill unlock pays +3 % income.
+- **The proposal, E1-E6**: a beaten boss stays beaten (E1); Bait survives a Reawaken (E2); the Reawaken multiplies Catnip by
+  the square root of the damage multiplier, x1.37 a Reawaken (E3); bigger kitten buys (E4, the 2026-10-01 alternative); the
+  Overkill unlock 10 % (E5); boss HP re-priced (E6, x30 as the stand-in: first fights 49-349 s). Measured together: re-climb
+  6 %, waits over 3 min 5 % (longest 4.3 min), 60 % of buys noticeable, nothing new at most 19 min, income x2.1+ a run. E1
+  alone: 243 min, re-climb 16 %, waits 27 %. Rejected by measurement: E3 at full strength (runs of 1-9 min, Catnip feeds
+  Stardust), a smaller Reawaken step (gate +150 %), the out-classed-boss variant of E1 (waits 31 %), raising Catnip gates.
+- **The trade-off for the designer: length.** With the repetition gone, today's content is ~155 min of pawsim time (~4 h of
+  real play at the soak's ratio). Lengthening the frontier (twice / three times the kills a Bait) costs waits: 9 % / 21 %.
+  Not met by E1-E6: late Reawakens buy no new node (in both economies; jobs are not modelled). Not measurable here: coverage
+  and the spatial unlocks (Snare, Funnel, Aura Reach, the Prism chain): judge them in `PcField`.
+- Docs: the review; doc 01 Q12; doc 00 (status, the tool's row, Q9-Q12); doc 06 §7 (pawsim has no waves; the tool); CLAUDE.md
+  (the tool's line). No knowledge-base entry: nothing engine-technical was learned.
+
+**Open.** Everything open in (100). Q12 (the six changes and the length).
+
+**Next step.** The designer's answers to the review's §7. On a yes, per change: the rule in PawCore with a test that fails
+on today's rule, the Godot fixture made with the same fix (`tools/godot_fixes.py`), pawsim taught the rule (and waves) in the
+same pass, a save-version bump for E2's Bait bank (doc 08), doc 02 §4 rewritten, E6's boss HP by fixed point, then
+`check_all`. Commit (100) and (101) only when the designer asks.
+
+## 2026-11-12 (100) - F3 decided and built (Patience reads the job's slowness, +6% a level); CR17 built; CR5 step 2 measured worse and taken back; the review closed
+
+**Where the project is.** On (99) (`60a6956`, committed and pushed). The designer chose F3's recommendation ("Job slowness,
++6%/lvl") and said "Yes, package and bench" for CR17 and CR5 step 2. All three are done; the code review's worklist is
+closed. `check_all` 27 of 27 green on the end state (`build/check_all_final_20261112.log`). **Nothing is committed** (the
+designer's call). The Godot repo: only its findings file changed (F3's row; uncommitted, as always).
+
+**What happened.**
+- **F3** (doc 01 §5; D16, the first change to a NUMBER). Godot paid Patience for the cat's FINAL attack speed
+  (`get_patience_crit_bonus(stats.attack_speed_multiplier)`), so every Attack Speed level shrank it: with the aura every level
+  lost damage from Patience 5, and the best paw-only Sphinx got nothing from Patience. Now `PcStats.cpp` reads the job's
+  speed (`JobTerm(AttackSpeedMultiplier)`: the Sphinx's x0.5, so Patience pays exactly its ladder), and the ladder is
+  0.06 .. 0.6 (was 0.2 .. 2.0). Best Sphinx against today (stat formula on `Data/`, as (99)): paw only x1.60; paw + aura
+  x0.99 at biome 1, x1.22 at biome 12; every Attack Speed level now raises damage.
+  - **How a data change is carried**: two `tools/godot_fixes.py` entries (F3: `game_state.gd`'s call, `patience.tres`'s
+    `level_effects`). New `fixed_text` / `fixed_read`: the exporter (`export_godot_data.py`, every `.tres` read) and
+    pawsim's `.tres` loader apply the same list in memory, so `Data/SkillBranchData.csv` carries 0.06 .. 0.6 from a fresh
+    export (L0's data-export gate PASS; with `fixed_read` switched off the export differs, seen) and the pawsim parity
+    sweep compares like with like (quick sweep 4 of 4 SAME). Self-test +2 checks (each seen failing on a planted
+    `fixed_text`). Doc 01 D16, doc 06 §2, doc 09.
+  - Re-exported `Data/` (only Patience's row and the catalogue's line changed); `DT_SkillBranchData` re-imported, parity PASS.
+  - **Words** (drafted first, `docs/TEXT-DRAFT-2026-11-12.csv`; the designer chose "slow job" over naming the Sphinx):
+    `TREE_patience_blurb` "Increases crit damage with a job that lowers attack speed. +6% to +60% over 10 levels.",
+    `FX_CRIT_DAMAGE_FROM_SLOWNESS` "+{v}% crit damage with a slow job" (`Data/TextOverrides.csv`, now 280 lines; `ST_Tree`
+    regenerated).
+  - Proof: the old fixtures FAILED 6 L1 cases (stats, aura, extras, kittens, pounce, tree text: 170 assertions); every
+    Godot fixture made again with the fix (6 of 51 files changed, exactly those; `title` and `input_device` record the
+    wall clock and were restored, see the trap below); L1 200 of 200, 6.70 M assertions. New L1 "F3: Patience reads the
+    job's slowness only" (crit multiplier the same at Attack Speed 0..6, damage never lower, nothing for a full-speed job)
+    and the long suite's exemption REMOVED (any Attack Speed level that lowers damage fails): both FAILED on Godot's rule
+    with the new numbers (the long one: "attack_speed 0 -> 1 lowers DPS"), PASS on the fix (90,000 states at 0.01).
+    5 PawCore sabotages (3 for F3: the rule test, the stats fixture, the long suite; 2 for CR17): 5 CAUGHT.
+  - Godot's findings file: F3's row says what the port does.
+- **CR17** (per-frame allocations; review worklist): the realm view keeps the drawings' cells (shadow, kitten, add, boss,
+  cat, weapon, hat) while the atlas, the data, the stage, the boss and the job stay; the steer keys live with the bindings
+  (`PawInput::SteerKeys()`, rebuilt with them) and the axis map, the adds' set are kept members; the backdrop's key is the
+  tier and the size in thousandths, not a `Printf` string; the field's event queue keeps its capacity
+  (`DrainFieldEvents(F, Out)` appends to the realm's own list); the audio copies the hand only when it changed; the
+  renderer counts sprites per layer and records them (`LastSprites`, for the tests and the bench) only outside Shipping.
+  Tests: L1 "Field: draining the events empties the queue and keeps its capacity"; `Pawpocalypse.Realm.View` "30 steady
+  frames look up no drawing by name" (+ the job's hat drawn, another job's at once; `UPawSpriteAtlas::FindCount`);
+  `Pawpocalypse.Input.Remap` (the cached steer keys are the steer actions' and follow a stick swap); `Pawpocalypse.Audio.When`
+  "the same hand a frame later: nothing more" (added when its sabotage was first MISSED: the test never had a steady
+  frame). 7 new realm sabotages, 3 retargeted (`backdrop_laid_out_every_frame`, `realm_ignores_travel_request`,
+  `render_counts_the_pool`): all CAUGHT. Realm sabotages 561, PawCore 646.
+- **CR5 step 2, built as the review wrote it and taken back.** Each effects band as a fixed-capacity, un-indexed triangle
+  list sent by `UpdateMeshSection` (with its test and 5 sabotages, all caught). Benched: the busy "over" band draws
+  8,000-16,000 triangles, so the list held 16,384 and resent ~49,000 vertices a frame: **render thread 1.1 -> 2.9 ms mean,
+  p99 1.7 -> 5.6 ms** (3 runs each, quiet PC, before and after interleaved; game thread unchanged). The renderer, its test
+  and the sabotages went back to step 1 (an empty band cleared once); the code is kept in the scratchpad only. A busy band
+  is still made again every frame (~10,000 sections in a 20 s bench, 1.1 ms render thread in all). Next, only if numbers
+  ask: a custom primitive with dynamic indexed buffers. KB U/15 §7, 2D/02 §4.6, U/24 corrected with the measurement.
+- **The bench** (packaged Development at the designer's request; `build/night/bench_cr17_*.md`; the before package kept in
+  `build/package_before_60a6956`): before (99) vs after (100), interleaved, two rounds, medians of 3, overlay off: game
+  2.02 / 1.87 vs 1.82 / 2.08 ms mean (p99 3.07-3.49 both), render 1.10-1.13 vs 1.15, the view's draw 0.56-0.63 vs
+  0.52-0.63 ms, draws 67.7 both. **CR17 changes nothing measurable**; the frame gate still FAILS on draw calls only (Q11).
+  The bench now reports the bands' triangles and the sections made (`fx(tris) ... rebuilds=`).
+- **A trap, fixed for good**: restoring the two wall-clock fixtures with `git checkout` wrote them CRLF (`core.autocrlf`),
+  and their L1 tests failed on the LAST column only ("invalid map key": the header kept `\r`). Rewritten LF, and
+  `.gitattributes` now has `*.tsv text eol=lf` (all 51 fixtures are LF in the index and on disk). KB U/17 §3.
+- Knowledge base: U/18 §9 (a fix to the reference's DATA: every direct reader applies the list), U/15 §7 and 2D/02 §4.6
+  and U/24 (the fixed-capacity `UpdateMeshSection` measured worse for a busy band), U/17 §3 (the CRLF fixture trap); INDEX.
+- Docs: doc 00, 01 (F3, D16), 06 §2, 09 (200 L1 cases, 646 / 561 sabotages, the gates' rows), the review worklist (closed).
+
+**Open.** Nothing from the code review. The designer's: Q11 (the draw-call budget), R6, the R5 reviews, the hand checks of
+(96), Q1, Q4, Q7, Q9, Q10; the words still to draft (doc 00). Commit when the designer asks (explicit paths: the list is
+`git status`; `build/` and the scratchpad are not part of it).
+
+**Next step.** Ask the designer to commit (100). Then R6 (icons, badges, cards) with the designer, or Q11 with the numbers
+above. The nightly `-Full` on (100) when the PC is free for ~10 h (its PawCore and realm sabotage sets have grown by 5 and 7).
+
 ## 2026-11-11 (99) - Review CR12 (what the UI looks up on events, held) and CR9 (the tree's tooltip built on change, focus by event); the nightly green; F3's numbers
 
 **Where the project is.** (98) is committed and pushed (`c982078`, at the designer's request). The designer asked what fits

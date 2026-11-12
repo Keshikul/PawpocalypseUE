@@ -157,6 +157,7 @@ public:
 	FText GetPayoutText() const;
 	FText GetTotalText() const;
 	FText GetMultiplierText() const;
+	FText GetCatnipMultiplierText() const;
 	UPawPounceClock* GetPounceClock() const { return PounceClock; }
 	UWidget* GetStatusRow() const;
 	UWidget* GetDock() const;
@@ -295,6 +296,9 @@ private:
 	TObjectPtr<UPawIconText> TotalLine;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> MultiplierText;
+	// D17 E3 (2026-11-12): what the Reawaken multiplies Catnip from kills by, now and after.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> CatnipMultiplierText;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> UnicornText;
 	UPROPERTY(meta = (BindWidgetOptional))

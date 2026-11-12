@@ -316,6 +316,8 @@ struct FPawReawakenConstantsRow : public FTableRowBase
 	UPROPERTY(VisibleAnywhere, Category = "Data")
 	FString reawaken_stardust_coefficient;
 	UPROPERTY(VisibleAnywhere, Category = "Data")
+	FString reawaken_catnip_exponent;
+	UPROPERTY(VisibleAnywhere, Category = "Data")
 	FString overkill_unlock_reawaken_count;
 	UPROPERTY(VisibleAnywhere, Category = "Data")
 	FString pounce_unlock_reawaken_count;

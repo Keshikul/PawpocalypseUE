@@ -243,6 +243,11 @@ namespace
 			const UPawSpriteRenderer* Sprites = View.GetRenderer();
 			Out.Add(FString::Printf(TEXT("debughud=%d pool(bodies)=%d drawn(bodies)=%d"), Overlay ? Overlay->GetInt() : -1,
 				Sprites ? Sprites->PoolSize(EPawLayer::Bodies) : -1, Sprites ? Sprites->DrawnCount(EPawLayer::Bodies) : -1));
+			// The effects bands' last frame: triangles drawn, and the sections made so far (review CR5: a busy band is made
+			// again every frame; the size of what that costs).
+			Out.Add(FString::Printf(TEXT("fx(tris) ground=%d under=%d over=%d rebuilds=%d"),
+				Sprites ? Sprites->FxTriangles(EPawFxBand::Ground) : -1, Sprites ? Sprites->FxTriangles(EPawFxBand::Under) : -1,
+				Sprites ? Sprites->FxTriangles(EPawFxBand::Over) : -1, Sprites ? Sprites->FxSectionRebuilds() : -1));
 			Out.Add(Line(TEXT("frame_ms"), FrameMs));
 			Out.Add(Line(TEXT("game_ms"), GameMs));
 			Out.Add(Line(TEXT("render_ms"), RenderMs));

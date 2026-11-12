@@ -434,6 +434,7 @@ namespace Pc
 		double ReawakenMultPerPoint = 1.01;
 		double ReawakenMultScale = 10.0;
 		double ReawakenMultExponent = 0.5;
+		double ReawakenCatnipExponent = 0.0;
 		int64_t PounceUnlockReawakenCount = 1;
 		int64_t OverkillUnlockReawakenCount = 2;
 		int64_t UnicornUnlockReawakenCount = 3;
@@ -450,6 +451,7 @@ namespace Pc
 		R.ReadDouble("reawaken_mult_per_point", Out.ReawakenMultPerPoint);
 		R.ReadDouble("reawaken_mult_scale", Out.ReawakenMultScale);
 		R.ReadDouble("reawaken_mult_exponent", Out.ReawakenMultExponent);
+		R.ReadDouble("reawaken_catnip_exponent", Out.ReawakenCatnipExponent);
 		R.ReadInt("pounce_unlock_reawaken_count", Out.PounceUnlockReawakenCount);
 		R.ReadInt("overkill_unlock_reawaken_count", Out.OverkillUnlockReawakenCount);
 		R.ReadInt("unicorn_unlock_reawaken_count", Out.UnicornUnlockReawakenCount);

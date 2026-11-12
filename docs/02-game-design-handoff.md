@@ -25,7 +25,8 @@
   Store/public copy: no "spiteful cat" phrasing (designer), keep player text short.
 - **Length is an outcome, not a target** (designer, 2026-10-01). pawsim: the Litter King at ~6h 11m after 9
   Reawakens; the 5x soak of a build: ~10h game time, 10 Reawakens. Never tune toward a number of hours; the fix for
-  length is content.
+  length is content. **Since D17 (2026-11-12)**, the designer's "shorter denser game": ~1h 52m of pawsim time with waves
+  (`tools/econ_review.py`), 13 Reawakens; about half of the old length was re-climbing to where the last run ended.
 - **Pillars**: escalating absurdity with serious systems; semi-active (kittens hunt alone, but aiming, Pounce timing
   and Bait beat idling); a line, not a treadmill (it ends); readable power (every buy should be NOTICEABLE, ~8%+ of
   income); no offline progress (removed 2026-09-10, a decision, not a gap).
@@ -131,8 +132,9 @@ sparkle, size.
 - **Two independent gates open a biome**: `required_evolution_stage` in BLOCKS (1-3 stage 1, 4-6 stage 2, 7-8
   stage 3, 9-11 stage 4, 12 stage 5: a boss kill opens a whole block, an event) and `catnip_to_unlock` measured
   against **`lifetime_catnip_this_cycle`** (monotonic, so "bought once" needs no ledger; resets on Reawaken).
-  Travelling backwards is never gated. Passage past a boss's biome asks whether that boss was beaten THIS run:
-  **passage re-locks every cycle, power never does.** A flat Catnip gate paces only the first run or two (income grows
+  Travelling backwards is never gated. Passage past a boss's biome asks whether that boss was beaten: **a beaten boss
+  stays beaten** (D17 E1, 2026-11-12; Godot re-locked passage every cycle, so each run re-fought every beaten boss for
+  40 Bait, 52 % of the game). A flat Catnip gate paces only the first run or two (income grows
   5-10x a run); biomes 10-12 are priced at ~3 minutes of income at the first Void God kill.
 - **UI must say what to DO**: a locked Realms row names the boss blocking it or the Catnip still to earn, never an
   abstract "Stage 2".
@@ -142,15 +144,18 @@ sparkle, size.
   every other progression number derives from that list, never from a tier number. There are no boss arenas.
 - **Bait**: a boss comes out when you hold **40 Bait** (`bait_required`; dropped by kills in its own biome every
   `kills_per_bait` 240 / 811 / 1,500 / 2,200 / 2,800) **and pay its Catnip price** (`bait_cost_catnip`), charged per
-  summon including rematches. The 40 never changes: the player gets faster against a fixed yardstick. Bait is on the
+  summon including rematches. The 40 never changes: the player gets faster against a fixed yardstick. The kills toward
+  it are their own bank (`bait_kills_by_biome`), and **a Reawaken keeps the Bait earned and spent** (D17 E2; the wave
+  bank, which used to carry it, still resets). Bait is on the
   Realms page **in every biome** (outside a boss biome it names where the next boss is); when a summon is in hand the
   button leans and the zone plate reads "Bait ready" in its rainbow frame.
 - **Boss fights**: HP phases (`phase_hp_thresholds`) with vulnerable/shield windows, adds that heal the boss
   (`add_*`), a **time limit counted from first ENGAGEMENT**. Running out: the boss withdraws with its adds, the bait is
   gone, the player stays where they are (tier_controller.gd `_check_boss_time_limit()`, read 2026-11-03; this line once said
   it also sent the player back a biome and switched auto-travel off, which the Godot code does not do). A refused summon must not eat the bait
-  (a real bug). **Boss HP sets WHEN a gate opens, not how long a fight lasts** (the sim engages at the earliest
-  winnable moment): never tune boss HP by watching fight duration.
+  (a real bug). **The Bait opens the gate; boss HP sets how long the FIRST fight lasts at the moment its Bait is
+  ready** (D17 E6: 89-171 s in `tools/econ_review.py`, which records it). Never tune boss HP by watching the sim's fight
+  duration: the sim engages at its earliest winnable moment, a player when the Bait is ready.
 - **`bosses_defeated` (biome id -> bool) is the ledger.** Keys stay biome ids forever (re-keying un-clears saves).
 
 ## 5. Evolution
@@ -182,8 +187,8 @@ Fifteen lines, **not uniform** (`UPGRADE_PATHS`):
 - **Multiplicative**: Paw Damage, Attack Speed, Aura Radius, Currency Find, Kitten Power, Kitten Speed, Pounce Power,
   Spawn Rate.
 - **Capped additive fractions**: Crit Chance, Shred, Execute, Overkill, Shield Pierce, Pounce Recovery.
-- **Capped additive integer**: Kitten Count (cap grows two kittens a biome and half a kitten a Reawaken; first kitten
-  150 Catnip, each next x1.2).
+- **Capped additive integer**: Kitten Count (cap grows two kittens a biome and half a kitten a Reawaken; two kittens a
+  buy since D17 E4, the first buy 150 Catnip, each next x1.35; Kitten Power x1.6 a level, growth 3.6372).
 - **Hard rule: uncapped multiplicative lines must have `cost_growth > effect_per_level`** (marginal value per Catnip
   scales as `(effect/cost)^level`; Paw Damage at 1.12/1.08 drove DPS to 2.4e10). Their summed return exponent stays
   under 0.80, or the economy reaches infinity in finite time. Capped lines are exempt.
@@ -241,10 +246,14 @@ Fifteen lines, **not uniform** (`UPGRADE_PATHS`):
 
 - **Two currencies, one job each. Never a third.** **Catnip** (kills; shop and Bait; resets on Reawaken less Legacy
   carry-over). **Stardust** (Reawakening and achievements only; buys the tree; never resets).
-- **Reawaken resets** Catnip, shop levels, cards, XP, this run's passage and the job pick; **keeps** the tree, the boss
-  ledger and the evolution stage. Grants `floor(0.125 x sqrt(lifetime_catnip_ever)) - stardust_granted_ever`.
+- **Reawaken resets** Catnip, shop levels, cards, XP, the waves and the job pick; **keeps** the tree, the boss
+  ledger, the evolution stage and, since D17, the passage past beaten bosses and the Bait. Grants
+  `floor(0.125 x sqrt(lifetime_catnip_ever)) - stardust_granted_ever`.
 - **`reawaken_multiplier = (1 + stardust_granted_ever / 2.5) ^ 0.5`**: soft-capped, keyed to Stardust **EVER
-  granted**, never the balance (spending must never lower it). Not the old `k ^ points`.
+  granted**, never the balance (spending must never lower it). Not the old `k ^ points`. **Since D17 (E3) it multiplies
+  Catnip from kills too**, to `reawaken_catnip_exponent` (0.5): x1.37 a Reawaken against damage's x1.87, first in
+  `add_currency`'s product. The Reawaken tab shows both, now and after. The exponent stays below 1 (validator
+  `reawaken.catnip_exponent`): at 1 Catnip feeds the Stardust grant, which feeds the multiplier (runs of 1-9 minutes).
 - The first Reawaken is gated (`reawaken_min_stardust` 10); after that whenever the player likes; the game SUGGESTS
   when (the tab's star waits for the suggestion, `reawaken_min_gain_fraction`). The Reawaken tab states the payout
   BEFORE the button: progress, pending Stardust, multiplier before -> after. Pressing arms a confirm ("Ask before
@@ -265,7 +274,8 @@ Fifteen lines, **not uniform** (`UPGRADE_PATHS`):
 - Limbs: **Claws** (paw damage both brackets; Pounce, Auto-Pounce, Overkill, jobs), **Instinct** (kitten damage,
   Vitality, Reputation, the three compounding nodes), **Aura** (the aura, power, reach), **Fortune** (yield, Golden,
   Legacy, automation: Auto-Travel, Auto-Bait, Auto-Card), **Unicorn** (the mount 2,500 Stardust with a ceremony and a
-  rainbow pulse; Rainbow Poop 600; Rainbow Gut; the Prism chain), **Snare** (slows: Deadweight, Funnel, Play With
+  rainbow pulse and, since D17 EU, x1.5 paw and aura damage in the multiplicative bracket; Rainbow Poop 600; Rainbow
+  Gut; the Prism chain), **Snare** (slows: Deadweight, Funnel, Play With
   Food, Swarm).
 - **Nothing but a new game resets the tree.** **A node the layout does not seat cannot be bought**: a test asserts
   every data node is drawn and nothing is drawn without data (the v6 tree shipped Legacy unbuyable while every gate
@@ -376,3 +386,5 @@ The Litter King dies in the Litterbox Dimension, stage 7 is granted, the **victo
 13. A save format change is a version bump with a migration test (doc 08).
 14. A rule that changes what the player can reach is taught to pawsim in the same commit.
 15. Every player-facing string is FText; every control prompt is an action token, never "press E".
+16. A Reawaken resets the run, never progress: a beaten boss stays beaten, Bait earned stays earned (D17).
+17. The Reawaken's Catnip exponent stays below 1 (D17 E3).

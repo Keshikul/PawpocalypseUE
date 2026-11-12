@@ -131,6 +131,7 @@ namespace Pc
 	{
 		// The order of the product is Godot's, so even the rounding matches.
 		return WholeCatnip(BaseReward
+			* ReawakenCatnipMultiplier(D, P)
 			* CurrencyFindMultiplier(D, P)
 			* BiomeRewardMultiplier(D, P)
 			* FortuneYieldMultiplier(D, P)
@@ -304,6 +305,22 @@ namespace Pc
 		return ReawakenMultiplier(D.Reawaken, P.StardustGrantedEver + PendingStardust(D, P));
 	}
 
+	double ReawakenCatnipMultiplierFor(const PcReawakenConstants& R, double StardustGrantedEver)
+	{
+		// D17 E3: the damage multiplier to reawaken_catnip_exponent (0.5: x1.37 a Reawaken; 0 switches it off).
+		return std::pow(ReawakenMultiplier(R, StardustGrantedEver), R.ReawakenCatnipExponent);
+	}
+
+	double ReawakenCatnipMultiplier(const PcGameData& D, const PcProgress& P)
+	{
+		return ReawakenCatnipMultiplierFor(D.Reawaken, P.StardustGrantedEver);
+	}
+
+	double ProjectedReawakenCatnipMultiplier(const PcGameData& D, const PcProgress& P)
+	{
+		return ReawakenCatnipMultiplierFor(D.Reawaken, P.StardustGrantedEver + PendingStardust(D, P));
+	}
+
 	// --- bait --------------------------------------------------------------------------------------------------------
 
 	int64_t BaitEarned(const PcGameData& D, const PcProgress& P, const std::string& BiomeId)
@@ -320,16 +337,9 @@ namespace Pc
 			return 0;
 		}
 		const int64_t Per = std::max<int64_t>(Boss->KillsPerBait, 1);
-		int64_t Kills = 0;
-		if (BiomeId == P.CurrentBiomeId)
-		{
-			Kills = P.TierKillCount;
-		}
-		else
-		{
-			const auto It = P.TierKillsByBiome.find(BiomeId);
-			Kills = It == P.TierKillsByBiome.end() ? 0 : It->second;
-		}
+		// D17 E2: the Bait bank, which a Reawaken keeps (the wave bank, which it clears, used to carry the Bait with it).
+		const auto It = P.BaitKillsByBiome.find(BiomeId);
+		const int64_t Kills = It == P.BaitKillsByBiome.end() ? 0 : It->second;
 		return Kills / Per;
 	}
 

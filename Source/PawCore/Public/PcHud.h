@@ -202,6 +202,7 @@ namespace Pc
 		double Pending = 0.0;         // the Stardust it would pay now
 		double TotalAfter = 0.0;      // the spendable Stardust after it
 		double MultiplierNow = 1.0, MultiplierAfter = 1.0;
+		double CatnipMultiplierNow = 1.0, CatnipMultiplierAfter = 1.0;  // D17 E3: "Catnip multiplier x{now} -> x{after}"
 		bool bReady = false;          // can_reawaken(): the button is enabled
 		PcReawakenButtonKind Button = PcReawakenButtonKind::NotYet;
 		int64_t Count = 0;            // Reawakens so far

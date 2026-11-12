@@ -39,6 +39,10 @@ from pathlib import Path
 import os
 REPO_ROOT = Path(os.environ.get("PAWSIM_GODOT_ROOT", "C:/Games/pawpocalypse"))
 DATA_DIR = REPO_ROOT / "data"
+# The .tres are read as the port fixes them (tools/godot_fixes.py, D16; F3, 2026-11-12, the first change to Godot's DATA),
+# as the exporter wrote Data/*.csv: the parity sweep compares like with like.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from godot_fixes import fixed_read  # noqa: E402
 
 # Simulation resolution. 1.0s is plenty — every rate in the game is per-second
 # or per-minute, and finer steps change results by well under a percent.
@@ -194,7 +198,7 @@ def parse_tres(path: Path) -> dict:
     Returns a dict of property name -> value. ExtResource references are
     resolved to absolute Paths so callers can recurse into them.
     """
-    text = path.read_text(encoding="utf-8")
+    text = fixed_read(REPO_ROOT, path).replace("\r\n", "\n").replace("\r", "\n")
     ext_map = {rid: REPO_ROOT / rel for rel, rid in _EXT_RE.findall(text)}
 
     out: dict = {}
@@ -734,6 +738,8 @@ class State:
     # stop agreeing.
     tier_kills_by_biome: dict = field(default_factory=dict)   # index -> kills
     bait_spent_by_biome: dict = field(default_factory=dict)   # index -> bait
+    # D17 E2 (2026-11-12): kills toward each biome's Bait, kept through a Reawaken (tier_kills_by_biome resets with it).
+    bait_kills_by_biome: dict = field(default_factory=dict)   # index -> kills
     # PASSAGE re-locks every cycle; POWER never does. bosses_defeated above is
     # permanent and grants the evolution stage; this gates travel only.
     bosses_cleared_this_cycle: set = field(default_factory=set)
@@ -857,6 +863,12 @@ class State:
             * (
                 self.g.branches["claws"].extra_at_level("mult", self.branch_levels["claws"])
                 if (self.branch_levels["claws"] > 0 and not LEGACY_MYSTIQUE_GATE)
+                else 1.0
+            )
+            # D17 EU (designer, 2026-11-12): the Unicorn is a damage step, in the same multiplicative bracket.
+            * (
+                self.g.branches["unlock_unicorn"].effect_at_level(self.branch_levels["unlock_unicorn"])
+                if self.branch_levels.get("unlock_unicorn", 0) > 0
                 else 1.0
             )
             * self.reawaken_multiplier()
@@ -1359,7 +1371,13 @@ class State:
         """
         return (self.kill_rate_per_sec(tier, aura_on_boss)
                 * self.avg_whole_catnip(tier)
-                * self.prism_yield_multiplier())
+                * self.prism_yield_multiplier()
+                * self.reawaken_catnip_multiplier())
+
+    def reawaken_catnip_multiplier(self) -> float:
+        """D17 E3 (2026-11-12): GameState.get_reawaken_catnip_multiplier(), the Reawaken multiplier to
+        reawaken_catnip_exponent (0.5: x1.37 a Reawaken), on every Catnip a kill pays (add_currency)."""
+        return self.reawaken_multiplier() ** float(self.g.reawaken.get("reawaken_catnip_exponent", 0.0))
 
     def avg_whole_catnip(self, tier: Tier) -> float:
         """Expected Catnip per kill after GameState.whole_catnip() rounding.
@@ -1528,6 +1546,9 @@ class State:
             return
         self.tier_kills_by_biome[tier.index] = (
             self.tier_kills_by_biome.get(tier.index, 0.0) + n)
+        # D17 E2: the Bait bank, counted on every kill and kept through a Reawaken (GameState.bait_kills_by_biome).
+        self.bait_kills_by_biome[tier.index] = (
+            self.bait_kills_by_biome.get(tier.index, 0.0) + n)
 
     def kills_banked(self, tier) -> float:
         return self.tier_kills_by_biome.get(tier.index, 0.0) if tier else 0.0
@@ -1540,7 +1561,8 @@ class State:
         """
         if tier is None or not tier.boss:
             return 0
-        return int(self.kills_banked(tier) // self.kills_per_bait(tier))
+        # D17 E2: the Bait bank, not the wave bank (a Reawaken clears the waves and keeps the Bait).
+        return int(self.bait_kills_by_biome.get(tier.index, 0.0) // self.kills_per_bait(tier))
 
     def bait_held(self, tier) -> int:
         """Mirrors GameState.bait_held(): produced less spent, never negative."""
@@ -1852,14 +1874,10 @@ class State:
                 floor_level if floor_level > 0 and self.is_upgrade_visible(k) else 0
             )
         self.lifetime_catnip_this_cycle = 0.0
-        # THE BAIT IS RE-EARNED EVERY CYCLE (2026-08-27). Mirrors
-        # GameState.reawaken(), which clears all three together. bosses_defeated
-        # is deliberately NOT among them: the player keeps every evolution stage
-        # and is never walked backwards, they just lose the right to skip the
-        # fight.
+        # D17 E1/E2 (designer, 2026-11-12): a beaten boss stays beaten and Bait earned and spent is kept. Godot cleared
+        # all three (passage re-locked every cycle, 2026-08-27): each rematch cost 40 Bait paid in kills no Reawaken
+        # speeds up, 52 % of the game. Only the wave bank goes.
         self.tier_kills_by_biome.clear()
-        self.bait_spent_by_biome.clear()
-        self.bosses_cleared_this_cycle.clear()
         self.reawaken_count += 1
         return sd, 0.0
 

@@ -345,6 +345,16 @@ missing one remembered), the resolved Widget Blueprint classes and `F_Paw` held 
 the tree's tooltip built when its node or numbers change, placed every frame, and the selection following a node's focus
 event instead of a scan of 87 nodes. **Still open**: F3 (the designer's), CR5 step 2, CR17.
 
+**F3, CR17 done and CR5 step 2 closed 2026-11-12** (HANDOFF-LOG (100)). F3, the designer's call: Patience reads the job's
+slowness only, +6% a level. CR17: the realm view keeps its drawings' cells, the steer keys (with the bindings), its maps and
+sets; the backdrop's key is numbers; the field's event queue keeps its capacity; the hand is copied only when it changes;
+the sprites are not recorded in Shipping. Nothing measurable in the frame (packaged, quiet PC, before and after interleaved:
+the same within run-to-run noise). CR5 step 2 was built as written (a fixed-capacity, un-indexed list sent by
+`UpdateMeshSection`) and measured WORSE: the busy band (8,000-16,000 triangles) was resent as ~49,000 vertices a frame,
+render thread 1.1 -> 2.9 ms; it was taken back. A busy band is still made again each frame (1.1 ms render thread in
+all); the next step, if the numbers ever ask, is a custom primitive with dynamic indexed buffers. **The review's worklist
+is closed.**
+
 **After batch C**, the frame gate's draw-call question (doc 01 Q11) should be re-asked with clean numbers: the scene's own
 count (`showflag.Rendering 0` split) without the debug overlay. **Measured** the night of 2026-11-10 on a quiet PC
 (HANDOFF-LOG (95)): 67.7 for the whole frame with the overlay off (68.7 with it), 41.6 without the scene, so the scene's

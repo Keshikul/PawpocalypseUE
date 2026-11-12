@@ -466,7 +466,10 @@ void UPawAudioSubsystem::ObserveProgress()
 	SeenReawakens = P.ReawakenCount;
 	SeenEarned = Earned;
 	SeenClaimed = Claimed;
-	SeenHand = P.Hand;
+	if (SeenHand != P.Hand)
+	{
+		SeenHand = P.Hand; // review CR17: copied every frame before
+	}
 }
 
 void UPawAudioSubsystem::SetRealmTier(const FString& TierId)

@@ -123,7 +123,8 @@ public:
 	// What the last EndFrame drew in a layer, and the pool behind it (tests, the debug HUD, the bench).
 	int32 DrawnCount(EPawLayer Layer) const;
 	int32 PoolSize(EPawLayer Layer) const;
-	// Every sprite of the last frame, as added (the tests read what was drawn where).
+	// Every sprite of the last frame, as added (the tests and the bench read what was drawn where). Not kept in Shipping
+	// (review CR17: a copy of every sprite a frame, for the tests): empty there.
 	const TArray<FPawSprite>& LastSprites(EPawLayer Layer) const;
 	// The Z a sprite of this order is drawn at (tests).
 	static double BodyZ(double Order);
@@ -174,6 +175,7 @@ private:
 	FBatch Shapes[3];                    // Floor, Zones, Fx
 	TArray<FBatch> Pages;                // page * KindCount + kind
 	TArray<FPawSprite> Sprites[static_cast<int32>(EPawLayer::Count)];
+	int32 SpriteCount[static_cast<int32>(EPawLayer::Count)] = {};
 	int32 Drawn[static_cast<int32>(EPawLayer::Count)] = {};
 	double ViewW = 1920.0;
 	double ViewH = 1080.0;

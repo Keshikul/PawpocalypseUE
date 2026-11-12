@@ -68,6 +68,7 @@ SABOTAGES = [
     ("ReawakenConstantsData", None, "reawaken_mult_exponent", "x1.001"),
     ("ReawakenConstantsData", None, "reawaken_stardust_coefficient", "x1.01"),
     ("ReawakenConstantsData", None, "reawaken_min_gain_fraction", "x1.01"),
+    ("ReawakenConstantsData", None, "reawaken_catnip_exponent", "x1.01"),
     ("SkillBranchData", "legacy", "level_effects", "first+0.01"),
     ("TierData", "tier_4", "golden_chance", "x1.01"),
 ]
@@ -81,8 +82,13 @@ def make_fixtures(g, n_random, seed):
     """[(name, upgrades, branches, bosses, reawakens, deepest, stardust, lifetime Catnip ever)]"""
     boss_count = sum(1 for t in g.tiers if t.boss)
     out = []
+    # Godot's fixture owns 10 Kitten Count levels: 10 kittens at one a level, but 20 since D17 E4 (two a buy), past the cap
+    # of a run in biome 1. Kept inside the cap like the random states below (the KNOWN DIVERGENCE): 5 levels, 10 kittens.
+    kc = g.upgrades["kitten_count"]
+    godot_up = dict(GODOT_FIXTURE)
+    godot_up["kitten_count"] = min(godot_up["kitten_count"], int(kc.effective_cap(0, 0) / kc.effect_per_level))
     for cleared in range(boss_count + 1):
-        out.append(("godot_%d" % cleared, dict(GODOT_FIXTURE), dict(GODOT_FIXTURE_BRANCHES), cleared, 0, 0, 0.0, 0.0))
+        out.append(("godot_%d" % cleared, dict(godot_up), dict(GODOT_FIXTURE_BRANCHES), cleared, 0, 0, 0.0, 0.0))
     rng = random.Random(seed)
     for i in range(n_random):
         up = {u: (rng.randint(0, 60) if rng.random() < 0.8 else 0) for u in RANDOM_UPGRADES}
@@ -191,6 +197,8 @@ def compare(g, fixtures, report):
         gate.close("%s: kitten DPS each" % tag, h("kitten_dps_each"), s.kitten_dps_each())
         gate.close("%s: currency find" % tag, h("currency_find"), s.currency_find())
         gate.close("%s: Reawaken multiplier" % tag, h("reawaken_multiplier"), s.reawaken_multiplier())
+        # D17 E3: what the Reawaken multiplies Catnip from kills by (pawsim's income reads it).
+        gate.close("%s: Reawaken Catnip multiplier" % tag, h("reawaken_catnip_multiplier"), s.reawaken_catnip_multiplier())
         # The game's poop_dps() is instantaneous and ungated (TierController gates and times it); pawsim's is sustained
         # over the duty cycle and zero until the ability is owned.
         if s.poop_ability_unlocked():

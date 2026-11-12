@@ -68,7 +68,7 @@ namespace
 			P.CurrentBiomeId = TierId;
 			if (bBait)
 			{
-				P.TierKillCount = B.BaitRequired * B.KillsPerBait * 3;
+				P.BaitKillsByBiome[P.CurrentBiomeId] = B.BaitRequired * B.KillsPerBait * 3;
 				P.Catnip = 1e7;
 			}
 			// The next biome's Catnip gate open, so only the boss stands between the cat and it.
@@ -348,6 +348,7 @@ TEST_CASE("Boss: while the cat engages, the kittens go for the nearest add first
 	Fight A(D);
 	A.P.UpgradeLevels["kitten_count"] = 2;
 	A.Cat(200.0, 200.0);
+	// (two levels: four kittens since D17 E4; this test only needs some)
 	Pc::SyncFieldKittens(A.F, D, A.P);
 	REQUIRE(Pc::SummonFieldBoss(A.F, D, A.P));
 	A.Steps(1);
@@ -401,7 +402,8 @@ TEST_CASE("Boss: with two adds out, the kittens chase the one nearest the cat, a
 	// hunt_add(): an add no longer active is a no-op, so the kittens after the killing blow do nothing this step.
 	const Pc::PcGameData& D = Game();
 	Fight A(D);
-	A.P.UpgradeLevels["kitten_count"] = 2;
+	// Two kittens, whatever Kitten Count's step (two a level since D17 E4).
+	A.P.UpgradeLevels["kitten_count"] = static_cast<int64_t>(std::ceil(2.0 / D.FindUpgrade("kitten_count")->EffectPerLevel));
 	Pc::SyncFieldKittens(A.F, D, A.P);
 	REQUIRE(Pc::SummonFieldBoss(A.F, D, A.P));
 	A.Steps(1);

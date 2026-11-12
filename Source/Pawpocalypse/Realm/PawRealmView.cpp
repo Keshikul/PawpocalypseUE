@@ -179,17 +179,15 @@ void APawRealmView::SampleInput()
 	UPawInputDeviceSubsystem* Device = GetGameInstance() ? GetGameInstance()->GetSubsystem<UPawInputDeviceSubsystem>() : nullptr;
 	const Pc::PcField& F = R->GetSim().Field;
 	const float Dt = GetWorld()->GetDeltaSeconds();
-	// The steer stick (player.gd _process): get_vector over the steer actions' axes, as the input map binds them.
-	TMap<FKey, float> Axes;
-	for (const TCHAR* Steer : { TEXT("steer_left"), TEXT("steer_right"), TEXT("steer_up"), TEXT("steer_down") })
+	// The steer stick (player.gd _process): get_vector over the steer actions' axes, as the input map binds them (the keys
+	// kept with the bindings, the map's storage reused: review CR17).
+	SteerAxes.Reset();
+	for (const FKey& Key : PawInput::SteerKeys())
 	{
-		for (const FKey& Key : PawInput::KeysOf(Steer, false))
-		{
-			Axes.Add(Key, PC->GetInputAnalogKeyState(Key));
-		}
+		SteerAxes.Add(Key, PC->GetInputAnalogKeyState(Key));
 	}
 	const UPawSettingsSubsystem* Settings = GetGameInstance() ? GetGameInstance()->GetSubsystem<UPawSettingsSubsystem>() : nullptr;
-	const FVector2f Steer = PawInput::SteerVector(Axes);
+	const FVector2f Steer = PawInput::SteerVector(SteerAxes);
 	const bool bInvertX = Settings && Settings->Get().bInvertX;
 	const bool bInvertY = Settings && Settings->Get().bInvertY;
 	const FVector2f MoveInput(bInvertX ? -Steer.X : Steer.X, bInvertY ? -Steer.Y : Steer.Y);
@@ -424,17 +422,22 @@ void APawRealmView::DrawBackdrop()
 	UPawSpriteRenderer& Out = *Renderer;
 	const Pc::PcField& F = R->GetSim().Field;
 	const bool bBiome = Game && F.TierIndex >= 0 && static_cast<size_t>(F.TierIndex) < Game->Data().Tiers.size();
-	const std::string Id = bBiome ? Game->Data().Tiers[static_cast<size_t>(F.TierIndex)].Id : std::string();
+	const int32 Tier = bBiome ? static_cast<int32>(F.TierIndex) : INDEX_NONE;
 	const UPawSettingsSubsystem* Settings = GetGameInstance() ? GetGameInstance()->GetSubsystem<UPawSettingsSubsystem>() : nullptr;
 	const double Budget = Settings ? Settings->EffectBudget() : 1.0;
 	// The budget is read when the backdrop is laid out, not watched: Godot's BiomeBackdrop lays out (and draws) on a biome and
 	// a resize only, so a changed effects setting shows from the next travel or resize, as there.
-	const FString Key = FString::Printf(TEXT("%hs|%.3f|%.3f"), Id.c_str(), LogicalWidth, LogicalHeight);
-	if (Key != BackdropKey)
+	const int64 MilliW = FMath::RoundToInt64(LogicalWidth * 1000.0);
+	const int64 MilliH = FMath::RoundToInt64(LogicalHeight * 1000.0);
+	if (!bBackdropLaid || Tier != BackdropTier || MilliW != BackdropW || MilliH != BackdropH)
 	{
-		BackdropKey = Key;
+		bBackdropLaid = true;
+		BackdropTier = Tier;
+		BackdropW = MilliW;
+		BackdropH = MilliH;
 		++BackdropBuildCount;
-		Backdrop = bBiome ? Pc::BuildBackdrop(Id, LogicalWidth, LogicalHeight, Budget) : Pc::PcBackdropLayout();
+		Backdrop = bBiome ? Pc::BuildBackdrop(Game->Data().Tiers[static_cast<size_t>(Tier)].Id, LogicalWidth, LogicalHeight, Budget)
+			: Pc::PcBackdropLayout();
 		UTexture2D* FloorTex = Backdrop.Floor.empty() ? nullptr : FloorTextureFor(Backdrop.Floor);
 		UE_CLOG(!Backdrop.Floor.empty() && !FloorTex, LogPaw, Error, TEXT("Realm view: no floor texture T_%hs (py tools/create_maps.py)"),
 			Backdrop.Floor.c_str());
@@ -616,7 +619,16 @@ void APawRealmView::DrawCreatures()
 			EnemyCells.Add(Cell);
 		}
 	}
-	const int32 ShadowCell = Atlas->Find(TEXT("ground_shadow"));
+	if (Cells.Atlas != Atlas || Cells.Data != &D)
+	{
+		Cells = FCells();
+		Cells.Atlas = Atlas;
+		Cells.Data = &D;
+		Cells.Shadow = Atlas->Find(TEXT("ground_shadow"));
+		Cells.Kitten = Atlas->Find(TEXT("kitten_basic"));
+		Cells.Add = Atlas->Find(TEXT("boss_add"));
+	}
+	const int32 ShadowCell = Cells.Shadow;
 	const double ShadowAspect = ShadowCell != INDEX_NONE && Atlas->Cell(ShadowCell).NativeWidth > 0.0f
 		? Atlas->Cell(ShadowCell).NativeHeight / Atlas->Cell(ShadowCell).NativeWidth : 0.375;
 	auto AddShadow = [&](double X, double Y, double CreaturePx, bool bFlier)
@@ -713,7 +725,7 @@ void APawRealmView::DrawCreatures()
 	}
 
 	// The kittens (Kitten: the kitten drawing at 96 px, z 1, gold and illusory tints multiplied, the Lone Hunter halo).
-	const int32 KittenCell = Atlas->Find(TEXT("kitten_basic"));
+	const int32 KittenCell = Cells.Kitten;
 	if (Kittens.Num() < static_cast<int32>(F.KActive.size()))
 	{
 		Kittens.SetNum(static_cast<int32>(F.KActive.size()));
@@ -757,7 +769,12 @@ void APawRealmView::DrawCreatures()
 	{
 		if (const Pc::PcBoss* Boss = D.FindBoss(D.Tiers[static_cast<size_t>(F.TierIndex)].BossData))
 		{
-			const int32 Cell = CellFor(UTF8_TO_TCHAR(Boss->TexturePath.c_str()));
+			if (Boss != Cells.Boss)
+			{
+				Cells.Boss = Boss;
+				Cells.BossCell = CellFor(UTF8_TO_TCHAR(Boss->TexturePath.c_str()));
+			}
+			const int32 Cell = Cells.BossCell;
 			if (Cell != INDEX_NONE)
 			{
 				double X = 0.0, Y = 0.0;
@@ -810,8 +827,8 @@ void APawRealmView::DrawCreatures()
 	}
 
 	// The adds (BossAdd: boss_add drawn RADIUS x 1.5 x pulse from the centre, z 3, in launch order).
-	const int32 AddCell = Atlas->Find(TEXT("boss_add"));
-	TSet<uint64> AddsNow;
+	const int32 AddCell = Cells.Add;
+	AddsNow.Reset();
 	for (int32 A = 0; A < static_cast<int32>(F.Adds.size()); ++A)
 	{
 		const Pc::PcBossAdd& Add = F.Adds[static_cast<size_t>(A)];
@@ -843,15 +860,23 @@ void APawRealmView::DrawCreatures()
 	bCatFlip = PawLook::Face(bCatFlip, LookDt > 0.0 ? StickVelX : 0.0);
 	AddShadow(CatX, CatY, CatPx, false);
 	const int64 Stage = Pc::VisualStage(D, P);
-	const Pc::PcEvolution* Evo = nullptr;
-	for (const Pc::PcEvolution& E : D.Evolutions)
+	if (Stage != Cells.Stage)
 	{
-		if (E.Stage == Stage)
+		Cells.Stage = Stage;
+		Cells.Evo = nullptr;
+		for (const Pc::PcEvolution& E : D.Evolutions)
 		{
-			Evo = &E;
+			if (E.Stage == Stage)
+			{
+				Cells.Evo = &E;
+			}
 		}
+		Cells.Cat = Cells.Evo ? CellFor(UTF8_TO_TCHAR(Cells.Evo->TexturePath.c_str())) : INDEX_NONE;
+		// The weapon: player_weapon_stage_<visual stage> (none for the bare paw).
+		Cells.Weapon = CellFor(FString::Printf(TEXT("player_weapon_stage_%lld"), Stage));
 	}
-	const int32 CatCell = Evo ? CellFor(UTF8_TO_TCHAR(Evo->TexturePath.c_str())) : INDEX_NONE;
+	const Pc::PcEvolution* Evo = Cells.Evo;
+	const int32 CatCell = Cells.Cat;
 	const FHop H = Hop(HopLeft, bHopNow);
 	const double RelX = H.ScaleX;
 	const double RelY = PulseY(LookClock, PhaseFor(0)) * H.ScaleY;
@@ -868,7 +893,7 @@ void APawRealmView::DrawCreatures()
 	Out.AddSprite(EPawLayer::Bodies, Cat);
 	const bool bMounted = Stage >= MountedFromStage;
 	// The weapon: player_weapon_stage_<visual stage> (none for the bare paw), always mirrored (it is drawn leaning right).
-	const int32 WeaponCell = CellFor(FString::Printf(TEXT("player_weapon_stage_%lld"), Stage));
+	const int32 WeaponCell = Cells.Weapon;
 	if (WeaponCell != INDEX_NONE)
 	{
 		const FOverlay O = FacingOverlay(CatOverlay(false, bMounted, RelX, RelY), bCatFlip);
@@ -884,7 +909,12 @@ void APawRealmView::DrawCreatures()
 		Out.AddSprite(EPawLayer::Overlays, W);
 	}
 	const Pc::PcJob* Job = Pc::EquippedJob(D, P);
-	const int32 HatCell = Job ? CellFor(UTF8_TO_TCHAR(Job->HatPath.c_str())) : INDEX_NONE;
+	if (Job != Cells.Job)
+	{
+		Cells.Job = Job;
+		Cells.Hat = Job ? CellFor(UTF8_TO_TCHAR(Job->HatPath.c_str())) : INDEX_NONE;
+	}
+	const int32 HatCell = Cells.Hat;
 	if (HatCell != INDEX_NONE)
 	{
 		const FOverlay O = FacingOverlay(CatOverlay(true, bMounted, RelX, RelY), bCatFlip);

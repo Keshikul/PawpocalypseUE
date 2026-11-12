@@ -175,13 +175,12 @@ TEST_SUITE("long")
 		// that made the cat WEAKER would be a trap. Patience ties crit to attack speed, Whisker Trade trades crit for
 		// damage; this is where such an interaction would show.
 		//
-		// FOUND 2026-10-28, BY DESIGN: with Patience owned and the cat swinging slower than base (the Sphinx), Attack Speed
-		// CAN lower paw DPS. Patience multiplies crit damage by 1 + per x (1/speed - 1) (GameState.get_patience_crit_bonus:
-		// "it pays more the slower you swing"), so d(DPS)/d(speed) = 1 + cc(cm - 1) - cc cm per, negative once
-		// per x cc x cm > 1 + cc(cm - 1). Not a port bug and not ours to change (no design changes during the port):
-		// counted and reported to the designer, and every OTHER decrease still fails.
+		// FOUND 2026-10-28 (F3): with Patience owned and the cat slower than base (the Sphinx), Attack Speed lowered paw DPS
+		// in Godot: Patience read the FINAL attack speed (1 + per x (1/speed - 1)), so d(DPS)/d(speed) went negative once
+		// per x cc x cm > 1 + cc(cm - 1); it was counted here as an exemption (48,665 of 9,000,000 states, 2026-11-11).
+		// FIXED 2026-11-12 (D16, the designer's call): Patience reads the job's speed only, so the exemption is gone and an
+		// Attack Speed level that lowers DPS fails like any other line.
 		const Pc::PcGameData& D = Game();
-		int64_t PatienceTrades = 0;
 		struct Line
 		{
 			const char* Id;
@@ -209,11 +208,6 @@ TEST_SUITE("long")
 				{
 					continue;
 				}
-				if (std::string(L.Id) == "attack_speed" && Pc::BranchLevel(P, "patience") > 0 && Before.AttackSpeedMultiplier < 1.0)
-				{
-					++PatienceTrades;
-					continue;
-				}
 				if (Bad++ < 10)
 				{
 					FAIL_CHECK("state " << I << ": " << std::string(L.Id) << " " << Level << " -> " << (Level + 1) << " lowers DPS " << A << " -> " << B);
@@ -221,8 +215,7 @@ TEST_SUITE("long")
 			}
 		}
 		CHECK(Bad == 0);
-		CHECK(PatienceTrades > 0); // the known trade-off must still be reachable, or this exemption hides nothing and should go
-		MESSAGE(N << " states x 5 lines in " << T.Seconds() << " s; Attack Speed lowered DPS under Patience in " << PatienceTrades << " states (by design)");
+		MESSAGE(N << " states x 5 lines in " << T.Seconds() << " s; " << Bad << " lowered DPS");
 	}
 
 	TEST_CASE("Long: one more level of a damage branch never lowers that damage" * doctest::skip())

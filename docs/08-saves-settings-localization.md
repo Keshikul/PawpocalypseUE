@@ -95,6 +95,9 @@ and the slot's toggles and tutorial.
   Prototype's mark) and comes back up on load, so reloading is not a reroll (F24); a boss fight is not saved (Godot saves none).
 - **Versioning**: the body's `version` is Godot's schema (7); a schema below it takes Godot's reset path. A change to the file
   layout bumps the container format, with a migration and a test loading a stored file of the previous format `[KB U/10 §2]`.
+  **Format 2 (D17, 2026-11-12)**: `bait_kills` (the Bait bank a Reawaken keeps, E2). A format-1 file loads with its kills
+  this run as its Bait and every boss it beat open (E1, the passage it had re-locked); a format-1 build refuses a format-2
+  file as newer. The test: `Save: format 2 carries the Bait bank; a format-1 file ...` (PcSaveTests).
 - **Settings never in the save** (per device, §3). **Steam Auto-Cloud** on the save folder later (no code) `[KB S/03]`.
 - **Sandbox** (docs/09 §1 rule 4): `-NoSave` turns saving off; `-PawSaveDir=<folder>` keeps the slots there; an automation run or
   an `-unattended` run with neither never reads or writes the real slots (`Pawpocalypse.Save.Sandbox`); the packaged bench and the

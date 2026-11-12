@@ -1961,6 +1961,7 @@ void UPawHudScreen::BuildReawakenPage(UVerticalBox* Page)
 	TotalLine = IconLine(T, TEXT("stardust"), PawUi::LabelPx, PawTokens::UI_TEXT, 0.0f, TEXT("TotalLine"));
 	Page->AddChildToVerticalBox(TotalLine)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
 	MultiplierText = PageText(Page, PawTokens::UI_TEXT, PageWrap, TEXT("MultiplierText"));
+	CatnipMultiplierText = PageText(Page, PawTokens::UI_TEXT, PageWrap, TEXT("CatnipMultiplierText"));
 	USpacer* Spacer = T->ConstructWidget<USpacer>();
 	Page->AddChildToVerticalBox(Spacer)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 	UnicornText = PageText(Page, PawTokens::UI_TEXT, PageWrap, TEXT("UnicornText"));
@@ -2144,6 +2145,10 @@ void UPawHudScreen::RefreshReawaken()
 	Mult.Add(TEXT("now"), PawText::Fixed(Page.MultiplierNow, 2)); // "%.2f"
 	Mult.Add(TEXT("after"), PawText::Fixed(Page.MultiplierAfter, 2));
 	SetText(MultiplierText, PawText::Ui(TEXT("REAWAKEN_multiplier"), Mult));
+	FFormatNamedArguments CatnipMult;
+	CatnipMult.Add(TEXT("now"), PawText::Fixed(Page.CatnipMultiplierNow, 2));
+	CatnipMult.Add(TEXT("after"), PawText::Fixed(Page.CatnipMultiplierAfter, 2));
+	SetText(CatnipMultiplierText, PawText::Ui(TEXT("REAWAKEN_catnip_multiplier"), CatnipMult));
 	SetShown(UnicornText, Page.bUnicorn, ESlateVisibility::HitTestInvisible);
 
 	switch (Page.Button)
@@ -2740,6 +2745,7 @@ FText UPawHudScreen::GetReawakenProgressText() const { return ReawakenProgressLi
 FText UPawHudScreen::GetPayoutText() const { return PayoutText ? PayoutText->GetText() : FText::GetEmpty(); }
 FText UPawHudScreen::GetTotalText() const { return TotalLine ? TotalLine->GetText() : FText::GetEmpty(); }
 FText UPawHudScreen::GetMultiplierText() const { return MultiplierText ? MultiplierText->GetText() : FText::GetEmpty(); }
+FText UPawHudScreen::GetCatnipMultiplierText() const { return CatnipMultiplierText ? CatnipMultiplierText->GetText() : FText::GetEmpty(); }
 FText UPawHudScreen::GetCatnipText() const { return CatnipText ? CatnipText->GetText() : FText::GetEmpty(); }
 FText UPawHudScreen::GetStardustText() const { return StardustText ? StardustText->GetText() : FText::GetEmpty(); }
 FText UPawHudScreen::GetZoneText() const { return ZoneText ? ZoneText->GetText() : FText::GetEmpty(); }

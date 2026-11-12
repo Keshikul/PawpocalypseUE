@@ -276,7 +276,7 @@ TEST_CASE("HUD: the zone plate says progress, ready, bait or nothing")
 	Pc::BeginBiome(D, B, BossTier.Id);
 	Pc::PcField BF = FieldIn(D, B, BossTier.Id);
 	B.Catnip = 1e30;
-	B.TierKillCount += Pc::BaitShortfall(D, B, *Boss) * Boss->KillsPerBait;
+	B.BaitKillsByBiome[B.CurrentBiomeId] += Pc::BaitShortfall(D, B, *Boss) * Boss->KillsPerBait;
 	REQUIRE(Pc::CanSummonFieldBoss(BF, D, B));
 	B.BossesClearedThisCycle.erase(BossTier.Id);
 	if (Pc::IsBaitUnlocked(D, B, *Boss))
@@ -330,7 +330,7 @@ TEST_CASE("HUD: the wave line counts bait where a boss lives, waves elsewhere")
 	CHECK(Line.bBait);
 	CHECK(Line.Needed == Boss->BaitRequired);
 	CHECK(Line.Held == std::min(Pc::BaitHeld(D, P, BossTier.Id), Boss->BaitRequired));
-	P.TierKillCount += (Boss->BaitRequired + 5) * Boss->KillsPerBait; // more than needed: clamped
+	P.BaitKillsByBiome[P.CurrentBiomeId] += (Boss->BaitRequired + 5) * Boss->KillsPerBait; // more than needed: clamped
 	Line = Pc::WaveLine(D, P);
 	CHECK(Line.Held == Boss->BaitRequired);
 }
@@ -359,7 +359,7 @@ TEST_CASE("HUD: the Pounce clock and the boss panel")
 	Pc::BeginBiome(D, P, BossTier.Id);
 	Pc::PcField BF = FieldIn(D, P, BossTier.Id);
 	P.Catnip = 1e30;
-	P.TierKillCount += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
+	P.BaitKillsByBiome[P.CurrentBiomeId] += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
 	REQUIRE(Pc::SummonFieldBoss(BF, D, P));
 	Pc::PcBossPanel Panel = Pc::BossPanel(BF, D);
 	CHECK(Panel.bVisible);
@@ -605,7 +605,7 @@ TEST_CASE("HUD: the Bait button points elsewhere, names the bait or Catnip owed,
 	CHECK(B.BaitOwed == Pc::BaitShortfall(D, Q, *Boss));
 	CHECK(B.BossId == BossTier.BossData);
 	CHECK_FALSE(B.bEnabled);
-	Q.TierKillCount += Pc::BaitShortfall(D, Q, *Boss) * Boss->KillsPerBait;
+	Q.BaitKillsByBiome[Q.CurrentBiomeId] += Pc::BaitShortfall(D, Q, *Boss) * Boss->KillsPerBait;
 	if (Boss->BaitCostCatnip > 0.0)
 	{
 		B = Pc::BaitButton(BF, D, Q);
@@ -625,7 +625,7 @@ TEST_CASE("HUD: the Bait button points elsewhere, names the bait or Catnip owed,
 	CHECK(B.Kind == Pc::PcBaitKind::BossHere);
 	CHECK_FALSE(B.bEnabled);
 	// The boss up and the next bait already earned: still "is here", never an offer.
-	Q.TierKillCount += Pc::BaitShortfall(D, Q, *Boss) * Boss->KillsPerBait;
+	Q.BaitKillsByBiome[Q.CurrentBiomeId] += Pc::BaitShortfall(D, Q, *Boss) * Boss->KillsPerBait;
 	REQUIRE(Pc::BaitShortfall(D, Q, *Boss) == 0);
 	B = Pc::BaitButton(BF, D, Q);
 	CHECK(B.Kind == Pc::PcBaitKind::BossHere);

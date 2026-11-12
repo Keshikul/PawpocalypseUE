@@ -57,6 +57,7 @@ namespace Pc
 		BankTierKills(P);
 		S.TierKillCounts = P.TierKillsByBiome;
 		S.BaitSpent = P.BaitSpentByBiome;
+		S.BaitKills = P.BaitKillsByBiome;
 		S.BossesClearedCycle = P.BossesClearedThisCycle;
 		S.JobsHeld = P.JobsHeld;
 		S.CurrentJob = P.CurrentJob;
@@ -386,6 +387,14 @@ namespace Pc
 		P.TierKillsByBiome = S.TierKillCounts;
 		P.BaitSpentByBiome = S.BaitSpent;
 		P.BossesClearedThisCycle = S.BossesClearedCycle;
+		// D17 E1/E2 (2026-11-12), as the Godot fixture's save_manager.gd fix does: a boss beaten in a save from before stays
+		// beaten (its passage had re-locked on a Reawaken), and a save with no Bait bank takes its kills this run as its Bait
+		// (exactly the Bait it held). A save written since always has the bank, so the second rule only meets older files.
+		for (const std::string& Id : P.BossesDefeated)
+		{
+			P.BossesClearedThisCycle.insert(Id);
+		}
+		P.BaitKillsByBiome = !S.BaitKills.empty() ? S.BaitKills : S.TierKillCounts;
 		// Forget where the player stood: the arriving realm's begin_biome() restores the live counter from the map.
 		P.CurrentBiomeId.clear();
 		P.JobsHeld = S.JobsHeld;
@@ -685,6 +694,7 @@ namespace Pc
 		Key(Body, "auto_pick_card", bFirst); Body += S.bAutoPickCard ? "true" : "false";
 		Key(Body, "tier_kill_counts", bFirst); Levels(Body, S.TierKillCounts);
 		Key(Body, "bait_spent", bFirst); Levels(Body, S.BaitSpent);
+		Key(Body, "bait_kills", bFirst); Levels(Body, S.BaitKills);
 		Key(Body, "bosses_cleared_cycle", bFirst); Held(Body, S.BossesClearedCycle);
 		Key(Body, "jobs_held", bFirst); Held(Body, S.JobsHeld);
 		Key(Body, "current_job", bFirst); JsonString(Body, S.CurrentJob);
@@ -820,6 +830,7 @@ namespace Pc
 		Rd.Bool("auto_pick_card", S.bAutoPickCard);
 		Rd.LevelMap("tier_kill_counts", S.TierKillCounts);
 		Rd.LevelMap("bait_spent", S.BaitSpent);
+		Rd.LevelMap("bait_kills", S.BaitKills);
 		Rd.HeldSet("bosses_cleared_cycle", S.BossesClearedCycle);
 		Rd.HeldSet("jobs_held", S.JobsHeld);
 		Rd.String("current_job", S.CurrentJob);

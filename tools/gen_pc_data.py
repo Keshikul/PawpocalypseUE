@@ -17,6 +17,9 @@ import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from godot_fixes import fixed_read  # noqa: E402  (D16/D17: the port's fixes to Godot's scripts, e.g. E3's new field)
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "Source", "PawCore", "Public", "PcDataRows.h")
 
@@ -112,7 +115,7 @@ def generate(godot: str) -> str:
         "{",
     ]
     for cls, script, struct, prefix in CLASSES:
-        gd = open(os.path.join(godot, "scripts", "data", script), encoding="utf-8").read()
+        gd = fixed_read(godot, os.path.join(godot, "scripts", "data", script)).replace("\r\n", "\n")
         enums = {m.group(1) for m in map(RE_ENUM.match, (l.strip() for l in gd.splitlines())) if m}
         fields = []
         for line in gd.splitlines():

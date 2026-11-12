@@ -2651,10 +2651,9 @@ namespace Pc
 		SweepDead(F);
 	}
 
-	std::vector<PcFieldEvent> DrainFieldEvents(PcField& F)
+	void DrainFieldEvents(PcField& F, std::vector<PcFieldEvent>& Out)
 	{
-		std::vector<PcFieldEvent> Out;
-		Out.swap(F.Events);
-		return Out;
+		Out.insert(Out.end(), F.Events.begin(), F.Events.end());
+		F.Events.clear();
 	}
 }

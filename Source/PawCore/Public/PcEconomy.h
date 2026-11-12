@@ -31,7 +31,8 @@ namespace Pc
 	PAWCORE_API double JobCatnipMultiplier(const PcGameData& D, const PcProgress& P);
 	// get_fence_multiplier(): 1 + per x min(kills this wave, fence_max_kills).
 	PAWCORE_API double FenceMultiplier(const PcGameData& D, const PcProgress& P);
-	// add_currency(): a kill's base reward through every multiplier, then whole_catnip.
+	// add_currency(): a kill's base reward through every multiplier (the Reawaken's Catnip multiplier first, D17 E3), then
+	// whole_catnip.
 	PAWCORE_API double KillCatnip(const PcGameData& D, const PcProgress& P, double BaseReward);
 
 	// --- waves -------------------------------------------------------------------------------------------------------
@@ -88,6 +89,11 @@ namespace Pc
 	PAWCORE_API PcBarProgress ReawakenBarProgress(const PcGameData& D, const PcProgress& P);
 	// get_projected_reawaken_multiplier(): the multiplier after Reawakening now (same curve as ReawakenMultiplier).
 	PAWCORE_API double ProjectedReawakenMultiplier(const PcGameData& D, const PcProgress& P);
+	// D17 E3 (2026-11-12): what the Reawaken multiplies Catnip from kills by: the damage multiplier to
+	// reawaken_catnip_exponent. Now, after Reawakening now (the Reawaken tab), and for any Stardust total.
+	PAWCORE_API double ReawakenCatnipMultiplierFor(const PcReawakenConstants& R, double StardustGrantedEver);
+	PAWCORE_API double ReawakenCatnipMultiplier(const PcGameData& D, const PcProgress& P);
+	PAWCORE_API double ProjectedReawakenCatnipMultiplier(const PcGameData& D, const PcProgress& P);
 
 	// --- bait --------------------------------------------------------------------------------------------------------
 

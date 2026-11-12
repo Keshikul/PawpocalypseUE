@@ -37,8 +37,9 @@ namespace Pc
 		std::string CurrentBiomeId;                       // the biome the player stands in ("" before the first)
 		int64_t TierKillCount = 0;                        // kills in the current biome this visit
 		std::map<std::string, int64_t> TierKillsByBiome;  // banked kills of the biomes left (bait is earned per biome)
-		std::map<std::string, int64_t> BaitSpentByBiome;
-		std::set<std::string> BossesClearedThisCycle;     // PASSAGE re-locks every cycle; POWER (BossesDefeated) never does
+		std::map<std::string, int64_t> BaitSpentByBiome;  // kept through a Reawaken (D17 E2)
+		std::map<std::string, int64_t> BaitKillsByBiome;  // kills toward each biome's Bait, kept through a Reawaken (D17 E2)
+		std::set<std::string> BossesClearedThisCycle;     // PASSAGE; since D17 (E1) a Reawaken keeps it: a beaten boss stays beaten
 		int64_t CurrentWaveIndex = 0;                     // cached, so a mouse keeps the wave it spawned in
 		int64_t KillsThisWave = 0;                        // Fence
 		double LifetimeCatnipThisCycle = 0.0;             // biome gates read this

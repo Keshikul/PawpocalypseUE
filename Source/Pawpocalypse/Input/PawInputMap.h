@@ -72,6 +72,10 @@ namespace PawInput
 	PAWPOCALYPSE_API bool KeyIs(const FKey& Key, const TCHAR* GodotAction);
 	// Every key bound to an action, in the map's order; with bStandIns, also the digital stand-ins of its axis halves.
 	PAWPOCALYPSE_API TArray<FKey> KeysOf(const TCHAR* GodotAction, bool bStandIns = true);
+	// The steer actions' keys (KeysOf steer_left, steer_right, steer_up, steer_down without stand-ins, each key once, in that
+	// order), kept with the bindings and rebuilt with them: the realm samples them every frame (review CR17: four arrays a
+	// frame before).
+	PAWPOCALYPSE_API const TArray<FKey>& SteerKeys();
 	// InputMap.has_action: the context maps this action (a prompt template's {token} is replaced only then).
 	PAWPOCALYPSE_API bool HasAction(const FString& GodotAction);
 	// The digital key Slate sends for one half of an axis (Gamepad_LeftY, +1 -> Gamepad_LeftStick_Up); false if none.

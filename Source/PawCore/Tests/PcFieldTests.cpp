@@ -115,6 +115,33 @@ TEST_CASE("Field: a step is a pure function of the seed, the progress and the in
 	CHECK(A.F.X != C.F.X);        // another seed is another field
 }
 
+TEST_CASE("Field: draining the events empties the queue and keeps its capacity (review CR17)")
+{
+	// The game drains the field's events every step. Handing the vector out (a swap) left the queue with no capacity, so the
+	// next step's first event allocated it again: 60 allocations a second for nothing.
+	Run R("tier_12");
+	R.P.InfestationBonus = 1000.0;
+	std::vector<Pc::PcFieldEvent> Out;
+	size_t Drained = 0;
+	for (int K = 0; K < 30; ++K)
+	{
+		R.Steps(1);
+		const size_t Queued = R.F.Events.size();
+		const size_t Before = Out.size();
+		Pc::DrainFieldEvents(R.F, Out);
+		CHECK(Out.size() == Before + Queued); // appended, oldest first
+		CHECK(R.F.Events.empty());
+		Drained += Queued;
+		CHECK(R.F.Events.capacity() >= Queued); // the queue kept what it had grown to
+	}
+	REQUIRE(Drained > 0); // a flood: the steps really made events
+	const Pc::PcFieldEvent* Storage = R.F.Events.data();
+	const size_t Capacity = R.F.Events.capacity();
+	R.F.Events.push_back(Pc::PcFieldEvent{});
+	CHECK(R.F.Events.data() == Storage); // the next event lands in the kept storage: no allocation
+	CHECK(R.F.Events.capacity() == Capacity);
+}
+
 TEST_CASE("Field: the biome spawns at its rate times the player's levers, never past max_live_enemies")
 {
 	const Pc::PcGameData& D = Game();

@@ -2,8 +2,10 @@
 
     py tools/run_automation.py [FILTER]               # default filter: Pawpocalypse.
     py tools/run_automation.py --no-build [FILTER]    # the caller has JUST built (check_all's build gate, sabotage_realm.py)
+    py tools/run_automation.py --self-test            # the guard's wait (tools/unreal_procs.py), on stubbed process lists
 Exit 0 = every test ran and passed; 1 = a failure, the build failed, or no test matched (a filter that runs nothing proves
-nothing); 2 = an Unreal editor is running (never two runs at once, never the designer's editor closed for us).
+nothing); 2 = an Unreal editor is still running after 30 s (never two runs at once, never the designer's editor closed for
+us); the refusal names each blocking process.
 
 It builds the editor target with UBT first (seconds when nothing changed): the headless editor loads whatever module DLLs
 are on disk, so without the build a test passes on the code as it was at the LAST build (found by review 2026-11-04: the
@@ -25,12 +27,6 @@ RE_DONE = re.compile(r"Test Completed\. Result=\{(\w+)\} Name=\{([^}]*)\} Path=\
 RE_START = re.compile(r"Test Started\. Name=\{([^}]*)\} Path=\{([^}]*)\}")
 
 
-def editor_running():
-    # Any Unreal process of this project, or one naming no project (tools/unreal_procs.py); another project's run is not ours.
-    from unreal_procs import blocking
-    return bool(blocking())
-
-
 def build():
     r = subprocess.run(UBT, capture_output=True, text=True, encoding="utf-8", errors="replace")
     out = r.stdout + r.stderr
@@ -38,18 +34,19 @@ def build():
 
 
 def main():
+    # The guard (tools/unreal_procs.py): any Unreal process of this project, or one naming no project, waited for (two clean
+    # looks in a row, up to 30 s for anything seen); another project's run is not ours.
+    from unreal_procs import guard_self_test, print_blocking, wait_blocking
     args = sys.argv[1:]
+    if "--self-test" in args:
+        return guard_self_test()
     skip_build = "--no-build" in args
     args = [a for a in args if a != "--no-build"]
     filt = args[0] if args else "Pawpocalypse."
-    # The run before this one may still be exiting (check_all starts the next gate the moment the last returns: seen
-    # 2026-11-05, a gate refused on its predecessor's dying process): give this project's processes 30 s to go first.
-    import time
-    deadline = time.time() + 30.0
-    while editor_running() and time.time() < deadline:
-        time.sleep(2.0)
-    if editor_running():
+    found = wait_blocking()
+    if found:
         print("run_automation: an Unreal editor is running; close it first (this never closes it for you)")
+        print_blocking(found)
         return 2
     if not skip_build:
         ok, out = build()

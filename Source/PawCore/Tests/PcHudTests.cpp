@@ -726,22 +726,22 @@ TEST_CASE("HUD: the Catches page lists every card, held ones with their level, t
 	CHECK_FALSE(Page.bAutoPickShown);
 	// Nothing owned: the Pounce cards name the Pounce branch, the aura cards the Aura branch.
 	CHECK(RowFor(Page, "bloodlust").Hint.Kind == Pc::PcCardHintKind::Requirement);
-	CHECK(RowFor(Page, "bloodlust").Hint.Requirement == "pounce");
-	CHECK(RowFor(Page, "close_quarters").Hint.Requirement == "aura");
+	CHECK(RowFor(Page, "bloodlust").Hint.Requirement == Pc::PcCardRequirement::Pounce);
+	CHECK(RowFor(Page, "close_quarters").Hint.Requirement == Pc::PcCardRequirement::Aura);
 	// A card with nothing in the way says nothing ("Not taken yet.").
 	CHECK(RowFor(Page, "bounty").Hint.Kind == Pc::PcCardHintKind::None);
 	CHECK_FALSE(RowFor(Page, "bounty").bHeld);
 	// Feral Focus: a Pounce effect paid in aura radius. The effect's gate is named first, then the cost's.
-	CHECK(RowFor(Page, "feral_focus").Hint.Requirement == "pounce");
+	CHECK(RowFor(Page, "feral_focus").Hint.Requirement == Pc::PcCardRequirement::Pounce);
 	P.BranchLevels["unlock_pounce"] = 1;
 	Page = Pc::CatchesPage(D, P, false);
-	CHECK(RowFor(Page, "feral_focus").Hint.Requirement == "aura");
+	CHECK(RowFor(Page, "feral_focus").Hint.Requirement == Pc::PcCardRequirement::Aura);
 	CHECK(RowFor(Page, "bloodlust").Hint.Kind == Pc::PcCardHintKind::None);
 	P.BranchLevels["unlock_aura"] = 1;
 	CHECK(RowFor(Pc::CatchesPage(D, P, false), "feral_focus").Hint.Kind == Pc::PcCardHintKind::None);
 
 	// Lone Hunter costs kittens: none is a requirement, too few to pay is the price.
-	CHECK(RowFor(Page, "lone_hunter").Hint.Requirement == "kitten");
+	CHECK(RowFor(Page, "lone_hunter").Hint.Requirement == Pc::PcCardRequirement::Kitten);
 	P.UpgradeLevels["kitten_count"] = 0;
 	while (Pc::KittenCount(D, P) < 2 && P.UpgradeLevels["kitten_count"] < 50)
 	{

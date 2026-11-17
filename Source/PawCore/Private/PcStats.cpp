@@ -129,6 +129,13 @@ namespace Pc
 		return B->LevelEffects[static_cast<size_t>(std::min<int64_t>(Level, static_cast<int64_t>(B->LevelCosts.size()))) - 1];
 	}
 
+	// A branch as a factor: its effect once a level is owned, x1 before (a multiplier node's level 0 must not zero the
+	// product BranchEffect's 0.0 would). One helper for RebuildStats' guarded multiplies (the `if` audit, fix 4).
+	double BranchFactor(const PcGameData& D, const PcProgress& P, const std::string& Id, const std::string& Channel)
+	{
+		return BranchLevel(P, Id) > 0 ? BranchEffect(D, P, Id, Channel) : 1.0;
+	}
+
 	int64_t EvolutionStage(const PcGameData& D, const PcProgress& P)
 	{
 		int64_t Stage = 1;
@@ -252,10 +259,7 @@ namespace Pc
 		{
 			S.AuraDamageMultiplier = BranchEffect(D, P, "aura_damage");
 		}
-		if (BranchLevel(P, "aura_reach") > 0)
-		{
-			S.AuraRadiusBranchMultiplier = BranchEffect(D, P, "aura_reach");
-		}
+		S.AuraRadiusBranchMultiplier = BranchFactor(D, P, "aura_reach");
 
 		S.KittenSpeedMultiplier = EffectTotal(Upgrade(D, "kitten_speed"), UpgradeLevel(P, "kitten_speed"));
 		S.PouncePowerMultiplier = EffectTotal(Upgrade(D, "pounce_power"), UpgradeLevel(P, "pounce_power"))
@@ -295,10 +299,7 @@ namespace Pc
 		S.ReawakenMultiplier = ReawakenMultiplier(D.Reawaken, P.StardustGrantedEver);
 
 		// Pounce and Overkill branches, guarded on level > 0 (level 1 of Pounce buys the ability, a x1.0 effect).
-		if (BranchLevel(P, "pounce") > 0)
-		{
-			S.PouncePowerMultiplier *= BranchEffect(D, P, "pounce");
-		}
+		S.PouncePowerMultiplier *= BranchFactor(D, P, "pounce");
 		// The unlock carries the base splash and the ladder adds to it.
 		if (BranchLevel(P, "unlock_overkill") > 0)
 		{
@@ -314,20 +315,12 @@ namespace Pc
 		// Claws (v6) is the old Ferocity and Mystique in one node: the additive half is level_effects, the multiplicative
 		// half the "mult" channel. Collapsing them remains the single easiest way to break the economy.
 		S.AdditiveDamageSum += BranchEffect(D, P, "claws");
-		if (BranchLevel(P, "claws") > 0)
-		{
-			S.MultiplicativeDamageProduct *= BranchEffect(D, P, "claws", "mult");
-		}
-		// D17 EU (designer, 2026-11-12): the Unicorn is a damage step (x1.5), in the same multiplicative bracket.
-		if (BranchLevel(P, "unlock_unicorn") > 0) // is_unicorn_owned()
-		{
-			S.MultiplicativeDamageProduct *= BranchEffect(D, P, "unlock_unicorn");
-		}
+		S.MultiplicativeDamageProduct *= BranchFactor(D, P, "claws", "mult");
+		// D17 EU (designer, 2026-11-12): the Unicorn is a damage step (x1.5), in the same multiplicative bracket (owned:
+		// is_unicorn_owned()).
+		S.MultiplicativeDamageProduct *= BranchFactor(D, P, "unlock_unicorn");
 		S.KittenAdditiveDamageSum += BranchEffect(D, P, "instinct");
-		if (BranchLevel(P, "unicorn") > 0)
-		{
-			S.PoopMultiplicativeDamageProduct *= BranchEffect(D, P, "unicorn");
-		}
+		S.PoopMultiplicativeDamageProduct *= BranchFactor(D, P, "unicorn");
 
 		// FERAL INSTINCT: the kittens inherit a share of the paw's crit, as an expected value (no discrete swing to crit on).
 		const double CritShare = std::clamp(BranchEffect(D, P, "whisker_trade"), 0.0, 1.0);

@@ -2,7 +2,8 @@
 
 "A test that has never failed has never been tested" (CLAUDE.md). Each sabotage below swaps one exact line of a PawCore
 source for a wrong one, rebuilds the standalone tests, runs only the test that should notice (long tests at a small
-PAWCORE_LONG_SCALE), and restores the file whatever happens. The run then rebuilds the clean sources and requires the
+PAWCORE_LONG_SCALE), and restores the file whatever happens, a power cut included (tools/safe_mutate.py journals
+the original first; the next run or check_all puts it back). The run then rebuilds the clean sources and requires the
 same tests to PASS, so "caught" cannot mean "the build was broken".
 
 Usage:  py tools/sabotage_pawcore.py            # every sabotage (the test exe rebuilt, in parallel, for each)
@@ -16,6 +17,8 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+
+import safe_mutate
 
 ROOT = Path(__file__).resolve().parent.parent
 PRIVATE = ROOT / "Source" / "PawCore" / "Private"
@@ -692,6 +695,12 @@ SABOTAGES = [
      "if (std::hypot(F.X[I] - F.X[J], F.Y[I] - F.Y[J]) <= D.Code.GridlockReachPx * 1e6)",
      "Aura: the Snare*", "0.01"),
     # F16 (2026-11-03): each Overkill splash from where its victim died.
+    # The `if` audit, fix 1 (2026-11-13): SplashOverkill's check is the only one; without it a blow that did not kill
+    # splashes nothing onto the nearest survivor.
+    ("splash_without_overkill", "PcField.cpp",
+     "if (!(Damage > 0.0))",
+     "if (Damage < 0.0)",
+     "Field: Overkill*", "0.01"),
     ("aura_splash_from_parking_spot", "PcField.cpp",
      "SplashOverkill(F, D, P, In, AtX, AtY,",
      "SplashOverkill(F, D, P, In, AtX * 0.0 - 10000.0, AtY * 0.0 - 10000.0,",
@@ -849,8 +858,8 @@ SABOTAGES = [
      "F.PounceLockLeft = std::max(0.0, F.PounceLockLeft - 0.0 * LockRefund);",
      "Pounce: Bloodlust*", "0.01"),
     ("pounce_splash_from_parking_spot", "PcField.cpp",
-     "// The Pounce blast's kill: from where the victim died (F16, 2026-11-03).\n\t\t\t\t\tSplashOverkill(F, D, P, In, F.X[I], F.Y[I], R.Overkill);",
-     "// The Pounce blast's kill: from where the victim died (F16, 2026-11-03).\n\t\t\t\t\tSplashOverkill(F, D, P, In, -10000.0, -10000.0, R.Overkill);",
+     "// The Pounce blast's kill: from where the victim died (F16, 2026-11-03).\n\t\t\t\tSplashOverkill(F, D, P, In, F.X[I], F.Y[I], R.Overkill);",
+     "// The Pounce blast's kill: from where the victim died (F16, 2026-11-03).\n\t\t\t\tSplashOverkill(F, D, P, In, -10000.0, -10000.0, R.Overkill);",
      "Pounce: a pounce kill*", "0.01"),
     ("rhythm_getter_off", "PcFieldRules.cpp",
      "return std::max(BranchEffect(D, P, \"butchers_rhythm\"), 0.0);",
@@ -1373,8 +1382,8 @@ SABOTAGES = [
      "Page.Fraction = Bar.Earned / std::max(Bar.Required, 1.0);",
      "HUD: the Reawaken page*", "0.01"),
     ('catches_hint_cost_first', 'PcCards.cpp',
-     'for (const char* Requirement : { CardEffectRequirement(Card.Effect), CardCostRequirement(Card.Cost) })',
-     'for (const char* Requirement : { CardCostRequirement(Card.Cost), CardEffectRequirement(Card.Effect) })',
+     'for (const PcCardRequirement Requirement : { CardEffectRequirement(Card.Effect), CardCostRequirement(Card.Cost) })',
+     'for (const PcCardRequirement Requirement : { CardCostRequirement(Card.Cost), CardEffectRequirement(Card.Effect) })',
      'HUD: the Catches page*', "0.01"),
     ('catches_banish_unsaid', 'PcCards.cpp',
      'Hint.Kind = PcCardHintKind::Banished;',
@@ -1390,7 +1399,7 @@ SABOTAGES = [
      'HUD: the Catches page*', "0.01"),
     ('catches_requirement_unnamed', 'PcCards.cpp',
      'Hint.Requirement = Requirement;',
-     'Hint.Requirement = "aura";',
+     'Hint.Requirement = PcCardRequirement::Aura;',
      'HUD: the Catches page*', "0.01"),
     ('catches_taken_one', 'PcHud.cpp',
      '++Page.Taken;',
@@ -1868,6 +1877,15 @@ SABOTAGES = [
      "\t\t\tP.BossesClearedThisCycle.insert(Realm);",
      "\t\t\t(void)Realm;",
      "Cheats: unlock all*", "0.01"),
+    # The `if` audit, fix 3 (2026-11-13): the requirement switch has no default; a value it forgets falls to "met".
+    ("card_requirement_forgotten", "PcCards.cpp",
+     "case PcCardRequirement::Overkill: return BranchLevel(P, \"unlock_overkill\") > 0;",
+     "case PcCardRequirement::Overkill: break;",
+     "Cards: each requirement*", "0.01"),
+    ("card_requirement_crossed", "PcCards.cpp",
+     "case PcCardRequirement::Aura: return BranchLevel(P, \"unlock_aura\") > 0;",
+     "case PcCardRequirement::Aura: return BranchLevel(P, \"unlock_pounce\") > 0;",
+     "Cards: each requirement*", "0.01"),
     ("puddle_cards_on_rainbow_gut", "PcCards.cpp",
      "return PoopUnlocked(P);",
      "return BranchLevel(P, \"unicorn\") > 0;",
@@ -2693,13 +2711,23 @@ SABOTAGES = [
      '\t\treturn ReawakenCatnipMultiplierFor(D.Reawaken, P.StardustGrantedEver + PendingStardust(D, P));\n',
      '\t\treturn ReawakenCatnipMultiplierFor(D.Reawaken, P.StardustGrantedEver);\n',
      'D17 E3*', "0.01"),
+    # The `if` audit, fix 4 (2026-11-13): a multiplier node is x1 until a level is owned (BranchEffect's 0.0 would zero
+    # the product).
+    ('branch_factor_zero_unowned', 'PcStats.cpp',
+     'return BranchLevel(P, Id) > 0 ? BranchEffect(D, P, Id, Channel) : 1.0;',
+     'return BranchLevel(P, Id) > 0 ? BranchEffect(D, P, Id, Channel) : 0.0;',
+     'PcStats matches Godot*', "0.01"),
+    ('branch_factor_unguarded', 'PcStats.cpp',
+     'return BranchLevel(P, Id) > 0 ? BranchEffect(D, P, Id, Channel) : 1.0;',
+     'return BranchLevel(P, Id) > -1 ? BranchEffect(D, P, Id, Channel) : 1.0;',
+     'PcStats matches Godot*', "0.01"),
     ('unicorn_no_damage_step', 'PcStats.cpp',
-     '\t\t\tS.MultiplicativeDamageProduct *= BranchEffect(D, P, "unlock_unicorn");\n',
-     '\t\t\tS.MultiplicativeDamageProduct *= 1.0;\n',
+     '\t\tS.MultiplicativeDamageProduct *= BranchFactor(D, P, "unlock_unicorn");\n',
+     '\t\tS.MultiplicativeDamageProduct *= 1.0 + 0.0 * BranchFactor(D, P, "unlock_unicorn");\n',
      'D17 EU*', "0.01"),
     ('unicorn_step_reaches_kittens', 'PcStats.cpp',
-     '\t\t\tS.MultiplicativeDamageProduct *= BranchEffect(D, P, "unlock_unicorn");\n',
-     '\t\t\tS.MultiplicativeDamageProduct *= BranchEffect(D, P, "unlock_unicorn");\n\t\t\tS.KittenMultiplicativeDamageProduct *= BranchEffect(D, P, "unlock_unicorn");\n',
+     '\t\tS.MultiplicativeDamageProduct *= BranchFactor(D, P, "unlock_unicorn");\n',
+     '\t\tS.MultiplicativeDamageProduct *= BranchFactor(D, P, "unlock_unicorn");\n\t\tS.KittenMultiplicativeDamageProduct *= BranchFactor(D, P, "unlock_unicorn");\n',
      'D17 EU*', "0.01"),
     ('save_drops_the_bait_bank', 'PcSave.cpp',
      '\t\tKey(Body, "bait_kills", bFirst); Levels(Body, S.BaitKills);\n',
@@ -2755,6 +2783,10 @@ def main():
     if unknown:
         print("unknown sabotage(s): %s" % ", ".join(sorted(unknown)))
         return 2
+    # A run that died holding a sabotage (the power cut of 2026-11-13) left it in the tree: put the original back
+    # first, or stop when that needs a person. The stale check below must read the real sources.
+    if safe_mutate.recover():
+        return 2
     # Every target must occur exactly once BEFORE anything is built: a stale target is a script bug, not a missed
     # sabotage, and a target that occurs twice would sabotage the wrong line (HANDOFF-LOG (13)).
     stale = []
@@ -2781,16 +2813,16 @@ def main():
     missed = []
     for name, file, old, new, test_filter, scale in chosen:
         path = PRIVATE / file
-        original = path.read_bytes()
-        text = original.decode("utf-8")
-        try:
-            sabotaged = text.replace(in_file_endings(text, old), in_file_endings(text, new), 1)
-            if sabotaged == text:
-                # Confirm the sabotage LANDED (docs/09 §1): unchanged code is not a test of anything.
-                print("NOLAND   %-26s the target was not replaced; nothing was built" % name, flush=True)
-                missed.append(name)
-                continue
-            path.write_bytes(sabotaged.encode("utf-8"))
+        text = path.read_bytes().decode("utf-8")
+        sabotaged = text.replace(in_file_endings(text, old), in_file_endings(text, new), 1)
+        if sabotaged == text:
+            # Confirm the sabotage LANDED (docs/09 §1): unchanged code is not a test of anything.
+            print("NOLAND   %-26s the target was not replaced; nothing was built" % name, flush=True)
+            missed.append(name)
+            continue
+        # Journaled and written by rename (tools/safe_mutate.py): a power cut can no longer leave the source zeroed or
+        # sabotaged in the tree; the next run, or check_all, puts the original back.
+        with safe_mutate.mutated(path, sabotaged.encode("utf-8"), "sabotage_pawcore " + name):
             ok, log = build()
             if not ok:
                 print("NOBUILD  %-26s the sabotaged source does not compile:\n%s" % (name, log[-2000:]))
@@ -2801,8 +2833,6 @@ def main():
             print("%s %-26s %s" % ("CAUGHT  " if caught else "MISSED  ", name, test_filter), flush=True)
             if not caught:
                 missed.append(name)
-        finally:
-            path.write_bytes(original)
 
     ok, log = build()
     clean_ok = ok

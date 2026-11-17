@@ -98,6 +98,8 @@ namespace Pc
 	PAWCORE_API double CappedEffect(const PcUpgrade& U, int64_t Level, const PcProgress& P);
 	// SkillTreeManager.get_effect(id, channel): the level's effect (or channel ladder entry), 0 at level 0 or unknown id.
 	PAWCORE_API double BranchEffect(const PcGameData& D, const PcProgress& P, const std::string& Id, const std::string& Channel = std::string());
+	// BranchEffect as a factor: x1 until a level is owned (RebuildStats' multiplier nodes).
+	PAWCORE_API double BranchFactor(const PcGameData& D, const PcProgress& P, const std::string& Id, const std::string& Channel = std::string());
 	// 1 + one per boss of the ladder beaten in order, + 1 for the final boss, at most 7.
 	PAWCORE_API int64_t EvolutionStage(const PcGameData& D, const PcProgress& P);
 	// (1 + stardust_granted_ever / scale) ^ exponent: a power law that keeps paying forever and never explodes.

@@ -147,6 +147,8 @@ public:
 	UPawButton* GetClaimAllButton() const { return ClaimAllButton; }
 	UPawButton* GetJobButton(int32 Index) const { return JobButtons.IsValidIndex(Index) ? JobButtons[Index].Get() : nullptr; }
 	FText GetCatchesSummaryText() const;
+	// The ST_UI key of a card's unmet requirement (CardManager.REQUIREMENT_TEXT); "CATCHES_hint_other" for None.
+	static const TCHAR* CardRequirementKey(Pc::PcCardRequirement Requirement);
 	FText GetAchievementSummaryText() const;
 	// An achievement row's two lines, and its mark's colour (★ ◆ ☆ in Godot: drawn as a disc until phase 6's art).
 	FText GetAchievementText(int32 Index, bool bDetail) const;
@@ -236,11 +238,12 @@ private:
 	void BuildCardRows();
 	void BuildAchievementRows();
 	void BuildJobRows();
-	void RefreshRealms();
-	void RefreshReawaken();
-	void RefreshCatches();
-	void RefreshAchievements();
-	void RefreshJobs();
+	// The page refreshes take what RefreshNow looked up and found ready (the one check; the `if` audit, fix 2).
+	void RefreshRealms(const UPawRealmSubsystem& R, const UPawGameSubsystem& G);
+	void RefreshReawaken(const UPawGameSubsystem& G);
+	void RefreshCatches(const UPawGameSubsystem& G);
+	void RefreshAchievements(const UPawGameSubsystem& G);
+	void RefreshJobs(const UPawGameSubsystem& G);
 	void DoReawaken();
 	void OpenSpendStepWhenFree();
 	void ReturnToStartingBiome();
@@ -248,10 +251,10 @@ private:
 	UTextBlock* PageText(UVerticalBox* Page, const FLinearColor& Colour, float WrapAt, FName Name = NAME_None);
 	void ApplyDockSide();
 	void WriteNavigation();
-	void RefreshShop();
-	void RefreshStatus();
-	void RefreshTabs();
-	void RefreshField();
+	void RefreshShop(const UPawGameSubsystem& G);
+	void RefreshStatus(const UPawRealmSubsystem& R, const UPawGameSubsystem& G);
+	void RefreshTabs(const UPawRealmSubsystem& R, const UPawGameSubsystem& G);
+	void RefreshField(const UPawRealmSubsystem& R, const UPawGameSubsystem& G);
 	void ReadFieldEvents();
 	void TickRepeat(float DeltaSeconds);
 	// Whether the dock takes this key before anything else (UPawInputDeviceSubsystem::ConsumeForDock).

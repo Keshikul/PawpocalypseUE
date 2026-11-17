@@ -72,4 +72,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Pawpocalypse")
 	static FString TextFloor();
 
+	// THE COLOUR INVENTORY (the Sticker Box restyle S1, docs/WORKLIST-STICKER-2026-11-17.md): every colour every baked asset
+	// saves, over the same objects as the migrations (the editable tree's widgets and the default object) and with
+	// PawUi::ForEachColourRole's rules (transient properties skipped, the outermost text wins, a brush's outline is an edge),
+	// one row per colour with its property path, written to <project>/build/widget_colours.tsv (asset, object, class, path,
+	// role, RRGGBB, alpha). Changes and saves nothing. Returns a one-line summary, or "FAILED ..." on a missing asset or a
+	// file it cannot write.
+	UFUNCTION(BlueprintCallable, Category = "Pawpocalypse")
+	static FString ColourReport();
+
 };

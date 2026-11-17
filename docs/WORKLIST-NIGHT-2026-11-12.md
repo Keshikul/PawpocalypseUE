@@ -1,7 +1,7 @@
 # Night worklist, 2026-11-12 (unattended, from the designer's go to about 08:30)
 
 > Written 2026-11-12 22:00 from HANDOFF-LOG (103) (designer: "Make sure all docs are up to date. Commit and push. Create an
-> overnight plan"). **Waiting for the go.** The closing entry will be HANDOFF-LOG (104).
+> overnight plan"). **Go 22:17 (designer: "Go, no fixes tonight").** The closing entry will be HANDOFF-LOG (104).
 
 The night proves D17, committed and pushed this evening, with the nightly `-Full`, which D17 has not had yet: 40 gates,
 about 10 h, every PawCore and realm sabotage (662 and 563), the long suite, the pawsim parity sweep, the Godot fixtures and
@@ -46,18 +46,23 @@ too, and the night ends about two hours later) or tomorrow.
 
 | # | Work | Est. | Done when | Status |
 |---|---|---|---|---|
-| 0 | **Preflight**: `tools/unreal_procs.py` exit 0; other Unreal processes listed; the keep-awake on; both repos' `git status` saved (`build/night2/status_before_{port,godot}.txt`); the port tree is the pushed commit | 5 min | all true | |
-| 1 | *(yes only)* **Fix 1, Overkill checked once** (table below) | 30 min | L1 green; its sabotages CAUGHT | |
-| 2 | *(yes only)* **Fix 2, the HUD's refreshes checked once** | 1 h | `Pawpocalypse.UI` green; its sabotages CAUGHT | |
-| 3 | *(yes only)* **Fix 3, card requirements as an enum**; then the everyday `check_all` on the end state | 1 h + 6 min | the same; `check_all` exit 0 | |
-| 4 | **The nightly**: `check_all.ps1 -Full`, in the background (`build/check_all_full_20261112.log`); the session wakes when it ends | ~10 h | 40 of 40 PASS, exit 0 | |
-| 5 | **Desk work during 4: the tree price pass** (below) | 2-3 h | the proposal and its numbers in the economy review; doc 01 Q13 | |
-| 6 | **Close**: HANDOFF-LOG (104) (each gate's result and time, the fixes if made, the proposal, whether **the editor may be opened**, the next step); doc 00; doc 09's last `-Full`; this list closed; the keep-awake stopped | 20 min | written | |
+| 0 | **Preflight**: `tools/unreal_procs.py` exit 0; other Unreal processes listed; the keep-awake on; both repos' `git status` saved (`build/night2/status_before_{port,godot}.txt`); the port tree is the pushed commit | 5 min | all true | **done** 22:18. The tree is `4f015ee`, clean. Keep-awake on 22:18 (`build/night2/keep_awake.log`, pid 11100). **An Unreal editor opened from the launcher at 22:17** (no project on its command line; never closed by the night): the nightly waits until no editor runs (`build/night2/full_tonight.sh`, checks every 60 s; `full_tonight.log`). The desk work runs on a copy of `tools/*.py` and `Data/` taken at 22:18 (`build/night2/snap`), so nothing a gate writes can reach it |
+| 1 | *(yes only)* **Fix 1, Overkill checked once** (table below) | 30 min | L1 green; its sabotages CAUGHT | not tonight (the go: no) |
+| 2 | *(yes only)* **Fix 2, the HUD's refreshes checked once** | 1 h | `Pawpocalypse.UI` green; its sabotages CAUGHT | not tonight |
+| 3 | *(yes only)* **Fix 3, card requirements as an enum**; then the everyday `check_all` on the end state | 1 h + 6 min | the same; `check_all` exit 0 | not tonight |
+| 4 | **The nightly**: `check_all.ps1 -Full`, in the background (`build/check_all_full_20261112.log`); the session wakes when it ends | ~10 h | 40 of 40 PASS, exit 0 | **cut by a power failure** at about 01:04 (started 22:26:39 on `4f015ee`; 2 h 38 min in, during PawCore sabotage, 352 of 662 CAUGHT, none missed). Not a result: HANDOFF-LOG (104) |
+| 5 | **Desk work during 4: the tree price pass** (below) | 2-3 h | the proposal and its numbers in the economy review; doc 01 Q13 | **done** 22:35: `ECONOMY-REVIEW-2026-11-12.md` §9, doc 01 Q13. Five prices, no gates: something new on every Reawaken 2-13; pawsim's game 112.5 -> 113.3 min; gates measured worse (a player with 7 Reawakens never reaches 6 nodes). The snapshot reproduced D17's run exactly (112.467 min) before any lever |
+| 6 | **Close**: HANDOFF-LOG (104) (each gate's result and time, the fixes if made, the proposal, whether **the editor may be opened**, the next step); doc 00; doc 09's last `-Full`; this list closed; the keep-awake stopped | 20 min | written | **done** 2026-11-13 as HANDOFF-LOG (104), after the power failure (the keep-awake ended with it) |
 
 **Order and cut lines.** With the yes: 0, 1, 2, 3, 4 (5 in 4's wait), 6. With the no: 0, 4 (5 in its wait), 6. A fix not
 proven by 01:00 is undone and the nightly starts anyway: the nightly is never cut for a fix.
 
 ## The fixes (only with the go's yes; evidence in HANDOFF-LOG (103))
+
+**Made 2026-11-13, after the night** (designer: "Don't do the long run yet. Do the rest of things you can do"): 1-3 as
+below and 4; not 5. As built and proven: HANDOFF-LOG (105). Differences from the plan: fix 1 removed 6 guards (the code had
+6, not 7) and needed a new test (the kept guard's sabotage was MISSED); fix 3 needed no `CardRequirementName` (no fixture
+compares the strings), and its enum is `PcCardRequirement` with a `Count`.
 
 | Fix | The change | Proof |
 |---|---|---|

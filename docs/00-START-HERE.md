@@ -12,7 +12,7 @@
 A **recreation of the same game**, not a sequel and not a redesign. The design, the numbers and the audio carry over;
 the engine, the code and the build pipeline are new. The Godot project stays the reference build and the shipping product
 until the Unreal build reaches parity (doc 11, phase 9). **Three exceptions, all the designer's**: the look is the port's own
-since 2026-11-07 ("Plum everywhere", D14), so is the player-facing English since 2026-11-09 (D15), and since 2026-11-10 the
+since 2026-11-07 ("Plum everywhere", D14; **since 2026-11-17 Sticker Box, D18**), so is the player-facing English since 2026-11-09 (D15), and since 2026-11-10 the
 port fixes Godot's faults instead of copying them (D16, "Do not port faults from godot"; doc 01 §5).
 
 ## Reading order
@@ -36,7 +36,9 @@ port fixes Godot's faults instead of copying them (D16, "Do not port faults from
 | A | [appendix-a-content-catalogue.md](appendix-a-content-catalogue.md) | generated: every biome, boss, enemy, card, node, job, achievement |
 | B | [appendix-b-godot-to-unreal-map.md](appendix-b-godot-to-unreal-map.md) | generated: all 79 Godot scripts, where each goes and in which phase |
 | C | [appendix-c-code-constants.md](appendix-c-code-constants.md) | generated: the 580 numeric/colour constants and numeric `@export` defaults that live in Godot CODE, not `/data`, with their reasons |
-| | [WORKLIST-RESTYLE-2026-11-07.md](WORKLIST-RESTYLE-2026-11-07.md) | the restyle (D14): decisions, the look spec, R0-R7, the review loop |
+| | [WORKLIST-NIGHT-2026-11-17.md](WORKLIST-NIGHT-2026-11-17.md) | the night of 2026-11-17 (planned, waiting for the go): the nightly `-Full` on (104)-(108), and the restyle's S1, E1 and first creatures prepared off the tree |
+| | [WORKLIST-STICKER-2026-11-17.md](WORKLIST-STICKER-2026-11-17.md) | **the current restyle (D18, Sticker Box)**: the approved concepts, the look spec, S0-S7, the open decisions E1-E5 |
+| | [WORKLIST-RESTYLE-2026-11-07.md](WORKLIST-RESTYLE-2026-11-07.md) | the plum restyle (D14): its pipeline and gates stay; its look is replaced by D18 |
 | | [WORKLIST-SLICE6-2026-11-07.md](WORKLIST-SLICE6-2026-11-07.md) | phase 6 slice 6: the Unicorn ceremony (done), the Reawaken banner, Boba, the tutorial |
 | | [WORKLIST-REVIEW-2026-11-10.md](WORKLIST-REVIEW-2026-11-10.md) | the code review of 2026-11-10: 23 findings (CR1-CR23), each with its evidence, fix and failing test; the batched fix plan; what was found sound |
 | | [WORKLIST-NIGHT-2026-11-10.md](WORKLIST-NIGHT-2026-11-10.md) | the night of 2026-11-10 (closed 2026-11-11, HANDOFF-LOG (93)-(96)): the review's batch A and the frame half of C and D, D16's batch F (every Godot fault the port copied), frame numbers before and after, the words drafted, the proof; each item's test, sabotages and evidence |
@@ -64,9 +66,14 @@ only the documents it points to; the **`2D/` folder** (`2D/01-2d-optimization-be
 
 The full plan with session prompts is [11-roadmap.md](11-roadmap.md).
 
-## Where the port is (2026-11-12)
+## Where the port is (2026-11-17)
 
-**Now: the restyle's R5 (the field) is drawn and waits on the designer's last reviews; next R6 (icons, badges, cards).**
+**Now: the Sticker Box restyle (D18, 2026-11-17).** The designer replaced the plum look: every enemy and boss (Bestiary) and
+every UI screen (UI Screens) were drawn as concepts and approved before any Unreal change. The plan, the look spec and the
+links: [WORKLIST-STICKER-2026-11-17](WORKLIST-STICKER-2026-11-17.md). S0 done; **next S1, the palette.** It supersedes the
+plum restyle's R5 reviews and R6 below.
+
+**Before D18 (2026-11-12): the restyle's R5 (the field) was drawn and waited on the designer's last reviews; next was R6.**
 The night of 2026-11-10 made the code review's fixes that need no decision and fixed every Godot fault the port had copied
 (D16): HANDOFF-LOG (93)-(96). On 2026-11-11 the designer approved the words and decided F36: the review's batch B (every
 load outcome on the title, F47; "Saved" only when saved) and F36's refund are built: HANDOFF-LOG (97).
@@ -74,8 +81,10 @@ On 2026-11-12 the designer decided F3 (Patience reads the job's slowness only, +
 NUMBER), and the review's last two items were done: CR17 built, CR5 step 2 built, measured worse and taken back. **The code
 review's worklist is closed**: HANDOFF-LOG (100). The designer then asked for the economy to be rethought: the review
 and its measured proposal are in [ECONOMY-REVIEW-2026-11-12](ECONOMY-REVIEW-2026-11-12.md); the designer chose all six changes and a "shorter denser game", and made the Unicorn a damage step (x1.5): **D17, built the same day** (doc 01 D17, HANDOFF-LOG (102)). An audit of the
-code's `if` use found no broad overuse and five places worth fixing (HANDOFF-LOG (103), the designer's call). **Tonight's
-plan: [WORKLIST-NIGHT-2026-11-12](WORKLIST-NIGHT-2026-11-12.md)** (the nightly on D17; a tree price pass measured).
+code's `if` use found no broad overuse and five places worth fixing (HANDOFF-LOG (103)); **fixes 1-4 made and proven
+2026-11-13** (HANDOFF-LOG (105): no rule, number, word or look changed), fix 5 left. The night of
+[WORKLIST-NIGHT-2026-11-12](WORKLIST-NIGHT-2026-11-12.md) was cut by a power failure (HANDOFF-LOG (104)): its tree price
+pass is doc 01 Q13; **D17's nightly is still owed** and now proves the fixes too.
 The exact next step is always the newest [HANDOFF-LOG](HANDOFF-LOG.md) entry. Doc 11 has each phase's exit criteria and
 status; doc 09 §7 the gates as they are today.
 
@@ -91,15 +100,18 @@ status; doc 09 §7 the gates as they are today.
 | The restyle (D14) | `WORKLIST-RESTYLE-2026-11-07.md`. **R0-R4 done** (65)-(70): the port's own palette (`tools/art/palette.py`), Plum ink, M PLUS Rounded 1c (`F_Paw`), plum chrome with Deep Plum edges and one solid shadow, Butter focus, the 16 px text floor, every screen fits at 150 % UI; the plain text (D15) (71)-(72). **R5 drawn** (73)-(90): D3 (aura, strike paw, crits), the look lint (everyday), the faces, the anatomy pass with one colour per character, the rig (moving wings and legs), the props. Waiting: the bosses, the imp, the rig's motion, the cat's pale coats, the draw-call budget (doc 01 Q11). R6, R7 to come |
 | 7-9 | Localisation, hardening and packaging, parity sign-off: not started (the fonts were done early in R2) |
 
-- **Git**: committed and pushed through HANDOFF-LOG (103) (2026-11-12, at the designer's request: F3, CR17, the economy
+- **Git**: committed and pushed through HANDOFF-LOG (108) (2026-11-17, at the designer's request: the `if` audit's
+  fixes 1-4, the waiting engine guards, D18 planned, the colour inventory). Before that, through HANDOFF-LOG (103) (2026-11-12, at the designer's request: F3, CR17, the economy
   review and D17, the `if` audit, tonight's plan).
   The Godot repo holds uncommitted decisions made there first for the designer (the findings'
   fixes; since (81) the dock default "right" in `settings_manager.gd`).
-- **Gates**: `powershell -ExecutionPolicy Bypass -File tools\check_all.ps1` (everyday, 27 gates, ~6 min) or `-Full`
-  (nightly, 40 gates, ~10 h: 662 PawCore and 563 realm sabotages since D17, 2026-11-12). Last everyday run 2026-11-12: 27
-  of 27 green on D17, every new sabotage caught (HANDOFF-LOG (102)). Last `-Full` 2026-11-11/12 (on (99)):
+- **Gates**: `powershell -ExecutionPolicy Bypass -File tools\check_all.ps1` (everyday, 28 gates, ~6 min) or `-Full`
+  (nightly, 42 gates, ~10 h: 667 PawCore and 564 realm sabotages since the `if` audit's fixes, 2026-11-13). Last everyday
+  run 2026-11-13: 28 of 28 green on the fixes (HANDOFF-LOG (105)) and again after every engine guard was made to wait
+  (HANDOFF-LOG (106)), every new or retargeted sabotage caught. Last `-Full` 2026-11-11/12 (on (99)):
   40 of 40 green, exit 0, 9 h 54 min, every sabotage caught (641 PawCore, 554 realm) (HANDOFF-LOG (99)). Every gate has
-  been seen to fail (doc 09 §7).
+  been seen to fail (doc 09 §7). **The nightly of 2026-11-12/13 was cut by a power failure** (HANDOFF-LOG (104)): D17's
+  nightly is still owed.
 - **The packaged frame gate** (2026-11-10, (85), (89); measured again on a quiet PC the same night, (95)): FAILS on draw
   calls, 67.7 for the whole frame against 50 (68.7 until the debug overlay left the bench, CR7); the field draws ~26, the
   frame without the scene 41.6. The game thread 1.5-2.3 ms mean and 2.2-3.6 ms p99 (under its 4 ms), the GPU 0.45 ms.
@@ -166,13 +178,13 @@ dialog), `PcDevice` (phase 5: the prompt family, the cursor source, the toasts),
 | `tools/export_audio.py`, `tools/import_audio.py` | phase 6: Godot's sound table -> `Data/Audio*.csv` + the played files -> `SourceAudio/` (`--check`); headless import -> `SW_*`, `DA_AudioBank` |
 | `tools/godot_tour.py` | the screenshot tour of both games side by side (`build/tour/compare`); `--set biomes` (phase 6): the 12 biomes and the title |
 | `tools/padplay_tour.py` | L4: the pad-only playthrough and the focus tours (`paw.PadPlay` in a real `-game` window, fresh sandboxed saves) |
-| `tools/check_pawcore_static.py`, `check_mirror.py`, `fuzz_validator.py`, `check_pawsim_parity.py`, `sabotage_pawcore.py`, `sabotage_realm.py` | the gates and their negative tests: L0 static rules, PawCore vs pawsim, random CSV corruption, pawsim CSV vs `.tres`, one-line source sabotages of PawCore and of the game module's realm (doc 09 §7) |
+| `tools/check_pawcore_static.py`, `check_mirror.py`, `fuzz_validator.py`, `check_pawsim_parity.py`, `sabotage_pawcore.py`, `sabotage_realm.py`, `safe_mutate.py` | the gates and their negative tests: L0 static rules, PawCore vs pawsim, random CSV corruption, pawsim CSV vs `.tres`, one-line source sabotages of PawCore and of the game module's realm, each planted fault journaled so a run that dies leaves nothing in the tree (doc 09 §7) |
 | `tools/art/look_lint.py`, `tools/art/review_anatomy.py`, `tools/art/review_rig.py` | restyle R5 (2026-11-09): the look spec on the field's drawings, an everyday gate (palette tokens or their grammar shades only, one ink at one width, flat, each body clear of every floor it ships on, eyes that read at 56 px, one colour per character, rig layers that never collide, no self-crossing outline; KNOWN 23, a list that only shrinks; `--self-test` plants one fault per rule); the review sheets: a batch beside today's at game size, and the rig's motion (`build/review/rig.gif`) |
 | `tools/fonts.py`, `tools/import_fonts.py`, `tools/check_font_coverage.py` | restyle R2: the font table (`UI/PawFontSpec.h`), the headless import of `SourceArt/fonts` into `F_Paw`, and the coverage gate (every language's characters reach a face that has them) |
 | `tools/gen_fx_look.py`, `tools/art/fx_look.py`, `tools/art/review_d3.py` | restyle R5, D3 (2026-11-09): the field effects' look (the aura lifted with a Bone ring, the clutching paw on the strike, crits in Butter) in one place, `fx_look.py`; the generator writes `Realm/PawFxLook.h` (the paw's shapes from `ui_cursor_paw_closed`'s drawing; L0 checks it is current); the review sheet the designer approved draws from the same values |
 | `tools/gen_paw_tokens.py`, `tools/gen_data_strings.py`, `tools/gen_input_defaults.py` | `UI/PawTokens.h` (and since phase 6 PawCore's `PcBackdropTones.h`) from `tools/art/palette.py` (since R0, 2026-11-07; and the test-only `Tests/PcGodotLook.h`); `ST_Data.csv` (data names) from `Data/*.csv`; `Input/PawInputDefaults.h` (Godot's input map, remapping's defaults) from `Data/InputMap.csv` (L0 checks all three are current) |
 | `tools/packaged_bench.py` | the L5 frame gate: runs `paw.Bench` in the packaged Development build under `build/package` (package by hand until `tools/package.ps1`, doc 10 §2) |
-| `tools/unreal_procs.py` | the one guard every engine tool and gate asks before a headless run: blocks on this project's Unreal processes (or one naming no project), ignores other projects' (`--self-test`) |
+| `tools/unreal_procs.py` | the one guard every engine tool and gate asks before a headless run: blocks on this project's Unreal processes (or one naming no project), ignores other projects'; every caller asks `wait_blocking()` (`--wait`: anything seen is waited for up to 30 s, the way is clear after two clean checks in a row, a refusal names what blocked), never one look (`--self-test` tests both) |
 | `tools/create_maps.py`, `tools/create_field_materials.py` | headless builders: the two maps and L_Realm's view (only what is missing: materials, the atlas, the floors); the field, sprite, floor and fill materials (`--force` rebuilds them) |
 | `SourceArt/`, `SourceAudio/` | `SourceArt/svg`: the generated art set (committed); `SourceArt/png`: rasters and atlas pages (gitignored, regenerated); `SourceAudio/`: the 53 sounds something plays (LFS) |
 | `build/` | untracked outputs: test exes, full Godot fixtures (`*_godot_full.tsv`), gate logs (`build/check_all/`), the Godot scratch copy |

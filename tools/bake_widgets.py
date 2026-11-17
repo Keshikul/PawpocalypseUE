@@ -27,6 +27,8 @@ typeface name, size and outline kept. Pawpocalypse.UI.Widgets.Fonts fails while 
 TEXT FLOOR (restyle R4b; UPawWidgetBaker::TextFloor): `py tools/bake_widgets.py --run --textfloor`. Every font size a baked
 asset saved under 12 pt (16 px at 1080p) and every piece's TextPx / LabelPx under 16 rise to the floor (a keycap's label
 exempt: PawUi::UnderTextFloor). Pawpocalypse.UI.Widgets.TextFloor fails while one is under it.
+COLOUR INVENTORY (the Sticker Box restyle S1; UPawWidgetBaker::ColourReport): `py tools/bake_widgets.py --run --colours`.
+Every colour every baked asset saves, with its widget, property path and role, to build/widget_colours.tsv. Changes nothing.
 """
 
 import os
@@ -64,6 +66,8 @@ def inside_editor():
         report += "\n" + unreal.PawWidgetBaker.refont()
     if os.environ.get("PAW_TEXTFLOOR"):
         report += "\n" + unreal.PawWidgetBaker.text_floor()
+    if os.environ.get("PAW_COLOURS"):
+        report += "\n" + unreal.PawWidgetBaker.colour_report()
     for g in [g for g in os.environ.get("PAW_GRAFTS", "").split("|") if g]:
         cls, _, ops = g.partition("=")
         report += "\n" + unreal.PawWidgetBaker.graft_parts(cls, ops)
@@ -78,8 +82,10 @@ def inside_editor():
 def from_shell(argv):
     sys.path.insert(0, str(ROOT / "tools"))
     import unreal_procs
-    if unreal_procs.blocking():
+    found = unreal_procs.wait_blocking()
+    if found:
         print("bake_widgets: an Unreal process of this project is running; close it first")
+        unreal_procs.print_blocking(found)
         return 2
     script = (ROOT / "tools" / "bake_widgets.py").as_posix()
     env = dict(os.environ, PAW_GRAFTS="|".join(grafts(argv)))
@@ -109,6 +115,8 @@ def from_shell(argv):
         env["PAW_REFONT"] = "1"
     if "--textfloor" in argv:
         env["PAW_TEXTFLOOR"] = "1"
+    if "--colours" in argv:
+        env["PAW_COLOURS"] = "1"
     cmd = [EDITOR_CMD, str(ROOT / "Pawpocalypse.uproject"), "-run=pythonscript", "-script=" + script, "-nullrhi",
            "-unattended", "-nop4", "-SCCProvider=None", "-stdout", "-NoSave"]
     r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)

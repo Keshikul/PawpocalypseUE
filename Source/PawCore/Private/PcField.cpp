@@ -310,8 +310,10 @@ namespace Pc
 		// takes no Shield Pierce (Godot's default argument).
 		void SplashOverkill(PcField& F, const PcGameData& D, PcProgress& P, const PcFieldInput& In, double OX, double OY, double Excess)
 		{
+			// The one test of "anything to splash": the callers pass every blow's Overkill unasked (a blow that did not kill
+			// has none, and OverkillDamage gives 0 for it). Written !(> 0) so a NaN stops here too, as it did at the callers.
 			const double Damage = OverkillDamage(F.Stats, Excess);
-			if (Damage <= 0.0)
+			if (!(Damage > 0.0))
 			{
 				return;
 			}
@@ -798,11 +800,8 @@ namespace Pc
 					continue;
 				}
 				const PcBlowResult R = Hit(F, D, P, In, S, Damage, F.Stats.ShieldPierceFraction);
-				if (R.Overkill > 0.0)
-				{
-					// Hammerfall's kill: from where the victim died (F16, 2026-11-03).
-					SplashOverkill(F, D, P, In, F.X[I], F.Y[I], R.Overkill);
-				}
+				// Hammerfall's kill: from where the victim died (F16, 2026-11-03).
+				SplashOverkill(F, D, P, In, F.X[I], F.Y[I], R.Overkill);
 				++Hits;
 				Furthest = std::max(Furthest, Along);
 			}
@@ -920,10 +919,7 @@ namespace Pc
 			// Where the blow landed, captured BEFORE it lands (a dead mouse is pooled; reading its position afterwards gave
 			// Hammerfall a stale point and it almost never fired).
 			const PcBlowResult R = Hit(F, D, P, In, Target, Damage, F.Stats.ShieldPierceFraction);
-			if (R.Overkill > 0.0)
-			{
-				SplashOverkill(F, D, P, In, StruckX, StruckY, R.Overkill);
-			}
+			SplashOverkill(F, D, P, In, StruckX, StruckY, R.Overkill);
 			ResolveHammerfall(F, D, P, In, StruckX, StruckY, Target, Damage);
 		}
 
@@ -1411,12 +1407,9 @@ namespace Pc
 				const double AtX = F.X[I];
 				const double AtY = F.Y[I];
 				const PcBlowResult R = Hit(F, D, P, In, S, Dps * Dt, F.Stats.ShieldPierceFraction);
-				if (R.Overkill > 0.0)
-				{
-					// From where the victim died (F16, 2026-11-03; Godot read the parking spot after the blow).
-					SplashOverkill(F, D, P, In, AtX, AtY,
-						R.Overkill);
-				}
+				// From where the victim died (F16, 2026-11-03; Godot read the parking spot after the blow).
+				SplashOverkill(F, D, P, In, AtX, AtY,
+					R.Overkill);
 			}
 		}
 
@@ -1697,11 +1690,8 @@ namespace Pc
 				}
 				const bool bVulnerable = DataOf(F, D, S).InvulnVulnerableSec > 0.0 && !F.Shielded[I];
 				const PcBlowResult R = Hit(F, D, P, In, S, PounceDamage(D.Combat, F.Stats, bVulnerable, Scale), F.Stats.ShieldPierceFraction);
-				if (R.Overkill > 0.0)
-				{
-					// The Pounce blast's kill: from where the victim died (F16, 2026-11-03).
-					SplashOverkill(F, D, P, In, F.X[I], F.Y[I], R.Overkill);
-				}
+				// The Pounce blast's kill: from where the victim died (F16, 2026-11-03).
+				SplashOverkill(F, D, P, In, F.X[I], F.Y[I], R.Overkill);
 			}
 
 			// The adds in range (no window bonus: an add has no shield to time against).
@@ -1751,10 +1741,7 @@ namespace Pc
 					const int32_t S = Outside[static_cast<size_t>(K)];
 					const size_t I = static_cast<size_t>(S);
 					const PcBlowResult R = Hit(F, D, P, In, S, Damage, F.Stats.ShieldPierceFraction);
-					if (R.Overkill > 0.0)
-					{
-						SplashOverkill(F, D, P, In, F.X[I], F.Y[I], R.Overkill);
-					}
+					SplashOverkill(F, D, P, In, F.X[I], F.Y[I], R.Overkill);
 				}
 			}
 
@@ -1773,10 +1760,7 @@ namespace Pc
 					const int32_t S = F.KTarget[K];
 					const size_t I = static_cast<size_t>(S);
 					const PcBlowResult R = Hit(F, D, P, In, S, Damage, F.Stats.ShieldPierceFraction);
-					if (R.Overkill > 0.0)
-					{
-						SplashOverkill(F, D, P, In, F.X[I], F.Y[I], R.Overkill);
-					}
+					SplashOverkill(F, D, P, In, F.X[I], F.Y[I], R.Overkill);
 				}
 			}
 

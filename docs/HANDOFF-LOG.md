@@ -9,6 +9,232 @@ in whichever file holds it.
 
 ---
 
+## 2026-11-17 (108) - S1 step 1: the colour inventory of every Widget Blueprint
+
+**Where the project is.** On (107). The designer: "Continue". Nothing committed since (103); (104)-(108) uncommitted. **The
+editor may be opened** (nothing is running).
+
+**What happened.**
+- **`UPawWidgetBaker::ColourReport`** (editor module only) and **`py tools/bake_widgets.py --run --colours`**: every colour
+  every baked asset saves, over the migrations' own objects (the editable tree's widgets and the default object) and with
+  `PawUi::ForEachColourRole`'s rules (transient skipped, the outermost text wins, a brush's outline an edge), one row each with
+  its property path, to `build/widget_colours.tsv`. Read-only: it saves nothing.
+- **The inventory: 7,549 saved colours in 32 assets.** Grouped by the palette the assets carry
+  (`tools/art/palette_widgets_snapshot.json`), it shows where plum folded roles that Sticker Box splits: Deep Plum is
+  outlines (51), the dropdown's item brushes, text shadows and pressed tints (48); Plum is panels and also every font outline
+  and the slider handles; Bone is text and also the styles' foreground colours; Butter is the hover and active outlines (41)
+  and some text. The table and the map it leads to are in the worklist's S1.
+- **Decided for S1 (worklist):** the recolour goes by RULE, a short list of (role, property path suffix, old key, new key)
+  first and the role maps after, with a pre-flight against the inventory (every changing colour placed exactly once, or no
+  save) and the inventory run again after. Also listed there: the text keys that join `UI_TEXT_KEYS`, the keys painted in
+  code, the two "amount" pairs that leave rule 7, the C++ naming plum tokens (`PawShot.cpp`, `PawUiKit.cpp`), the tests
+  pinning the plum spec (`PawChromeTests` ring = selected plate = Butter).
+- Docs: the worklist (S1's findings and map), CLAUDE.md (`--colours`).
+
+**Proof.** The editor target built (UBT, 141 s). The report ran headless and wrote 7,549 rows. **The everyday `check_all`: 28 of 28 PASS, exit 0**
+(`build/check_all_20261117_colours.log`). Committed and pushed with (104)-(107) at the designer's request ("Commit and push. Go").
+
+**Open.** As (107): E1-E5, D17's nightly, Q13, playing D17, Q11, Q10. Uncommitted: (104)-(108).
+
+**Next step.** S1 step 2, editor closed: the Sticker UI table in `tools/art/palette.py` (the worklist's values and pairs);
+`gen_paw_tokens.py`'s rules and pre-flight; `UPawWidgetBaker::RecolourByRule`; the plum-pinning tests and the two C++ files;
+then `gen_paw_tokens`, `build_art`, `raster_svg`, `pack_atlas`, `import_art --run`, `bake_widgets --run --recolour`, the
+inventory again, `check_all`.
+
+---
+
+## 2026-11-17 (107) - D18: the Sticker Box look replaces plum; concepts approved; the restyle planned (S0)
+
+**Where the project is.** On (106), nothing committed since (103); (104)-(106) still uncommitted and untouched here. D17's
+nightly, Q13 and playing D17 are still owed. **The editor may be opened** (nothing is running).
+
+**What happened.**
+- **The designer chose a new look.** On three fresh directions drawn as a concept page: "You don't have to follow the current
+  color or palette or ui. Just start fresh", then "Sticker box looks great", and the order of work: every enemy redrawn, every
+  UI screen as a concept, then Unreal, then the Steam page's assets and descriptions.
+- **The concepts were drawn and approved before any Unreal change** (claude.ai artifacts; their HTML draws every shape in
+  code and is readable with the Artifact tool):
+  - Look: https://claude.ai/artifact/CCUYB9dcTRyt1d5X1dtrMT (version 1, "Sticker Box").
+  - **Bestiary** (approved at version 4, "Everything else good"): https://claude.ai/artifact/B92ezCRMKpDeXShegRWVV8. All 12
+    biomes at game proportions (sizes from `sprite_target_px`), the gristle at all 12 tiers, the 5 bosses and the add. The
+    species follow the ART FILES, not the enemy ids (`sewer_dog` is a crocodile, `sewer_squirrel` a rat, `turf_squirrel` a
+    slime rat, `mythic_squirrel` an imp, `rooftop_goose` a seagull, `portal_goose` a hound). The designer's fixes: the gristle's
+    anatomy (now high shoulders, a small sunk head, knuckles on the ground, low hips), a chunkier crocodile with its tail
+    curled up, the parrot without a cone, the Rival Champion without the scar line (it read as a weapon) and with a gold medal
+    on a red ribbon (a collar read wrong twice).
+  - **UI Screens** (approved at version 4, "Good continue"): https://claude.ai/artifact/Homk9frz3jpvik8LYjpmA4. The kit and 17
+    screens in the approved `ST_UI` words and the real bindings. The held paw cursor: the open paw's pad with single ink arcs
+    for curled toes (two redraws). Open items listed on its page: locked Realms rows should name what opens them (a new string),
+    the job picker's lines and the tutorial line are drafts, Boba's photo.
+  - Seen on the way, for the designer: signature enemies are 95 px in biomes 1-8 and 72-77 px from the Kitchen on
+    (`sprite_target_px`); golden mice stop sparkling from the Kitchen on. Both are the data as it is.
+- **Recorded:** D18 in doc 01; CLAUDE.md and doc 00 say Sticker Box; the plan is `docs/WORKLIST-STICKER-2026-11-17.md` (the
+  look spec, S0-S7, open decisions E1 fonts, E2 the rim, E3 the rig, E4 layout, E5 the draft lines). No code, data, art or
+  asset changed.
+- **Found before S1 started:** the Widget Blueprints' value recolour cannot express the new palette (plum folded the panel and
+  the ink into one colour, and the frames, shadow, pressed state and key well into another; Sticker Box splits them). The
+  approach is in the worklist's S1: an inventory of the colours the assets save first, then the map, then part-by-part
+  restyles from code for what stays ambiguous.
+
+**Open.** E1-E5 (the worklist's recommendations stand unless the designer says otherwise). D17's nightly, Q13, playing D17,
+Q11, Q10, fix 5 (as (106)). Uncommitted: (104)-(107).
+
+**Next step.** S1 step 1, with the editor closed: a `UPawWidgetBaker` colour report (`bake_widgets.py --run --colours`) listing
+every colour every baked asset saves, by widget, property and role; then the Sticker Box UI table in `tools/art/palette.py`
+from that inventory (worklist S1).
+
+---
+
+## 2026-11-13 (106) - Every engine guard waits, not only the test runner
+
+**Where the project is.** On (105), nothing committed since (103). The designer asked "Anything left to do?"; one thing was:
+(105) fixed the single-look race in `run_automation.py` only. Left for the designer as in (105): Q13, playing D17, D17's
+nightly, the commit. **The editor may be opened** (nothing is running). Uncommitted: (104), (105) and this.
+
+**What happened.**
+- **The same race was in every other guard.** Each asked `unreal_procs.blocking()` once and refused (or SKIPPED) on what that
+  one look saw: check_all's SKIP check before each engine gate, `sabotage_realm.py` at its start (at night it starts the
+  moment L4's `-game` window returns: a blip there refuses the whole realm gate, the night's longest), `import_data.py`,
+  `padplay_tour.py`, and the import/bake tools (`bake_widgets`, `create_input_assets`, `import_art`, `import_audio`,
+  `import_fonts`).
+- **The wait moved into the guard.** `wait_until_clear` and `guard_self_test` now live in `tools/unreal_procs.py`, with
+  `wait_blocking()` (the real process list, the real clock) and `print_blocking()`; `py tools/unreal_procs.py --wait` is the
+  same from the command line. Every caller above asks `wait_blocking()` and prints what blocked; check_all's
+  `Test-UnrealBlocking` runs `--wait` and its SKIP line now lists the blocking processes. `run_automation.py` imports them
+  (its `--self-test` still runs the wait's test). The cost when an editor IS open: about 30 s per engine gate before its SKIP.
+- **Proof.** `unreal_procs.py --self-test` and `run_automation.py --self-test` PASS; the old loop and two other wrong waits,
+  planted in scratch copies of the moved code, each FAIL it (3 of 3). End to end, a real process named
+  `UnrealEditorGuardProbe.exe` (a renamed `ping.exe` in the scratchpad, naming no project, so it blocks): check_all's own
+  `Test-UnrealBlocking` (taken from the file as it stands), `sabotage_realm.py` and `import_data.py --check` each waited about
+  30 s and refused naming its pid (exit 2); a probe that left after 6 s was waited for and the guard went ahead (exit 0, 8 s).
+  Both sabotage `--list` checks exit 0. **The everyday `check_all`: 28 of 28 PASS, exit 0**
+  (`build/check_all_20261113_guard.log`). Not run: `padplay_tour.py` and the import/bake tools themselves (a one-line change
+  each, compiled; the nightly runs L4).
+- Docs: 09 (the guard), 00 (unreal_procs' row), CLAUDE.md (`run_automation.py --self-test`). KB: U/18 §2 (put the wait in the
+  shared guard and make every caller use it; a renamed `ping.exe` as a test process), INDEX (the symptom row).
+
+**Open.** As (105): D17's nightly (it now also runs the waited guard before every engine gate and the realm sabotage), Q13,
+playing D17, Q11, Q10, R6, fix 5 (recommended: leave). Uncommitted: (104), (105), (106).
+
+**Next step.** The designer plays D17 and answers Q13. Then, with the editor closed, the nightly `-Full` (~10 h). Commit when
+the designer says.
+
+---
+
+## 2026-11-13 (105) - The `if` audit's fixes 1-4 made and proven (no rule, number, word or look changed); the engine guard's race fixed
+
+**Where the project is.** On (104), nothing committed since (103). After the dev list the designer said "Don't do the long
+run yet. Do the rest of things you can do". Done: the audit's fixes 1-3 (as planned in `WORKLIST-NIGHT-2026-11-12.md`, "The
+fixes") and fix 4; not fix 5 (below). Left for the designer: Q13 (the tree's prices), playing D17, D17's nightly (which now
+proves the fixes too), the commit. **The editor may be opened** (from 11:04; nothing is running). Uncommitted: (104)'s work
+and this.
+
+**What happened.**
+- **Fix 1, Overkill tested once** (`PcField.cpp`). The six `if (R.Overkill > 0.0)` around `SplashOverkill` are gone (the
+  audit counted 7; the code has 6). `SplashOverkill`'s own guard is now `if (!(Damage > 0.0)) return;`, so a NaN still stops
+  there as it did at the callers. `OverkillDamage` keeps its `<= 0`: it is Godot's `overkill_damage`, with its own fixture.
+  **A sabotage of the kept guard was MISSED** (`splash_without_overkill`, `if (Damage < 0.0)`). No test said that a blow
+  that does not kill splashes nothing: the callers' guards had made it true. New L1 test "Field: Overkill splashes only a
+  kill's excess" covers a blow that leaves its mouse alive and a kill with no Overkill bought; with it the sabotage is
+  CAUGHT. `pounce_splash_from_parking_spot` retargeted (one tab less).
+- **Fix 2, the HUD checks once** (`PawHudScreen`). `RefreshNow` looks the realm and the game up once and refreshes only when
+  the game's data is ready. The nine refreshes take `const UPawRealmSubsystem&` / `const UPawGameSubsystem&`: their nine
+  lookups and checks are gone, and so is `RefreshRealms`' second `Game()` lookup for the auto-travel box. `WriteNavigation`
+  still runs on every refresh. The job picker's answer refreshes Jobs with the game that `ReturnToStartingBiome` checked,
+  captured in the lambda (the game subsystem outlives the HUD). Realm sabotages retargeted: `jobpick_answer_never_travels`,
+  `bait_lean_restarts_f42`.
+- **Fix 3, a card's requirement is an enum** (`PcCards`, the HUD). `Pc::PcCardRequirement` holds None, Aura, Pounce,
+  Overkill, Poop, Kitten, KittenPounce and Count. `CardEffectRequirement` / `CardCostRequirement` return it;
+  `CardRequirementMet` and `UPawHudScreen::CardRequirementKey` (now public and static, for its test) switch on it with no
+  `default`; `PcCardHint::Requirement` carries it. The plan's `CardRequirementName` was not needed: no fixture compares the
+  strings. A misspelt requirement no longer compiles. A forgotten case falls to the old fallback ("met" / "other"), and
+  since MSVC's C4062 is off, two tests now fail on it: L1 "Cards: each requirement is met by its own unlock and no other"
+  (8 ownership cases, every value) and `Pawpocalypse.UI.Hud.Catches` (every value but None has its own key, present in
+  ST_UI, no other value's). New sabotages, CAUGHT: `card_requirement_forgotten`, `card_requirement_crossed` (PawCore),
+  `hud_catches_hint_forgotten` (realm). `catches_hint_cost_first` retargeted. `catches_requirement_unnamed` wrote the
+  string `"aura"` into the field and no longer compiled, which the stale-target check cannot see (its target was still
+  there): rewritten as `PcCardRequirement::Aura`, CAUGHT.
+- **Fix 4, the multiplier nodes through one helper** (`PcStats`). `BranchFactor(D, P, Id, Channel)` gives the branch's
+  effect once a level is owned and x1 before. `RebuildStats`' five guarded lines use it (Aura Reach, Pounce, Claws' "mult",
+  the Unicorn's D17 step, Rainbow Gut); the results are bit-identical (x1.0 is exact). New sabotages
+  `branch_factor_zero_unowned` and `branch_factor_unguarded` CAUGHT; `unicorn_no_damage_step` and
+  `unicorn_step_reaches_kittens` retargeted and CAUGHT.
+- **Fix 5 not made** (one shared "move the focus back" helper, one shared `Realm()` / `Game()` lookup). The copies differ in
+  their conditions and targets, the gain is about ten one-line bodies, and it would move many realm sabotages' targets.
+  Recommendation: leave it.
+- **The engine guard's race, found and fixed.** The first `check_all` on the end state FAILED one gate: `L3 Pawpocalypse.UI`
+  refused in 1 s at 10:53:50, the second the Realm gate ended ("an Unreal editor is running"), naming nothing. The cause:
+  `run_automation.py`'s wait looped `while editor_running(): sleep`, then asked once more and refused at once on that second
+  look, so a process that appeared between the two refused the gate without the 30 s wait. The cut nightly's Audio refusal
+  (22:31:40, between two L3 gates) has the same signature. What blocked is unknown: by 10:55 the only Unreal process was
+  another project's network test (Cabbage, which does not block by design). Now `wait_until_clear`: anything seen is waited
+  for, the way is clear after two clean checks in a row, and the refusal prints each blocking process (pid, name, command
+  line). `guard_self_test` (5 cases on stubbed process lists and clock) runs inside `py tools/unreal_procs.py --self-test` (the
+  nightly's Unreal guard self-test, so no new gate); the old loop and two other wrong waits planted in scratch copies each
+  FAIL it.
+- **Proof.** L1 206 of 206, 6.70 M assertions (+2 tests). PawCore sabotages: 667 (+5); CAUGHT: every new or retargeted one,
+  and every one on the changed code (the splash's 4, the cards' 11, PcStats' 13). Realm sabotages: 564 (+1); CAUGHT: all 36
+  inside fix 2's functions and the 4 new or retargeted (`build/sabotage_realm_fix2_20261113.log`, 19 min).
+  `Pawpocalypse.UI.Hud.*` and `.JobPicker.*` 16 of 16. **The everyday `check_all`: 28 of 28 PASS, exit 0**, on fixes 1-3
+  (`build/check_all_20261113_audit_fixes.log`) and again on the end state with the guard fixed
+  (`build/check_all_20261113_fix4.log`). Not run:
+  the whole sabotage sets, L4, the long sweeps; the nightly runs them.
+- Docs: 00, 09 (L1, the sabotage counts, the run, the guard), CLAUDE.md (`run_automation.py --self-test`), the night's
+  worklist (the fixes as made). KB: U/18 §2 (a process guard with one check per pass that names what blocked), U/23 §5 (mutation-test the
+  guard left after folding repeated ones; a string-to-enum change MSVC does not check for missing cases; a `false &&` mutant
+  does not compile), U/18 §8 (after a type change, run every mutant in the changed files: one can stop compiling with its
+  target intact), INDEX (two keyword rows, three symptom rows), U/00.
+
+**Open.** D17's nightly, which now proves fixes 1-4 too (667 PawCore and 564 realm sabotages). Q13. Playing D17. Q11, Q10.
+R6, after R5's last reviews. Fix 5 (recommended: leave). Uncommitted: (104) and (105).
+
+**Next step.** The designer plays D17 and answers Q13. Then, with the editor closed, the nightly `-Full` (~10 h). Commit when
+the designer says.
+
+## 2026-11-13 (104) - The night cut by a power failure; one source zeroed and restored; planted faults now journaled
+
+**Where the project is.** On (103): commit `4f015ee`, pushed. The night of `WORKLIST-NIGHT-2026-11-12.md` (go 22:17, "Go,
+no fixes tonight") ended in a power failure at about 01:04. **D17 still has no nightly.** The desk work had finished before it
+(the tree price pass: ECONOMY-REVIEW §9, doc 01 Q13). This morning the designer asked "The pc lost power last night. Was
+anything lost?", then "make the sabotage power-safe". **The editor may be opened.** Uncommitted: the night's three docs,
+`tools/safe_mutate.py` and its three callers, `check_all.ps1`, docs 00 and 09, CLAUDE.md, the worklist closed.
+
+**What happened.**
+- **The power failure** (System log: Kernel-Power 41; the last file writes at 01:04:28). The nightly, started 22:26:39 on
+  `4f015ee`, was 2 h 38 min in, in `PawCore sabotage`: 352 of 662 CAUGHT, none missed. Before it, 26 of the 27 everyday gates
+  and the 4 self-tests PASS. `L3 Pawpocalypse.Audio` failed in 1 s without running ("an Unreal editor is running; close it
+  first" at 22:31:40, between two L3 gates that ran; the cause was not kept). It passes today (below).
+- **What was lost: one file.** The sabotage in place (one of the Achievements page's, written 01:04:18) held
+  `PcHud.cpp`'s original only in memory, restored in `finally`. After the reboot the file was 21,009 bytes of 0x00, the
+  mutant's size: NTFS had kept the new size, not the unflushed data. The tree had been clean at 22:18
+  (`build/night2/status_before_port.txt`), so the designer restored the file from the commit; it equals `HEAD`. Nothing
+  else: `git fsck` clean here and in the Godot repo, the Godot repo's status unchanged since 22:18, no other zeroed file
+  among the ~5,500 changed since noon (this project, the Godot repo, the KB, the other projects under `C:\Games`), and the
+  night's docs intact.
+- **Planted faults journaled: `tools/safe_mutate.py`.** `mutated(path, bytes, owner)` writes the original to
+  `build/mutation_journal` and flushes it, then an entry (path, owner, pid and its creation time, both versions' SHA-256);
+  the mutant and the restore each arrive as a flushed file renamed over the target, so the file is always one whole
+  version. A run that dies leaves its entry; `recover()` puts the original back over the mutant, zeros, an empty or a
+  missing file, and refuses (exit 2) a file changed since, a damaged entry or a run still alive. Callers:
+  `sabotage_pawcore.py`, `sabotage_realm.py` (each recovers first) and `check_pawcore_static.py --self-test` (its 8 plants in
+  generated files). The other self-tests already plant in scratch copies. `check_all`: `no mutant left in place`
+  (everyday, first gate; 28 gates) and `safe-mutate self-test` (nightly; 42 gates).
+- **Proof.** The self-test 14 of 14; 10 faults planted in a copy of the tool each fail it (among them an in-place write,
+  which the self-test sees by the file id staying the same). Real runs through it: 2 PawCore sabotages and 1 realm sabotage
+  CAUGHT with the tree unchanged after; a PawCore sabotage run killed mid-build (`taskkill /T /F`) left the mutant and its
+  entry, and `py tools/safe_mutate.py` restored it (`git diff` empty); L0's self-test PASS; **the everyday `check_all` 28 of
+  28 PASS, exit 0** (`build/check_all_20261113_safe_mutate.log`).
+- KB: U/18 §8 (an in-place mutation run and a power cut: what it leaves, the journal that prevents it), INDEX (a keyword
+  and a symptom row), U/00. Docs: 09 §7 (the cut nightly, the journal, the gate rows and counts), 00, CLAUDE.md (the tool and
+  the rule: a planted fault goes through `safe_mutate.mutated()`), the worklist closed.
+
+**Open.** D17's nightly. Everything open in (103): the audit's fixes 1-3 (4-5 later), Q13 (the tree's prices), playing D17;
+Q11; R6. The night's docs and this change are uncommitted.
+
+**Next step.** The designer plays D17 (the editor may be opened) and answers Q13 and the audit's fixes 1-3. Then, with the
+editor closed, the nightly `-Full` (~10 h), after fixes 1-3 if they go in so that it proves them too. Commit when the
+designer says.
+
 ## 2026-11-12 (103) - The `if` audit (a report; no code changed); docs brought up to date; committed and pushed; the night planned
 
 **Where the project is.** On (102). The designer kept the approved Reawaken blurb ("Keep blurb"), asked "i've heard that

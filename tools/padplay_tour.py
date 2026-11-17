@@ -23,8 +23,10 @@ LOG = ROOT / "Saved" / "Logs" / "PawPadPlay.log"
 def main() -> int:
     sys.path.insert(0, str(ROOT / "tools"))
     import unreal_procs
-    if unreal_procs.blocking():
+    found = unreal_procs.wait_blocking()
+    if found:
         print("padplay_tour: an Unreal process of this project is running; close it first")
+        unreal_procs.print_blocking(found)
         return 2
     shutil.rmtree(SAVES, ignore_errors=True)
     SAVES.mkdir(parents=True)

@@ -448,6 +448,42 @@ TEST_CASE("Field: Overkill splashes the nearest survivor and never chains; the k
 	CHECK(R.P.CatchesPoints + 24.0 * R.P.CatchesLevel >= Before.CatchesPoints + 2.0 - 1e-9);
 }
 
+// The `if` audit, fix 1 (2026-11-13): the callers no longer ask whether a blow overkilled; SplashOverkill's own check is
+// the only one, and this is what it stops.
+TEST_CASE("Field: Overkill splashes only a kill's excess: a blow that leaves its mouse alive, or a kill with none bought, splashes nothing")
+{
+	const Pc::PcGameData& D = Game();
+	for (const bool bKill : { false, true })
+	{
+		CAPTURE(bKill);
+		Run R("tier_1");
+		R.Quiet();
+		R.P.UpgradeLevels["paw_damage"] = 60;
+		R.P.UpgradeLevels["overkill"] = bKill ? 0 : 20;
+		Pc::RefreshFieldStats(R.F, D, R.P);
+		REQUIRE((R.F.Stats.OverkillFraction > 0.0) == !bKill);
+		const int32_t A = Pc::SpawnEnemyAt(R.F, D, R.P, "backyard_mouse", 800.0, 450.0, 1.0, 0.0);
+		const int32_t B = Pc::SpawnEnemyAt(R.F, D, R.P, "backyard_mouse", 840.0, 450.0, 1.0, 0.0);
+		if (!bKill)
+		{
+			R.F.MaxHp[A] = 1e15; // the strike cannot kill it
+			R.F.Hp[A] = 1e15;
+		}
+		const double HpB = R.F.Hp[B];
+		R.In.CatX = 790.0;
+		R.In.CatY = 450.0;
+		int K = 0;
+		while (R.Count(Pc::PcFieldEventKind::Strike) == 0 && K++ < 120)
+		{
+			R.Steps(1);
+		}
+		REQUIRE(R.Count(Pc::PcFieldEventKind::Strike) == 1);
+		CHECK(R.Alive(A) == !bKill);
+		CHECK(R.Count(Pc::PcFieldEventKind::Splash) == 0);
+		CHECK(R.F.Hp[B] == HpB);
+	}
+}
+
 TEST_CASE("Field: Execute finishes a mouse below its line, never through a shield")
 {
 	const Pc::PcGameData& D = Game();

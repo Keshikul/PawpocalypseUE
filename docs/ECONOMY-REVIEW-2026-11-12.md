@@ -11,6 +11,8 @@
 > 13 Reawakens, waits over 3 min 4 % (longest 4.0 min), nothing new at most 14 min. `--proposal before_d17` reproduces the
 > "today" column below. The text below is the review as the designer read it.
 >
+> **§9 (the night of 2026-11-12): the tree price pass**, the one goal D17 left open, measured as a proposal (doc 01 Q13).
+>
 > **A proposal. Nothing is built and nothing in `Data/` changed.** Every number below comes from `tools/econ_review.py`
 > (pawsim on `Data/*.csv`, the player who Reawakens as soon as the gate opens, plus the game's waves, plus a log of every
 > buy, tree level and Reawaken; proposals are applied in memory). Each change is the designer's call (D16: a change with a
@@ -176,3 +178,63 @@ py tools/econ_review.py --waits build/econ/today.json   # where the long waits a
 ```
 Levers: `pass` (E1), `keepbait` (E2), `inc<k>` (E3: Catnip x multiplier^k), `kit` (E4), `unl` (E5), `hpall<f>` (E6), and
 `outclass<s>`, `gate<f>`, `gates<f>`, `bait<f>`, `hp<tier>x<f>`, `coef<f>`. About 2.5 min a run; runs are deterministic.
+
+## 9. The tree price pass (a proposal, the night of 2026-11-12)
+
+> **A proposal. Nothing is built and nothing in `Data/` changed.** Measured on a copy of `tools/*.py` and `Data/` taken at
+> 22:18 (`build/night2/snap`; the scripts `tree_pass.py` and `econ_night.py` beside it, on the designer's PC only:
+> `build/` is not committed). The designer's call: doc 01 Q13.
+
+**The gap.** D17 met the review's goals except "something new on every late Reawaken". Two facts make it:
+- **Stardust per Reawaken grows about x3.5 each time** (10, 25, 88, 334, 1,176, 4,124, 14,450, 50,574, 177,085, 625,405,
+  2.19 M, 7.66 M, 26.9 M), the same curve before and after D17: it comes from the Reawaken gate (a Reawaken must pay 2.5x
+  the Stardust ever granted), not from the Catnip.
+- **The tree's single-level nodes cost at most 9,000** (Full Spectrum) and its gates stop at 4 Reawakens. By Reawaken 8
+  every node but the last bosses' jobs is bought; after it, a Reawaken buys ladder levels, and a job when a boss falls.
+
+**What a player can newly buy on each Reawaken.** pawsim buys only what raises its Catnip rate, so this asks a simpler
+player: after each Reawaken it buys every single-level node it can reach and afford, cheapest first, and spends the rest on
+ladders. On D17's measured run:
+
+| Reawakens | Stardust it brought | New single-level nodes today | With the proposal |
+|---|---|---|---|
+| 5 | 1,176 | 6 (three jobs, Auto-Travel, Auto-Card, Cartography) | the same |
+| 6 | 4,124 | **8** (Butcher's Rhythm, Kitten Foreman, Standing Wave, Auto-Bait, Deep Pockets, Sixth Sense, Overflow, a job perk) | 8: Standing Wave and Overflow move later; Grand Finale and Compound Interest come one Reawaken sooner |
+| 7 | 14,450 | **13** (the Blacksmith and its perks, the Unicorn, Prism, Rainbow Poop, Second Helping, Gridlock, Compound Interest, ...) | 10: Gridlock moves later, two come sooner |
+| 8 | 50,574 | 2 (Curiosity, Full Spectrum) | Curiosity, Gridlock |
+| 9 | 177,085 | the Daredevil and its perk | the same, and Overflow |
+| 10 | 625,405 | **nothing** | Full Spectrum (and Critical Mass under it) |
+| 11 | 2.19 M | **nothing** | Standing Wave |
+| 12 | 7.66 M | the Cat Burglar and its perk | the same |
+| 13 | 26.9 M | the Sphinx (the last boss's job) | the same |
+
+**The proposal: five prices, no gates.** Curiosity 6,400 -> 20,000; Gridlock 600 -> 20,000; Overflow 520 -> 70,000; Full
+Spectrum 9,000 -> 250,000; Standing Wave 450 -> 900,000. Each is about 40 % of the Stardust the Reawaken it is meant for
+brings, so it is the obvious buy on arrival and leaves most of that Reawaken for ladders. Which five nodes, and in which
+order, is the designer's: these are rule-changers that are not abilities (Pounce, the aura, Snare stay early) and not
+conveniences (the Auto- nodes, Cartography and Sixth Sense stay early). Prices can be shown as targets ("save for it") from
+the moment the node's gate opens.
+
+**Prices, not gates.** The same spread made with Reawaken gates instead (Curiosity and Gridlock at 8, Overflow 9, Full
+Spectrum 10, Standing Wave 11) gives the same table for this player, but fails a player who Reawakens less often. Measured
+with a stand-in for such a player (the Reawaken gate raised in memory: `gate5`, `gate10`):
+
+| Player | Reawakens | Game | With the prices | With the gates |
+|---|---|---|---|---|
+| Reawakens as soon as it may (D17) | 13 | 112 min | every node reached; new on every Reawaken 2-13 | the same |
+| Waits for a 5x gain | 10 | 121 min | every node reached; nothing new only on Reawaken 9 | Standing Wave never reached |
+| Waits for a 10x gain | 7 | 137 min | every node reached (Full Spectrum and Standing Wave on Reawaken 6) | **6 nodes never reached** (Full Spectrum, Critical Mass, Curiosity, Gridlock, Overflow, Standing Wave) |
+
+A price follows the Stardust, and the Stardust follows progress; a gate counts Reawakens, which a slower player makes
+fewer of.
+
+**What it costs the rest of the economy.** With the five prices, pawsim's game is 112.5 -> 113.3 min, 13 Reawakens, the
+waits unchanged (3.5 % of play in waits over 3 min, the longest 4.0 min), nothing new at most 13.9 -> 14.7 min.
+
+**What these numbers cannot see.** pawsim does not model what the five nodes do (Full Spectrum shows +0.1 % when bought;
+the others are never bought by its player): whether each one FEELS like a reward when it arrives late, and what the
+middle game loses without them, is for playing. Jobs: pawsim never takes one; the table counts a job's node as new when
+its boss falls. The stand-in players change the Reawaken gate itself, not only when the player chooses to Reawaken.
+
+**On a yes**: the five prices through `tools/godot_fixes.py` (as E6), the Godot fixtures made again, the tree's price
+labels checked at 900,000 in every language, and the `price:` lever added to `tools/econ_review.py`.

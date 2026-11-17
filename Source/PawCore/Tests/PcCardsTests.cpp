@@ -5,6 +5,7 @@
 #include "PcCsv.h"
 #include "PcData.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <map>
 #include <sstream>
@@ -181,6 +182,57 @@ TEST_CASE("Long: PcCards matches all 3,000 Godot CardManager rows" * doctest::te
 	CHECK(R.Rows == 3000);
 }
 
+// The `if` audit, fix 3 (2026-11-13): the requirement is an enum read by a switch with no default. Every value is walked
+// here: each is met by its own unlock and by no other, so a value the switch forgets (it falls to "met") fails.
+TEST_CASE("Cards: each requirement is met by its own unlock and no other")
+{
+	using Req = Pc::PcCardRequirement;
+	const Pc::PcGameData& D = Game();
+	auto Kittens = [&D](Pc::PcProgress& P)
+	{
+		while (Pc::KittenCount(D, P) < 1 && P.UpgradeLevels["kitten_count"] < 50)
+		{
+			++P.UpgradeLevels["kitten_count"];
+		}
+		REQUIRE(Pc::KittenCount(D, P) > 0);
+	};
+	struct FCase
+	{
+		const char* Owned;
+		std::vector<Req> Met;
+		std::vector<std::string> Branches;
+		bool bKitten = false;
+	};
+	const std::vector<FCase> Cases = {
+		{ "nothing", { Req::None }, {} },
+		{ "the Aura branch", { Req::None, Req::Aura }, { "unlock_aura" } },
+		{ "the Pounce branch", { Req::None, Req::Pounce }, { "unlock_pounce" } },
+		{ "the Overkill branch", { Req::None, Req::Overkill }, { "unlock_overkill" } },
+		{ "Rainbow Poop", { Req::None, Req::Poop }, { "unlock_unicorn", "unlock_poop" } },
+		{ "the Unicorn alone (no puddles)", { Req::None }, { "unlock_unicorn" } },
+		{ "a kitten", { Req::None, Req::Kitten }, {}, true },
+		{ "a kitten and the Pounce branch", { Req::None, Req::Pounce, Req::Kitten, Req::KittenPounce }, { "unlock_pounce" }, true },
+	};
+	for (const FCase& C : Cases)
+	{
+		Pc::PcProgress P;
+		for (const std::string& B : C.Branches)
+		{
+			P.BranchLevels[B] = 1;
+		}
+		if (C.bKitten)
+		{
+			Kittens(P);
+		}
+		for (int I = 0; I < static_cast<int>(Req::Count); ++I)
+		{
+			const Req R = static_cast<Req>(I);
+			const bool bExpected = std::find(C.Met.begin(), C.Met.end(), R) != C.Met.end();
+			CHECK_MESSAGE(Pc::CardRequirementMet(D, P, R) == bExpected, "owning " << C.Owned << ": requirement " << I);
+		}
+	}
+}
+
 TEST_CASE("Card rules from the Godot comments")
 {
 	const Pc::PcGameData& D = Game();
@@ -191,7 +243,7 @@ TEST_CASE("Card rules from the Godot comments")
 	Pc::PcProgress Fresh;
 	for (const Pc::PcCard* Card : Pc::EligibleCards(D, Fresh))
 	{
-		CHECK_MESSAGE(std::string(Pc::CardEffectRequirement(Card->Effect)).empty(), Card->Id << " offered with nothing to act on");
+		CHECK_MESSAGE(Pc::CardEffectRequirement(Card->Effect) == Pc::PcCardRequirement::None, Card->Id << " offered with nothing to act on");
 	}
 	// A banished card is never offered.
 	Pc::PcProgress Banish;

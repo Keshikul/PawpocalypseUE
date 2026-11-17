@@ -90,68 +90,57 @@ namespace Pc
 		return C.CardLevelCostBase * (std::pow(C.CardLevelCostGrowth, static_cast<double>(Level)) - 1.0) / (C.CardLevelCostGrowth - 1.0);
 	}
 
-	const char* CardEffectRequirement(CardEffect Effect)
+	PcCardRequirement CardEffectRequirement(CardEffect Effect)
 	{
 		switch (Effect)
 		{
-		case CardEffect::LONE_HUNTER: return "kitten";
-		case CardEffect::AURA_TRAIL: return "aura";
-		case CardEffect::AURA_PULSE: return "aura";
-		case CardEffect::AURA_SLOW: return "aura";
-		case CardEffect::EDGE_BURN: return "aura";
-		case CardEffect::POUNCE_CHAIN: return "pounce";
-		case CardEffect::POUNCE_CRATER: return "pounce";
-		case CardEffect::POUNCE_KILL_REFUND: return "pounce";
-		case CardEffect::POOP_DURATION: return "poop";
-		case CardEffect::POOP_TRAIL: return "poop";
-		case CardEffect::OVERKILL_TARGETS: return "overkill";
-		case CardEffect::KITTEN_KILL_EXPLODES: return "kitten";
-		case CardEffect::KITTEN_DRAG: return "kitten";
-		case CardEffect::GOLDEN_KITTEN: return "kitten";
-		case CardEffect::KITTEN_FROM_SIGNATURE: return "kitten";
-		case CardEffect::KITTEN_MIMIC_POUNCE: return "kitten_pounce";
-		default: return "";
+		case CardEffect::LONE_HUNTER: return PcCardRequirement::Kitten;
+		case CardEffect::AURA_TRAIL: return PcCardRequirement::Aura;
+		case CardEffect::AURA_PULSE: return PcCardRequirement::Aura;
+		case CardEffect::AURA_SLOW: return PcCardRequirement::Aura;
+		case CardEffect::EDGE_BURN: return PcCardRequirement::Aura;
+		case CardEffect::POUNCE_CHAIN: return PcCardRequirement::Pounce;
+		case CardEffect::POUNCE_CRATER: return PcCardRequirement::Pounce;
+		case CardEffect::POUNCE_KILL_REFUND: return PcCardRequirement::Pounce;
+		case CardEffect::POOP_DURATION: return PcCardRequirement::Poop;
+		case CardEffect::POOP_TRAIL: return PcCardRequirement::Poop;
+		case CardEffect::OVERKILL_TARGETS: return PcCardRequirement::Overkill;
+		case CardEffect::KITTEN_KILL_EXPLODES: return PcCardRequirement::Kitten;
+		case CardEffect::KITTEN_DRAG: return PcCardRequirement::Kitten;
+		case CardEffect::GOLDEN_KITTEN: return PcCardRequirement::Kitten;
+		case CardEffect::KITTEN_FROM_SIGNATURE: return PcCardRequirement::Kitten;
+		case CardEffect::KITTEN_MIMIC_POUNCE: return PcCardRequirement::KittenPounce;
+		default: return PcCardRequirement::None;
 		}
 	}
 
-	const char* CardCostRequirement(CardCost Cost)
+	PcCardRequirement CardCostRequirement(CardCost Cost)
 	{
 		switch (Cost)
 		{
-		case CardCost::AURA_RADIUS: return "aura";
-		case CardCost::POUNCE_DAMAGE: return "pounce";
-		case CardCost::KITTEN_COUNT: return "kitten";
-		default: return "";
+		case CardCost::AURA_RADIUS: return PcCardRequirement::Aura;
+		case CardCost::POUNCE_DAMAGE: return PcCardRequirement::Pounce;
+		case CardCost::KITTEN_COUNT: return PcCardRequirement::Kitten;
+		default: return PcCardRequirement::None;
 		}
 	}
 
-	bool CardRequirementMet(const PcGameData& D, const PcProgress& P, const std::string& Requirement)
+	bool CardRequirementMet(const PcGameData& D, const PcProgress& P, PcCardRequirement Requirement)
 	{
-		if (Requirement == "aura")
+		// No default: every value is named, and one added later and forgotten falls to the end, where the test
+		// "Cards: each requirement is met by its own unlock and no other" fails on it (MSVC's C4062 is off by default).
+		switch (Requirement)
 		{
-			return BranchLevel(P, "unlock_aura") > 0;
-		}
-		if (Requirement == "pounce")
-		{
-			return BranchLevel(P, "unlock_pounce") > 0;
-		}
-		if (Requirement == "overkill")
-		{
-			return BranchLevel(P, "unlock_overkill") > 0;
-		}
-		if (Requirement == "poop")
-		{
-			// Rainbow Poop makes the puddles, so the puddle cards open with it (F19, designer 2026-11-03; this read the
-			// node `unicorn`, which is Rainbow Gut).
-			return PoopUnlocked(P);
-		}
-		if (Requirement == "kitten")
-		{
-			return KittenCount(D, P) > 0;
-		}
-		if (Requirement == "kitten_pounce")
-		{
-			return KittenCount(D, P) > 0 && BranchLevel(P, "unlock_pounce") > 0;
+		case PcCardRequirement::None: return true;
+		case PcCardRequirement::Aura: return BranchLevel(P, "unlock_aura") > 0;
+		case PcCardRequirement::Pounce: return BranchLevel(P, "unlock_pounce") > 0;
+		case PcCardRequirement::Overkill: return BranchLevel(P, "unlock_overkill") > 0;
+		// Rainbow Poop makes the puddles, so the puddle cards open with it (F19, designer 2026-11-03; this read the node
+		// `unicorn`, which is Rainbow Gut).
+		case PcCardRequirement::Poop: return PoopUnlocked(P);
+		case PcCardRequirement::Kitten: return KittenCount(D, P) > 0;
+		case PcCardRequirement::KittenPounce: return KittenCount(D, P) > 0 && BranchLevel(P, "unlock_pounce") > 0;
+		case PcCardRequirement::Count: break;
 		}
 		return true;
 	}
@@ -190,7 +179,7 @@ namespace Pc
 			Hint.Kind = PcCardHintKind::MaxLevel;
 			return Hint;
 		}
-		for (const char* Requirement : { CardEffectRequirement(Card.Effect), CardCostRequirement(Card.Cost) })
+		for (const PcCardRequirement Requirement : { CardEffectRequirement(Card.Effect), CardCostRequirement(Card.Cost) })
 		{
 			if (!CardRequirementMet(D, P, Requirement))
 			{

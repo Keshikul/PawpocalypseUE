@@ -102,18 +102,6 @@ namespace
 	constexpr float RowTextWrap = 360.0f;      // a row's text beside its button
 	constexpr float MarkSize = 14.0f;          // the achievement mark (★ ◆ ☆: the font has none until phase 6's art)
 
-	// CardManager.REQUIREMENT_TEXT: one line per requirement, phrased as an instruction.
-	const TCHAR* CardRequirementKey(const std::string& Requirement)
-	{
-		if (Requirement == "aura") return TEXT("CATCHES_hint_aura");
-		if (Requirement == "pounce") return TEXT("CATCHES_hint_pounce");
-		if (Requirement == "overkill") return TEXT("CATCHES_hint_overkill");
-		if (Requirement == "poop") return TEXT("CATCHES_hint_poop");
-		if (Requirement == "kitten") return TEXT("CATCHES_hint_kitten");
-		if (Requirement == "kitten_pounce") return TEXT("CATCHES_hint_kitten_pounce");
-		return TEXT("CATCHES_hint_other");
-	}
-
 	const TCHAR* TabKey(PcDockTab T)
 	{
 		static const TCHAR* Keys[] = { TEXT("TAB_upgrades"), TEXT("TAB_reawaken"), TEXT("TAB_realms"), TEXT("TAB_catches"), TEXT("TAB_awards"), TEXT("TAB_jobs") };
@@ -1324,6 +1312,25 @@ void UPawHudScreen::NativeDestruct()
 
 // --- refresh --------------------------------------------------------------------------------------------------------
 
+// CardManager.REQUIREMENT_TEXT: one line per requirement, phrased as an instruction. No default: a value forgotten here
+// falls to "other", which Pawpocalypse.UI.Hud.Catches fails on (it walks every value).
+const TCHAR* UPawHudScreen::CardRequirementKey(Pc::PcCardRequirement Requirement)
+{
+	switch (Requirement)
+	{
+	case Pc::PcCardRequirement::Aura: return TEXT("CATCHES_hint_aura");
+	case Pc::PcCardRequirement::Pounce: return TEXT("CATCHES_hint_pounce");
+	case Pc::PcCardRequirement::Overkill: return TEXT("CATCHES_hint_overkill");
+	case Pc::PcCardRequirement::Poop: return TEXT("CATCHES_hint_poop");
+	case Pc::PcCardRequirement::Kitten: return TEXT("CATCHES_hint_kitten");
+	case Pc::PcCardRequirement::KittenPounce: return TEXT("CATCHES_hint_kitten_pounce");
+	case Pc::PcCardRequirement::None:
+	case Pc::PcCardRequirement::Count:
+		break;
+	}
+	return TEXT("CATCHES_hint_other");
+}
+
 UPawRealmSubsystem* UPawHudScreen::Realm() const
 {
 	const UWorld* W = GetWorld();
@@ -1656,32 +1663,34 @@ void UPawHudScreen::ReadFieldEvents()
 void UPawHudScreen::RefreshNow()
 {
 	++Refreshes;
-	RefreshStatus();
-	RefreshTabs();
-	RefreshField();
-	// Hidden pages do nothing (hud.gd: measured, a hidden page refreshed cost 39 ms a second).
-	switch (ActiveTabRef())
+	// The one lookup and readiness check for every refresh below, which take what they draw from (each used to look it
+	// up and ask again). Game() comes through Realm(): a ready game means a realm too.
+	const UPawRealmSubsystem* R = Realm();
+	const UPawGameSubsystem* G = R ? R->GetGame() : nullptr;
+	if (G && G->IsDataReady())
 	{
-	case PcDockTab::Upgrades: RefreshShop(); break;
-	case PcDockTab::Realms: RefreshRealms(); break;
-	case PcDockTab::Reawaken: RefreshReawaken(); break;
-	case PcDockTab::Catches: RefreshCatches(); break;
-	case PcDockTab::Achievements: RefreshAchievements(); break;
-	case PcDockTab::Jobs: RefreshJobs(); break;
-	default: break;
+		RefreshStatus(*R, *G);
+		RefreshTabs(*R, *G);
+		RefreshField(*R, *G);
+		// Hidden pages do nothing (hud.gd: measured, a hidden page refreshed cost 39 ms a second).
+		switch (ActiveTabRef())
+		{
+		case PcDockTab::Upgrades: RefreshShop(*G); break;
+		case PcDockTab::Realms: RefreshRealms(*R, *G); break;
+		case PcDockTab::Reawaken: RefreshReawaken(*G); break;
+		case PcDockTab::Catches: RefreshCatches(*G); break;
+		case PcDockTab::Achievements: RefreshAchievements(*G); break;
+		case PcDockTab::Jobs: RefreshJobs(*G); break;
+		default: break;
+		}
 	}
 	WriteNavigation();
 }
 
-void UPawHudScreen::RefreshShop()
+void UPawHudScreen::RefreshShop(const UPawGameSubsystem& G)
 {
-	const UPawGameSubsystem* G = Game();
-	if (!G || !G->IsDataReady())
-	{
-		return;
-	}
-	const Pc::PcGameData& D = G->Data();
-	const Pc::PcProgress& P = G->Progress();
+	const Pc::PcGameData& D = G.Data();
+	const Pc::PcProgress& P = G.Progress();
 	{
 		FFormatNamedArguments Args;
 		Args.Add(TEXT("multiplier"), PawText::Ui(MultiplierKey(BuyMultiplierRef())));
@@ -1723,17 +1732,11 @@ void UPawHudScreen::RefreshShop()
 	}
 }
 
-void UPawHudScreen::RefreshStatus()
+void UPawHudScreen::RefreshStatus(const UPawRealmSubsystem& R, const UPawGameSubsystem& G)
 {
-	const UPawRealmSubsystem* R = Realm();
-	const UPawGameSubsystem* G = Game();
-	if (!R || !G || !G->IsDataReady())
-	{
-		return;
-	}
-	const Pc::PcGameData& D = G->Data();
-	const Pc::PcProgress& P = G->Progress();
-	const Pc::PcField& F = R->GetSim().Field;
+	const Pc::PcGameData& D = G.Data();
+	const Pc::PcProgress& P = G.Progress();
+	const Pc::PcField& F = R.GetSim().Field;
 
 	SetText(CatnipText, PawText::Amount(P.Catnip));
 	SetText(StardustText, PawText::Amount(P.Stardust));
@@ -1795,16 +1798,10 @@ void UPawHudScreen::RefreshStatus()
 	}
 }
 
-void UPawHudScreen::RefreshTabs()
+void UPawHudScreen::RefreshTabs(const UPawRealmSubsystem& R, const UPawGameSubsystem& G)
 {
-	const UPawRealmSubsystem* R = Realm();
-	const UPawGameSubsystem* G = Game();
-	if (!R || !G || !G->IsDataReady())
-	{
-		return;
-	}
-	const Pc::PcGameData& D = G->Data();
-	const Pc::PcProgress& P = G->Progress();
+	const Pc::PcGameData& D = G.Data();
+	const Pc::PcProgress& P = G.Progress();
 	if (JobsSeenRef() < 0)
 	{
 		JobsSeenRef() = static_cast<int64>(P.JobsHeld.size()); // a loaded game does not badge jobs owned for days
@@ -1813,7 +1810,7 @@ void UPawHudScreen::RefreshTabs()
 	for (int32 I = 0; I < TabCount; ++I)
 	{
 		const PcDockTab Tab = static_cast<PcDockTab>(I);
-		const Pc::PcTabState S = Pc::TabState(R->GetSim().Field, D, P, Tab, ActiveTabRef(), JobsSeenRef());
+		const Pc::PcTabState S = Pc::TabState(R.GetSim().Field, D, P, Tab, ActiveTabRef(), JobsSeenRef());
 		UPawButton* Button = Tabs[I];
 		SetShown(Button, S.bVisible, ESlateVisibility::Visible);
 		Button->SetBadge(S.bBadge, S.Count);
@@ -1827,18 +1824,12 @@ void UPawHudScreen::RefreshTabs()
 	}
 }
 
-void UPawHudScreen::RefreshField()
+void UPawHudScreen::RefreshField(const UPawRealmSubsystem& R, const UPawGameSubsystem& G)
 {
-	const UPawRealmSubsystem* R = Realm();
-	const UPawGameSubsystem* G = Game();
-	if (!R || !G || !G->IsDataReady())
-	{
-		return;
-	}
-	const Pc::PcGameData& D = G->Data();
-	const Pc::PcField& F = R->GetSim().Field;
+	const Pc::PcGameData& D = G.Data();
+	const Pc::PcField& F = R.GetSim().Field;
 
-	const Pc::PcPounceClock Clock = Pc::PounceClock(F, G->Progress());
+	const Pc::PcPounceClock Clock = Pc::PounceClock(F, G.Progress());
 	SetShown(PounceClock, Clock.bVisible, ESlateVisibility::HitTestInvisible);
 	SetShown(PouncePrompt, Clock.bVisible, ESlateVisibility::HitTestInvisible);
 
@@ -1982,16 +1973,10 @@ void UPawHudScreen::BuildReawakenPage(UVerticalBox* Page)
 	Page->AddChildToVerticalBox(AskButton);
 }
 
-void UPawHudScreen::RefreshRealms()
+void UPawHudScreen::RefreshRealms(const UPawRealmSubsystem& R, const UPawGameSubsystem& G)
 {
-	const UPawRealmSubsystem* R = Realm();
-	const UPawGameSubsystem* G = Game();
-	if (!R || !G || !G->IsDataReady())
-	{
-		return;
-	}
-	const Pc::PcGameData& D = G->Data();
-	const Pc::PcProgress& P = G->Progress();
+	const Pc::PcGameData& D = G.Data();
+	const Pc::PcProgress& P = G.Progress();
 
 	// The stage line: naming the boss in the way turns a readout into a direction to walk in.
 	const Pc::PcStageLine Stage = Pc::StageLine(D, P);
@@ -2019,7 +2004,7 @@ void UPawHudScreen::RefreshRealms()
 	// The Bait button: shown in every biome until every boss has fallen this run. It leans while the bait calls; a refresh
 	// leaves a running lean alone. Godot's _refresh_bait_button stopped it at its top and started it again at its end, 15
 	// times a second, so it never finished a lean and trembled (F42, a Godot fault the port does not copy: D16).
-	const Pc::PcBaitButton Bait = Pc::BaitButton(R->GetSim().Field, D, P);
+	const Pc::PcBaitButton Bait = Pc::BaitButton(R.GetSim().Field, D, P);
 	SetShown(BaitButton, Bait.Kind != Pc::PcBaitKind::Hidden, ESlateVisibility::Visible);
 	if (Bait.Kind != Pc::PcBaitKind::Hidden)
 	{
@@ -2060,7 +2045,7 @@ void UPawHudScreen::RefreshRealms()
 	{
 		Juice.Jitter(BaitButton, false, true); // no boss to call: the lean stops (here only: F42)
 	}
-	AutoTravelButton->SetCheck(true, Game() && Game()->Slot().bAutoTravel);
+	AutoTravelButton->SetCheck(true, G.Slot().bAutoTravel);
 	// Hidden until the skill tree hands the automation over (hud.gd: a switch for something the player cannot do yet reads
 	// as a broken switch).
 	SetShown(AutoTravelButton, Pc::OwnsAutoTravel(D, P), ESlateVisibility::Visible);
@@ -2118,14 +2103,9 @@ void UPawHudScreen::RefreshRealms()
 	}
 }
 
-void UPawHudScreen::RefreshReawaken()
+void UPawHudScreen::RefreshReawaken(const UPawGameSubsystem& G)
 {
-	const UPawGameSubsystem* G = Game();
-	if (!G || !G->IsDataReady())
-	{
-		return;
-	}
-	const Pc::PcReawakenPage Page = Pc::ReawakenPage(G->Data(), G->Progress(), bReawakenArmed);
+	const Pc::PcReawakenPage Page = Pc::ReawakenPage(G.Data(), G.Progress(), bReawakenArmed);
 	FFormatNamedArguments Progress;
 	Progress.Add(TEXT("earned"), PawText::Amount(Page.Earned));
 	Progress.Add(TEXT("required"), PawText::Amount(Page.Required));
@@ -2298,15 +2278,10 @@ void UPawHudScreen::BuildJobsPage(UVerticalBox* Page)
 	// The rows: BuildJobRows, at runtime, into JobList.
 }
 
-void UPawHudScreen::RefreshCatches()
+void UPawHudScreen::RefreshCatches(const UPawGameSubsystem& G)
 {
-	const UPawGameSubsystem* G = Game();
-	if (!G || !G->IsDataReady())
-	{
-		return;
-	}
-	const Pc::PcGameData& D = G->Data();
-	const Pc::PcCatchesPage Page = Pc::CatchesPage(D, G->Progress(), G->Slot().bAutoPickCard);
+	const Pc::PcGameData& D = G.Data();
+	const Pc::PcCatchesPage Page = Pc::CatchesPage(D, G.Progress(), G.Slot().bAutoPickCard);
 	FText Summary;
 	if (Page.Taken == 0)
 	{
@@ -2326,7 +2301,7 @@ void UPawHudScreen::RefreshCatches()
 	}
 	SetText(CatchesSummary, Summary);
 	SetShown(AutoPickButton, Page.bAutoPickShown, ESlateVisibility::Visible);
-	AutoPickButton->SetCheck(true, G->Slot().bAutoPickCard);
+	AutoPickButton->SetCheck(true, G.Slot().bAutoPickCard);
 
 	for (int32 I = 0; I < CardRows.Num() && I < static_cast<int32>(Page.Rows.size()); ++I)
 	{
@@ -2364,15 +2339,10 @@ void UPawHudScreen::RefreshCatches()
 	}
 }
 
-void UPawHudScreen::RefreshAchievements()
+void UPawHudScreen::RefreshAchievements(const UPawGameSubsystem& G)
 {
-	const UPawGameSubsystem* G = Game();
-	if (!G || !G->IsDataReady())
-	{
-		return;
-	}
-	const Pc::PcGameData& D = G->Data();
-	const Pc::PcAchievementsPage Page = Pc::AchievementsPage(D, G->Progress());
+	const Pc::PcGameData& D = G.Data();
+	const Pc::PcAchievementsPage Page = Pc::AchievementsPage(D, G.Progress());
 	for (int32 I = 0; I < ClaimButtons.Num() && I < static_cast<int32>(Page.Rows.size()); ++I)
 	{
 		const Pc::PcAchievementRow& S = Page.Rows[static_cast<size_t>(I)];
@@ -2439,15 +2409,10 @@ void UPawHudScreen::RefreshAchievements()
 	SetShown(ClaimAllButton, Page.Waiting > 0, ESlateVisibility::Visible);
 }
 
-void UPawHudScreen::RefreshJobs()
+void UPawHudScreen::RefreshJobs(const UPawGameSubsystem& G)
 {
-	const UPawGameSubsystem* G = Game();
-	if (!G || !G->IsDataReady())
-	{
-		return;
-	}
-	const Pc::PcGameData& D = G->Data();
-	const std::vector<Pc::PcJobRow> JobStates = Pc::JobRows(D, G->Progress());
+	const Pc::PcGameData& D = G.Data();
+	const std::vector<Pc::PcJobRow> JobStates = Pc::JobRows(D, G.Progress());
 	for (int32 I = 0; I < JobButtons.Num() && I < static_cast<int32>(JobStates.size()); ++I)
 	{
 		const Pc::PcJobRow& S = JobStates[static_cast<size_t>(I)];
@@ -2687,11 +2652,12 @@ void UPawHudScreen::ReturnToStartingBiome()
 	UCommonActivatableWidgetStack* Stack = ModalStack.Get();
 	if (G && G->IsDataReady() && Stack && Pc::ShouldAskForJob(G->Progress()))
 	{
-		JobPicker = Stack->AddWidget<UPawJobPicker>(PawUi::Resolve<UPawJobPicker>(), [this](UPawJobPicker& Picker)
+		JobPicker = Stack->AddWidget<UPawJobPicker>(PawUi::Resolve<UPawJobPicker>(), [this, G](UPawJobPicker& Picker)
 		{
-			Picker.OnChosen = [this]()
+			// G: checked ready just above; the game subsystem outlives the HUD and its picker.
+			Picker.OnChosen = [this, G]()
 			{
-				RefreshJobs();
+				RefreshJobs(*G);
 				TravelToStartingBiome();
 			};
 		});

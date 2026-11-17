@@ -97,13 +97,19 @@
 
 ## 7. What exists today (updated 2026-11-10)
 
-`powershell -ExecutionPolicy Bypass -File tools\check_all.ps1` runs the **everyday set** (27 gates, ~6 min) and `-Full` the
-**nightly** (40 gates, ~10 h). The history of each count is in the HANDOFF-LOG entries named below.
+`powershell -ExecutionPolicy Bypass -File tools\check_all.ps1` runs the **everyday set** (28 gates, ~6 min) and `-Full` the
+**nightly** (42 gates, ~10 h; +1 each on 2026-11-13: `no mutant left in place`, `safe-mutate self-test`). The history of each count is in the HANDOFF-LOG entries named below.
 
-- **Last everyday run 2026-11-11** (`build/check_all_night_final.log`, HANDOFF-LOG (96)): 27 of 27 PASS, exit 0. The same
+- **Last everyday run 2026-11-13, on the `if` audit's fixes 1-4** (`build/check_all_20261113_fix4.log`, HANDOFF-LOG (105)):
+  28 of 28 PASS, exit 0 (and on fixes 1-3 alone: `build/check_all_20261113_audit_fixes.log`; and once more after every
+  engine guard was made to wait: `build/check_all_20261113_guard.log`, HANDOFF-LOG (106)). The same day, outside
+  `check_all`: every new or retargeted sabotage and every one on the changed code CAUGHT (PawCore: the splash's 4, the
+  cards' 11, PcStats' 13; realm: the 36 inside the HUD's refreshes and the 4 new or retargeted,
+  `build/sabotage_realm_fix2_20261113.log`, 19 min). The nightly that proves the whole sets is still owed.
+- **Everyday run 2026-11-11** (`build/check_all_night_final.log`, HANDOFF-LOG (96)): 27 of 27 PASS, exit 0. The same
   night, outside `-Full`: the whole realm gate (516 of 516 CAUGHT, 4 h 8 min), every Godot fixture reproduced, PawCore's
   sabotages on what the night changed (55), the long suite, L4 (44 of 44).
-- **Last everyday run 2026-11-12, on D17** (`build/check_all_d17.log`, HANDOFF-LOG (102)): 27 of 27 PASS, exit 0. The same
+- **Everyday run 2026-11-12, on D17** (`build/check_all_d17.log`, HANDOFF-LOG (102)): 27 of 27 PASS, exit 0. The same
   day, outside `check_all`: every Godot fixture made again with D17's fixes (13 of 51 differ from the last commit, F3's 6 among them; the 2 wall-clock ones kept as committed), the
   17 new or retargeted PawCore sabotages and 3 realm sabotages CAUGHT, the mirror's self-test (12 of 12, one new: the Catnip
   exponent), pawsim on Godot's `.tres` through the fixes identical to pawsim on `Data/` (the v4 report).
@@ -113,6 +119,13 @@
 - **Last nightly 2026-11-11/12** (`build/check_all_full_20261111.log`, HANDOFF-LOG (99)): 40 of 40 PASS, exit 0, 9 h 54 min.
   Times: PawCore sabotage 3 h 17 min (641), Realm sabotage 4 h 25 min (554), the pawsim parity sweep 1 h 22 min, the long
   suite 20 min, the Godot fixtures 17 min, L4 2 min (45 checks).
+- **The nightly of 2026-11-12/13 was cut by a power failure** (`build/check_all_full_20261112.log`, HANDOFF-LOG (104)):
+  started 22:26 on `4f015ee` (D17), the power went at about 01:04, 2 h 38 min in, during `PawCore sabotage` (352 of 662
+  CAUGHT, none missed). Before it: 26 of the 27 everyday gates and the 4 self-tests PASS; `L3 Pawpocalypse.Audio` did not
+  run (the runner's guard saw an Unreal process at 22:31:40; not a test result; most likely the guard's race, fixed
+  2026-11-13, HANDOFF-LOG (105)). Not a nightly: D17's is still owed. The
+  sabotaged `PcHud.cpp` came back all zeros; it was restored from the commit, and since then every planted fault is
+  journaled (below).
 - **The nightly before, 2026-11-10** (`build/check_all_full_r5.log`, HANDOFF-LOG (87)): 37 of 39 PASS; the two failures were fixed
   the same day and each rerun alone (a Godot fixture stale after the dock default moved; a realm sabotage MISSED, its test
   strengthened and the sabotage seen CAUGHT). Times: PawCore sabotage 3 h 42 min (628), Realm sabotage 3 h 56 min (490), the
@@ -121,13 +134,29 @@
   process of this project was open: not proven, not done).
 - **The guard** (`tools/unreal_procs.py`, self-tested in `-Full`): the engine gates and tools refuse while an Unreal process of
   THIS project runs, or one naming no project (it may be the designer's editor opened through the project browser); another
-  project's process is ignored.
+  project's process is ignored. Every guard asks `unreal_procs.wait_blocking()` (`--wait` from the command line), never one
+  look: it waits up to 30 s for anything it sees, calls the way clear only after two clean checks in a row, and names each
+  blocking process when it refuses (2026-11-13: `run_automation.py`'s old loop looked once more after waiting and refused at
+  once on a process that appeared in between, naming nothing; L3 UI refused that way in 1 s, and probably the cut nightly's
+  Audio gate; HANDOFF-LOG (105)). The same day every other guard was moved onto the wait: check_all's SKIP check before each
+  engine gate (it now prints what blocked), `sabotage_realm.py`'s (at night it starts the moment L4's game window returns),
+  `import_data.py`, `padplay_tour.py` and the import/bake tools (HANDOFF-LOG (106)). The wait is self-tested with the guard
+  (5 cases on stubbed process lists; seen to FAIL on the old loop and two other wrong waits), and was seen end to end on a
+  real process named `UnrealEditor…` that names no project: check_all's check, the realm sabotage and `import_data.py` each
+  waited 30 s and refused naming its pid; one that left after 6 s was waited for and the guard went ahead.
 - **The engine gates run on this source's DLLs**: `UBT editor build` runs first and a failed build FAILS every engine gate
   unrun; `UBT game build` runs last (editor-only API passes the editor build and breaks only the game target: found by the
   phase 4 packaged gate, HANDOFF-LOG (41)). `tools/run_automation.py` builds on its own too (`--no-build` for a caller that has
   just built), fails a run in which a test started and never completed (a crash), and waits up to 30 s for an exiting editor.
 - `sabotage targets current` (everyday, seconds): every sabotage's target found exactly once in its source, so a target that a
-  later change rewrote fails the day it happens, not the nightly. Never run it beside a live sabotage run.
+  later change rewrote fails the day it happens, not the nightly. Never run it beside a live sabotage run (it refuses,
+  exit 2, while the journal names a running one).
+- **A planted fault is journaled before it lands** (`tools/safe_mutate.py`, 2026-11-13): the sabotage runners and L0's
+  self-test edit real files only through `safe_mutate.mutated()`: the original is written to `build/mutation_journal` and
+  flushed first, the mutant and the restore each arrive as a flushed file renamed over the target (never a torn or zeroed
+  file), and a run that dies leaves its entry. `no mutant left in place` (everyday, the first gate) puts every such original
+  back, or FAILS when a person is needed: the file changed since, a damaged entry, a run still going. Why: the power
+  failure of 2026-11-12/13 left a sabotaged source all zeros, its original only in the dead run's memory (HANDOFF-LOG (104)).
 - Logs in `build\check_all\<gate>.log`; the table and the exit code are the verdict; the Godot repo's `git status` is
   compared before and after (`Godot repo untouched`).
 
@@ -135,8 +164,9 @@
 
 | Gate | Command | What it proves | Its negative test |
 |---|---|---|---|
+| no mutant left in place | `py tools/safe_mutate.py` | no planted fault of a negative-test run that died (a power cut, a kill) is left in the tree: each journaled original is put back over the mutant, zeros or a missing file; a file changed since, a damaged entry or a live run FAIL | `--self-test` (nightly, 14 checks: each leftover state, a live run never undone, a second mutation refused, writes by rename); seen to FAIL on each of 10 faults planted in a copy of the tool, and on a real sabotage run killed mid-build (the mutant restored, `git diff` empty) |
 | L0 static | `py tools/check_pawcore_static.py` | no `float` in PawCore (one named exception, `PcBackdrop`: `FLOAT_IS_THE_SPEC`); PawCore includes only std, `Pc*.h`, doctest (module glue excepted); every `Tests/*.cpp` guarded; every generated file current (`PcEnums.h`, `PcDataRows.h`, `PawDataRows.h`, `PawTokens.h`, `PcBackdropTones.h`, `PcGodotLook.h`, `PawFxLook.h`, `PawFontSpec.h`, `PawInputDefaults.h`, `PawTreeTables.h`, `ST_Data.csv`, `ST_Tree.csv`); `Data/*.csv` = a fresh export of the Godot project (`CodeConstants.csv` included: the export fails on a code constant with no row in `Data/CodeConstantsMap.csv`, or a mapped one gone); **ui-rules**: no colour value in UI code but the generated tokens, no hard-coded player text, no `FText::AsNumber` / `AsPercent`, no engine font, every `ST_UI` key named exists and every one is named | `--self-test` (nightly): one plant per rule, all caught |
-| L1 PawCore tests | `tools\build_pawcore_tests.ps1` | **204 test cases, 6.70 M assertions** (2026-11-12; +2: F3's Patience rule, review CR17's event queue; +4: D17's rules, E1/E2, E3, the Unicorn with E4/E5's numbers, save format 2): every PawCore module against the REAL Godot code through its fixture (`PcFormat` 4,403 outputs, `PcCombat` 2,000 rows bit for bit, `PcStats`, `PcEconomy`, `PcCards`, `PcCardDraw` card for card against Godot's own PCG32 stream, `PcTree`, `PcJobs`, `PcProgress` and `PcAchievements` as replayed operation logs, `PcFieldRules`, the field's kittens, aura, Pounce, extras and boss, `PcHud`, `PcTreeLayout` / `PcTreeText`, `PcSave`, `PcTitle`, `PcPause`, `PcSettings`, `PcDevice`, `PcBindings`, `PcControls`, `PcDockRepeat`, `PcBackdrop`, `PcJuice`, `PcRainbow` / `PcSky`, `PcTween` / `PcUnicorn`: 1,000 rows each unless named), the 58 validator rules, and rule tests for what only a running field shows (determinism per seed, the 320 ceiling, shields, Overkill never chains, kittens, zones, Pounce, the boss). Presentation scripts are recompiled from their own source with their draw calls renamed to recorders; float32 tolerances are stated per fixture | `py tools/sabotage_pawcore.py` (nightly): **646** one-line source sabotages (2026-11-12), each caught by its test; it refuses to run when a target is not in its file exactly once, and refuses a sabotage that changes nothing (NOLAND) |
+| L1 PawCore tests | `tools\build_pawcore_tests.ps1` | **206 test cases, 6.70 M assertions** (2026-11-13; +2: F3's Patience rule, review CR17's event queue; +4: D17's rules, E1/E2, E3, the Unicorn with E4/E5's numbers, save format 2; +2 for the `if` audit's fixes: a blow that does not kill splashes nothing, each card requirement met by its own unlock only): every PawCore module against the REAL Godot code through its fixture (`PcFormat` 4,403 outputs, `PcCombat` 2,000 rows bit for bit, `PcStats`, `PcEconomy`, `PcCards`, `PcCardDraw` card for card against Godot's own PCG32 stream, `PcTree`, `PcJobs`, `PcProgress` and `PcAchievements` as replayed operation logs, `PcFieldRules`, the field's kittens, aura, Pounce, extras and boss, `PcHud`, `PcTreeLayout` / `PcTreeText`, `PcSave`, `PcTitle`, `PcPause`, `PcSettings`, `PcDevice`, `PcBindings`, `PcControls`, `PcDockRepeat`, `PcBackdrop`, `PcJuice`, `PcRainbow` / `PcSky`, `PcTween` / `PcUnicorn`: 1,000 rows each unless named), the 58 validator rules, and rule tests for what only a running field shows (determinism per seed, the 320 ceiling, shields, Overkill never chains, kittens, zones, Pounce, the boss). Presentation scripts are recompiled from their own source with their draw calls renamed to recorders; float32 tolerances are stated per fixture | `py tools/sabotage_pawcore.py` (nightly): **667** one-line source sabotages (2026-11-13), each caught by its test; it refuses to run when a target is not in its file exactly once, and refuses a sabotage that changes nothing (NOLAND) |
 | mirror (PawCore vs pawsim) | `py tools/check_mirror.py [--random N]` | `pawcore_sim.exe` == pawsim on Godot's mirror fixture at every stage, 2,000 random states (damage, kittens, income, the Stardust grant and gate, Legacy, Fortune, golden chances) and every price, 1e-9 relative (measured: bit-identical) | `--self-test` (nightly): 11 data sabotages, all caught |
 | validator fuzz 3k | `py tools/fuzz_validator.py --trials N` | random single-cell corruptions of `Data/*.csv`: every hostile one rejected or explained in the script | its `EXPLAINED` list emptied -> it fails |
 | art generators reproduce | `py tools/art/build_art.py --check` | `tools/art` regenerates `SourceArt/svg` byte for byte (554 files); the floors tile without a seam (`sweet_biomes.py --seams`). Until D14 (2026-11-07) it also had to equal Godot's `assets/art` | seen to FAIL: one ink hex, 738 differences; the seam gate at a lowered limit |
@@ -163,14 +193,14 @@
 
 | Gate | What it proves |
 |---|---|
-| L0 self-test, mirror self-test, font coverage self-test, Unreal guard self-test, DataTable parity self-test | each everyday gate's own negative test |
-| PawCore sabotage | 662 one-line sabotages of PawCore (2026-11-12; +12 on 2026-11-11 for batch B and F36, +5 on 2026-11-12 for F3 and CR17, +16 for D17 and one retargeted to D17's rule), each CAUGHT by L1 (or the long suite) |
+| L0 self-test, mirror self-test, font coverage self-test, Unreal guard self-test, safe-mutate self-test, DataTable parity self-test | each everyday gate's own negative test |
+| PawCore sabotage | 667 one-line sabotages of PawCore (2026-11-13; +12 on 2026-11-11 for batch B and F36, +5 on 2026-11-12 for F3 and CR17, +16 for D17 and one retargeted to D17's rule; +5 on 2026-11-13 for the `if` audit's fixes 1, 3 and 4, five retargeted), each CAUGHT by L1 (or the long suite) |
 | Godot fixtures reproduce | `py tools/make_godot_fixtures.py --check`: the REAL Godot code, run in a sandboxed scratch copy, writes today's fixtures byte for byte (the oracle; the C++ tests are its negative test) |
 | L1 long suite | `build_pawcore_tests.ps1 -Long`: 36 cases, 9.6 M assertions: the full Godot fixtures (3,000-5,000 rows each); the field soak (a scripted cat through the first three biomes, 3 seeds x 3 game hours, every step's invariants); the full-field step (320 mice, 21 kittens, aura, zones, Prism: 0.093 ms against 2 ms); ~150 M random progress states (finite stats, damage never lowered by a level (Patience x Attack Speed excepted, counted: F3), prices rising, uncapped lines dearer faster than they pay, formatting over 60 M random bit patterns, the RNG uniform over 2e10 draws) |
 | mirror 200k states, validator fuzz 30k | the everyday gates at scale |
 | pawsim parity sweep | pawsim on `Data/*.csv` == pawsim on the Godot `.tres`, byte for byte, over 90 settings (`--self-test`: one enemy's HP +1 % must show) |
 | L4 pad-only playthrough | `py tools/padplay_tour.py`: `paw.PadPlay` in a real `-game` window on fresh sandboxed saves, pad events through `FSlateApplication`: the title, a new game, the shop, a card, travel, the first boss's Bait, a Reawaken, the tree, the pause menu, Settings, save and quit, Continue; the focus tour of six screens; the tree's selection and tooltip following the pad's focus (review CR9); 45 checks |
-| Realm sabotage | `py tools/sabotage_realm.py`: 563 one-line sabotages of the game module (+2 for D17's Reawaken line on 2026-11-12, one retargeted to D17's rule; 490 until the night of 2026-11-10: +26 for the review's fixes and D16's batch F; +22 on 2026-11-11 for batch B and F36, +6 for CR11 and CR14, +6 for CR12, +4 for CR9; +7 on 2026-11-12 for CR17), each built with UBT and CAUGHT by its engine test. Six were retired on 2026-11-06 (lines that, since the Widget Blueprints, run only at the bake: the property is the asset's, and `.Widgets.Parity` checks it there) |
+| Realm sabotage | `py tools/sabotage_realm.py`: 564 one-line sabotages of the game module (+1 on 2026-11-13 for the `if` audit's fix 3, two retargeted for fix 2; +2 for D17's Reawaken line on 2026-11-12, one retargeted to D17's rule; 490 until the night of 2026-11-10: +26 for the review's fixes and D16's batch F; +22 on 2026-11-11 for batch B and F36, +6 for CR11 and CR14, +6 for CR12, +4 for CR9; +7 on 2026-11-12 for CR17), each built with UBT and CAUGHT by its engine test. Six were retired on 2026-11-06 (lines that, since the Widget Blueprints, run only at the bake: the property is the asset's, and `.Widgets.Parity` checks it there) |
 
 ### 7.3 Not gated yet
 

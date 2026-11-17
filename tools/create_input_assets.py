@@ -32,8 +32,10 @@ def inside_editor():
 def from_shell():
     sys.path.insert(0, str(ROOT / "tools"))
     import unreal_procs
-    if unreal_procs.blocking():
+    found = unreal_procs.wait_blocking()
+    if found:
         print("create_input_assets: an Unreal process of this project is running; close it first")
+        unreal_procs.print_blocking(found)
         return 2
     script = (ROOT / "tools" / "create_input_assets.py").as_posix()
     cmd = [EDITOR_CMD, str(ROOT / "Pawpocalypse.uproject"), "-run=pythonscript", "-script=" + script, "-nullrhi",

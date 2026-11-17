@@ -46,6 +46,10 @@ function Get-GodotStatus { (git -C $Godot status --porcelain) -join "`n" }
 $GodotBefore = Get-GodotStatus
 
 # --- the everyday set ---------------------------------------------------------------------------------------------
+# First: no planted fault left in the tree by a negative test that died (2026-11-13: a power cut mid-sabotage left a source
+# all zeros). tools/safe_mutate.py puts every journaled original back, or FAILS when that needs a person: a file changed
+# since, a damaged entry, or a run still holding one (one test run at a time).
+Invoke-Gate 'no mutant left in place' 'py tools\safe_mutate.py'
 Invoke-Gate 'L0 static' 'py tools\check_pawcore_static.py'
 Invoke-Gate 'L1 PawCore tests' 'powershell -ExecutionPolicy Bypass -File tools\build_pawcore_tests.ps1'
 Invoke-Gate 'mirror (PawCore vs pawsim)' 'py tools\check_mirror.py'
@@ -76,15 +80,17 @@ Invoke-Gate 'sabotage targets current' 'py tools\sabotage_pawcore.py --list && p
 Invoke-Gate 'Godot fixes current' 'py tools\godot_fixes.py && py tools\godot_fixes.py --self-test'
 # --- the engine's own gates: a headless editor, so SKIP (not FAIL) while any Unreal editor is open -----------------
 # An Unreal process of this project (or naming none: it may be the designer's editor) blocks the engine gates; another
-# project's run does not (tools/unreal_procs.py).
+# project's run does not (tools/unreal_procs.py). --wait, never one look: each gate starts the moment the last returns, and a
+# look can catch a process on its way out (one look refused L3 UI in 1 s, 2026-11-13); the SKIP names what blocked.
 function Test-UnrealBlocking {
-	cmd /c "cd /d `"$Root`" && py tools\unreal_procs.py > nul 2>&1"
+	$script:UnrealBlockers = @(cmd /c "cd /d `"$Root`" && py tools\unreal_procs.py --wait 2>nul")
 	return ($LASTEXITCODE -ne 0)
 }
 $script:EngineBuilt = $false
 function Invoke-EngineGate([string]$Name, [string]$Command, [switch]$NeedsBuild) {
 	if (Test-UnrealBlocking) {
 		Write-Host ("{0,-28} SKIP  (an Unreal editor is running)" -f $Name)
+		$script:UnrealBlockers | ForEach-Object { Write-Host $_ }
 		[void]$Results.Add([pscustomobject]@{ Gate = $Name; Verdict = 'SKIP'; Seconds = 0; Log = '' })
 	}
 	elseif ($NeedsBuild -and -not $script:EngineBuilt) {
@@ -118,6 +124,7 @@ if ($Full) {
 	Invoke-Gate 'mirror self-test' 'py tools\check_mirror.py --self-test'
 	Invoke-Gate 'font coverage self-test' 'py tools\check_font_coverage.py --self-test'
 	Invoke-Gate 'Unreal guard self-test' 'py tools\unreal_procs.py --self-test'
+	Invoke-Gate 'safe-mutate self-test' 'py tools\safe_mutate.py --self-test'
 	Invoke-Gate 'PawCore sabotage' 'py tools\sabotage_pawcore.py'
 	Invoke-EngineGate 'DataTable parity self-test' 'py tools\import_data.py --self-test' -NeedsBuild
 	# --- the long runs --------------------------------------------------------------------------------------------

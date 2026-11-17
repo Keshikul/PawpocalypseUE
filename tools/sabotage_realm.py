@@ -4,8 +4,9 @@ FAIL.
 
 The engine half of tools/sabotage_pawcore.py (same rules, slower tools): each sabotage swaps one exact line of a source
 under Source/Pawpocalypse for a wrong one, builds with UBT, runs only the test that should notice
-(tools/run_automation.py), and restores the file whatever happens. The run then rebuilds the clean sources and requires
-every named test to PASS, so "caught" cannot mean "the build was broken". About a minute a sabotage.
+(tools/run_automation.py), and restores the file whatever happens, a power cut included (tools/safe_mutate.py
+journals the original first; the next run or check_all puts it back). The run then rebuilds the clean sources and
+requires every named test to PASS, so "caught" cannot mean "the build was broken". About a minute a sabotage.
 
 Usage:  py tools/sabotage_realm.py            # every sabotage (editor closed: UBT and the automation run need it)
         py tools/sabotage_realm.py --list
@@ -17,6 +18,8 @@ import argparse
 import subprocess
 import sys
 from pathlib import Path
+
+import safe_mutate
 
 ROOT = Path(__file__).resolve().parent.parent
 GAME = ROOT / "Source" / "Pawpocalypse"
@@ -593,6 +596,11 @@ SABOTAGES = [
      'Values.Add(TEXT("v"), PawText::CardNumber(S.Value));',
      'Values.Add(TEXT("v"), PawText::Count(0));',
      'Pawpocalypse.UI.Hud.Catches'),
+    # The `if` audit, fix 3 (2026-11-13): the key switch has no default; a requirement it forgets reads "other".
+    ('hud_catches_hint_forgotten', HUD,
+     '\tcase Pc::PcCardRequirement::KittenPounce: return TEXT("CATCHES_hint_kitten_pounce");\n',
+     '',
+     'Pawpocalypse.UI.Hud.Catches'),
     ('hud_catches_hint_generic', HUD,
      'case Pc::PcCardHintKind::Requirement: Hint = PawText::Ui(CardRequirementKey(S.Hint.Requirement)); break;',
      'case Pc::PcCardHintKind::Requirement: Hint = PawText::Ui(TEXT("CATCHES_hint_other")); break;',
@@ -962,8 +970,8 @@ SABOTAGES = [
      'if (false)\n\t\t{\n\t\t\treturn;',
      'Pawpocalypse.UI.JobPicker.Asks'),
     ('jobpick_answer_never_travels', HUD,
-     '\t\t\t\tRefreshJobs();\n\t\t\t\tTravelToStartingBiome();\n',
-     '\t\t\t\tRefreshJobs();\n',
+     '\t\t\t\tRefreshJobs(*G);\n\t\t\t\tTravelToStartingBiome();\n',
+     '\t\t\t\tRefreshJobs(*G);\n',
      'Pawpocalypse.UI.JobPicker.Asks'),
     ('jobpick_field_not_held', JOBPICK,
      'R->SetPauseHold(PauseHolder, true);',
@@ -2295,8 +2303,8 @@ SABOTAGES = [
      '\t\t(void)ResolutionOption;\n',
      'Pawpocalypse.UI.Settings.FullscreenGreys'),
     ('bait_lean_restarts_f42', HUD,  # F42 (D16): every refresh stops the Bait button's lean, and it starts again: a tremble
-     '\tconst Pc::PcBaitButton Bait = Pc::BaitButton(R->GetSim().Field, D, P);\n',
-     '\tJuice.Jitter(BaitButton, false, true);\n\tconst Pc::PcBaitButton Bait = Pc::BaitButton(R->GetSim().Field, D, P);\n',
+     '\tconst Pc::PcBaitButton Bait = Pc::BaitButton(R.GetSim().Field, D, P);\n',
+     '\tJuice.Jitter(BaitButton, false, true);\n\tconst Pc::PcBaitButton Bait = Pc::BaitButton(R.GetSim().Field, D, P);\n',
      'Pawpocalypse.UI.Juice.BaitLean'),
     ('controls_new_pad_not_redrawn_f37', PANEL,  # F37 (D16): the Controls page deaf to a new pad
      '\t\t\tDetectedHandle = D->OnDetectedChanged.AddWeakLambda(this, [this](Pc::PcFamily) { Sync(); });\n',
@@ -2444,9 +2452,13 @@ def run(test):
 
 
 def editor_running():
-    # Any Unreal process of this project, or one naming no project (tools/unreal_procs.py); another project's run is not ours.
-    from unreal_procs import blocking
-    return bool(blocking())
+    # The guard (tools/unreal_procs.py): any Unreal process of this project, or one naming no project, waited for (two
+    # clean looks in a row, up to 30 s for anything seen: at night this starts the moment the pad playthrough's game
+    # returns); another project's run is not ours. Prints what blocked.
+    from unreal_procs import print_blocking, wait_blocking
+    found = wait_blocking()
+    print_blocking(found)
+    return bool(found)
 
 
 def main():
@@ -2458,6 +2470,10 @@ def main():
     unknown = set(args.only or []) - {s[0] for s in SABOTAGES}
     if unknown:
         print("unknown sabotage(s): %s" % ", ".join(sorted(unknown)))
+        return 2
+    # A run that died holding a sabotage (the power cut of 2026-11-13) left it in the tree: put the original back
+    # first, or stop when that needs a person. The stale check below must read the real sources.
+    if safe_mutate.recover():
         return 2
     stale = []
     for name, file, old, *_ in SABOTAGES if args.list else chosen:
@@ -2482,16 +2498,16 @@ def main():
     missed = []
     for name, file, old, new, test in chosen:
         path = GAME / file
-        original = path.read_bytes()
-        text = original.decode("utf-8")
-        try:
-            sabotaged = text.replace(in_file_endings(text, old), in_file_endings(text, new), 1)
-            if sabotaged == text:
-                # Confirm the sabotage LANDED (docs/09 §1): unchanged code is not a test of anything.
-                print("NOLAND   %-28s the target was not replaced; nothing was built" % name, flush=True)
-                missed.append(name)
-                continue
-            path.write_bytes(sabotaged.encode("utf-8"))
+        text = path.read_bytes().decode("utf-8")
+        sabotaged = text.replace(in_file_endings(text, old), in_file_endings(text, new), 1)
+        if sabotaged == text:
+            # Confirm the sabotage LANDED (docs/09 §1): unchanged code is not a test of anything.
+            print("NOLAND   %-28s the target was not replaced; nothing was built" % name, flush=True)
+            missed.append(name)
+            continue
+        # Journaled and written by rename (tools/safe_mutate.py): a power cut can no longer leave the source zeroed or
+        # sabotaged in the tree; the next run, or check_all, puts the original back.
+        with safe_mutate.mutated(path, sabotaged.encode("utf-8"), "sabotage_realm " + name):
             ok, log = build()
             if not ok:
                 print("NOBUILD  %-28s the sabotaged source does not compile:\n%s" % (name, log[-2000:]))
@@ -2508,8 +2524,6 @@ def main():
             print("%s %-28s %s" % ("CAUGHT  " if caught else ("MISSED  " if ran else "NOTRUN  "), name, test), flush=True)
             if not caught:
                 missed.append(name)
-        finally:
-            path.write_bytes(original)
 
     ok, log = build()
     clean_ok = ok

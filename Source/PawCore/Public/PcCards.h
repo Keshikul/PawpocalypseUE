@@ -27,11 +27,24 @@ namespace Pc
 	// total_catches_for_level(): XP to reach `Level` from zero (the series pawsim's catches_levels_for_points inverts).
 	PAWCORE_API double TotalCatchesForLevel(const PcGameData& D, int64_t Level);
 
-	// EFFECT_REQUIRES / COST_REQUIRES: what a card needs the player to own before it may be offered ("" = nothing).
-	PAWCORE_API const char* CardEffectRequirement(CardEffect Effect);
-	PAWCORE_API const char* CardCostRequirement(CardCost Cost);
-	// _requirement_met(): "aura", "pounce", "overkill", "poop", "kitten", "kitten_pounce"; anything else is met.
-	PAWCORE_API bool CardRequirementMet(const PcGameData& D, const PcProgress& P, const std::string& Requirement);
+	// EFFECT_REQUIRES / COST_REQUIRES's values: what a card needs the player to own before it may be offered. Godot keys
+	// them by string ("aura" ... "kitten_pounce", "" for nothing); an enum here, so a misspelt one does not compile (a
+	// string compared in `if` chains read as "met" and as "other"). Count ends the list: the tests walk every value.
+	enum class PcCardRequirement : uint8_t
+	{
+		None,         // ""
+		Aura,         // "aura": the Aura branch
+		Pounce,       // "pounce": the Pounce branch
+		Overkill,     // "overkill": the Overkill branch
+		Poop,         // "poop": Rainbow Poop (F19)
+		Kitten,       // "kitten": a kitten
+		KittenPounce, // "kitten_pounce": a kitten and the Pounce branch
+		Count,
+	};
+	PAWCORE_API PcCardRequirement CardEffectRequirement(CardEffect Effect);
+	PAWCORE_API PcCardRequirement CardCostRequirement(CardCost Cost);
+	// _requirement_met(): None is always met.
+	PAWCORE_API bool CardRequirementMet(const PcGameData& D, const PcProgress& P, PcCardRequirement Requirement);
 	// eligible_cards(): not banished, not maxed, its effect and its cost have something to act on, and a kitten-cost card
 	// leaves a kitten (two when the rival kitten mark is owned).
 	PAWCORE_API bool IsCardEligible(const PcGameData& D, const PcProgress& P, const PcCard& Card);
@@ -49,7 +62,7 @@ namespace Pc
 	struct PcCardHint
 	{
 		PcCardHintKind Kind = PcCardHintKind::None;
-		std::string Requirement; // Requirement only: "aura", "pounce", "overkill", "poop", "kitten", "kitten_pounce"
+		PcCardRequirement Requirement = PcCardRequirement::None; // Requirement only: the one unmet
 	};
 	PAWCORE_API PcCardHint CardUnlockHint(const PcGameData& D, const PcProgress& P, const PcCard& Card);
 	// hand_size(): base_hand_size + extra choices + the job's extra cards + Curiosity's one.

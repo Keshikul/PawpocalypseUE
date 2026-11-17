@@ -6,14 +6,17 @@
 > The **Godot game at `C:\Games\pawpocalypse` is the reference**: where this project and the Godot code disagree on a rule or
 > number, Godot is right, unless Godot's rule is a fault (a bug, an inconsistency, a rule that makes no sense), which is fixed
 > here instead of copied (standing rules, below). **The LOOK is the port's own (designer, 2026-11-07): "The unreal version
-> does not have to match godot, they can be different." and "Plum everywhere."** So is the player-facing TEXT since
-> 2026-11-09 (D15: the port's own plain English, below). The look's reference is the concept canvas and
-> `docs/WORKLIST-RESTYLE-2026-11-07.md`; the palette, the art generators (`tools/art`) and every look test are this project's
-> own. Rules, numbers, behaviour and timing follow Godot, except its faults (D16).
+> does not have to match godot, they can be different."** Since 2026-11-17 the look is **Sticker Box** (D18: "You don't have
+> to follow the current color or palette or ui. Just start fresh", then "Sticker box looks great"; it replaces "Plum
+> everywhere", D14). So is the player-facing TEXT since 2026-11-09 (D15: the port's own plain English, below). The look's
+> reference is the approved concept (Bestiary and UI Screens, linked in `docs/WORKLIST-STICKER-2026-11-17.md`, which also
+> holds the plan); the palette, the art generators (`tools/art`) and every look test are this project's own. The plum
+> restyle's pipeline (`docs/WORKLIST-RESTYLE-2026-11-07.md`) stays; its colours, chrome, fonts and drawings are being
+> replaced. Rules, numbers, behaviour and timing follow Godot, except its faults (D16).
 
 ## What this is
 A standalone recreation of Pawpocalypse (2D idle/incremental cat-sim, Godot 4.7.1, itch 0.2.5) in **Unreal Engine 5.8.3** (launcher build
-5.8.3-58210709), C++. Same game: rules, numbers, content, sounds, controls, languages, without Godot's faults (D16); its own look (the plum restyle, 2026-11-07) and words (D15). Windows/Steam first, built to port to
+5.8.3-58210709), C++. Same game: rules, numbers, content, sounds, controls, languages, without Godot's faults (D16); its own look (Sticker Box, D18, 2026-11-17; before it the plum restyle, D14) and words (D15). Windows/Steam first, built to port to
 PlayStation and Xbox: keyboard/mouse AND gamepad from day one. Single player, no networking.
 
 **Start every session with `docs/00-START-HERE.md`, then the newest entry of `docs/HANDOFF-LOG.md`; end every session that changed
@@ -37,7 +40,7 @@ never project names or design decisions.
 - **Godot's faults are fixed here, never ported** (D16). A bug or an inconsistency is fixed as found; a change with a design
   or balance trade-off is proposed to the designer (balance with `tools/pawsim.py` numbers) and made on a yes. Either way it
   is made in this project only, never in the Godot repo, asserted by a test, and listed in doc 01 §5. Nothing else departs
-  from Godot (the look, D14, and the words, D15, are the port's own): every difference from Godot is either a port bug or a
+  from Godot (the look, D14 then D18, and the words, D15, are the port's own): every difference from Godot is either a port bug or a
   listed change, never both.
 - **Player-facing text is plain and informative** (designer, 2026-11-09: "i do not want the text to be like a poem or any kind
   of language with character", "all the text should just be to the point informative information"): real numbers, not
@@ -98,8 +101,9 @@ py tools/make_godot_fixtures.py [--only tree] [--check]                  # Godot
 py tools/godot_fixes.py [--self-test]                                   # the port's fixes to Godot's faults (D16), applied to that scratch copy only
 py tools/econ_review.py [--proposal recommended | pass+inc0.5 ...] [--waits FILE]   # the economy review's numbers: pawsim + waves + buy logs, proposals in memory -> build/econ
 py tools/sabotage_pawcore.py [--only NAME]                               # one-line PawCore sabotages; each must be CAUGHT
-py tools/run_automation.py [--no-build] [Pawpocalypse.Realm]             # engine automation tests, headless (editor closed; builds first)
-py tools/bake_widgets.py --run [--graft "Class=add:Part;swap:Old>New"]  # Widget Blueprints for UI classes that have none (never over one); --graft puts NEW parts into an existing one (restyle:Part a part's look, restyle:Code>Asset when an unnamed part's auto-name differs (names:x / codenames:x list both), props:Part a piece's settings, slot:Part its place and tilt, text:Part a text's whole look, remove:Part, wrap:Part>Wrapper moves the asset's part (children kept) into a new panel; add: takes a panel with children; all or nothing); --textfloor raises texts under 16 px; --recolour / --refont migrate the assets' saved colours / fonts
+py tools/safe_mutate.py [--list | --self-test]                           # puts back any planted fault a dead run left in the tree (check_all's first gate)
+py tools/run_automation.py [--no-build] [Pawpocalypse.Realm]             # engine automation tests, headless (editor closed; builds first; --self-test: the guard's wait, tools/unreal_procs.py)
+py tools/bake_widgets.py --run [--graft "Class=add:Part;swap:Old>New"]  # Widget Blueprints for UI classes that have none (never over one); --graft puts NEW parts into an existing one (restyle:Part a part's look, restyle:Code>Asset when an unnamed part's auto-name differs (names:x / codenames:x list both), props:Part a piece's settings, slot:Part its place and tilt, text:Part a text's whole look, remove:Part, wrap:Part>Wrapper moves the asset's part (children kept) into a new panel; add: takes a panel with children; all or nothing); --textfloor raises texts under 16 px; --recolour / --refont migrate the assets' saved colours / fonts; --colours lists every colour they save, by widget, property and role (build/widget_colours.tsv)
 py tools/art/build_art.py [--check]                                     # the art generators -> SourceArt/svg (--check: = the committed SourceArt/svg)
 py tools/raster_svg.py [--check]                                        # SourceArt/svg -> png (the glyphs: 56 px; the cursors; the chrome and icons 1:1)
 py tools/pack_atlas.py [--check]                                        # the field's sprites and rig layers -> SourceArt/png/atlas (4 pages + field.csv)
@@ -122,6 +126,8 @@ py tools/trim_game_plugins.py                                            # rewri
 - Headless editor Python: `UnrealEditor-Cmd.exe <uproject> -run=pythonscript -script=C:/abs/forward/slash.py -nullrhi -unattended -nop4
   -SCCProvider=None -stdout`, editor closed, `unreal.log_warning` for output.
 - Never kill or close the designer's editor; check for running editor processes before headless runs; never two test runs at once.
+- A negative test that plants a fault in a real project file does it through `safe_mutate.mutated()` (journaled, written by
+  rename), never a bare write restored in `finally`: a power cut on 2026-11-13 left a sabotaged source all zeros.
 - Write Python to files and run them (heredocs break on this project's apostrophes).
 - `tools/check_all.ps1` is the one command that runs every gate (everyday set, ~6 min; `-Full` = nightly, ~10 h measured 2026-11-10). Run it before calling
   anything done: done is exit 0. Exit 2 means a gate was SKIPPED (an editor was open): not proven, not done. The engine gates

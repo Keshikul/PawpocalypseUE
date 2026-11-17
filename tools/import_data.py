@@ -123,15 +123,14 @@ def in_editor():
 # Outside: launch the headless editor
 # --------------------------------------------------------------------------------------------------------------------
 
-def editor_running():
-    # Any Unreal process of this project, or one naming no project (tools/unreal_procs.py); another project's run is not ours.
-    from unreal_procs import blocking
-    return bool(blocking())
-
-
 def run_editor(mode, data_dir):
-    if editor_running():
+    # The guard (tools/unreal_procs.py): any Unreal process of this project, or one naming no project, waited for (two
+    # clean looks in a row, up to 30 s for anything seen); another project's run is not ours.
+    from unreal_procs import print_blocking, wait_blocking
+    found = wait_blocking()
+    if found:
         print("import_data: an Unreal editor is running; close it first (this never closes it for you)")
+        print_blocking(found)
         return None
     env = dict(os.environ, PAW_IMPORT_MODE=mode, PAW_IMPORT_DATA=data_dir)
     script = os.path.abspath(__file__).replace("\\", "/")

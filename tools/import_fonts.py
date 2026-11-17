@@ -43,8 +43,10 @@ def from_shell():
     if set(fonts.FACES) != set(FACES):
         print("import_fonts: FACES here differs from tools/fonts.py")
         return 1
-    if unreal_procs.blocking():
+    found = unreal_procs.wait_blocking()
+    if found:
         print("import_fonts: an Unreal process of this project is running; close it first")
+        unreal_procs.print_blocking(found)
         return 2
     script = (ROOT / "tools" / "import_fonts.py").as_posix()
     cmd = [EDITOR_CMD, str(ROOT / "Pawpocalypse.uproject"), "-run=pythonscript", "-script=%s" % script,

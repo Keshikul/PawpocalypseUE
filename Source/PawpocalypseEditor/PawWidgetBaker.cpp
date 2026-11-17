@@ -19,7 +19,9 @@
 #include "Components/PanelWidget.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Kismet2/KismetEditorUtilities.h"
+#include "Misc/FileHelper.h"
 #include "Misc/PackageName.h"
+#include "Misc/Paths.h"
 #include "UObject/Package.h"
 #include "UObject/SavePackage.h"
 #include "UObject/UObjectIterator.h"
@@ -919,6 +921,110 @@ FString UPawWidgetBaker::TextFloor()
 		}
 		return Raised;
 	});
+}
+
+namespace
+{
+	using FColourAt = TFunctionRef<void(const FString& Path, const FColor& Srgb, PawUi::EPawColourRole Role)>;
+
+	// PawUi::ForEachColourRole's walk, read-only and with each colour's property path (its StructsIn rules, kept in step).
+	void ColoursAt(const UStruct* Type, void* Data, const FString& Path, PawUi::EPawColourRole Role, FColourAt Visit)
+	{
+		for (TFieldIterator<FProperty> It(Type); It; ++It)
+		{
+			if (It->HasAnyPropertyFlags(CPF_Transient))
+			{
+				continue;
+			}
+			const bool bText = Role == PawUi::EPawColourRole::Text || PawUi::IsTextColour(Type, *It);
+			const PawUi::EPawColourRole Here = bText ? PawUi::EPawColourRole::Text
+				: Role == PawUi::EPawColourRole::Edge || PawUi::IsEdgeColour(Type, *It) ? PawUi::EPawColourRole::Edge
+				: PawUi::EPawColourRole::Surface;
+			const FString Name = Path.IsEmpty() ? It->GetName() : Path + TEXT(".") + It->GetName();
+			auto One = [&](const UScriptStruct* Struct, void* Value, const FString& At)
+			{
+				if (Struct == TBaseStructure<FLinearColor>::Get())
+				{
+					const FLinearColor& Linear = *static_cast<const FLinearColor*>(Value);
+					FColor Srgb = Linear.ToFColorSRGB();
+					Srgb.A = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(Linear.A * 255.0f), 0, 255));
+					Visit(At, Srgb, Here);
+				}
+				else if (Struct == TBaseStructure<FColor>::Get())
+				{
+					Visit(At, *static_cast<const FColor*>(Value), Here);
+				}
+				else
+				{
+					ColoursAt(Struct, Value, At, Here, Visit);
+				}
+			};
+			if (const FStructProperty* SP = CastField<FStructProperty>(*It))
+			{
+				for (int32 I = 0; I < SP->ArrayDim; ++I)
+				{
+					One(SP->Struct, SP->ContainerPtrToValuePtr<void>(Data, I), SP->ArrayDim > 1 ? FString::Printf(TEXT("%s[%d]"), *Name, I) : Name);
+				}
+			}
+			else if (const FArrayProperty* AP = CastField<FArrayProperty>(*It))
+			{
+				if (const FStructProperty* Inner = CastField<FStructProperty>(AP->Inner))
+				{
+					FScriptArrayHelper Array(AP, AP->ContainerPtrToValuePtr<void>(Data));
+					for (int32 I = 0; I < Array.Num(); ++I)
+					{
+						One(Inner->Struct, Array.GetRawPtr(I), FString::Printf(TEXT("%s[%d]"), *Name, I));
+					}
+				}
+			}
+		}
+	}
+}
+
+FString UPawWidgetBaker::ColourReport()
+{
+	TArray<FString> Rows;
+	Rows.Add(TEXT("asset\tobject\tclass\tpath\trole\tcolour\talpha"));
+	int32 Assets = 0;
+	for (UClass* Native : PawUi::BakedClasses())
+	{
+		const FString Name = PawUi::AssetNameFor(Native);
+		UBlueprint* BP = LoadObject<UBlueprint>(nullptr, *(PawUi::AssetPathFor(Native) + TEXT(".") + Name));
+		if (!BP)
+		{
+			return Name + TEXT(" FAILED: no asset");
+		}
+		++Assets;
+		TArray<UObject*> Objects;
+		if (UWidgetBlueprint* WBP = Cast<UWidgetBlueprint>(BP))
+		{
+			if (WBP->WidgetTree)
+			{
+				WBP->WidgetTree->ForEachWidget([&Objects](UWidget* W) { Objects.Add(W); });
+			}
+		}
+		if (BP->GeneratedClass)
+		{
+			Objects.Add(BP->GeneratedClass->GetDefaultObject());
+		}
+		for (UObject* O : Objects)
+		{
+			ColoursAt(O->GetClass(), O, FString(), PawUi::EPawColourRole::Surface,
+				[&](const FString& Path, const FColor& C, PawUi::EPawColourRole Role)
+				{
+					const TCHAR* RoleName = Role == PawUi::EPawColourRole::Text ? TEXT("text")
+						: Role == PawUi::EPawColourRole::Edge ? TEXT("edge") : TEXT("surface");
+					Rows.Add(FString::Printf(TEXT("%s\t%s\t%s\t%s\t%s\t%02X%02X%02X\t%d"), *Name, *O->GetName(), *O->GetClass()->GetName(),
+						*Path, RoleName, C.R, C.G, C.B, C.A));
+				});
+		}
+	}
+	const FString File = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("build/widget_colours.tsv"));
+	if (!FFileHelper::SaveStringArrayToFile(Rows, *File))
+	{
+		return TEXT("FAILED: cannot write ") + File;
+	}
+	return FString::Printf(TEXT("colours: %d in %d assets -> %s"), Rows.Num() - 1, Assets, *File);
 }
 
 FString UPawWidgetBaker::BakeWidgets()

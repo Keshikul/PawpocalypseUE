@@ -34,6 +34,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import safe_mutate
+
 ROOT = Path(__file__).resolve().parent.parent
 CORE = ROOT / "Source" / "PawCore"
 UI = ROOT / "Source" / "Pawpocalypse" / "UI"
@@ -210,7 +212,10 @@ def run_all(core, data_dir, skip_export):
 
 
 def self_test():
-    """One planted violation per gate, each in a scratch copy (or, for the generated headers, a restored edit)."""
+    """One planted violation per gate, each in a scratch copy (or, for the generated headers, an edit of the real file,
+    journaled first and restored on exit: tools/safe_mutate.py, power cuts included)."""
+    if safe_mutate.recover():
+        return 2
     scratch = ROOT / "build" / "static_selftest"
     caught = {}
 
@@ -236,37 +241,21 @@ def self_test():
     shutil.rmtree(scratch, ignore_errors=True)
 
     header = CORE / "Public" / "PcEnums.h"
-    original = header.read_bytes()
-    try:
-        header.write_bytes(original + b"\n// planted\n")
+    with safe_mutate.mutated(header, header.read_bytes() + b"\n// planted\n", "L0 self-test"):
         caught["generated"] = bool(check_generated())
-    finally:
-        header.write_bytes(original)
     rows = ROOT / "Source" / "Pawpocalypse" / "Data" / "PawDataRows.h"
-    original = rows.read_bytes()
-    try:
-        rows.write_bytes(original + b"\n// planted\n")
+    with safe_mutate.mutated(rows, rows.read_bytes() + b"\n// planted\n", "L0 self-test"):
         caught["generated: PawDataRows.h"] = bool(check_generated())
-    finally:
-        rows.write_bytes(original)
 
     tokens = UI / "PawTokens.h"
-    original = tokens.read_bytes()
-    try:
-        tokens.write_bytes(original + b"\n// planted\n")
+    with safe_mutate.mutated(tokens, tokens.read_bytes() + b"\n// planted\n", "L0 self-test"):
         caught["generated: PawTokens.h"] = bool(check_generated())
-    finally:
-        tokens.write_bytes(original)
 
     for planted in (UI / "PawTreeTables.h", UI / "PawFontSpec.h", CORE / "Public" / "PcTreeWording.h",
                     ROOT / "Source" / "Pawpocalypse" / "Realm" / "PawFxLook.h",
                     ROOT / "Content" / "Pawpocalypse" / "Localization" / "Strings" / "ST_Tree.csv"):
-        original = planted.read_bytes()
-        try:
-            planted.write_bytes(original + b"\n// planted\n")
+        with safe_mutate.mutated(planted, planted.read_bytes() + b"\n// planted\n", "L0 self-test"):
             caught["generated: " + planted.name] = bool(check_generated())
-        finally:
-            planted.write_bytes(original)
 
     # The UI rules, each planted in a scratch copy of the UI folder and the table.
     ui_copy = ROOT / "build" / "static_selftest_ui"

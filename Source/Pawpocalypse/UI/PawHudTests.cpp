@@ -814,6 +814,18 @@ bool FPawHudCatchesTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("nothing in its way"), S(W.Hud->GetCardRow(Bounty)->GetDetail()), FString(TEXT("Not taken yet.")));
 	TestEqual(TEXT("a Pounce card names the branch"), S(W.Hud->GetCardRow(Blood)->GetDetail()), FString(TEXT("Buy the Pounce branch in the skill tree.")));
 	TestEqual(TEXT("a kitten card names the kitten"), S(W.Hud->GetCardRow(Lone)->GetDetail()), FString(TEXT("Have at least one kitten.")));
+	// Every requirement has its own line in ST_UI (the key switch has no default: a value it forgets reads "other").
+	TSet<FString> Keys;
+	for (int32 I = 1; I < static_cast<int32>(Pc::PcCardRequirement::Count); ++I)
+	{
+		const FString Key = UPawHudScreen::CardRequirementKey(static_cast<Pc::PcCardRequirement>(I));
+		TestNotEqual(FString::Printf(TEXT("requirement %d has its own line"), I), Key, FString(TEXT("CATCHES_hint_other")));
+		TestTrue(FString::Printf(TEXT("requirement %d's line is in ST_UI"), I), PawText::HasUi(*Key));
+		TestFalse(FString::Printf(TEXT("requirement %d's line is no other's"), I), Keys.Contains(Key));
+		Keys.Add(Key);
+	}
+	TestEqual(TEXT("no requirement: the general line"), FString(UPawHudScreen::CardRequirementKey(Pc::PcCardRequirement::None)),
+		FString(TEXT("CATCHES_hint_other")));
 
 	// Taken: the heading carries the level, the body what it does at that level ({v} and {c} filled, no trailing zeros).
 	P.CardLevels["close_quarters"] = 1;

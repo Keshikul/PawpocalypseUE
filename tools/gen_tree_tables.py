@@ -223,23 +223,17 @@ def restyled():
     return {old[1:].upper(): new[1:].upper() for old, new, _ in gen_paw_tokens.colour_pairs(gen_paw_tokens.SNAPSHOT, ui=False)}
 
 
-# The tooltip's text sits on the plum panel since R3: its palette colours go through the UI's TEXT role first (Godot's ink
-# text -> Bone), and the two literals Godot wrote (the gold "Next" line, the grey reason) become their plum roles (Butter:
-# numbers; Lilac: secondary text), or they would not read on plum.
-TIP_LITERALS = {"B8860B": "butter", "8F836F": "lilac"}
+# The tooltip's lines in UI roles (D18, 2026-11-17: the tooltip is a Sticker card, ink on card stock). Godot coloured them
+# for its paper panel and plum (R3) for its dark one, both by colour; the lines keep Godot's order and meaning (TIP_COLOURS),
+# their colours are the roles' today: the blurb and the Next line ink, "Fully bought." good, why it cannot be bought muted,
+# "You have n." danger. palette.py rule 7 checks each role on the panel.
+TIP_ROLES = {"TipBlurb": "text", "TipFully": "good", "TipNext": "text", "TipReason": "text_muted", "TipShort": "danger"}
 
 
-def tip_colour(hexcode, table):
+def tip_colour(name):
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import gen_paw_tokens
-    key = hexcode.upper()
-    if key in TIP_LITERALS:
-        return gen_paw_tokens.palette.PLUM[TIP_LITERALS[key]][1:].upper()
-    text, surface, _edges = gen_paw_tokens.ui_role_pairs(gen_paw_tokens.SNAPSHOT)
-    for role in (text, surface):
-        if "#" + key in role:
-            return role["#" + key][1:].upper()
-    return table.get(key, key)
+    return gen_paw_tokens.palette.UI[TIP_ROLES[name]][1:].upper()
 
 
 def ours_bytes(rgba, table):
@@ -325,7 +319,7 @@ def render(godot):
     ui.write("\t// The tooltip's colours (_on_node_hovered's bbcode, two of them not in the palette): the blurb, \"Fully bought.\", the\n")
     ui.write("\t// Next line, why it cannot be bought, and \"You have n.\".\n")
     for name, hexcode in tips:
-        hexcode = tip_colour(hexcode, table)
+        hexcode = tip_colour(name)
         ui.write("\tinline const FLinearColor %s = PawTokens::Srgb(0x%s, 0x%s, 0x%s);\n" % (name, hexcode[0:2], hexcode[2:4], hexcode[4:6]))
     ui.write("\n\t// %s DIM (a link not walked) and SHUT (the road not taken); %s SHINE_COLOR, a self_modulate MULTIPLIER\n" % (LINKS_SCRIPT, SCRIPT))
     ui.write("\t// (above 1: the node brightens), not a colour.\n")

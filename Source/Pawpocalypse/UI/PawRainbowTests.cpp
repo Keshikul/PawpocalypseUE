@@ -240,7 +240,8 @@ bool FPawRainbowFrameTest::RunTest(const FString& Parameters)
 		W.Close();
 		return false;
 	}
-	TestTrue(TEXT("it follows the zone plate"), Frame->GetFollow() == W.Hud->GetZonePlate());
+	// D18 (S4, the UI concept's HUD): round the status panel that holds the zone line (Godot: round the zone plate).
+	TestTrue(TEXT("it follows the status panel"), Frame->GetFollow() == W.Hud->GetFieldPlate());
 	TestEqual(TEXT("margin 2"), Frame->Margin, Pc::RainbowFrame::ZoneMargin);
 	TestEqual(TEXT("corner 8"), Frame->Corner, Pc::RainbowFrame::ZoneCorner);
 	TestEqual(TEXT("width 4"), Frame->LineWidth, Pc::RainbowFrame::ZoneWidth);
@@ -280,8 +281,8 @@ bool FPawRainbowFrameTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("the outline painted: 4 corners x 9 points, closed"), Frame->GetPaintedPoints(), 37);
 	TestTrue(TEXT("its 36 segments, stroked and feathered, reached Slate"), LoudBatches.Contains(FrameTris));
 
-	// The plate hidden: the frame hides and stops turning (rainbow_frame.gd: visible = follow.is_visible_in_tree() and active).
-	UWidget* Plate = W.Hud->GetZonePlate();
+	// The panel hidden: the frame hides and stops turning (rainbow_frame.gd: visible = follow.is_visible_in_tree() and active).
+	UWidget* Plate = W.Hud->GetFieldPlate();
 	Plate->SetVisibility(ESlateVisibility::Collapsed);
 	TestFalse(TEXT("hidden with its plate"), Frame->IsShown());
 	const double Was = Frame->GetPhase();

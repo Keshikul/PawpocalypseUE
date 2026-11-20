@@ -51,8 +51,8 @@ CAT_SQUASH = 1.16     # 1 + Player.HOP_SQUASH: the crouch's width
 KITTEN_PX = 96.0      # Kitten.SPRITE_TARGET_PX
 BOSS_SCALE = 0.9      # boss.tscn Visual.scale
 ADD_PX = 15.0 * 1.5 * 2.0  # BossAdd.RADIUS x 1.5, a diameter
-WEAPON_FRACTION = 0.405    # Player.WEAPON_WIDTH_FRACTION (the mounted one is smaller)
-HAT_FRACTION = 0.62        # Player.HAT_WIDTH_FRACTION (likewise)
+WEAPON_FRACTION = 0.559    # PawFieldLook.h WeaponWidthMounted (D18: the lance is the wider; sticker_art.py --overlays)
+HAT_FRACTION = 0.849       # PawFieldLook.h HatWidth (the standing hat is the wider)
 PROP_PX = 78.0 * 1.6       # BiomeBackdrop.PROP_PX x the largest scatter scale
 EDGE_PX = 190.0            # BiomeBackdrop.EDGE_PX (a border piece is 0.7 of it)
 LANDMARK_PX = 230.0 * 1.15 # BiomeBackdrop.LANDMARK_PX x the largest landmark scale
@@ -133,7 +133,8 @@ def rig(path: Path) -> dict:
     if path.suffix != ".svg":
         return {}
     text = path.read_text(encoding="utf-8")
-    return dict(re.findall(r'data-([a-z-]+)="([^"]*)"', text[:text.index(">")]))
+    a = dict(re.findall(r'data-([a-z-]+)="([^"]*)"', text[:text.index(">")]))
+    return a if "rig-of" in a else {}     # a Sticker drawing's data-look, data-rim, data-ink are not a rig (D18)
 
 
 def rig_row(path: Path) -> list:
@@ -153,7 +154,38 @@ def raster(src: Path, size):
     if size is None:
         return Image.open(src).convert("RGBA")
     import resvg_py
-    return Image.open(io.BytesIO(bytes(resvg_py.svg_to_bytes(svg_path=str(src), width=size, height=size)))).convert("RGBA")
+    img = Image.open(io.BytesIO(bytes(resvg_py.svg_to_bytes(svg_path=str(src), width=size, height=size)))).convert("RGBA")
+    import re
+    head = src.read_text(encoding="utf-8")[:400]
+    rim = re.search(r'data-rim="([\d.]+)"', head)
+    if rim:   # a Sticker drawing (D18): its die-cut rim, made here (E2), never in the SVG (look_lint's flat rule)
+        view = float(re.search(r'viewBox="0 0 ([\d.]+) ', head).group(1))
+        img = die_cut(img, float(rim.group(1)) * size / view)
+    return img
+
+
+RIM_COLOUR = (0xFF, 0xFD, 0xF6)   # sticker_draw.RIM_COLOUR
+
+
+def die_cut(img, radius):
+    """The drawing over its rim: the alpha dilated by a disc of `radius` px (a soft half-pixel edge), filled RIM_COLOUR."""
+    import numpy as np
+    from PIL import Image
+    a = np.asarray(img)[:, :, 3].astype(np.float32) / 255.0
+    pad = int(radius) + 2
+    ap = np.pad(a, pad)
+    d = np.zeros_like(ap)
+    reach = int(radius) + 1
+    for dy in range(-reach, reach + 1):
+        for dx in range(-reach, reach + 1):
+            w = min(1.0, radius + 0.5 - (dx * dx + dy * dy) ** 0.5)
+            if w > 0:
+                d = np.maximum(d, np.roll(np.roll(ap, dy, 0), dx, 1) * w)
+    d = d[pad:-pad, pad:-pad]
+    base = Image.new("RGBA", img.size, RIM_COLOUR + (255,))
+    base.putalpha(Image.fromarray((np.clip(d, 0.0, 1.0) * 255.0 + 0.5).astype(np.uint8)))
+    base.alpha_composite(img)
+    return base
 
 
 def extrude(img, e):

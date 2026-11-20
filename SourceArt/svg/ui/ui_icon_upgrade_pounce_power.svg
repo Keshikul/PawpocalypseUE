@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="0.000" data-ink="5.579">
+<g stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="64.00" cy="91.52" rx="20.28" ry="16.42" fill="#9B95A7" stroke="#2A2131" stroke-width="5.58"/>
+<ellipse cx="41.79" cy="70.28" rx="9.27" ry="9.27" fill="#9B95A7" stroke="#2A2131" stroke-width="5.58"/>
+<ellipse cx="55.31" cy="56.76" rx="9.27" ry="9.27" fill="#9B95A7" stroke="#2A2131" stroke-width="5.58"/>
+<ellipse cx="72.69" cy="56.76" rx="9.27" ry="9.27" fill="#9B95A7" stroke="#2A2131" stroke-width="5.58"/>
+<ellipse cx="86.21" cy="70.28" rx="9.27" ry="9.27" fill="#9B95A7" stroke="#2A2131" stroke-width="5.58"/>
+<ellipse cx="64.00" cy="93.45" rx="10.62" ry="7.73" fill="#F58BA8" stroke="none"/>
+<polyline points="27.52,43.67 16.79,35.08" fill="none" stroke="#2A2131" stroke-width="5.58"/>
+<polyline points="100.48,43.67 111.21,35.08" fill="none" stroke="#2A2131" stroke-width="5.58"/>
+<polyline points="64.00,32.94 64.00,20.06" fill="none" stroke="#2A2131" stroke-width="5.58"/>
+</g>
+</svg>

@@ -85,7 +85,9 @@ py tools/gen_paw_rows.py                                                 # DataT
 py tools/gen_paw_tokens.py                                               # UI/PawTokens.h, the colours, from tools/art/palette.py (+ PcBackdropTones.h, Tests/PcGodotLook.h)
 py tools/gen_fx_look.py [--check]                                        # Realm/PawFxLook.h: the aura's, strike paw's and crit's look (D3) from tools/art/fx_look.py
 py tools/art/review_d3.py                                                # build/review/d3_aura_strike.png: the D3 review sheet (approved 2026-11-09)
-py tools/art/look_lint.py [--self-test | --known]                       # the field's drawings follow the look spec (tokens, one ink, flat, no outline crossing itself, clear of their floors, eyes); KNOWN only shrinks
+py tools/art/look_lint.py [--self-test | --known]                       # the field's drawings follow the look spec (tokens, one ink, flat, no outline crossing itself, clear of their floors, eyes); KNOWN and APPROVED only shrink
+node tools/art/sticker_record.js [--check]                               # Sticker Box (D18): the approved Bestiary's own code recorded -> tools/art/sticker_cast.py + sticker_colours.json (never edit those by hand)
+py tools/art/sticker_art.py [OUT_DIR | --overlays]                       # the recorded cast as the game's files (make_sweet_art calls it); --overlays: the cat's hat and weapon constants PawFieldLook.h must hold
 py tools/art/review_anatomy.py                                           # build/review/anatomy.png: the anatomy batch in sweet_anatomy.SPECIES / BATCH beside today's (R5)
 py tools/art/review_rig.py                                               # build/review/rig.gif + rig.png: the enemies' wings and legs moving (SourceArt/svg/rigs, R5)
 py tools/fonts.py [--check]                                              # UI/PawFontSpec.h: the font F_Paw's table (faces, typefaces, sub-fonts)
@@ -114,8 +116,12 @@ py tools/create_input_assets.py --run                                    # IA_* 
 py tools/sabotage_realm.py [--only NAME]                                 # game-module sabotages of the realm tests (UBT each, ~1 min)
 py tools/packaged_bench.py [--seconds 20] [--exec "paw.Rig 0"]            # L5: paw.Bench in the packaged build (build/package): frame gate (--exec: console commands first, an A/B)
 py tools/godot_tour.py [--skip-godot] [--skip-ue] [--set biomes|fonts] [--res WxH] [--uiscale 1.5]   # the screenshot tour, both games -> build/tour/compare (opens windows)
+py tools/store_shots.py [--res 1920x1080] [--only NAME ...]              # the Steam screenshots: scripted scenes in the real game (paw.Do runs a cheat in order), sandboxed saves -> build/steam/shots (opens a window)
 py tools/text_audit.py [--self-test | --banned]                         # player text over budget (short lines, short sentences), off-list words (VOCAB), banned words; drafts: the newest docs/TEXT-DRAFT-*.csv
 py tools/text_overrides.py [--self-test]                                # Data/TextOverrides.csv: the port's own English over Godot's (gen_data_strings / gen_tree_tables apply it)
+py tools/port_po.py [--check]                                           # Godot's .po translations -> Localization/Translations/<culture>/<table>.csv ("Key","Text","Source")
+py tools/loc_status.py [--list | --todo | --self-test]                  # per culture: translated / missing / stale / broken; --todo: build/loc/todo/<culture>.csv
+#   the game loads the translations at start (PawText::RegisterTranslations) and offers only complete languages; -PawDraftLanguages: unfinished ones too
 py tools/padplay_tour.py                                                 # L4: the pad-only playthrough + focus tours (-game window; sandboxed saves)
 UnrealEditor-Cmd.exe ... -run=pythonscript -script=C:/abs/tools/create_field_materials.py   # the field and sprite materials (then create_maps.py)
 py tools/trim_game_plugins.py                                            # rewrites the .uproject plugin list (doc 03 §7)

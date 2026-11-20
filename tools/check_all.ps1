@@ -54,6 +54,9 @@ Invoke-Gate 'L0 static' 'py tools\check_pawcore_static.py'
 Invoke-Gate 'L1 PawCore tests' 'powershell -ExecutionPolicy Bypass -File tools\build_pawcore_tests.ps1'
 Invoke-Gate 'mirror (PawCore vs pawsim)' 'py tools\check_mirror.py'
 Invoke-Gate 'validator fuzz 3k' 'py tools\fuzz_validator.py --trials 3000'
+# Sticker Box (D18, 2026-11-18): tools/art/sticker_cast.py is what the approved Bestiary (tools/art/concept_bestiary.html) draws,
+# recorded by the concept's own code; a hand edit, or a changed concept that was not recorded again, fails here.
+Invoke-Gate 'Sticker cast is the concept' 'node tools\art\sticker_record.js --check'
 Invoke-Gate 'art generators reproduce' 'py tools\art\build_art.py --check'
 Invoke-Gate 'art rasters reproduce' 'py tools\raster_svg.py --check'
 Invoke-Gate 'field atlas reproduces' 'py tools\pack_atlas.py --check'
@@ -71,6 +74,9 @@ Invoke-Gate 'text audit self-test' 'py tools\text_audit.py --self-test'
 Invoke-Gate 'no banned words' 'py tools\text_audit.py --banned'
 Invoke-Gate 'text overrides self-test' 'py tools\text_overrides.py --self-test'
 Invoke-Gate 'text overrides agree' 'py tools\text_overrides.py --check'
+# Phase 7 (2026-11-19): Godot's translations carried over are current; the status tool tells stale from missing.
+Invoke-Gate 'translations carried over' 'py tools\port_po.py --check'
+Invoke-Gate 'loc status self-test' 'py tools\loc_status.py --self-test'
 # Every sabotage's target still in its source (seconds, nothing built): a target a later slice rewrote otherwise stays unseen
 # until the nightly's sabotage gate refuses to start (2026-11-06: one stale since slice 3 cost a whole night's realm gate).
 Invoke-Gate 'sabotage targets current' 'py tools\sabotage_pawcore.py --list && py tools\sabotage_realm.py --list'

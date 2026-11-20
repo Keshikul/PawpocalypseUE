@@ -33,6 +33,9 @@ public:
 	// _watch_for_pad_audio: the pad brought a sound device and the game follows the system's.
 	void ShowPadAudio();
 	FText GetMessage() const;
+	// D18 (S4, the UI concept's toast): the controller icon drawn before the words, the words heavy (what the tests read).
+	bool ShowsPadIcon() const;
+	bool IsMessageHeavy() const;
 	// 1 shown, 0 gone (the fade).
 	void SetFade(float Alpha);
 

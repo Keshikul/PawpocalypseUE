@@ -1,14 +1,20 @@
 #include "UI/PawUnicornCeremony.h"
 
 #include "Audio/PawAudioSubsystem.h"
+#include "Engine/Font.h"
 #include "Engine/Texture2D.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Render/PawFxCanvas.h"
 #include "Render/PawSpriteAtlas.h"
 #include "Rendering/DrawElements.h"
 #include "Rendering/SlateRenderer.h"
+#include "Fonts/FontMeasure.h"
+#include "UI/PawIcons.h"
+#include "UI/PawText.h"
 #include "UI/PawTokens.h"
+#include "UI/PawUiConstants.h"
 #include "UI/PawUiKit.h"
+#include "UI/PawWidgets.h"
 
 namespace
 {
@@ -43,8 +49,20 @@ bool UPawUnicornCeremony::Initialize()
 		{
 			PageBrush.SetResourceObject(Atlas->Pages[Atlas->Cell(Cell).Page]);
 		}
+		RaysBrush = PawUi::IconBrush(TEXT("ui_icon_unicorn_rays"), 1920.0);
+		LinePlate = PawUi::Rounded(PawTokens::UI_PANEL, PawTokens::INK, 3.5f, 24.0f);
 	}
 	return bOk;
+}
+
+FText UPawUnicornCeremony::GetTitleText() const
+{
+	return PawText::Data(TEXT("SKILL"), "unlock_unicorn").ToUpper(); // the skill's name in capitals (FText::ToUpper: per culture)
+}
+
+FText UPawUnicornCeremony::GetLineText() const
+{
+	return PawText::Ui(TEXT("REAWAKEN_unicorn"));
 }
 
 void UPawUnicornCeremony::Play(const FVector2D& ViewSize)
@@ -122,6 +140,8 @@ int32 UPawUnicornCeremony::NativePaint(const FPaintArgs& Args, const FGeometry& 
 	int32 Layer = Super::NativePaint(Args, Geometry, Culling, Out, LayerId, Style, bParentEnabled) + 1;
 	PaintedShapes = 0;
 	bCatPainted = false;
+	bRaysPainted = false;
+	bTitlePainted = false;
 	if (!bPlaying)
 	{
 		return Layer;
@@ -130,10 +150,21 @@ int32 UPawUnicornCeremony::NativePaint(const FPaintArgs& Args, const FGeometry& 
 	const double Fade = C.RootA;
 	const FSlateRenderTransform& T = Geometry.GetAccumulatedRenderTransform();
 	FPawFxCanvas Canvas;
-	// The dim (Palette.INK at DimA), the whole view.
 	const FVector2D Size(Geometry.GetLocalSize());
-	const FVector2D Dim[4] = { { 0.0, 0.0 }, { Size.X, 0.0 }, { Size.X, Size.Y }, { 0.0, Size.Y } };
-	Canvas.Polygon(Dim, Godot(FromToken(PawTokens::INK), C.DimA * Fade));
+	// D18 (S4, the UI concept's scrUnicorn): its coral rays and sparks behind the rainbow, faded in and out as Godot's dim
+	// (Palette.INK at DimA) was; the dim where the picture is missing.
+	const double Show = FMath::Clamp(C.DimA / Pc::Unicorn::DimAlpha, 0.0, 1.0) * Fade;
+	if (RaysBrush.GetResourceObject())
+	{
+		FSlateDrawElement::MakeBox(Out, Layer++, Geometry.ToPaintGeometry(), &RaysBrush, ESlateDrawEffect::None,
+			FLinearColor::White.CopyWithNewOpacity(static_cast<float>(Show)));
+		bRaysPainted = Show > 0.0;
+	}
+	else
+	{
+		const FVector2D Dim[4] = { { 0.0, 0.0 }, { Size.X, 0.0 }, { Size.X, Size.Y }, { 0.0, Size.Y } };
+		Canvas.Polygon(Dim, Godot(FromToken(PawTokens::INK), C.DimA * Fade));
+	}
 	// _draw_sky: the rainbow, then every bit.
 	std::vector<Pc::PcUnicornArc> Arcs;
 	Pc::UnicornArcs(C, Arcs);
@@ -208,6 +239,32 @@ int32 UPawUnicornCeremony::NativePaint(const FPaintArgs& Args, const FGeometry& 
 		FSlateDrawElement::MakeCustomVerts(Out, ++Layer, FSlateApplication::Get().GetRenderer()->GetResourceHandle(PageBrush),
 			Verts, Indices, nullptr, 0, 0);
 		bCatPainted = true;
+	}
+	// D18 (S4, the UI concept's scrUnicorn): UNICORN as its sticker title (yellow on a thick ink outline) at the top, and the
+	// line that says what changed on a cream plate under the rider; both fade with the rays. In the concept's 1600 x 900 frame.
+	// The title at 80 (the concept's 140): the game's rainbow and rider stand higher than the concept's, over its 140.
+	if (Show > 0.01)
+	{
+		const double Kx = Size.X / 1600.0, Ky = Size.Y / 900.0, K = FMath::Min(Kx, Ky);
+		const TSharedRef<FSlateFontMeasure> Measure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+		FSlateFontInfo TitleFont(PawUi::PawFont(), static_cast<float>(PawUi::FontPt(84.0 * K)), FName(TEXT("Black")));
+		TitleFont.OutlineSettings.OutlineSize = FMath::RoundToInt(PawUi::CeremonyTitleOutline * 2.0 * K);
+		TitleFont.OutlineSettings.OutlineColor = PawTokens::INK.CopyWithNewOpacity(static_cast<float>(Show));
+		const FString Title = GetTitleText().ToString();
+		const FVector2D TitleSize = Measure->Measure(Title, TitleFont);
+		FSlateDrawElement::MakeText(Out, ++Layer, Geometry.ToPaintGeometry(FVector2f(TitleSize),
+			FSlateLayoutTransform(FVector2f(static_cast<float>(800.0 * Kx - TitleSize.X * 0.5), static_cast<float>(80.0 * Ky - TitleSize.Y * 0.5)))),
+			Title, TitleFont, ESlateDrawEffect::None, PawTokens::UI_SELECTED.CopyWithNewOpacity(static_cast<float>(Show)));
+		bTitlePainted = true;
+		const FVector2D PlatePos(470.0 * Kx, 720.0 * Ky), PlateSize(660.0 * Kx, 86.0 * Ky);
+		FSlateDrawElement::MakeBox(Out, ++Layer, Geometry.ToPaintGeometry(FVector2f(PlateSize), FSlateLayoutTransform(FVector2f(PlatePos))),
+			&LinePlate, ESlateDrawEffect::None, FLinearColor::White.CopyWithNewOpacity(static_cast<float>(Show)));
+		FSlateFontInfo LineFont(PawUi::PawFont(), static_cast<float>(PawUi::FontPt(26.0 * K)), FName(TEXT("Black")));
+		const FString Line = GetLineText().ToString();
+		const FVector2D LineSize = Measure->Measure(Line, LineFont);
+		FSlateDrawElement::MakeText(Out, ++Layer, Geometry.ToPaintGeometry(FVector2f(LineSize),
+			FSlateLayoutTransform(FVector2f(PlatePos + (PlateSize - LineSize) * 0.5))),
+			Line, LineFont, ESlateDrawEffect::None, PawTokens::UI_TEXT.CopyWithNewOpacity(static_cast<float>(Show)));
 	}
 	return Layer;
 }

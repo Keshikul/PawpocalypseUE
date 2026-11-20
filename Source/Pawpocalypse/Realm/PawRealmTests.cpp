@@ -542,7 +542,9 @@ bool FPawRealmViewTest::RunTest(const FString& Parameters)
 		}
 		TestEqual(TEXT("one body per live thing"), R->DrawnCount(EPawLayer::Bodies) - Limbs, Bodies);
 		TestEqual(TEXT("every rigged mouse's wings and legs"), Limbs, LimbsWanted);
-		TestTrue(TEXT("some rigged mice on this field"), LimbsWanted > 0);
+		// "Some rigged mice on this field" held while the grammar's drawings had wing and leg layers (R5). The Sticker
+		// drawings (D18, 2026-11-18) are one sprite each until E3 gives them layers: none on this field, and none drawn.
+		TestEqual(TEXT("no limbs without a rig (D18: one sprite per Sticker drawing until E3)"), Limbs, 0);
 		TestEqual(TEXT("one shadow per mouse, kitten and the cat"), R->DrawnCount(EPawLayer::Shadows),
 			static_cast<int32>(F.LiveCount() + F.AwakeKittens()) + 1);
 		// Every body wears its own art, and Godot's draw order holds: the mice (z 0) under the kittens (z 1) under the cat (z 2).

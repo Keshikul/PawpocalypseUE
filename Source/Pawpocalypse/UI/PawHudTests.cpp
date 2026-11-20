@@ -23,6 +23,12 @@
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetNavigation.h"
 #include "Components/PanelWidget.h"
+#include "Components/Border.h"
+#include "Components/Image.h"
+#include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
+#include "Components/VerticalBoxSlot.h"
+#include "Components/HorizontalBoxSlot.h"
 #include "Core/PawGameSubsystem.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
@@ -45,6 +51,8 @@
 #include "Realm/PawRealmSubsystem.h"
 #include "UI/PawButton.h"
 #include "UI/PawUiConstants.h"
+#include "UI/PawUiKit.h"
+#include "UI/PawIcons.h"
 #include "UI/PawHudScreen.h"
 #include "UI/PawReawakenCeremony.h"
 #include "UI/PawPounceClock.h"
@@ -218,13 +226,29 @@ bool FPawHudReadoutsTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Catnip"), S(W.Hud->GetCatnipText()), S(PawText::Amount(300.0)));
 	TestEqual(TEXT("Stardust"), S(W.Hud->GetStardustText()), S(PawText::Amount(0.0)));
 
-	// Rows, as a player reads them (Godot's English, Amounts.short prices).
+	// Rows, as a player reads them (Amounts.short prices). Sticker Box (D18, S4): the UI concept's row, the name, "Lv N" under
+	// it, the price on its own plate (yellow when it can be paid), the upgrade's icon before them.
 	const int32 Paw = W.RowOf("paw_damage");
 	const double PawCost = Pc::UpgradeCostById(W.D(), P, "paw_damage");
-	TestEqual(TEXT("a priced row"), S(W.Hud->GetRowButton(Paw)->GetLabel()), FString::Printf(TEXT("Paw Damage (Lv 0) — %s"), *S(PawText::Amount(PawCost))));
+	TestEqual(TEXT("a row's name"), S(W.Hud->GetRowButton(Paw)->GetLabel()), FString(TEXT("Paw Damage")));
+	TestEqual(TEXT("its level under it"), S(W.Hud->GetRowButton(Paw)->GetDetail()), FString(TEXT("Lv 0")));
+	TestEqual(TEXT("its price on the plate"), S(W.Hud->GetRowButton(Paw)->GetPriceTag()), S(PawText::Amount(PawCost)));
+	TestTrue(TEXT("the plate yellow: it can be paid"), W.Hud->GetRowButton(Paw)->IsPriceTagPayable());
+	TestEqual(TEXT("its icon"), W.Hud->GetRowButton(Paw)->GetIconName(), FString(TEXT("ui_icon_upgrade_paw_damage")));
+	TestTrue(TEXT("drawn"), W.Hud->GetRowButton(Paw)->IsIconShown());
+	// Missing Art v3 (2026-11-18, "Shred b, shield a"): Shield Pierce has its icon now (the shield split along a crack);
+	// Shred's is the sheet ripped in two (tools/art/concept_icons.js, recorded like the cast).
+	TestTrue(TEXT("Shield Pierce's icon drawn"), W.Hud->GetRowButton(W.RowOf("shield_pierce"))->IsIconShown());
+	TestTrue(TEXT("Shred's icon drawn"), W.Hud->GetRowButton(W.RowOf("shred"))->IsIconShown());
+	// "The other missing art is ok" (2026-11-18): every upgrade's row has its icon now.
+	for (const Pc::PcUpgrade& U : W.D().Upgrades)
+	{
+		TestTrue(FString::Printf(TEXT("%hs: its icon drawn"), U.Id.c_str()), W.Hud->GetRowButton(W.RowOf(U.Id.c_str()))->IsIconShown());
+	}
 	TestFalse(TEXT("affordable: not locked"), W.Hud->GetRowButton(Paw)->IsLocked());
 	const int32 Exec = W.RowOf("execute");
 	TestTrue(TEXT("unaffordable: locked"), Pc::UpgradeCostById(W.D(), P, "execute") > P.Catnip && W.Hud->GetRowButton(Exec)->IsLocked());
+	TestTrue(TEXT("its price on the off plate"), W.Hud->GetRowButton(Exec)->IsPriceTagShown() && !W.Hud->GetRowButton(Exec)->IsPriceTagPayable());
 	TestTrue(TEXT("a locked row is still focusable (Slate-enabled)"), W.Hud->GetRowButton(Exec)->GetIsEnabled());
 	// R4e: the board's rows: the words on the left, a little bigger, taller.
 	TestTrue(TEXT("a shop row: words left, 18 px"), W.Hud->GetRowButton(Paw)->bAlignLeft
@@ -233,6 +257,7 @@ bool FPawHudReadoutsTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the wave line sits on its plum plate"), W.Hud->WaveShown() && W.Hud->WaveShown()->GetFName() == TEXT("WavePlate"));
 	const int32 Power = W.RowOf("kitten_power");
 	TestTrue(TEXT("Kitten Power waits for a kitten"), S(W.Hud->GetRowButton(Power)->GetLabel()).StartsWith(TEXT("Kitten Power — buy a Kitten first")));
+	TestFalse(TEXT("with no price plate"), W.Hud->GetRowButton(Power)->IsPriceTagShown());
 	TestTrue(TEXT("and is locked"), W.Hud->GetRowButton(Power)->IsLocked());
 	for (int32 I = 0; I < static_cast<int32>(Pc::ShopRowOrder().size()); ++I)
 	{
@@ -240,17 +265,27 @@ bool FPawHudReadoutsTest::RunTest(const FString& Parameters)
 		TestEqual(FString::Printf(TEXT("row %d shown as PcHud says"), I), Shown(W.Hud->GetRowButton(I)), Row.Kind != Pc::PcShopRowKind::Hidden);
 	}
 
-	// The multiplier: Buy x5 prices the walked sum.
+	// The buy amount (D18, S4): a switch of four, the amount in use yellow; Q steps through them, a press picks one.
+	{
+		FString Words;
+		for (int32 I = 0; W.Hud->GetAmountButton(I); ++I)
+		{
+			Words += (I > 0 ? TEXT(" ") : TEXT("")) + S(W.Hud->GetAmountButton(I)->GetLabel());
+		}
+		TestEqual(TEXT("the switch says x1 x5 x10 Max"), Words, FString(TEXT("x1 x5 x10 Max")));
+	}
+	TestTrue(TEXT("x1 is the yellow one"), W.Hud->GetAmountButton(0)->HasActiveLook() && !W.Hud->GetAmountButton(1)->HasActiveLook());
 	W.Hud->CycleMultiplier();
-	TestEqual(TEXT("the multiplier says x5"), S(W.Hud->GetMultiplierButton()->GetLabel()), FString(TEXT("Buy x5")));
+	TestTrue(TEXT("Q: x5 turns yellow, x1 not"), W.Hud->GetAmountButton(1)->HasActiveLook() && !W.Hud->GetAmountButton(0)->HasActiveLook());
+	TestEqual(TEXT("the chosen button is x5's"), W.Hud->GetChosenAmountButton(), W.Hud->GetAmountButton(1));
 	P.Catnip = 1e9;
 	W.Hud->RefreshNow();
 	const Pc::PcShopRow Bulk = Pc::ShopRow(W.D(), P, "paw_damage", 5);
-	TestEqual(TEXT("a bulk row"), S(W.Hud->GetRowButton(Paw)->GetLabel()),
-		FString::Printf(TEXT("Paw Damage (Lv 0) — +5 for %s"), *S(PawText::Amount(Bulk.Price))));
-	W.Hud->CycleMultiplier();
-	W.Hud->CycleMultiplier();
-	TestEqual(TEXT("then Max"), S(W.Hud->GetMultiplierButton()->GetLabel()), FString(TEXT("Buy Max")));
+	TestEqual(TEXT("a bulk row: the levels it buys"), S(W.Hud->GetRowButton(Paw)->GetDetail()), FString(TEXT("Lv 0  +5")));
+	TestEqual(TEXT("and their price"), S(W.Hud->GetRowButton(Paw)->GetPriceTag()), S(PawText::Amount(Bulk.Price)));
+	W.Hud->GetAmountButton(3)->OnClicked().Broadcast();
+	TestEqual(TEXT("a press on Max picks Max"), W.Hud->GetBuyMultiplier(), int64(-1));
+	TestTrue(TEXT("and Max is the yellow one"), W.Hud->GetAmountButton(3)->HasActiveLook() && !W.Hud->GetAmountButton(1)->HasActiveLook());
 	W.Hud->CycleMultiplier();
 	TestEqual(TEXT("and round to x1"), W.Hud->GetBuyMultiplier(), int64(1));
 
@@ -275,7 +310,7 @@ bool FPawHudReadoutsTest::RunTest(const FString& Parameters)
 	P.CatchesLevel = 2;
 	P.CatchesPoints = (Pc::TotalCatchesForLevel(W.D(), 2) + Pc::TotalCatchesForLevel(W.D(), 3)) * 0.5;
 	W.Hud->RefreshNow();
-	TestEqual(TEXT("XP: this level"), S(W.Hud->GetXpText(false)), FString(TEXT("2")));
+	TestEqual(TEXT("XP: this level"), S(W.Hud->GetXpText(false)), FString(TEXT("Level 2")));
 	TestEqual(TEXT("XP: the next"), S(W.Hud->GetXpText(true)), FString(TEXT("3")));
 	TestTrue(TEXT("XP: half full"), FMath::IsNearlyEqual(W.Hud->GetXpFill(), 0.5f, 1e-4f));
 	W.Close();
@@ -300,7 +335,7 @@ bool FPawHudPressTest::RunTest(const FString& Parameters)
 	W.Hud->PressRow(Paw);
 	TestEqual(TEXT("the press bought a level"), Pc::UpgradeLevel(P, "paw_damage"), int64_t(1));
 	TestEqual(TEXT("and paid for it"), P.Catnip, 0.0);
-	TestTrue(TEXT("the row answers on the frame"), S(W.Hud->GetRowButton(Paw)->GetLabel()).StartsWith(TEXT("Paw Damage (Lv 1)")));
+	TestEqual(TEXT("the row answers on the frame"), S(W.Hud->GetRowButton(Paw)->GetDetail()), FString(TEXT("Lv 1")));
 	TestEqual(TEXT("Catnip answers too"), S(W.Hud->GetCatnipText()), S(PawText::Amount(0.0)));
 	// A press it cannot pay buys nothing, and still answers on the frame: Catnip changed behind the HUD's back (no tick
 	// between), so only the press's own refresh shows the new amount (2026-11-10: this half was unasserted, and the
@@ -353,6 +388,176 @@ bool FPawHudDockTest::RunTest(const FString& Parameters)
 	W.Hud->ReportDockForSize(FVector2D(1280.0, 800.0));
 	TestTrue(TEXT("scaled: the dock in field units"), FMath::IsNearlyEqual(W.Realm->GetDock().W, 568.0 * 1080.0 / 800.0, 1e-9));
 	W.Hud->SetDockOnLeft(true);
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawHudDockLookTest, "Pawpocalypse.UI.Hud.DockLook", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawHudDockLookTest::RunTest(const FString& Parameters)
+{
+	// D18 (S4, the UI concept's scrUpgrades): what the dock draws, read from the widgets it shows.
+	FHudWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	W.Hud->RefreshNow();
+	UWidgetTree* Tree = W.Hud->WidgetTree;
+	for (int32 I = 0; I < 6; ++I)
+	{
+		const UTextBlock* Title = Cast<UTextBlock>(Tree->FindWidget(PawUi::Numbered(TEXT("PageTitle"), I)));
+		TestTrue(FString::Printf(TEXT("page %d's title is heavy"), I), Title && Title->GetFont().TypefaceFontName == FName(TEXT("Black")));
+		TestEqual(FString::Printf(TEXT("page %d's title at the dock title's size"), I), Title ? Title->GetFont().Size : 0.0f,
+			PawUi::FontPt(PawUi::DockTitlePx));
+		const UVerticalBoxSlot* VS = Title ? Cast<UVerticalBoxSlot>(Title->Slot) : nullptr;
+		if (I > 0)
+		{
+			TestTrue(FString::Printf(TEXT("page %d's title is not centred"), I), VS && VS->GetHorizontalAlignment() != HAlign_Center);
+		}
+	}
+	const UTextBlock* Label = Cast<UTextBlock>(Tree->FindWidget(TEXT("AmountLabel")));
+	TestTrue(TEXT("Buy amount before the switch"), Label && S(Label->GetText()) == TEXT("Buy amount"));
+	TestTrue(TEXT("the switch sits on its plate"), W.Hud->GetAmountButton(0) && Tree->FindWidget(TEXT("AmountPlate"))
+		&& W.Hud->GetAmountButton(0)->GetParent() && W.Hud->GetAmountButton(0)->GetParent()->GetParent() == Tree->FindWidget(TEXT("AmountPlate")));
+	for (int32 I = 0; I < 4; ++I)
+	{
+		const UPawButton* Q = W.Hud->GetQuickButton(I);
+		TestTrue(FString::Printf(TEXT("quick button %d on a plate, not bare"), I), Q && !Q->bBareLook && Q->IsIconShown());
+		const UHorizontalBoxSlot* QS = Q ? Cast<UHorizontalBoxSlot>(Q->Slot) : nullptr;
+		TestTrue(FString::Printf(TEXT("quick button %d shares the width"), I), QS && QS->GetSize().SizeRule == ESlateSizeRule::Fill);
+	}
+	const UWidget* Legend = Tree->FindWidget(TEXT("DockLegend"));
+	const UWidget* Quick = Tree->FindWidget(TEXT("QuickBarBox"));
+	const UPanelWidget* Body = Legend ? Legend->GetParent() : nullptr;
+	TestTrue(TEXT("the legend sits above the quick bar"), Body && Quick && Quick->GetParent() == Body
+		&& Body->GetChildIndex(Legend) < Body->GetChildIndex(Quick));
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawHudStatusLookTest, "Pawpocalypse.UI.Hud.StatusLook", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawHudStatusLookTest::RunTest(const FString& Parameters)
+{
+	// D18 (S4, the UI concept's scrUpgrades): one status panel under the pills (the biome's name, the next biome's line, the
+	// wave line, in that order), the concept's bar colours, the level on a plate as "Level n".
+	FHudWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	W.P().Catnip = 300.0;
+	W.Hud->RefreshNow();
+	UWidgetTree* Tree = W.Hud->WidgetTree;
+	const UPanelWidget* Body = Cast<UPanelWidget>(Tree->FindWidget(TEXT("FieldBody")));
+	const UWidget* Name = Tree->FindWidget(TEXT("BiomeName"));
+	const UWidget* Zone = Tree->FindWidget(TEXT("ZonePlate"));
+	const UWidget* Wave = Tree->FindWidget(TEXT("WavePlate"));
+	TestTrue(TEXT("the panel holds the biome's name, the next biome's line, the wave line, in that order"), Body && Name && Zone && Wave
+		&& Name->GetParent() == Body && Zone->GetParent() == Body && Wave->GetParent() == Body
+		&& Body->GetChildIndex(Name) < Body->GetChildIndex(Zone) && Body->GetChildIndex(Zone) < Body->GetChildIndex(Wave));
+	TestTrue(TEXT("the panel is the status row's, under the pills"), Body && Body->GetParent() == W.Hud->GetFieldPlate()
+		&& W.Hud->GetFieldPlate()->GetParent() == W.Hud->GetStatusRow());
+	const Pc::PcField& F = W.Realm->GetSim().Field;
+	TestEqual(TEXT("the biome's name"), S(W.Hud->GetBiomeNameText()), S(PawText::Data(TEXT("TIER"), W.D().Tiers[static_cast<size_t>(F.TierIndex)].Id)));
+	auto Fill = [&](const TCHAR* BarName)
+	{
+		const UProgressBar* B = Cast<UProgressBar>(Tree->FindWidget(BarName));
+		return B ? B->GetWidgetStyle().FillImage.TintColor.GetSpecifiedColor() : FLinearColor::Transparent;
+	};
+	TestEqual(TEXT("the next biome's bar is the concept's green"), Fill(TEXT("ZoneBar")), PawTokens::UI_BAR_ZONE);
+	TestEqual(TEXT("the wave bar is its blue"), Fill(TEXT("WaveBar")), PawTokens::UI_BAR_WAVE);
+	TestEqual(TEXT("the level's bar is its purple"), Fill(TEXT("XpBar")), PawTokens::UI_BAR_XP);
+	const UWidget* XpRow = Tree->FindWidget(TEXT("XpRow"));
+	TestTrue(TEXT("the level's row on its plate"), XpRow && XpRow->GetParent() == Tree->FindWidget(TEXT("XpPlate")));
+	TestTrue(TEXT("Level n before the bar"), S(W.Hud->GetXpText(false)).StartsWith(TEXT("Level ")));
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawHudPounceLookTest, "Pawpocalypse.UI.Hud.PounceLook", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawHudPounceLookTest::RunTest(const FString& Parameters)
+{
+	// D18 (S4, the UI concept's scrUpgrades): "Pounce" and its key on a plate beside the clock, shown with the clock; a row
+	// that cannot be bought yet shows the lock, the others their upgrade's icon.
+	FHudWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	UWidgetTree* Tree = W.Hud->WidgetTree;
+	W.Hud->RefreshNow();
+	TestFalse(TEXT("no Pounce skill: no plate"), Shown(W.Hud->GetPouncePlate()));
+	W.P().BranchLevels["unlock_pounce"] = 1;
+	W.Hud->RefreshNow();
+	TestTrue(TEXT("with the skill, the clock"), Shown(W.Hud->GetPounceClock()));
+	TestTrue(TEXT("and the plate beside it"), Shown(W.Hud->GetPouncePlate()));
+	const UTextBlock* Label = Cast<UTextBlock>(Tree->FindWidget(TEXT("PounceLabel")));
+	const UWidget* Prompt = Tree->FindWidget(TEXT("PouncePrompt"));
+	const UWidget* Line = Tree->FindWidget(TEXT("PounceLine"));
+	TestTrue(TEXT("the plate says Pounce"), Label && S(Label->GetText()) == TEXT("Pounce"));
+	TestTrue(TEXT("then the key, on the same plate"), Line && Label && Prompt && Label->GetParent() == Line && Prompt->GetParent() == Line
+		&& Line->GetParent() == Tree->FindWidget(TEXT("PouncePlate")));
+	const int32 Power = W.RowOf("kitten_power");
+	TestEqual(TEXT("a row that waits for a kitten shows the lock"), W.Hud->GetRowButton(Power)->GetIconName(), FString(TEXT("ui_lock")));
+	TestTrue(TEXT("and the lock is drawn"), W.Hud->GetRowButton(Power)->IsIconShown());
+	TestEqual(TEXT("a row that can be bought shows its upgrade"), W.Hud->GetRowButton(W.RowOf("paw_damage"))->GetIconName(),
+		FString(TEXT("ui_icon_upgrade_paw_damage")));
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawHudReawakenLookTest, "Pawpocalypse.UI.Hud.ReawakenLook", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawHudReawakenLookTest::RunTest(const FString& Parameters)
+{
+	// D18 (S4, the UI concept's scrReawaken): the payout in its own box, "+n" big and purple; the check box above the button;
+	// the button yellow (with the Reawaken swirl) when it can be pressed, and the tab opening on it.
+	FHudWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	UWidgetTree* Tree = W.Hud->WidgetTree;
+	W.Hud->SelectTab(Pc::PcDockTab::Reawaken);
+	W.Hud->RefreshNow();
+	const UPanelWidget* Body = Cast<UPanelWidget>(Tree->FindWidget(TEXT("PayoutBody")));
+	TestTrue(TEXT("the payout's box holds the heading, the line, both multipliers"), Body && Body->GetParent() == Tree->FindWidget(TEXT("PayoutPanel"))
+		&& Tree->FindWidget(TEXT("PayoutHead")) && Tree->FindWidget(TEXT("PayoutHead"))->GetParent() == Body
+		&& Tree->FindWidget(TEXT("PayoutLine")) && Tree->FindWidget(TEXT("PayoutLine"))->GetParent() == Body
+		&& Tree->FindWidget(TEXT("MultiplierText"))->GetParent() == Body && Tree->FindWidget(TEXT("CatnipMultiplierText"))->GetParent() == Body);
+	const UTextBlock* Number = Cast<UTextBlock>(Tree->FindWidget(TEXT("PayoutText")));
+	TestTrue(TEXT("+n big"), Number && FMath::IsNearlyEqual(Number->GetFont().Size, PawUi::FontPt(PawUi::PayoutNumberPx)));
+	TestTrue(TEXT("+n purple"), Number && Number->GetColorAndOpacity().GetSpecifiedColor().Equals(PawTokens::UI_STARDUST_BRIGHT));
+	const UPawButton* Ask = W.Hud->GetAskReawakenButton();
+	const UPawButton* Go = W.Hud->GetReawakenButton();
+	const UPanelWidget* Page = Go ? Go->GetParent() : nullptr;
+	TestTrue(TEXT("the check box above the button"), Ask && Page && Ask->GetParent() == Page && Page->GetChildIndex(Ask) < Page->GetChildIndex(Go));
+	TestTrue(TEXT("a plain check box, not a plate"), Ask && Ask->bFlatLook);
+	// D18 (S4, 1.11, the UI concept's toggle()): yellow with the tick when on, cream with no tick when off.
+	if (Ask)
+	{
+		UPawButton* Box = const_cast<UPawButton*>(Ask);
+		Box->SetCheck(true, true);
+		TestTrue(TEXT("ticked: yellow, the tick shown"), Box->GetCheckFill().Equals(PawTokens::UI_SELECTED) && Box->IsTickShown());
+		Box->SetCheck(true, false);
+		TestTrue(TEXT("unticked: cream, no tick"), Box->GetCheckFill().Equals(PawTokens::UI_PANEL) && !Box->IsTickShown());
+	}
+	TestEqual(TEXT("the button's icon is the Reawaken swirl"), Go ? Go->GetIconName() : FString(), PawUi::TabIconName(TEXT("reawaken")));
+	TestFalse(TEXT("not ready: not yellow"), Go && Go->HasCallLook());
+	Pc::PcProgress& P = W.P();
+	P.LifetimeCatnipEver = 1e12;
+	P.LifetimeCatnipThisCycle = 1e12;
+	P.Catnip = 1e12;
+	W.Hud->RefreshNow();
+	TestTrue(TEXT("ready: yellow"), Go && Go->HasCallLook());
+	TestTrue(TEXT("the tab opens on the button"), W.Hud->GetDesiredFocusTarget() == Go);
 	W.Close();
 	return true;
 }
@@ -429,7 +634,7 @@ bool FPawHudNavigationTest::RunTest(const FString& Parameters)
 		return false;
 	}
 	W.Hud->RefreshNow();
-	TArray<UWidget*> Column = { W.Hud->GetMultiplierButton() };
+	TArray<UWidget*> Column = { W.Hud->GetChosenAmountButton() };
 	for (int32 I = 0; I < static_cast<int32>(Pc::ShopRowOrder().size()); ++I)
 	{
 		if (Shown(W.Hud->GetRowButton(I)))
@@ -441,7 +646,7 @@ bool FPawHudNavigationTest::RunTest(const FString& Parameters)
 	UWidget* Tab = W.Hud->GetTabButton(Pc::PcDockTab::Upgrades);
 	UWidget* Target = nullptr;
 	TestEqual(TEXT("the open tab leads down to the page"), Rule(Tab, EUINavigation::Down, &Target), EUINavigationRule::Explicit);
-	TestTrue(TEXT("to the multiplier"), Target == Column[0]);
+	TestTrue(TEXT("to the buy amount's chosen button"), Target == Column[0]);
 	for (int32 I = 0; I < Column.Num(); ++I)
 	{
 		Target = nullptr;
@@ -456,6 +661,26 @@ bool FPawHudNavigationTest::RunTest(const FString& Parameters)
 		else
 		{
 			TestEqual(TEXT("the last row stops"), Rule(Column[I], EUINavigation::Down), EUINavigationRule::Stop);
+		}
+	}
+	// D18 (S4): the buy amount's switch, left and right along it; each of the four up to the tab, down to the first row.
+	for (int32 I = 0; W.Hud->GetAmountButton(I); ++I)
+	{
+		UWidget* B = W.Hud->GetAmountButton(I);
+		Target = nullptr;
+		TestTrue(FString::Printf(TEXT("amount %d up to the tab"), I), Rule(B, EUINavigation::Up, &Target) == EUINavigationRule::Explicit && Target == Tab);
+		Target = nullptr;
+		TestTrue(FString::Printf(TEXT("amount %d down to the first row"), I), Rule(B, EUINavigation::Down, &Target) == EUINavigationRule::Explicit
+			&& Column.Num() > 1 && Target == Column[1]);
+		Target = nullptr;
+		if (W.Hud->GetAmountButton(I + 1))
+		{
+			TestTrue(FString::Printf(TEXT("amount %d right to the next"), I), Rule(B, EUINavigation::Right, &Target) == EUINavigationRule::Explicit
+				&& Target == W.Hud->GetAmountButton(I + 1));
+		}
+		else
+		{
+			TestEqual(TEXT("the last amount stops on the right"), Rule(B, EUINavigation::Right), EUINavigationRule::Stop);
 		}
 	}
 	// Tabs walk left and right among the shown ones.
@@ -510,8 +735,19 @@ bool FPawHudBossTest::RunTest(const FString& Parameters)
 	const FString Name = S(PawText::Data(TEXT("BOSS"), Tier.BossData));
 	TestTrue(TEXT("names the boss and its phase"), S(W.Hud->GetBossText()).StartsWith(FString::Printf(TEXT("%s  —  Phase 1  —  "), *Name)));
 
-	// Killed: the after-word stays, the bar empties.
+	// D18 (S4, the UI concept's scrBoss): SHIELDED on its own red tag, not on the line.
 	Pc::PcField& F = W.Realm->GetSim().Field;
+	const bool bWasShielded = F.bBossShielded;
+	F.bBossShielded = false;
+	W.Hud->RefreshNow();
+	TestFalse(TEXT("unshielded: no tag"), W.Hud->IsBossShieldTagShown());
+	F.bBossShielded = true;
+	W.Hud->RefreshNow();
+	TestTrue(TEXT("shielded: the tag"), W.Hud->IsBossShieldTagShown());
+	TestFalse(TEXT("and not on the line"), S(W.Hud->GetBossText()).Contains(TEXT("SHIELDED")));
+	F.bBossShielded = bWasShielded;
+
+	// Killed: the after-word stays, the bar empties.
 	Pc::DamageFieldBoss(F, D, P, W.Realm->GetSim().Input, F.BossHp * 10.0, 1.0);
 	F.bBossShielded = false;
 	if (F.bBossUp)
@@ -556,15 +792,26 @@ bool FPawHudRealmsTest::RunTest(const FString& Parameters)
 
 	// The rows, as read.
 	TestEqual(TEXT("here"), S(W.Hud->GetRealmButton(0)->GetLabel()), FString::Printf(TEXT("%s — you are here"), *Here));
-	TestTrue(TEXT("here is locked"), W.Hud->GetRealmButton(0)->IsLocked());
+	// D18 (S4, the UI concept's scrRealms): the cat's biome on the yellow plate with the paw (Godot: green words, locked);
+	// a press there does nothing (PcHud's row is not enabled).
+	TestTrue(TEXT("here is on the yellow plate"), W.Hud->GetRealmButton(0)->HasActiveLook() && !W.Hud->GetRealmButton(0)->IsLocked());
+	TestEqual(TEXT("here wears the paw"), W.Hud->GetRealmButton(0)->GetIconName(), PawUi::TabIconName(TEXT("upgrades")));
+	TestFalse(TEXT("here's row is not enabled in PcHud (a press is nothing)"), Pc::RealmRow(D, P, 0).bEnabled);
+	TestTrue(TEXT("its words on the left"), W.Hud->GetRealmButton(0)->bAlignLeft);
 	const double Owed = Pc::CatnipUntilUnlocked(P, D.Tiers[1]);
 	TestEqual(TEXT("the next biome names the Catnip it still wants"), S(W.Hud->GetRealmButton(1)->GetLabel()),
 		FString::Printf(TEXT("%s — earn %s more"), *Next, *S(PawText::Amount(Owed))));
 	TestTrue(TEXT("and is locked"), W.Hud->GetRealmButton(1)->IsLocked());
+	TestEqual(TEXT("and wears Catnip (what it is missing)"), W.Hud->GetRealmButton(1)->GetIconName(), PawUi::CurrencyIconName(TEXT("catnip")));
+	TestEqual(TEXT("a biome further off wears the lock"), W.Hud->GetRealmButton(static_cast<int32>(D.Tiers.size()) - 1)->GetIconName(),
+		FString(TEXT("ui_lock")));
 	P.LifetimeCatnipThisCycle += D.Tiers[1].CatnipToUnlock + 1.0;
 	W.Hud->RefreshNow();
 	TestEqual(TEXT("open: travel"), S(W.Hud->GetRealmButton(1)->GetLabel()), FString::Printf(TEXT("Travel: %s"), *Next));
 	TestFalse(TEXT("and pressable"), W.Hud->GetRealmButton(1)->IsLocked());
+	TestEqual(TEXT("and wears the flag"), W.Hud->GetRealmButton(1)->GetIconName(), PawUi::TabIconName(TEXT("realms")));
+	TestFalse(TEXT("a newly open biome leans but is not yellow (yellow is where the cat is)"), W.Hud->GetRealmButton(1)->HasCallLook()
+		|| W.Hud->GetRealmButton(1)->HasActiveLook());
 	int32 Gated = INDEX_NONE;
 	for (int32 I = 0; I < static_cast<int32>(D.Tiers.size()) && Gated == INDEX_NONE; ++I)
 	{
@@ -795,6 +1042,18 @@ bool FPawHudCatchesTest::RunTest(const FString& Parameters)
 	const Pc::PcGameData& D = W.D();
 	Pc::PcProgress& P = W.P();
 	W.Hud->SelectTab(Pc::PcDockTab::Catches);
+	// D18 (S4): the rows are ordered (held, open, out of reach), so a card's row is found by its card.
+	auto CardRow = [&W](const TCHAR* Id) -> UPawButton*
+	{
+		for (int32 I = 0; W.Hud->GetCardRow(I); ++I)
+		{
+			if (W.Hud->GetCardRowId(I) == Id)
+			{
+				return W.Hud->GetCardRow(I);
+			}
+		}
+		return nullptr;
+	};
 	TestEqual(TEXT("nothing taken"), S(W.Hud->GetCatchesSummaryText()), FString(TEXT("No cards taken yet this life. Catch mice to fill Catches.")));
 	TestFalse(TEXT("no auto-pick box without Auto-Card"), Shown(W.Hud->GetAutoPickButton()));
 	TestNotNull(TEXT("a row for the last card"), W.Hud->GetCardRow(static_cast<int32>(D.Cards.size()) - 1));
@@ -810,10 +1069,10 @@ bool FPawHudCatchesTest::RunTest(const FString& Parameters)
 		W.Close();
 		return false;
 	}
-	TestEqual(TEXT("a card not taken: its name"), S(W.Hud->GetCardRow(Bounty)->GetLabel()), FString(TEXT("Bounty")));
-	TestEqual(TEXT("nothing in its way"), S(W.Hud->GetCardRow(Bounty)->GetDetail()), FString(TEXT("Not taken yet.")));
-	TestEqual(TEXT("a Pounce card names the branch"), S(W.Hud->GetCardRow(Blood)->GetDetail()), FString(TEXT("Buy the Pounce branch in the skill tree.")));
-	TestEqual(TEXT("a kitten card names the kitten"), S(W.Hud->GetCardRow(Lone)->GetDetail()), FString(TEXT("Have at least one kitten.")));
+	TestEqual(TEXT("a card not taken: its name"), S(CardRow(TEXT("bounty"))->GetLabel()), FString(TEXT("Bounty")));
+	TestEqual(TEXT("nothing in its way"), S(CardRow(TEXT("bounty"))->GetDetail()), FString(TEXT("Not taken yet.")));
+	TestEqual(TEXT("a Pounce card names the branch"), S(CardRow(TEXT("bloodlust"))->GetDetail()), FString(TEXT("Buy the Pounce branch in the skill tree.")));
+	TestEqual(TEXT("a kitten card names the kitten"), S(CardRow(TEXT("lone_hunter"))->GetDetail()), FString(TEXT("Have at least one kitten.")));
 	// Every requirement has its own line in ST_UI (the key switch has no default: a value it forgets reads "other").
 	TSet<FString> Keys;
 	for (int32 I = 1; I < static_cast<int32>(Pc::PcCardRequirement::Count); ++I)
@@ -831,16 +1090,26 @@ bool FPawHudCatchesTest::RunTest(const FString& Parameters)
 	P.CardLevels["close_quarters"] = 1;
 	W.Hud->RefreshNow();
 	TestEqual(TEXT("one card"), S(W.Hud->GetCatchesSummaryText()), FString(TEXT("1 card taken this life.")));
-	TestEqual(TEXT("a held card's heading"), S(W.Hud->GetCardRow(Close)->GetLabel()), FString(TEXT("Close Quarters  (Lv 1/2)")));
-	TestEqual(TEXT("a held card's body"), S(W.Hud->GetCardRow(Close)->GetDetail()),
+	TestEqual(TEXT("a held card's heading"), S(CardRow(TEXT("close_quarters"))->GetLabel()), FString(TEXT("Close Quarters  (Lv 1/2)")));
+	TestEqual(TEXT("a held card's body"), S(CardRow(TEXT("close_quarters"))->GetDetail()),
 		FString(TEXT("Your aura detonates for 5 seconds of damage, but shrinks to 0.7x its radius.")));
 	P.CardLevels["bounty"] = 2;
 	P.BanishedCards.insert("spite");
 	W.Hud->RefreshNow();
 	TestEqual(TEXT("two cards"), S(W.Hud->GetCatchesSummaryText()), FString(TEXT("2 cards taken this life.")));
-	TestEqual(TEXT("level two of three"), S(W.Hud->GetCardRow(Bounty)->GetLabel()), FString(TEXT("Bounty  (Lv 2/3)")));
-	TestTrue(TEXT("its value at level two"), S(W.Hud->GetCardRow(Bounty)->GetDetail()).Contains(TEXT("3")));
-	TestEqual(TEXT("a banished card says so"), S(W.Hud->GetCardRow(CardIndex(D, "spite"))->GetDetail()), FString(TEXT("Removed from this run.")));
+	TestEqual(TEXT("level two of three"), S(CardRow(TEXT("bounty"))->GetLabel()), FString(TEXT("Bounty  (Lv 2/3)")));
+	TestTrue(TEXT("its value at level two"), S(CardRow(TEXT("bounty"))->GetDetail()).Contains(TEXT("3")));
+	TestEqual(TEXT("a banished card says so"), S(CardRow(TEXT("spite"))->GetDetail()), FString(TEXT("Removed from this run.")));
+	// D18 (S4, the UI concept's scrCatches): the run's cards head the list, each with its picture; the out-of-reach ones
+	// come last, locked, with the lock; one that can be taken keeps its picture and is not locked.
+	const TSet<FString> Held = { W.Hud->GetCardRowId(0), W.Hud->GetCardRowId(1) };
+	TestTrue(TEXT("the two held cards head the list"), Held.Contains(TEXT("bounty")) && Held.Contains(TEXT("close_quarters")));
+	TestEqual(TEXT("a held card wears its picture"), CardRow(TEXT("bounty"))->GetIconName(), FString(TEXT("card_bounty")));
+	TestTrue(TEXT("a banished card: the lock, locked"), CardRow(TEXT("spite"))->GetIconName() == TEXT("ui_lock") && CardRow(TEXT("spite"))->IsLocked());
+	TestTrue(TEXT("a card blocked by a skill: the lock, locked"), CardRow(TEXT("bloodlust"))->GetIconName() == TEXT("ui_lock")
+		&& CardRow(TEXT("bloodlust"))->IsLocked());
+	TestTrue(TEXT("the last row is out of reach"), W.Hud->GetCardRow(static_cast<int32>(D.Cards.size()) - 1)->IsLocked());
+	TestFalse(TEXT("a card that can be taken is not locked"), CardRow(TEXT("catnip_bomb")) && CardRow(TEXT("catnip_bomb"))->IsLocked());
 
 	// Auto-Card owned: the box appears; it writes the realm's setting and the summary says so.
 	P.BranchLevels["auto_card"] = 1;
@@ -854,11 +1123,11 @@ bool FPawHudCatchesTest::RunTest(const FString& Parameters)
 	W.Hud->ToggleAutoPick();
 	TestFalse(TEXT("and stops saying it"), S(W.Hud->GetCatchesSummaryText()).Contains(TEXT("Picking")));
 
-	// The pad reads every row: the box, then every card, none of them locked away.
+	// The pad reads every row: every card, then the box (D18: under the list, as drawn), none of them locked away.
 	const TArray<UWidget*> Column = W.Hud->PageColumn();
-	TestEqual(TEXT("the column: the box and every card"), Column.Num(), static_cast<int32>(D.Cards.size()) + 1);
-	TestTrue(TEXT("the box first"), Column.Num() > 0 && Column[0] == W.Hud->GetAutoPickButton());
-	TestTrue(TEXT("a card not taken is in it"), Column.Contains(W.Hud->GetCardRow(Blood)));
+	TestEqual(TEXT("the column: every card and the box"), Column.Num(), static_cast<int32>(D.Cards.size()) + 1);
+	TestTrue(TEXT("the box last"), Column.Num() > 0 && Column.Last() == W.Hud->GetAutoPickButton());
+	TestTrue(TEXT("a card out of reach is in it"), Column.Contains(CardRow(TEXT("bloodlust"))));
 	W.Close();
 	return true;
 }
@@ -886,6 +1155,10 @@ bool FPawHudAchievementsTest::RunTest(const FString& Parameters)
 		FString::Printf(TEXT("%s / %s"), *S(PawText::Amount(Pc::AchievementProgress(D, P, A))), *S(PawText::Amount(A.Threshold))));
 	TestFalse(TEXT("no Claim on it"), Shown(W.Hud->GetClaimButton(0)));
 	TestTrue(TEXT("muted"), W.Hud->GetAchievementMark(0).Equals(PawTokens::UI_TEXT_MUTED));
+	// D18 (S4, the UI concept's scrAwards): on its plate, its bar before the numbers, the trophy faded.
+	TestTrue(TEXT("an unearned row on its plate"), W.Hud->GetAchievementPlate(0) && W.Hud->GetAchievementPlate(0)->Background.DrawAs != ESlateBrushDrawType::NoDrawType);
+	TestTrue(TEXT("its bar shown"), W.Hud->GetAchievementBar(0) && Shown(W.Hud->GetAchievementBar(0)->GetParent()));
+	TestTrue(TEXT("its trophy faded"), W.Hud->GetAchievementIcon(0) && W.Hud->GetAchievementIcon(0)->GetRenderOpacity() < 1.0f);
 	TestEqual(TEXT("an empty column falls back to the tab"), W.Hud->GetDesiredFocusTarget(), static_cast<UWidget*>(W.Hud->GetTabButton(Pc::PcDockTab::Achievements)));
 
 	// Earned: the description, the good colour, a Claim with its amount; the summary counts what waits.
@@ -900,6 +1173,11 @@ bool FPawHudAchievementsTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("with its amount"), S(W.Hud->GetClaimButton(0)->GetLabel()), FString::Printf(TEXT("Claim %s"), *S(PawText::Amount(A.StardustReward))));
 	TestEqual(TEXT("the description"), S(W.Hud->GetAchievementText(0, true)), S(PawText::DataField(TEXT("ACH"), A.Id, TEXT("desc"))));
 	TestTrue(TEXT("the good colour"), W.Hud->GetAchievementMark(0).Equals(PawTokens::UI_GOOD));
+	// D18 (S4): earned: no bar, the trophy bright, Claim and Claim all yellow.
+	TestFalse(TEXT("an earned row has no bar"), Shown(W.Hud->GetAchievementBar(0)->GetParent()));
+	TestEqual(TEXT("its trophy bright"), W.Hud->GetAchievementIcon(0)->GetRenderOpacity(), 1.0f);
+	TestTrue(TEXT("Claim yellow"), W.Hud->GetClaimButton(0)->HasCallLook());
+	TestTrue(TEXT("Claim all yellow"), W.Hud->GetClaimAllButton()->HasCallLook());
 	TArray<UWidget*> Column = W.Hud->PageColumn();
 	TestEqual(TEXT("the column: Claim all and both Claims"), Column.Num(), 3);
 	TestTrue(TEXT("Claim all first"), Column.Num() > 0 && Column[0] == W.Hud->GetClaimAllButton());
@@ -1000,6 +1278,10 @@ bool FPawHudJobsTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("gated by three"), S(W.Hud->GetJobText(Idle, true)), FString(TEXT("Locked — Reawaken 3 times, then buy it in the skill tree.")));
 	TestEqual(TEXT("the state says locked"), S(W.Hud->GetJobButton(Smith)->GetLabel()), FString(TEXT("Locked")));
 	TestTrue(TEXT("a statement, never a control"), W.Hud->GetJobButton(Smith)->IsLocked());
+	// D18 (S4, the UI concept's scrJobs): a locked job on the off plate, its hat faded.
+	TestTrue(TEXT("a locked job on the off plate"), W.Hud->GetJobPlate(Smith)
+		&& W.Hud->GetJobPlate(Smith)->Background.TintColor.GetSpecifiedColor().Equals(PawTokens::UI_BUTTON_DISABLED));
+	TestTrue(TEXT("its hat faded"), W.Hud->GetJobIcon(Smith) && W.Hud->GetJobIcon(Smith)->GetRenderOpacity() < 1.0f);
 
 	// The boss down: ready, at the node's price.
 	P.BossesDefeated.insert("tier_6");
@@ -1022,6 +1304,10 @@ bool FPawHudJobsTest::RunTest(const FString& Parameters)
 	P.RunJob = "daredevil";
 	W.Hud->RefreshNow();
 	TestEqual(TEXT("worn: locked in for this run"), S(W.Hud->GetJobButton(Dare)->GetLabel()), FString(TEXT("Worn")));
+	// D18 (S4): the worn job on the yellow plate, its hat bright.
+	TestTrue(TEXT("the worn job on the yellow plate"), W.Hud->GetJobPlate(Dare)
+		&& W.Hud->GetJobPlate(Dare)->Background.TintColor.GetSpecifiedColor().Equals(PawTokens::UI_SELECTED));
+	TestEqual(TEXT("its hat bright"), W.Hud->GetJobIcon(Dare) ? W.Hud->GetJobIcon(Dare)->GetRenderOpacity() : 0.0f, 1.0f);
 	TestTrue(TEXT("still a statement"), W.Hud->GetJobButton(Dare)->IsLocked());
 
 	// The pad reads every row, locked ones included.

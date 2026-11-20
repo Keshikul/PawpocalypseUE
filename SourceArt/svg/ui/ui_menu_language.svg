@@ -1,16 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-<!-- "Language": a globe. Sky blue with two green continents, ink meridians.
-     Title-screen cluster icon (designer, 2026-09-21). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="0.000" data-ink="7.514">
 <g stroke-linejoin="round" stroke-linecap="round">
-<circle cx="64" cy="64" r="54" fill="#2A1A33"/>
-<circle cx="64" cy="64" r="49" fill="#AFD1EC"/>
-<path d="M30 40 q14 -10 26 2 q4 12 -6 18 q-14 4 -18 -4 q-6 -8 -2 -16 z" fill="#70954F"/>
-<path d="M66 70 q16 -6 30 4 q8 12 -2 24 q-14 8 -26 -2 q-8 -12 -2 -26 z" fill="#70954F"/>
-<path d="M70 28 q10 -4 16 4 q2 8 -8 8 q-10 -2 -8 -12 z" fill="#70954F"/>
-<ellipse cx="64" cy="64" rx="22" ry="49" fill="none" stroke="#2A1A33" stroke-width="3"/>
-<polyline points="15,64 113,64" fill="none" stroke="#2A1A33" stroke-width="3"/>
-<path d="M22 40 q42 12 84 0" fill="none" stroke="#2A1A33" stroke-width="3"/>
-<path d="M22 88 q42 -12 84 0" fill="none" stroke="#2A1A33" stroke-width="3"/>
-<circle cx="64" cy="64" r="49" fill="none" stroke="#2A1A33" stroke-width="4"/>
+<ellipse cx="64.00" cy="64.00" rx="46.24" ry="46.24" fill="#58B6FF" stroke="#2A2131" stroke-width="7.51"/>
+<polygon points="46.66,23.54 49.16,28.58 50.03,33.34 49.73,37.90 48.69,42.31 47.38,46.66 46.24,51.01 45.73,55.42 46.29,59.98 48.38,64.74 52.44,69.78 55.25,73.25 56.92,76.74 57.69,80.26 57.80,83.84 57.50,87.48 57.02,91.21 56.61,95.05 56.51,99.01 56.97,103.10 58.22,107.35 50.07,104.34 42.94,100.58 36.81,96.19 31.68,91.31 27.51,86.04 24.30,80.51 22.03,74.84 20.67,69.16 20.22,63.58 20.65,58.22 23.17,51.79 25.57,46.29 27.90,41.62 30.22,37.69 32.57,34.38 35.01,31.58 37.58,29.21 40.35,27.14 43.36,25.29" fill="#5EA64A" stroke="none"/>
+<polygon points="87.12,29.32 89.78,34.36 91.05,39.12 91.28,43.68 90.82,48.09 90.01,52.44 89.20,56.79 88.74,61.20 88.97,65.76 90.24,70.52 92.90,75.56 96.19,73.50 99.10,70.84 101.59,67.71 103.63,64.18 105.18,60.39 106.22,56.42 106.70,52.38 106.59,48.37 105.86,44.50 104.46,40.88" fill="#5EA64A" stroke="none"/>
 </g>
 </svg>

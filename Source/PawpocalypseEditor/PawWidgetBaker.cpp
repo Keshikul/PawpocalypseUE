@@ -376,9 +376,11 @@ namespace
 		{
 			return TEXT("FAILED: the code layout has no panel ") + WrapperName.ToString() + TEXT(" or no ") + PartName.ToString();
 		}
-		if (CodePart->GetParent() != CodeWrapper || CodeWrapper->GetChildrenCount() != 1)
+		// The wrapper may hold more than Part in the code layout (S4, 2026-11-18: the card's Stack also holds the NEW
+		// starburst): only Part moves in here; each other child is grafted after with add:, which finds Part as its sibling.
+		if (CodePart->GetParent() != CodeWrapper)
 		{
-			return TEXT("FAILED: in the code layout ") + PartName.ToString() + TEXT(" is not the only child of ") + WrapperName.ToString();
+			return TEXT("FAILED: in the code layout ") + PartName.ToString() + TEXT(" is not a child of ") + WrapperName.ToString();
 		}
 		if (BP->WidgetTree->FindWidget(WrapperName))
 		{
@@ -836,56 +838,6 @@ FString UPawWidgetBaker::Recolour(const FString& Pairs)
 	});
 }
 
-FString UPawWidgetBaker::RecolourByRole(const FString& TextPairs, const FString& SurfacePairs, const FString& EdgePairs, const FString& KeepInk)
-{
-	auto Parse = [](const FString& Pairs, TMap<uint32, FColor>& Map) -> FString
-	{
-		TArray<FString> List;
-		Pairs.ParseIntoArray(List, TEXT(";"));
-		for (const FString& Pair : List)
-		{
-			FString Old, New;
-			if (!Pair.Split(TEXT(">"), &Old, &New) || Old.Len() != 6 || New.Len() != 6)
-			{
-				return TEXT("FAILED: not a pair: ") + Pair;
-			}
-			const FColor From = FColor::FromHex(Old), To = FColor::FromHex(New);
-			Map.Add((From.R << 16) | (From.G << 8) | From.B, To);
-		}
-		return FString();
-	};
-	TMap<uint32, FColor> Text, Surface, Edge;
-	FString Error = Parse(TextPairs, Text);
-	Error += Parse(SurfacePairs, Surface);
-	Error += Parse(EdgePairs, Edge);
-	if (!Error.IsEmpty())
-	{
-		return Error;
-	}
-	TArray<FString> Keep;
-	KeepInk.ParseIntoArray(Keep, TEXT(";"));
-	return MigrateLook(TEXT("recoloured"), [&](UObject* O)
-	{
-		// An asset whose text sits on a light surface (a card's bone body) keeps its ink: its text and its frame.
-		const bool bKeepInk = Keep.ContainsByPredicate([O](const FString& Name) { return O->GetOutermost()->GetName().EndsWith(Name); });
-		return PawUi::ForEachColourRole(O, [&](FColor& C, PawUi::EPawColourRole Role)
-		{
-			if (bKeepInk && Role != PawUi::EPawColourRole::Surface)
-			{
-				return false;
-			}
-			const TMap<uint32, FColor>& Map = Role == PawUi::EPawColourRole::Text ? Text : Role == PawUi::EPawColourRole::Edge ? Edge : Surface;
-			const FColor* To = Map.Find((C.R << 16) | (C.G << 8) | C.B);
-			if (!To)
-			{
-				return false;
-			}
-			C = FColor(To->R, To->G, To->B, C.A);
-			return true;
-		});
-	});
-}
-
 FString UPawWidgetBaker::Refont()
 {
 	UFont* Paw = PawUi::PawFont();
@@ -925,11 +877,14 @@ FString UPawWidgetBaker::TextFloor()
 
 namespace
 {
-	using FColourAt = TFunctionRef<void(const FString& Path, const FColor& Srgb, PawUi::EPawColourRole Role)>;
+	// Visit returns true to write its (changed) colour back; a linear colour keeps its own alpha (PawUi's ColourValue rule).
+	using FColourAt = TFunctionRef<bool(const FString& Path, FColor& Srgb, PawUi::EPawColourRole Role)>;
 
-	// PawUi::ForEachColourRole's walk, read-only and with each colour's property path (its StructsIn rules, kept in step).
-	void ColoursAt(const UStruct* Type, void* Data, const FString& Path, PawUi::EPawColourRole Role, FColourAt Visit)
+	// PawUi::ForEachColourRole's walk with each colour's property path (its StructsIn rules, kept in step). Returns how many
+	// colours it wrote.
+	int32 ColoursAt(const UStruct* Type, void* Data, const FString& Path, PawUi::EPawColourRole Role, FColourAt Visit)
 	{
+		int32 Written = 0;
 		for (TFieldIterator<FProperty> It(Type); It; ++It)
 		{
 			if (It->HasAnyPropertyFlags(CPF_Transient))
@@ -945,18 +900,32 @@ namespace
 			{
 				if (Struct == TBaseStructure<FLinearColor>::Get())
 				{
-					const FLinearColor& Linear = *static_cast<const FLinearColor*>(Value);
+					FLinearColor& Linear = *static_cast<FLinearColor*>(Value);
 					FColor Srgb = Linear.ToFColorSRGB();
 					Srgb.A = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(Linear.A * 255.0f), 0, 255));
-					Visit(At, Srgb, Here);
+					if (Visit(At, Srgb, Here))
+					{
+						const float Alpha = Linear.A;
+						FColor Rgb = Srgb;
+						Rgb.A = 255;
+						Linear = FLinearColor(Rgb); // decodes sRGB, as PawUi's ColourValue
+						Linear.A = Alpha;
+						++Written;
+					}
 				}
 				else if (Struct == TBaseStructure<FColor>::Get())
 				{
-					Visit(At, *static_cast<const FColor*>(Value), Here);
+					FColor& Colour = *static_cast<FColor*>(Value);
+					FColor Srgb = Colour;
+					if (Visit(At, Srgb, Here))
+					{
+						Colour = FColor(Srgb.R, Srgb.G, Srgb.B, Colour.A);
+						++Written;
+					}
 				}
 				else
 				{
-					ColoursAt(Struct, Value, At, Here, Visit);
+					Written += ColoursAt(Struct, Value, At, Here, Visit);
 				}
 			};
 			if (const FStructProperty* SP = CastField<FStructProperty>(*It))
@@ -978,6 +947,7 @@ namespace
 				}
 			}
 		}
+		return Written;
 	}
 }
 
@@ -1010,12 +980,13 @@ FString UPawWidgetBaker::ColourReport()
 		for (UObject* O : Objects)
 		{
 			ColoursAt(O->GetClass(), O, FString(), PawUi::EPawColourRole::Surface,
-				[&](const FString& Path, const FColor& C, PawUi::EPawColourRole Role)
+				[&](const FString& Path, FColor& C, PawUi::EPawColourRole Role)
 				{
 					const TCHAR* RoleName = Role == PawUi::EPawColourRole::Text ? TEXT("text")
 						: Role == PawUi::EPawColourRole::Edge ? TEXT("edge") : TEXT("surface");
 					Rows.Add(FString::Printf(TEXT("%s\t%s\t%s\t%s\t%s\t%02X%02X%02X\t%d"), *Name, *O->GetName(), *O->GetClass()->GetName(),
 						*Path, RoleName, C.R, C.G, C.B, C.A));
+					return false; // read-only
 				});
 		}
 	}
@@ -1025,6 +996,71 @@ FString UPawWidgetBaker::ColourReport()
 		return TEXT("FAILED: cannot write ") + File;
 	}
 	return FString::Printf(TEXT("colours: %d in %d assets -> %s"), Rows.Num() - 1, Assets, *File);
+}
+
+FString UPawWidgetBaker::RecolourByRule(const FString& Rules)
+{
+	// One rule: the asset it is for ("" = every asset; "asset:object" = one widget of it, by its name in the asset), the role
+	// ("*", "surface", "text", "edge"), the property path's suffix ("" = any), the old colour, the new one.
+	struct FRule
+	{
+		FString Asset;
+		FString Object;
+		int32 Role = -1; // -1 any, else EPawColourRole's value
+		FString Suffix;
+		uint32 Old = 0;
+		FColor New;
+	};
+	TArray<FRule> List;
+	TArray<FString> Lines;
+	Rules.ParseIntoArray(Lines, TEXT(";"));
+	for (const FString& Line : Lines)
+	{
+		TArray<FString> F;
+		Line.ParseIntoArray(F, TEXT("|"), false);
+		FString Old, New;
+		if (F.Num() != 4 || !F[3].Split(TEXT(">"), &Old, &New) || Old.Len() != 6 || New.Len() != 6)
+		{
+			return TEXT("FAILED: not a rule: ") + Line;
+		}
+		FRule R;
+		if (!F[0].Split(TEXT(":"), &R.Asset, &R.Object))
+		{
+			R.Asset = F[0];
+		}
+		R.Role = F[1] == TEXT("*") ? -1 : F[1] == TEXT("surface") ? static_cast<int32>(PawUi::EPawColourRole::Surface)
+			: F[1] == TEXT("text") ? static_cast<int32>(PawUi::EPawColourRole::Text)
+			: F[1] == TEXT("edge") ? static_cast<int32>(PawUi::EPawColourRole::Edge) : -2;
+		if (R.Role == -2)
+		{
+			return TEXT("FAILED: not a role: ") + Line;
+		}
+		R.Suffix = F[2];
+		const FColor From = FColor::FromHex(Old);
+		R.Old = (From.R << 16) | (From.G << 8) | From.B;
+		R.New = FColor::FromHex(New);
+		List.Add(R);
+	}
+	return MigrateLook(TEXT("recoloured"), [&List](UObject* O)
+	{
+		const FString Package = O->GetOutermost()->GetName();
+		const FString Object = O->GetName();
+		return ColoursAt(O->GetClass(), O, FString(), PawUi::EPawColourRole::Surface,
+			[&List, &Package, &Object](const FString& Path, FColor& C, PawUi::EPawColourRole Role)
+			{
+				const uint32 Key = (C.R << 16) | (C.G << 8) | C.B;
+				for (const FRule& R : List)
+				{
+					if (R.Old == Key && (R.Asset.IsEmpty() || Package.EndsWith(R.Asset)) && (R.Object.IsEmpty() || Object == R.Object)
+						&& (R.Role < 0 || R.Role == static_cast<int32>(Role)) && (R.Suffix.IsEmpty() || Path.EndsWith(R.Suffix)))
+					{
+						C = FColor(R.New.R, R.New.G, R.New.B, C.A);
+						return true;
+					}
+				}
+				return false;
+			});
+	});
 }
 
 FString UPawWidgetBaker::BakeWidgets()

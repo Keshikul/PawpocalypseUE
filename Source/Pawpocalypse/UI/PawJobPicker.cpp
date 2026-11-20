@@ -2,8 +2,13 @@
 
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
+#include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
+#include "Components/Image.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
+#include "Components/ScaleBox.h"
+#include "Components/ScaleBoxSlot.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
@@ -14,6 +19,7 @@
 #include "Realm/PawRealmSubsystem.h"
 #include "UI/PawButton.h"
 #include "UI/PawCardPickScreen.h"
+#include "UI/PawIcons.h"
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
 #include "UI/PawUiConstants.h"
@@ -28,6 +34,19 @@ namespace
 
 	// The panel's text is given a fixed wrap width (KB U/09 §3): the panel's width less its margins.
 	constexpr float InnerWidth = static_cast<float>(JobPanelWidth - 2.0 * WindowPadX);
+	constexpr float CardInner = static_cast<float>(JobCardWidth - 2.0 * JobCardPad);
+
+	// D18 (S4): the cat in a job's hat (tools/art/sticker_art.py write_job_cats); "No job": the bare kitten.
+	FString JobCatIcon(const FString& JobId)
+	{
+		return TEXT("ui_icon_job_cat_") + (JobId.IsEmpty() ? FString(TEXT("none")) : JobId);
+	}
+
+	bool Selected(const UWidget* W)
+	{
+		// HasAnyUserFocus is false for a Common button whose inner SCommonButton holds focus (KB U/08 §3.3).
+		return W && W->GetVisibility() != ESlateVisibility::Collapsed && (W->HasAnyUserFocus() || W->HasFocusedDescendants());
+	}
 }
 
 bool UPawJobPicker::Initialize()
@@ -41,19 +60,30 @@ bool UPawJobPicker::Initialize()
 
 		// A dimmer, so the dock behind reads as out of play rather than still clickable; it eats every click (modal).
 		Dim = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Dim"));
-		Dim->SetBrush(Rounded(PawTokens::SKY_BASE.CopyWithNewOpacity(static_cast<float>(PickDimAlpha)), PawTokens::INK, 0.0f, 0.0f));
+		Dim->SetBrush(Rounded(PawTokens::INK.CopyWithNewOpacity(static_cast<float>(PickDimAlpha)), PawTokens::INK, 0.0f, 0.0f));
 		Dim->SetVisibility(ESlateVisibility::Visible);
 		UOverlaySlot* DimSlot = Root->AddChildToOverlay(Dim);
 		DimSlot->SetHorizontalAlignment(HAlign_Fill);
 		DimSlot->SetVerticalAlignment(VAlign_Fill);
 
-		// The panel, centred, 560 wide, growing with its list: the theme's WindowPanel (F21, designer 2026-11-03).
+		// The panel, centred, growing with its cards: the theme's WindowPanel (F21, designer 2026-11-03). D18 (S4): as wide
+		// as five cards, in a box that shrinks it to fit the screen (never grows it).
+		UScaleBox* Fit = T->ConstructWidget<UScaleBox>(UScaleBox::StaticClass(), TEXT("Fit"));
+		Fit->SetStretch(EStretch::ScaleToFit);
+		Fit->SetStretchDirection(EStretchDirection::DownOnly);
+		Fit->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		UOverlaySlot* FitSlot = Root->AddChildToOverlay(Fit);
+		FitSlot->SetHorizontalAlignment(HAlign_Fill);
+		FitSlot->SetVerticalAlignment(VAlign_Fill);
+		FitSlot->SetPadding(FMargin(static_cast<float>(JobFitMargin)));
 		USizeBox* Size = T->ConstructWidget<USizeBox>();
 		Size->SetWidthOverride(static_cast<float>(JobPanelWidth));
 		Size->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		UOverlaySlot* SizeSlot = Root->AddChildToOverlay(Size);
-		SizeSlot->SetHorizontalAlignment(HAlign_Center);
-		SizeSlot->SetVerticalAlignment(VAlign_Center);
+		if (UScaleBoxSlot* SizeSlot = Cast<UScaleBoxSlot>(Fit->AddChild(Size)))
+		{
+			SizeSlot->SetHorizontalAlignment(HAlign_Center);
+			SizeSlot->SetVerticalAlignment(VAlign_Center);
+		}
 		Panel = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Panel"));
 		Panel->SetBrush(WindowBrush());
 		Panel->SetPadding(WindowPadding());
@@ -109,17 +139,66 @@ void UPawJobPicker::EnsureRow(int32 Index)
 	while (Buttons.Num() <= Index)
 	{
 		const int32 I = Buttons.Num();
-		const FMargin Gap(0.0f, I == 0 ? 0.0f : static_cast<float>(JobListSeparation), 0.0f, 0.0f);
+		// D18 (S4): a card per job, in rows of up to five (each row a box in List, made as the cards need it).
+		const int32 RowOfCards = I / JobCardsPerRow;
+		while (CardRows.Num() <= RowOfCards)
+		{
+			UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>();
+			Row->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			UVerticalBoxSlot* RowSlot = List->AddChildToVerticalBox(Row);
+			RowSlot->SetHorizontalAlignment(HAlign_Center);
+			RowSlot->SetPadding(FMargin(0.0f, CardRows.Num() == 0 ? 0.0f : static_cast<float>(JobCardGap), 0.0f, 0.0f));
+			CardRows.Add(Row);
+		}
+		UBorder* Card = WidgetTree->ConstructWidget<UBorder>();
+		Card->SetBrush(Rounded(PawTokens::UI_PANEL, PawTokens::INK, static_cast<float>(CardFramePx), static_cast<float>(JobCardRadius)));
+		Card->SetPadding(FMargin(static_cast<float>(JobCardPad)));
+		Card->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		UHorizontalBoxSlot* CardSlot = CardRows[RowOfCards]->AddChildToHorizontalBox(Card);
+		CardSlot->SetVerticalAlignment(VAlign_Fill);
+		CardSlot->SetPadding(FMargin(I % JobCardsPerRow == 0 ? 0.0f : static_cast<float>(JobCardGap), 0.0f, 0.0f, 0.0f));
+		USizeBox* Width = WidgetTree->ConstructWidget<USizeBox>();
+		Width->SetWidthOverride(CardInner);
+		Card->SetContent(Width);
+		UVerticalBox* Column = WidgetTree->ConstructWidget<UVerticalBox>();
+		Column->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		Width->SetContent(Column);
+		UBorder* Photo = WidgetTree->ConstructWidget<UBorder>();
+		Photo->SetBrush(Rounded(PawTokens::UI_PHOTO, PawTokens::INK, static_cast<float>(SlotPhotoEdgePx), static_cast<float>(JobPhotoRadius)));
+		Photo->SetPadding(FMargin(0.0f, static_cast<float>(JobPhotoPadY)));
+		Photo->SetHorizontalAlignment(HAlign_Center);
+		Photo->SetVisibility(ESlateVisibility::HitTestInvisible);
+		Column->AddChildToVerticalBox(Photo)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, static_cast<float>(JobListSeparation)));
+		UImage* Cat = WidgetTree->ConstructWidget<UImage>();
+		Photo->SetContent(Cat);
 		UPawButton* Button = WidgetTree->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>());
 		Button->SetMinDimensions(0, static_cast<int32>(JobRowHeight));
+		Button->SetWrapAt(CardInner - 2.0f * static_cast<float>(JobCardPad));
 		Button->OnClicked().AddWeakLambda(this, [this, I]() { ClickRow(I); });
-		List->AddChildToVerticalBox(Button)->SetPadding(Gap);
+		Column->AddChildToVerticalBox(Button);
 		UTextBlock* Blurb = MakeText(WidgetTree, JobBlurbPx, PawTokens::UI_TEXT_MUTED);
 		Blurb->SetAutoWrapText(false);
-		Blurb->SetWrapTextAt(InnerWidth);
-		List->AddChildToVerticalBox(Blurb)->SetPadding(FMargin(0.0f, static_cast<float>(JobListSeparation), 0.0f, 0.0f));
+		Blurb->SetWrapTextAt(CardInner);
+		Column->AddChildToVerticalBox(Blurb)->SetPadding(FMargin(0.0f, static_cast<float>(JobListSeparation), 0.0f, 0.0f));
 		Buttons.Add(Button);
 		Blurbs.Add(Blurb);
+		Cards.Add(Card);
+		Photos.Add(Photo);
+		Cats.Add(Cat);
+	}
+}
+
+void UPawJobPicker::StepLook()
+{
+	// D18 (S4): the card the pointer or the pad is on has its button on the yellow plate, the thing to press.
+	for (int32 I = 0; I < Buttons.Num() && I < RowIds.Num(); ++I)
+	{
+		UPawButton* B = Buttons[I];
+		const bool bLifted = I == HeldRow || (B && (B->IsHovered() || Selected(B)));
+		if (B && B->HasCallLook() != bLifted)
+		{
+			B->SetCallLook(bLifted);
+		}
 	}
 }
 
@@ -170,20 +249,29 @@ void UPawJobPicker::ShowRows(bool bInSecond, bool bRefocus)
 		EnsureRow(I);
 		Buttons[I]->SetLabel(Label);
 		Buttons[I]->SetVisibility(ESlateVisibility::Visible);
+		Buttons[I]->SetCallLook(false);
 		Blurbs[I]->SetText(Blurb);
 		Blurbs[I]->SetVisibility(ESlateVisibility::HitTestInvisible);
+		Cards[I]->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		Cats[I]->SetBrush(PawUi::IconBrush(JobCatIcon(RowIds[I]), JobCatPx));
 	}
 	for (int32 I = RowIds.Num(); I < Buttons.Num(); ++I)
 	{
 		Buttons[I]->SetVisibility(ESlateVisibility::Collapsed);
 		Blurbs[I]->SetVisibility(ESlateVisibility::Collapsed);
+		Cards[I]->SetVisibility(ESlateVisibility::Collapsed);
 	}
-	TArray<TArray<UWidget*>> Column;
+	// The cards in rows of up to five: left and right along a row, up and down between rows.
+	TArray<TArray<UWidget*>> Grid;
 	for (int32 I = 0; I < RowIds.Num(); ++I)
 	{
-		Column.Add({ Buttons[I].Get() });
+		if (I % JobCardsPerRow == 0)
+		{
+			Grid.AddDefaulted();
+		}
+		Grid.Last().Add(Buttons[I].Get());
 	}
-	Wired = WireRows(Column);
+	Wired = WireRows(Grid);
 	// The guard's clock starts with every open, the second ask's included.
 	OpenedAt = Clock;
 	if (bRefocus && CanTakeFocus())
@@ -235,6 +323,7 @@ void UPawJobPicker::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
 	AdvanceClock(DeltaSeconds);
+	StepLook();
 }
 
 FReply UPawJobPicker::NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& KeyEvent)
@@ -322,6 +411,19 @@ FText UPawJobPicker::GetRowLabel(int32 Row) const
 FText UPawJobPicker::GetRowBlurb(int32 Row) const
 {
 	return Row >= 0 && Row < RowIds.Num() && Blurbs.IsValidIndex(Row) ? Blurbs[Row]->GetText() : FText::GetEmpty();
+}
+
+FString UPawJobPicker::GetRowCatName(int32 Row) const
+{
+	const UImage* Cat = Row >= 0 && Row < RowIds.Num() && Cats.IsValidIndex(Row) ? Cats[Row].Get() : nullptr;
+	const UObject* Tex = Cat ? Cat->GetBrush().GetResourceObject() : nullptr;
+	return Tex ? Tex->GetName() : FString();
+}
+
+FLinearColor UPawJobPicker::GetRowPhotoColour(int32 Row) const
+{
+	const UBorder* Photo = Row >= 0 && Row < RowIds.Num() && Photos.IsValidIndex(Row) ? Photos[Row].Get() : nullptr;
+	return Photo ? Photo->Background.TintColor.GetSpecifiedColor() : FLinearColor::Transparent;
 }
 
 int32 UPawJobPicker::GetShownRowCount() const

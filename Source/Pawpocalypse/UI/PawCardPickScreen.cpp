@@ -83,6 +83,16 @@ namespace
 		Text->SetWrapTextAt(Wrap);
 		return Text;
 	}
+
+	// D18 (S4): the art panel's tint, the band's colour CardArtTint of the way to white (the concept's mix(), PawTokens).
+	FLinearColor ArtTint(const FLinearColor& Band)
+	{
+		return PawTokens::MixSrgb(Band, FLinearColor::White, CardArtTint);
+	}
+
+	// The concept's NEW starburst (tools/art/sticker_art.py write_card_pick).
+	const TCHAR* const NewIcon = TEXT("ui_icon_card_new");
+	const TCHAR* const RerollIcon = TEXT("ui_tab_reawaken");
 }
 
 // --- the card --------------------------------------------------------------------------------------------------------
@@ -117,6 +127,10 @@ bool UPawCardFace::Initialize()
 		Size->SetWidthOverride(static_cast<float>(CardWidth));
 		Size->SetMinDesiredHeight(static_cast<float>(CardHeight));
 		WidgetTree->RootWidget = Size;
+		// D18 (S4): the card and, over its band's right end, the NEW starburst.
+		Stack = T->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("Stack"));
+		Stack->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		Size->SetContent(Stack);
 
 		// A STACKLANDS CARD: cream plate, a 3 px ink frame (the alert red when it costs you something), the flavour on a
 		// coloured band across the top. The plate never takes the click itself: the button around it does.
@@ -124,7 +138,9 @@ bool UPawCardFace::Initialize()
 		Plate->SetPadding(FMargin(static_cast<float>(CardFramePx), static_cast<float>(CardFramePx), static_cast<float>(CardFramePx),
 			static_cast<float>(CardBottomPad)));
 		Plate->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		Size->SetContent(Plate);
+		UOverlaySlot* PlateSlot = Stack->AddChildToOverlay(Plate);
+		PlateSlot->SetHorizontalAlignment(HAlign_Fill);
+		PlateSlot->SetVerticalAlignment(VAlign_Fill);
 		UVerticalBox* Box = T->ConstructWidget<UVerticalBox>();
 		Box->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		Plate->SetContent(Box);
@@ -136,10 +152,12 @@ bool UPawCardFace::Initialize()
 		Box->AddChildToVerticalBox(Band);
 		UVerticalBox* BandBox = T->ConstructWidget<UVerticalBox>();
 		Band->SetContent(BandBox);
-		FlavourText = CardText(T, CardFlavourPx, PawTokens::INK, BandWrap, TEXT("FlavourText"));
+		// D18 (S4): the band holds the flavour alone, spaced out (the concept's); the name moves under the picture.
+		FlavourText = Heavy(CardText(T, CardFlavourPx, PawTokens::INK, BandWrap, TEXT("FlavourText")));
+		FSlateFontInfo FlavourFont = FlavourText->GetFont();
+		FlavourFont.LetterSpacing = CardFlavourSpacing;
+		FlavourText->SetFont(FlavourFont);
 		BandBox->AddChildToVerticalBox(FlavourText);
-		NameText = Heavy(CardText(T, CardNamePx, PawTokens::INK, BandWrap, TEXT("NameText")));
-		BandBox->AddChildToVerticalBox(NameText)->SetPadding(FMargin(0.0f, 2.0f, 0.0f, 0.0f));
 		UBorder* Rule = T->ConstructWidget<UBorder>();
 		Rule->SetBrush(Rounded(PawTokens::INK, PawTokens::INK, 0.0f, 0.0f));
 		Rule->SetPadding(FMargin(0.0f, static_cast<float>(CardFramePx) * 0.5f));
@@ -153,15 +171,21 @@ bool UPawCardFace::Initialize()
 		BodySlot->SetPadding(FMargin(static_cast<float>(CardInnerPadX), static_cast<float>(CardSeparation),
 			static_cast<float>(CardInnerPadX), 0.0f));
 		const FMargin Gap(0.0f, 0.0f, 0.0f, static_cast<float>(CardSeparation));
-		// "NEW" versus "LEVEL 2 of 3" is the single most useful thing on the card (Godot).
-		RankText = CardText(T, CardRankPx, PawTokens::UI_CARD_BANISH, BodyWrap, TEXT("RankText"));
-		Body->AddChildToVerticalBox(RankText)->SetPadding(Gap);
 		// The picture, when there is one (_card_art: 104 tall, keep aspect, centred); cards without one keep the layout.
+		// D18 (S4): on a panel tinted with the flavour (SetLook paints it), as the concept draws it.
+		ArtPanel = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("ArtPanel"));
+		ArtPanel->SetBrush(Rounded(PawTokens::UI_PANEL_BAND, PawTokens::INK, static_cast<float>(CardArtPanelEdgePx),
+			static_cast<float>(CardArtPanelRadius)));
+		ArtPanel->SetPadding(FMargin(0.0f, static_cast<float>(CardArtPanelPadY)));
+		ArtPanel->SetHorizontalAlignment(HAlign_Center);
+		ArtPanel->SetVerticalAlignment(VAlign_Center);
+		ArtPanel->SetVisibility(ESlateVisibility::Collapsed);
+		Body->AddChildToVerticalBox(ArtPanel)->SetPadding(Gap);
 		Art = T->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("Art"));
-		Art->SetVisibility(ESlateVisibility::Collapsed);
-		UVerticalBoxSlot* ArtSlot = Body->AddChildToVerticalBox(Art);
-		ArtSlot->SetHorizontalAlignment(HAlign_Center);
-		ArtSlot->SetPadding(Gap);
+		Art->SetVisibility(ESlateVisibility::HitTestInvisible);
+		ArtPanel->SetContent(Art);
+		NameText = Heavy(CardText(T, CardNamePx, PawTokens::INK, BodyWrap, TEXT("NameText")));
+		Body->AddChildToVerticalBox(NameText)->SetPadding(Gap);
 		BodyText = CardText(T, CardBodyPx, PawTokens::INK, BodyWrap, TEXT("BodyText"));
 		UVerticalBoxSlot* TextSlot = Body->AddChildToVerticalBox(BodyText);
 		TextSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
@@ -170,6 +194,16 @@ bool UPawCardFace::Initialize()
 		WarnText->SetText(PawText::Ui(TEXT("PICK_costs")));
 		WarnText->SetVisibility(ESlateVisibility::Collapsed);
 		Body->AddChildToVerticalBox(WarnText)->SetPadding(Gap);
+		// "LEVEL 2 of 3" is the single most useful thing on the card (Godot); D18 (S4): with a dot per level beside it.
+		LevelRow = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("LevelRow"));
+		LevelRow->SetVisibility(ESlateVisibility::HitTestInvisible);
+		Body->AddChildToVerticalBox(LevelRow)->SetPadding(Gap);
+		RankText = CardText(T, CardRankPx, PawTokens::UI_TEXT_MUTED, BodyWrap, TEXT("RankText"));
+		UHorizontalBoxSlot* RankSlot = LevelRow->AddChildToHorizontalBox(RankText);
+		RankSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+		RankSlot->SetVerticalAlignment(VAlign_Center);
+		Dots = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("Dots"));
+		LevelRow->AddChildToHorizontalBox(Dots)->SetVerticalAlignment(VAlign_Center);
 
 		Take = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("Take"));
 		Take->SetLabel(PawText::Ui(TEXT("PICK_take")));
@@ -183,6 +217,29 @@ bool UPawCardFace::Initialize()
 		Banish->SetMinDimensions(0, static_cast<int32>(CardBanishHeight));
 		Banish->SetVisibility(ESlateVisibility::Collapsed);
 		Body->AddChildToVerticalBox(Banish);
+
+		// D18 (S4): NEW on the concept's red starburst, its centre CardNewInset in from the card's top and right.
+		NewBadge = T->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("NewBadge"));
+		NewBadge->SetVisibility(ESlateVisibility::Collapsed);
+		UOverlaySlot* BadgeSlot = Stack->AddChildToOverlay(NewBadge);
+		BadgeSlot->SetHorizontalAlignment(HAlign_Right);
+		BadgeSlot->SetVerticalAlignment(VAlign_Top);
+		const float Out = static_cast<float>(CardNewPx * 0.5 - CardNewInset); // how far it stands past the card's corner
+		NewBadge->SetRenderTranslation(FVector2D(Out, -Out));
+		NewStar = T->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("NewStar"));
+		NewStar->SetBrush(PawUi::IconBrush(NewIcon, CardNewPx));
+		NewBadge->AddChildToOverlay(NewStar);
+		// White on the red, ink-outlined so a longer word than the star still reads (painted white in OnFaceReady).
+		NewText = Heavy(MakeText(T, CardNewTextPx, PawTokens::INK, false, TEXT("NewText")));
+		FSlateFontInfo NewFont = NewText->GetFont();
+		NewFont.OutlineSettings.OutlineSize = CardNewTextOutline;
+		NewFont.OutlineSettings.OutlineColor = PawTokens::INK;
+		NewText->SetFont(NewFont);
+		NewText->SetJustification(ETextJustify::Center);
+		NewText->SetText(PawText::Ui(TEXT("PICK_new")));
+		UOverlaySlot* NewTextSlot = NewBadge->AddChildToOverlay(NewText);
+		NewTextSlot->SetHorizontalAlignment(HAlign_Center);
+		NewTextSlot->SetVerticalAlignment(VAlign_Center);
 	}
 	const bool bOk = Super::Initialize();
 	// The mouse's whole-card target, not a stop for the keys: Take is the card's one selectable control, so a pad does
@@ -207,6 +264,11 @@ void UPawCardFace::OnFaceReady()
 	{
 		Banish->SetLabelColour(true, PawTokens::UI_CARD_BANISH);
 	}
+	// D18 (S4): NEW in white on its red star (the concept's), a runtime colour like Banish's.
+	if (NewText)
+	{
+		SetTextColour(NewText, PawTokens::UI_BOSS_BANNER_TEXT);
+	}
 }
 
 void UPawCardFace::SetLook(const FLook& Look)
@@ -219,9 +281,21 @@ void UPawCardFace::SetLook(const FLook& Look)
 	if (Art)
 	{
 		const FSlateBrush Picture = PawUi::IconBrush(Look.ArtPath, CardArtHeight);
-		Art->SetVisibility(Picture.GetResourceObject() ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 		Art->SetBrush(Picture);
+		// The panel goes with the picture: a card without one keeps the layout (the asset may hold Art outside a panel).
+		UWidget* Holder = ArtPanel ? static_cast<UWidget*>(ArtPanel) : static_cast<UWidget*>(Art);
+		Holder->SetVisibility(Picture.GetResourceObject() ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
+	if (ArtPanel)
+	{
+		ArtPanel->SetBrush(Rounded(ArtTint(Look.Band), PawTokens::INK, static_cast<float>(CardArtPanelEdgePx),
+			static_cast<float>(CardArtPanelRadius)));
+	}
+	if (NewBadge)
+	{
+		NewBadge->SetVisibility(Look.bNew ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	}
+	ShowDots(Look.Level, Look.MaxLevel);
 	WarnText->SetVisibility(Look.bCosts ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	Banish->SetVisibility(Look.bBanish ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 	// The trade is visible before the text is read: a card that costs you something wears the alert frame.
@@ -232,6 +306,37 @@ void UPawCardFace::SetLook(const FLook& Look)
 	// A pooled card starts flat again.
 	LiftScale = 1.0f;
 	SetRenderScale(FVector2D(1.0, 1.0));
+	bTakeCall = false;
+	Take->SetCallLook(false);
+}
+
+void UPawCardFace::ShowDots(int64 Level, int64 MaxLevel)
+{
+	if (!Dots)
+	{
+		return;
+	}
+	// Pooled like the cards: a dot per level, the first Level of them filled yellow, the rest card stock, each ink-edged.
+	const int32 Want = static_cast<int32>(FMath::Clamp<int64>(MaxLevel, 0, 16));
+	while (Dots->GetChildrenCount() < Want)
+	{
+		UBorder* Dot = WidgetTree->ConstructWidget<UBorder>();
+		Dot->SetPadding(FMargin(static_cast<float>(CardDotPx * 0.5)));
+		Dot->SetVisibility(ESlateVisibility::HitTestInvisible);
+		const bool bFirst = Dots->GetChildrenCount() == 0;
+		Dots->AddChildToHorizontalBox(Dot)->SetPadding(FMargin(bFirst ? 0.0f : static_cast<float>(CardDotGap), 0.0f, 0.0f, 0.0f));
+	}
+	for (int32 I = 0; I < Dots->GetChildrenCount(); ++I)
+	{
+		UBorder* Dot = Cast<UBorder>(Dots->GetChildAt(I));
+		if (!Dot)
+		{
+			continue;
+		}
+		Dot->SetVisibility(I < Want ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		Dot->SetBrush(Rounded(I < Level ? PawTokens::UI_SELECTED : PawTokens::UI_PANEL, PawTokens::INK,
+			static_cast<float>(CardDotEdgePx), static_cast<float>(CardDotPx * 0.5)));
+	}
 }
 
 FString UPawCardFace::GetArtName() const
@@ -242,11 +347,18 @@ FString UPawCardFace::GetArtName() const
 
 bool UPawCardFace::IsLifted() const
 {
-	return IsHovered() || Selected(Take) || Selected(Banish);
+	return bLiftHeld || IsHovered() || Selected(Take) || Selected(Banish);
 }
 
 void UPawCardFace::StepLift(double DeltaSeconds)
 {
+	// D18 (S4): the card the pointer or the pad is on has its Take on the yellow plate, the thing to press (the concept's).
+	const bool bLifted = IsLifted();
+	if (Take && bLifted != bTakeCall)
+	{
+		bTakeCall = bLifted;
+		Take->SetCallLook(bLifted);
+	}
 	// Scale, not size: drawn, not laid out, so the card grows over the gap instead of reflowing the hand under the cursor.
 	const float Target = IsLifted() ? static_cast<float>(CardHoverScale) : 1.0f;
 	const float Rate = static_cast<float>((CardHoverScale - 1.0) / CardHoverSec);
@@ -272,6 +384,34 @@ FText UPawCardFace::GetBodyText() const { return BodyText ? BodyText->GetText() 
 bool UPawCardFace::HasCostFrame() const { return Plate && Plate->Background.OutlineSettings.Color.GetSpecifiedColor() == PawTokens::UI_CARD_BANISH; }
 FLinearColor UPawCardFace::GetBandColour() const { return Band ? Band->Background.TintColor.GetSpecifiedColor() : FLinearColor::Transparent; }
 bool UPawCardFace::IsWarningShown() const { return WarnText && WarnText->GetVisibility() != ESlateVisibility::Collapsed; }
+bool UPawCardFace::IsNewShown() const
+{
+	return NewBadge && NewBadge->GetVisibility() != ESlateVisibility::Collapsed && NewStar && NewStar->GetBrush().GetResourceObject();
+}
+int32 UPawCardFace::GetDotCount() const
+{
+	int32 N = 0;
+	for (int32 I = 0; Dots && I < Dots->GetChildrenCount(); ++I)
+	{
+		N += Dots->GetChildAt(I)->GetVisibility() != ESlateVisibility::Collapsed ? 1 : 0;
+	}
+	return N;
+}
+int32 UPawCardFace::GetFilledDotCount() const
+{
+	int32 N = 0;
+	for (int32 I = 0; Dots && I < Dots->GetChildrenCount(); ++I)
+	{
+		const UBorder* Dot = Cast<UBorder>(Dots->GetChildAt(I));
+		N += Dot && Dot->GetVisibility() != ESlateVisibility::Collapsed
+			&& Dot->Background.TintColor.GetSpecifiedColor() == PawTokens::UI_SELECTED ? 1 : 0;
+	}
+	return N;
+}
+FLinearColor UPawCardFace::GetArtPanelColour() const
+{
+	return ArtPanel ? ArtPanel->Background.TintColor.GetSpecifiedColor() : FLinearColor::Transparent;
+}
 
 // --- the screen ------------------------------------------------------------------------------------------------------
 
@@ -287,7 +427,7 @@ bool UPawCardPickScreen::Initialize()
 		// Eats every click behind it: without it a Pounce fires through the modal (Godot's MOUSE_FILTER_STOP). The tree
 		// page's violet, not black: the game's night with the lights down.
 		Dim = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Dim"));
-		Dim->SetBrush(Rounded(PawTokens::SKY_BASE.CopyWithNewOpacity(static_cast<float>(PickDimAlpha)), PawTokens::INK, 0.0f, 0.0f));
+		Dim->SetBrush(Rounded(PawTokens::INK.CopyWithNewOpacity(static_cast<float>(PickDimAlpha)), PawTokens::INK, 0.0f, 0.0f));
 		Dim->SetVisibility(ESlateVisibility::Visible);
 		UOverlaySlot* DimSlot = Root->AddChildToOverlay(Dim);
 		DimSlot->SetHorizontalAlignment(HAlign_Fill);
@@ -300,22 +440,26 @@ bool UPawCardPickScreen::Initialize()
 		ColumnSlot->SetVerticalAlignment(VAlign_Center);
 		const FMargin Gap(0.0f, 0.0f, 0.0f, static_cast<float>(PickColumnGap));
 
-		// Paper text: the title sits on the dim, not on a card.
-		// R4g: the board "Level up": a Butter title, outlined, its shadow, tilted a little.
-		Title = ButterTitle(MakeText(T, PickTitlePx, PawTokens::UI_TEXT, false, TEXT("Title")), 4);
+		// D18 (S4, the concept's scrPick): LEVEL n as a sticker title and "Take 1 card." in ink, on a card-stock panel.
+		TitlePanel = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("TitlePanel"));
+		TitlePanel->SetBrush(Rounded(PawTokens::UI_PANEL, PawTokens::INK, static_cast<float>(CardFramePx),
+			static_cast<float>(PickTitleRadius)));
+		TitlePanel->SetPadding(FMargin(static_cast<float>(PickTitlePadX), static_cast<float>(PickTitlePadY)));
+		TitlePanel->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		UVerticalBoxSlot* PanelSlot = Column->AddChildToVerticalBox(TitlePanel);
+		PanelSlot->SetHorizontalAlignment(HAlign_Center);
+		PanelSlot->SetPadding(Gap);
+		UVerticalBox* TitleBox = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("TitleBox"));
+		TitleBox->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		TitlePanel->SetContent(TitleBox);
+		Title = ButterTitle(MakeText(T, PickTitlePx, PawTokens::UI_SELECTED, false, TEXT("Title")), ButterTitleOutline);
 		Title->SetJustification(ETextJustify::Center);
-		Title->SetRenderTransformPivot(FVector2D(0.5, 0.5));
-		Title->SetRenderTransformAngle(-2.0f);
-		UVerticalBoxSlot* TitleSlot = Column->AddChildToVerticalBox(Title);
-		TitleSlot->SetHorizontalAlignment(HAlign_Center);
-		TitleSlot->SetPadding(Gap);
-		Subtitle = MakeText(T, PickSubtitlePx, PawTokens::UI_TEXT_MUTED, false, TEXT("Subtitle")); // R4g: lilac (was Stacklands DISABLED)
+		TitleBox->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Center);
+		Subtitle = Heavy(MakeText(T, PickSubtitlePx, PawTokens::UI_TEXT, false, TEXT("Subtitle")));
 		Subtitle->SetJustification(ETextJustify::Center);
 		Subtitle->SetAutoWrapText(false);
 		Subtitle->SetWrapTextAt(SubtitleWrap);
-		UVerticalBoxSlot* SubSlot = Column->AddChildToVerticalBox(Subtitle);
-		SubSlot->SetHorizontalAlignment(HAlign_Center);
-		SubSlot->SetPadding(Gap);
+		TitleBox->AddChildToVerticalBox(Subtitle)->SetHorizontalAlignment(HAlign_Center);
 
 		Row = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("Row"));
 		Row->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
@@ -341,6 +485,7 @@ void UPawCardPickScreen::OnLayoutReady()
 	if (RerollButton)
 	{
 		RerollButton->OnClicked().AddWeakLambda(this, [this]() { ClickReroll(); });
+		RerollButton->SetIcon(RerollIcon, RerollIconPx); // D18 (S4): the concept's Reawaken arrow
 	}
 	// The faces are made per deal, into Row (FaceAt).
 }
@@ -358,6 +503,22 @@ int32 UPawCardPickScreen::GetShownCardCount() const
 }
 FText UPawCardPickScreen::GetTitleText() const { return Title ? Title->GetText() : FText::GetEmpty(); }
 FText UPawCardPickScreen::GetSubtitleText() const { return Subtitle ? Subtitle->GetText() : FText::GetEmpty(); }
+
+bool UPawCardPickScreen::IsTitleOnPanel() const
+{
+	auto Under = [this](const UWidget* W)
+	{
+		for (const UWidget* P = W ? W->GetParent() : nullptr; P; P = P->GetParent())
+		{
+			if (P == TitlePanel)
+			{
+				return true;
+			}
+		}
+		return false;
+	};
+	return TitlePanel && Under(Title) && Under(Subtitle);
+}
 
 UPawRealmSubsystem* UPawCardPickScreen::Realm() const
 {
@@ -427,19 +588,16 @@ void UPawCardPickScreen::ShowHand(bool bRefocus)
 		Look.Flavour = PawText::Ui(FlavourKey(C.Flavour));
 		Look.Band = FlavourColour(C.Flavour);
 		Look.Name = PawText::Data(TEXT("CARD"), C.CardId);
-		if (C.bNew)
-		{
-			Look.Rank = PawText::Ui(TEXT("PICK_new"));
-			Look.RankColour = PawTokens::UI_CARD_BANISH;
-		}
-		else
-		{
-			FFormatNamedArguments Args;
-			Args.Add(TEXT("level"), PawText::Count(C.Level));
-			Args.Add(TEXT("max"), PawText::Count(C.MaxLevel));
-			Look.Rank = PawText::Ui(TEXT("PICK_level"), Args);
-			Look.RankColour = PawTokens::UI_TEXT_MUTED;
-		}
+		// D18 (S4): NEW is the starburst; every card, a new one too, says the level taking it gives (Godot: NEW in its
+		// place), with a dot per level beside it.
+		FFormatNamedArguments Args;
+		Args.Add(TEXT("level"), PawText::Count(C.Level));
+		Args.Add(TEXT("max"), PawText::Count(C.MaxLevel));
+		Look.Rank = PawText::Ui(TEXT("PICK_level"), Args);
+		Look.RankColour = PawTokens::UI_TEXT_MUTED;
+		Look.bNew = C.bNew;
+		Look.Level = C.Level;
+		Look.MaxLevel = C.MaxLevel;
 		FFormatNamedArguments Values;
 		Values.Add(TEXT("v"), PawText::CardNumber(C.Value));
 		Values.Add(TEXT("c"), PawText::CardNumber(C.Cost));

@@ -128,7 +128,18 @@ public:
 	static bool RingRule(bool bHovered, bool bFocused, bool bLastWasPointer);
 	// A check box: the box before the label, ticked or not.
 	void SetCheck(bool bShowBox, bool bTicked);
+	// D18 (S4, the dock's rows): a price on its own plate at the row's right end (the UI concept's): the raised yellow when it
+	// can be paid, the off plate when not; the leaf before an amount (bLeaf), none before MAX. bShow = false hides it.
+	void SetPriceTag(bool bShow, const FText& Text, bool bCanPay, bool bLeaf);
+	bool IsPriceTagShown() const;
+	FText GetPriceTag() const;
+	bool IsPriceTagPayable() const { return bTagPayable; }
+	// Keep the icon's place when there is no picture, so a list's names line up whether a row has one or not.
+	void SetIconSlotKept(bool bKept);
 	bool IsTicked() const { return bTickedState; }
+	// D18 (S4): the box's fill and whether its tick shows (what the tests read).
+	FLinearColor GetCheckFill() const;
+	bool IsTickShown() const;
 
 	// The shop's rows repeat while held (dock_navigator.gd: never a decision).
 	bool bRepeats = false;
@@ -162,11 +173,22 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> CheckBox;
 	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> CheckTick; // D18 (S4): the concept's tick, shown when ticked
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UImage> Icon;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Detail;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UHorizontalBox> Line;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UBorder> PriceTag;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> PriceIcon;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> PriceText;
+	bool bTagPayable = false;
+	bool bTagStyled = false;
+	bool bIconSlotKept = false;
 	UPROPERTY()
 	TObjectPtr<class UOverlaySlot> LineSlot;
 	bool bBadge = false;

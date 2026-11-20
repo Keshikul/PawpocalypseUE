@@ -24,8 +24,13 @@ namespace
 {
 	constexpr float Radius = 8.0f;
 	constexpr float StarSize = 14.0f;
-	constexpr float CheckSize = 18.0f;
+	constexpr float CheckSize = 26.0f;       // D18 (S4): the UI concept's toggle() (R3: 18)
+	constexpr float CheckTickPx = 20.0f;     // its tick (the concept's check icon at .62 of 32)
+	constexpr float CheckEdge = 2.5f;
+	constexpr float CheckRadius = 7.0f;
 	constexpr float IconGap = 8.0f; // currency_icons.gd decorate_button: h_separation 8
+	constexpr float PriceTagInset = 10.0f; // D18 (S4): the price plate's gap to the row's right edge
+	constexpr double PriceIconPx = 22.0;    // the leaf on it (the concept's .55 of the icon box)
 }
 
 // The theme's Button (phase 6 slice 5a): Godot's four nine-patch plates; the selection ring is painted over them
@@ -119,8 +124,13 @@ void UPawButton::BuildLayout()
 	LS->SetHorizontalAlignment(HAlign_Center);
 	LS->SetVerticalAlignment(VAlign_Center);
 	CheckBox = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("CheckBox"));
-	CheckBox->SetPadding(FMargin(CheckSize * 0.5f));
+	CheckBox->SetPadding(FMargin((CheckSize - CheckTickPx) * 0.5f));
 	CheckBox->SetVisibility(ESlateVisibility::Collapsed);
+	// D18 (S4): the tick inside (the concept's check icon); hidden, keeping its place, while unticked.
+	CheckTick = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("CheckTick"));
+	CheckTick->SetBrush(PawUi::IconBrush(TEXT("ui_tick"), CheckTickPx));
+	CheckTick->SetVisibility(ESlateVisibility::Hidden);
+	CheckBox->SetContent(CheckTick);
 	UHorizontalBoxSlot* CheckSlot = Line->AddChildToHorizontalBox(CheckBox);
 	CheckSlot->SetVerticalAlignment(VAlign_Center);
 	CheckSlot->SetPadding(FMargin(0.0f, 0.0f, 10.0f, 0.0f));
@@ -145,6 +155,25 @@ void UPawButton::BuildLayout()
 	UHorizontalBoxSlot* CountSlot = Line->AddChildToHorizontalBox(CountText);
 	CountSlot->SetVerticalAlignment(VAlign_Center);
 	CountSlot->SetPadding(FMargin(6.0f, 0.0f, 0.0f, 0.0f));
+
+	// D18 (S4): the price on its own plate at a row's right end (the dock's shop), collapsed until a row sets one.
+	PriceTag = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("PriceTag"));
+	PriceTag->SetBrush(PawUi::Chrome(PawUi::EPawChrome::ButtonPrimary));
+	PriceTag->SetPadding(PawUi::PlatePadding(FMargin(10.0f, 1.0f, 12.0f, 1.0f), PawUi::EPawChrome::ButtonPrimary));
+	PriceTag->SetVisibility(ESlateVisibility::Collapsed);
+	UOverlaySlot* TagSlot = Root->AddChildToOverlay(PriceTag);
+	TagSlot->SetHorizontalAlignment(HAlign_Right);
+	TagSlot->SetVerticalAlignment(VAlign_Center);
+	TagSlot->SetPadding(FMargin(0.0f, 0.0f, PriceTagInset, 0.0f));
+	UHorizontalBox* TagLine = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("PriceLine"));
+	PriceTag->SetContent(TagLine);
+	PriceIcon = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("PriceIcon"));
+	PriceIcon->SetVisibility(ESlateVisibility::Collapsed);
+	UHorizontalBoxSlot* PriceIconSlot = TagLine->AddChildToHorizontalBox(PriceIcon);
+	PriceIconSlot->SetVerticalAlignment(VAlign_Center);
+	PriceIconSlot->SetPadding(FMargin(0.0f, 0.0f, 6.0f, 0.0f));
+	PriceText = PawUi::MakeText(WidgetTree, PawUi::ButtonPx, PawTokens::UI_TEXT, false, TEXT("PriceText"));
+	TagLine->AddChildToHorizontalBox(PriceText)->SetVerticalAlignment(VAlign_Center);
 
 	// The star sits ON the top-left border (hud.gd _set_tab_star: offset 1, -4). A drawn disc until the badge art
 	// arrives with phase 6 (the font has no star glyph).
@@ -297,10 +326,17 @@ void UPawButton::ApplyIcon()
 	}
 	const FSlateBrush Brush = PawUi::IconBrush(IconName, IconPx);
 	const bool bShow = !IconName.IsEmpty() && Brush.GetResourceObject() != nullptr;
-	Icon->SetVisibility(bShow ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	// A kept place (a list whose rows line up): an empty picture of the icon's size, drawn as nothing.
+	Icon->SetVisibility(bShow ? ESlateVisibility::HitTestInvisible : bIconSlotKept ? ESlateVisibility::Hidden : ESlateVisibility::Collapsed);
 	if (bShow)
 	{
 		Icon->SetBrush(Brush);
+	}
+	else if (bIconSlotKept)
+	{
+		FSlateBrush Empty = PawUi::NoBrush();
+		Empty.ImageSize = FVector2D(IconPx, IconPx);
+		Icon->SetBrush(Empty);
 	}
 	// An icon-only button (a tab) centres its picture: no gap after it.
 	if (UHorizontalBoxSlot* S = Cast<UHorizontalBoxSlot>(Icon->Slot))
@@ -312,7 +348,8 @@ void UPawButton::ApplyIcon()
 
 bool UPawButton::IsIconShown() const
 {
-	return Icon && Icon->GetVisibility() != ESlateVisibility::Collapsed;
+	// A picture drawn: not a kept, empty place (Hidden: SetIconSlotKept with no art), which this once counted as shown.
+	return Icon && Icon->GetVisibility() != ESlateVisibility::Collapsed && Icon->GetVisibility() != ESlateVisibility::Hidden;
 }
 
 void UPawButton::SetActiveLook(bool bActive)
@@ -360,6 +397,61 @@ void UPawButton::SetWrapAt(float Width)
 {
 	WrapAt = Width;
 	ApplySettings();
+}
+
+void UPawButton::SetIconSlotKept(bool bKept)
+{
+	bIconSlotKept = bKept;
+	ApplyIcon();
+}
+
+void UPawButton::SetPriceTag(bool bShow, const FText& Text, bool bCanPay, bool bLeaf)
+{
+	if (!PriceTag)
+	{
+		return;
+	}
+	PriceTag->SetVisibility(bShow ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	if (!bShow)
+	{
+		return;
+	}
+	if (!bTagStyled || bTagPayable != bCanPay)
+	{
+		// The raised yellow when it can be paid; the off plate, its words and its leaf faded, when not (the concept's).
+		PriceTag->SetBrush(PawUi::Chrome(bCanPay ? PawUi::EPawChrome::ButtonPrimary : PawUi::EPawChrome::ButtonDisabled));
+		bTagPayable = bCanPay;
+		bTagStyled = true;
+	}
+	if (PriceText)
+	{
+		if (!PriceText->GetText().EqualTo(Text))
+		{
+			PriceText->SetText(Text);
+		}
+		PawUi::SetTextColour(PriceText, bCanPay ? PawTokens::UI_TEXT : PawTokens::UI_TEXT_DISABLED);
+	}
+	if (PriceIcon)
+	{
+		const FSlateBrush Leaf = bLeaf ? PawUi::IconBrush(TEXT("ui_icon_catnip"), PriceIconPx) : FSlateBrush();
+		const bool bShowLeaf = bLeaf && Leaf.GetResourceObject() != nullptr;
+		PriceIcon->SetVisibility(bShowLeaf ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		if (bShowLeaf)
+		{
+			PriceIcon->SetBrush(Leaf);
+		}
+		PriceIcon->SetRenderOpacity(bCanPay ? 1.0f : 0.5f);
+	}
+}
+
+bool UPawButton::IsPriceTagShown() const
+{
+	return PriceTag && PriceTag->GetVisibility() != ESlateVisibility::Collapsed;
+}
+
+FText UPawButton::GetPriceTag() const
+{
+	return IsPriceTagShown() && PriceText ? PriceText->GetText() : FText::GetEmpty();
 }
 
 void UPawButton::SetDetail(const FText& Text, const FLinearColor& Colour)
@@ -432,8 +524,24 @@ void UPawButton::SetCheck(bool bShowBox, bool bTicked)
 	if (CheckBox)
 	{
 		CheckBox->SetVisibility(bShowBox ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
-		CheckBox->SetBrush(PawUi::Rounded(bTicked ? PawTokens::UI_TEXT : PawTokens::UI_SLOT, PawTokens::UI_TEXT_MUTED, 2.0f, 4.0f)); // R3: shows on plum
+		// D18 (S4, the UI concept's toggle()): yellow with the tick when on, cream when off, on an ink edge.
+		CheckBox->SetBrush(PawUi::Rounded(bTicked ? PawTokens::UI_SELECTED : PawTokens::UI_PANEL, PawTokens::INK, CheckEdge, CheckRadius));
 	}
+	if (CheckTick)
+	{
+		CheckTick->SetVisibility(bTicked ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
+	}
+}
+
+FLinearColor UPawButton::GetCheckFill() const
+{
+	return CheckBox ? CheckBox->Background.TintColor.GetSpecifiedColor() : FLinearColor::Transparent;
+}
+
+bool UPawButton::IsTickShown() const
+{
+	return CheckTick && CheckTick->GetVisibility() != ESlateVisibility::Hidden && CheckTick->GetVisibility() != ESlateVisibility::Collapsed
+		&& CheckTick->GetBrush().GetResourceObject() != nullptr;
 }
 
 void UPawButton::SetPlate(bool bShow, const FLinearColor& Fill)

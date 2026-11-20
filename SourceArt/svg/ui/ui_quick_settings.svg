@@ -1,23 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<ellipse cx="64.0" cy="64.0" rx="37.1" ry="37.1" fill="#2A1A33" stroke="none"/>
-<rect x="91.9" y="51.9" width="24.2" height="24.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<rect x="80.2" y="80.2" width="24.2" height="24.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<rect x="51.9" y="91.9" width="24.2" height="24.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<rect x="23.6" y="80.2" width="24.2" height="24.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<rect x="11.9" y="51.9" width="24.2" height="24.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<rect x="23.6" y="23.6" width="24.2" height="24.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<rect x="51.9" y="11.9" width="24.2" height="24.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<rect x="80.2" y="23.6" width="24.2" height="24.2" rx="6.1" fill="#2A1A33" stroke="none"/>
-<ellipse cx="64.0" cy="64.0" rx="34.0" ry="34.0" fill="#F6EEF8" stroke="none"/>
-<rect x="95.0" y="55.0" width="18.0" height="18.0" rx="3.0" fill="#F6EEF8" stroke="none"/>
-<rect x="83.3" y="83.3" width="18.0" height="18.0" rx="3.0" fill="#F6EEF8" stroke="none"/>
-<rect x="55.0" y="95.0" width="18.0" height="18.0" rx="3.0" fill="#F6EEF8" stroke="none"/>
-<rect x="26.7" y="83.3" width="18.0" height="18.0" rx="3.0" fill="#F6EEF8" stroke="none"/>
-<rect x="15.0" y="55.0" width="18.0" height="18.0" rx="3.0" fill="#F6EEF8" stroke="none"/>
-<rect x="26.7" y="26.7" width="18.0" height="18.0" rx="3.0" fill="#F6EEF8" stroke="none"/>
-<rect x="55.0" y="15.0" width="18.0" height="18.0" rx="3.0" fill="#F6EEF8" stroke="none"/>
-<rect x="83.3" y="26.7" width="18.0" height="18.0" rx="3.0" fill="#F6EEF8" stroke="none"/>
-<ellipse cx="64.0" cy="64.0" rx="14.0" ry="14.0" fill="#2A1A33" stroke="#2A1A33"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="0.000" data-ink="7.104">
+<g stroke-linejoin="round" stroke-linecap="round">
+<polygon points="64.00,17.55 77.06,32.44 96.84,31.16 95.56,50.94 110.45,64.00 95.56,77.06 96.84,96.84 77.06,95.56 64.00,110.45 50.94,95.56 31.16,96.84 32.44,77.06 17.55,64.00 32.44,50.94 31.16,31.16 50.94,32.44" fill="#B4C6D6" stroke="#2A2131" stroke-width="7.10"/>
+<ellipse cx="64.00" cy="64.00" rx="16.39" ry="16.39" fill="#FFF8EB" stroke="#2A2131" stroke-width="7.10"/>
 </g>
 </svg>

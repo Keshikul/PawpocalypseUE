@@ -36,7 +36,8 @@ public:
 	//                   from the code layout into the asset's piece of that name (phase 6 slice 5b: the tabs' words gone);
 	//   slot:Name       its slot and tilt; text:Name a text's whole look; remove:Name the part and all under it (R4c);
 	//   wrap:Part>New   the asset's Part, with everything under it as the asset has it, moves into a copy of the code layout's
-	//                   panel New, which takes Part's place (R4h: the settings pages into a scroll box);
+	//                   panel New, which takes Part's place (R4h: the settings pages into a scroll box); New's other
+	//                   children in the code layout come after with add: (S4: the card's Stack and its NEW starburst);
 	//   names:          lists the asset's widgets, Name(Class): changes nothing.
 	// All or nothing: one FAILED op and nothing is saved (R4d).
 	// A panel with children goes in too when the asset has none of them: made empty, then each child added into it (5b).
@@ -53,12 +54,6 @@ public:
 	// untouched. Returns one line per asset ("N recoloured" or "unchanged"), "FAILED ..." on a save error.
 	UFUNCTION(BlueprintCallable, Category = "Pawpocalypse")
 	static FString Recolour(const FString& Pairs);
-
-	// THE ROLE-AWARE MIGRATION (restyle R3): as Recolour, with one map for TEXT colours and one for SURFACES
-	// (PawUi::ForEachColourRole), because the plum flip turns one old colour into two (ink text -> Bone, ink frames kept).
-	// KeepInk: asset names (';'-joined) whose text sits on a light surface and keeps its colour (a card's bone body).
-	UFUNCTION(BlueprintCallable, Category = "Pawpocalypse")
-	static FString RecolourByRole(const FString& TextPairs, const FString& SurfacePairs, const FString& EdgePairs, const FString& KeepInk);
 
 	// THE FONT MIGRATION (restyle R2): every baked asset saved its fonts as values too (the engine's Roboto, UTextBlock's
 	// default at bake time). Every font of every baked asset's look (PawUi::ForEachFont) that is an ENGINE font (or none)
@@ -80,5 +75,15 @@ public:
 	// file it cannot write.
 	UFUNCTION(BlueprintCallable, Category = "Pawpocalypse")
 	static FString ColourReport();
+
+	// THE STICKER BOX MIGRATION (D18, docs/WORKLIST-STICKER-2026-11-17.md S1): plum folded roles into shared values, so the
+	// colours move by RULE. Rules "asset|role|suffix|RRGGBB>RRGGBB;..." (tools/bake_widgets.py --recolour, from
+	// gen_paw_tokens.ui_rules after a pre-flight against the inventory): asset "" = every asset (else the package name's end;
+	// "asset:object" one widget of it, by name),
+	// role "*" / surface / text / edge, suffix "" = any property path (else the path's end, as ColourReport writes it).
+	// Every colour of every baked asset's look (ColourReport's objects and walk) takes the FIRST rule that matches it; alpha
+	// kept; a colour no rule names is untouched. Returns one line per asset, "FAILED ..." on a bad rule or a save error.
+	UFUNCTION(BlueprintCallable, Category = "Pawpocalypse")
+	static FString RecolourByRule(const FString& Rules);
 
 };

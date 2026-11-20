@@ -48,6 +48,7 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "Misc/AutomationTest.h"
+#include "UI/PawToast.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "UI/PawTextTesting.h"
@@ -943,6 +944,9 @@ bool FPawInputDeviceTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("pad 2 steers"), D->IsStickSteering());
 	D->ObserveConnection(3, true);
 	TestTrue(TEXT("a pad connected: the toast"), D->IsToastShown() && S(D->GetToastText()) == TEXT("Controller connected"));
+	// D18 (S4, the UI concept's toast): the controller icon before the words, the words heavy.
+	TestTrue(TEXT("the toast shows the controller icon first"), D->GetToastWidget() && D->GetToastWidget()->ShowsPadIcon());
+	TestTrue(TEXT("its words heavy"), D->GetToastWidget() && D->GetToastWidget()->IsMessageHeavy());
 	D->ObserveConnection(2, false);
 	TestTrue(TEXT("the pad in hand gone: the toast"), S(D->GetToastText()) == TEXT("Controller disconnected"));
 	TestFalse(TEXT("back to the mouse"), D->IsStickSteering());

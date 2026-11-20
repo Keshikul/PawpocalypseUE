@@ -57,6 +57,7 @@ namespace
 		{ EPawChrome::Separator, TEXT("T_ui_separator"), 64, 8, 8, 2, 8, 2, 0 },
 		{ EPawChrome::PlateSmall, TEXT("T_ui_plate_small"), 64, 48, 12, 12, 12, 16, 4 },
 		{ EPawChrome::ButtonSelected, TEXT("T_ui_button_selected"), 256, 64, 16, 16, 16, 16, 4 }, // R4a
+		{ EPawChrome::ButtonPrimary, TEXT("T_ui_button_primary"), 256, 64, 16, 16, 16, 16, 4 }, // D18 (S4)
 	};
 
 	// Is this brush the chrome piece: a Box over its texture, at the SVG's size, the margins Godot's 1:1.
@@ -264,20 +265,22 @@ bool FPawChromeTest::RunTest(const FString& Parameters)
 		{ UPawVictoryScreen::StaticClass(), TEXT("Panel"), EPawChrome::Window, false },
 		// R3's shapes: the plates the code drew as flat rounded boxes (restyled into the assets: restyle:<Part>).
 		{ UPawHudScreen::StaticClass(), TEXT("BossPanel"), EPawChrome::Window, false },
-		{ UPawHudScreen::StaticClass(), TEXT("ZonePlate"), EPawChrome::PlateSmall, false },
+		// D18 (S4): the zone and wave lines share one status panel (the UI concept's), the panel on the small plate.
+		{ UPawHudScreen::StaticClass(), TEXT("FieldPlate"), EPawChrome::PlateSmall, false },
 		{ UPawPauseMenu::StaticClass(), TEXT("Window"), EPawChrome::Window, false },
 		{ UPawSettingsDialog::StaticClass(), TEXT("Window"), EPawChrome::Window, false },
 		{ UPawSkillTreeScreen::StaticClass(), TEXT("WarningPlate"), EPawChrome::Window, false },
 		{ UPawSkillTreeScreen::StaticClass(), TEXT("TipPanel"), EPawChrome::Window, false },
 		{ UPawToast::StaticClass(), TEXT("Plate"), EPawChrome::PlateSmall, false },
 		{ UPawHudScreen::StaticClass(), TEXT("TabSeparator"), EPawChrome::Separator, false },
-		{ UPawHudScreen::StaticClass(), TEXT("WaveBar"), EPawChrome::BarTrack, true },
 		{ UPawRainbowBar::StaticClass(), TEXT("Track"), EPawChrome::BarTrack, false }, // the Reawaken bar since 5d
 		{ UPawSettingsDialog::StaticClass(), TEXT("SectionSeparator"), EPawChrome::Separator, false },
 		// R4: the plates the plum layout added (the HUD's pills and wave plate, the title's hint).
 		{ UPawHudScreen::StaticClass(), TEXT("CatnipPill"), EPawChrome::PlateSmall, false },
 		{ UPawHudScreen::StaticClass(), TEXT("StardustPill"), EPawChrome::PlateSmall, false },
-		{ UPawHudScreen::StaticClass(), TEXT("WavePlate"), EPawChrome::PlateSmall, false },
+		// D18 (S4): the level along the bottom and "Pounce" beside the clock, each on the small plate (the UI concept's).
+		{ UPawHudScreen::StaticClass(), TEXT("XpPlate"), EPawChrome::PlateSmall, false },
+		{ UPawHudScreen::StaticClass(), TEXT("PouncePlate"), EPawChrome::PlateSmall, false },
 		{ UPawMainMenu::StaticClass(), TEXT("HintPlate"), EPawChrome::PlateSmall, false },
 		{ UPawSkillTreeScreen::StaticClass(), TEXT("StardustPill"), EPawChrome::PlateSmall, false },
 		{ UPawSkillTreeScreen::StaticClass(), TEXT("LegendPlate"), EPawChrome::PlateSmall, false },
@@ -338,7 +341,8 @@ bool FPawChromeTest::RunTest(const FString& Parameters)
 		}
 	}
 
-	// 4. The selection ring: painted over a button only while it is selected (hovered), 4 px of Butter 4 px outside it (R4a;
+	// 4. The selection ring: painted over a button only while it is selected (hovered), 4 px of the focus blue 4 px outside it
+	// (R4a's shape; D18's colour;
 	// Godot's SBF_focus was 3 px of coral, 3 px out).
 	{
 		const FSlateBrush Ring = FocusRing();
@@ -347,8 +351,10 @@ bool FPawChromeTest::RunTest(const FString& Parameters)
 		TestTrue(TEXT("the ring: 4 px of UI_FOCUS, radius 12"), Ring.OutlineSettings.Color.GetSpecifiedColor().Equals(PawTokens::UI_FOCUS)
 			&& Ring.OutlineSettings.Width == 4.0f && Ring.OutlineSettings.CornerRadii == FVector4(12.0, 12.0, 12.0, 12.0));
 		TestEqual(TEXT("the ring: 4 px outside the control"), FocusRingExpand, 4.0f);
-		TestTrue(TEXT("the ring is Butter (R4a), the selected plate too"), PawTokens::UI_FOCUS.Equals(PawTokens::UI_SELECTED)
-			&& PawTokens::UI_SELECTED.Equals(FLinearColor(FColor(0xFF, 0xD2, 0x3F))));
+		TestTrue(TEXT("the ring is the focus blue and the selected plate yellow, never one colour (D18)"),
+			!PawTokens::UI_FOCUS.Equals(PawTokens::UI_SELECTED)
+			&& PawTokens::UI_FOCUS.Equals(FLinearColor(FColor(0x3D, 0x7B, 0xFF)))
+			&& PawTokens::UI_SELECTED.Equals(FLinearColor(FColor(0xFF, 0xC8, 0x3D))));
 		// The rule: hovered, or focused unless the mouse gave the focus (Godot hides mouse focus).
 		TestTrue(TEXT("ring: hovered"), UPawButton::RingRule(true, false, true));
 		TestTrue(TEXT("ring: focused by keys / a pad"), UPawButton::RingRule(false, true, false));

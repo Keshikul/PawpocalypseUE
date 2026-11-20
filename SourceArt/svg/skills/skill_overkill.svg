@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
 <g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<polygon points="75.8,71.4 124.1,64.0 75.8,56.6" fill="#2A1A33" stroke="none"/>
-<polygon points="67.9,78.4 109.6,103.8 77.3,67.1" fill="#2A1A33" stroke="none"/>
-<polygon points="57.3,78.7 72.9,125.0 71.8,76.2" fill="#2A1A33" stroke="none"/>
-<polygon points="48.9,72.1 31.2,117.6 61.7,79.5" fill="#2A1A33" stroke="none"/>
-<polygon points="46.8,61.8 3.9,85.2 51.8,75.6" fill="#2A1A33" stroke="none"/>
-<polygon points="51.8,52.4 3.9,42.8 46.8,66.2" fill="#2A1A33" stroke="none"/>
-<polygon points="61.7,48.5 31.2,10.4 48.9,55.9" fill="#2A1A33" stroke="none"/>
-<polygon points="71.8,51.8 72.9,3.0 57.3,49.3" fill="#2A1A33" stroke="none"/>
-<polygon points="77.3,60.9 109.6,24.2 67.9,49.6" fill="#2A1A33" stroke="none"/>
+<polygon points="75.8,71.4 124.1,64.0 75.8,56.6" fill="#2A2131" stroke="none"/>
+<polygon points="67.9,78.4 109.6,103.8 77.3,67.1" fill="#2A2131" stroke="none"/>
+<polygon points="57.3,78.7 72.9,125.0 71.8,76.2" fill="#2A2131" stroke="none"/>
+<polygon points="48.9,72.1 31.2,117.6 61.7,79.5" fill="#2A2131" stroke="none"/>
+<polygon points="46.8,61.8 3.9,85.2 51.8,75.6" fill="#2A2131" stroke="none"/>
+<polygon points="51.8,52.4 3.9,42.8 46.8,66.2" fill="#2A2131" stroke="none"/>
+<polygon points="61.7,48.5 31.2,10.4 48.9,55.9" fill="#2A2131" stroke="none"/>
+<polygon points="71.8,51.8 72.9,3.0 57.3,49.3" fill="#2A2131" stroke="none"/>
+<polygon points="77.3,60.9 109.6,24.2 67.9,49.6" fill="#2A2131" stroke="none"/>
 <polygon points="80.7,69.3 118.8,64.0 80.7,58.7" fill="#EC7B7B" stroke="none"/>
 <polygon points="72.9,80.0 105.5,100.4 79.7,71.8" fill="#EC7B7B" stroke="none"/>
 <polygon points="60.1,83.2 72.0,119.8 70.6,81.3" fill="#EC7B7B" stroke="none"/>

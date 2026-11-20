@@ -4,7 +4,11 @@
     py tools/fonts.py --check    the header equals what the table makes (L0)
 
 D1 (designer, 2026-11-07): M PLUS Rounded 1c, ExtraBold for text, Black for titles and numbers. It covers Latin, Latin
-Extended, Cyrillic, Vietnamese and Japanese (measured: KB U/09 §5). Korean, Chinese and Thai come from the Noto faces the
+Extended, Cyrillic, Vietnamese and Japanese (measured: KB U/09 §5).
+D18 (Sticker Box, 2026-11-18; E1 as measured, docs/WORKLIST-STICKER-2026-11-17.md): Nunito, 700 for text and 900 for
+titles and numbers (its digits are one width: counters do not jitter). It covers every player language's text; Japanese
+Han and kana stay on M PLUS (a sub-font: Nunito has no Japanese), and so do the 13 Latin Extended letters of the
+editor-only pseudolocale xa. The titles' face (Fredoka, F_PawTitle) is the second half of S2. Korean, Chinese and Thai come from the Noto faces the
 Godot game ships (scripts/systems/fonts.gd): THE CJK FACE IS CHOSEN BY LANGUAGE (the same code point is drawn differently
 in Korea, China and Taiwan), SC for everyone else, which only matters for a language's own name in the picker.
 
@@ -30,6 +34,8 @@ FONT = "F_Paw"
 # Face assets: asset name -> (source file, loading policy). A .ttc is ONE asset; a sub-font picks its face by index.
 # LazyLoad keeps an 18 MB collection out of memory until a character needs it; the text faces load with the font.
 FACES = {
+    "FF_Nunito_Bold": ("Nunito-Bold.ttf", "LazyLoad"),
+    "FF_Nunito_Black": ("Nunito-Black.ttf", "LazyLoad"),
     "FF_MPlusRounded1c_ExtraBold": ("MPLUSRounded1c-ExtraBold.ttf", "LazyLoad"),
     "FF_MPlusRounded1c_Black": ("MPLUSRounded1c-Black.ttf", "LazyLoad"),
     "FF_NotoSansCJK_Medium": ("NotoSansCJK-Medium.ttc", "LazyLoad"),
@@ -39,8 +45,9 @@ FACES = {
 # NotoSansCJK-Medium.ttc's faces (measured with fontTools: JP, KR, SC, TC, HK; Godot's fonts.gd CJK_FACE agrees).
 CJK_JP, CJK_KR, CJK_SC, CJK_TC = 0, 1, 2, 3
 
-TEXT = ("FF_MPlusRounded1c_ExtraBold", 0)
-BLACK = ("FF_MPlusRounded1c_Black", 0)
+TEXT = ("FF_Nunito_Bold", 0)
+BLACK = ("FF_Nunito_Black", 0)
+MPLUS = ("FF_MPlusRounded1c_ExtraBold", 0)   # Japanese and the pseudolocale's Latin Extended (D18)
 
 # The default typeface: name -> face. The first is the primary (what a name the font lacks gets).
 DEFAULT = [("Regular", TEXT), ("Bold", TEXT), ("Black", BLACK)]
@@ -62,7 +69,9 @@ DEFAULT_FACES = None
 # simplified ones, so the picker's 简体中文 drew 简 thin from the fallback and 体中文 heavy from M PLUS (seen in the game's
 # font sheets, 2026-11-07). Japanese claims Han and kana first, for M PLUS.
 SUBFONTS = [
-    ("Japanese", "ja", HAN + KANA, DEFAULT_FACES),
+    ("Japanese", "ja", HAN + KANA, MPLUS),
+    # The editor-only pseudolocale's Latin Extended-B and Latin Extended Additional (13 letters Nunito lacks).
+    ("Pseudo", "xa", [(0x0180, 0x024F), (0x1E00, 0x1EFF)], MPLUS),
     ("Korean", "ko", HANGUL + HAN, ("FF_NotoSansCJK_Medium", CJK_KR)),
     ("ChineseSimplified", "zh-Hans;zh-CN;zh-SG", HAN, ("FF_NotoSansCJK_Medium", CJK_SC)),
     ("ChineseTraditional", "zh-Hant;zh-TW;zh-HK", HAN, ("FF_NotoSansCJK_Medium", CJK_TC)),

@@ -12,8 +12,15 @@ namespace PawTokens
 	// sRGB floats (Godot's Color(r, g, b, a) in a scene), decoded as Godot's Color::srgb_to_linear; alpha stays as is.
 	inline float SrgbToLinear(double C) { return static_cast<float>(C <= 0.04045 ? C / 12.92 : FMath::Pow((C + 0.055) / 1.055, 2.4)); }
 	inline FLinearColor SrgbF(double R, double G, double B, double A = 1.0) { return FLinearColor(SrgbToLinear(R), SrgbToLinear(G), SrgbToLinear(B), static_cast<float>(A)); }
+	// The UI concept's mix(a, b, t) (D18): per sRGB byte, a + (b - a) * t, rounded; alpha from a (the card's art panel).
+	inline FLinearColor MixSrgb(const FLinearColor& A, const FLinearColor& B, double T)
+	{
+		const FColor X = A.ToFColor(true), Y = B.ToFColor(true);
+		auto M = [T](uint8 P, uint8 Q) { return static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(P + (Q - P) * T), 0, 255)); };
+		return Srgb(M(X.R, Y.R), M(X.G, Y.G), M(X.B, Y.B), X.A);
+	}
 
-	inline const FLinearColor INK = Srgb(0x2A, 0x1A, 0x33);
+	inline const FLinearColor INK = Srgb(0x2A, 0x21, 0x31);
 	inline const FLinearColor EYE = Srgb(0xF6, 0xF6, 0xF6);
 	inline const FLinearColor GOLD = Srgb(0xF2, 0xC6, 0x5B);
 	inline const FLinearColor STARDUST = Srgb(0x85, 0x96, 0xC3);
@@ -39,25 +46,25 @@ namespace PawTokens
 	inline const FLinearColor GREY_HEADER = Srgb(0xCD, 0xCD, 0xCD);
 	inline const FLinearColor CREAM_FACE = Srgb(0xF8, 0xF1, 0xDE);
 	inline const FLinearColor CREAM_HEADER = Srgb(0xEE, 0xE2, 0xAC);
-	inline const FLinearColor BLACK_FACE = Srgb(0x2A, 0x1A, 0x33);
-	inline const FLinearColor BLACK_HEADER = Srgb(0x3E, 0x2A, 0x4A);
-	inline const FLinearColor UI_PANEL = Srgb(0x2A, 0x1A, 0x33);
-	inline const FLinearColor UI_PANEL_BAND = Srgb(0x56, 0x43, 0x61);
-	inline const FLinearColor UI_PANEL_FRAME = Srgb(0x12, 0x0A, 0x17);
-	inline const FLinearColor UI_TEXT = Srgb(0xF6, 0xEE, 0xF8);
-	inline const FLinearColor UI_TEXT_MUTED = Srgb(0xDC, 0xCF, 0xE4);
-	inline const FLinearColor UI_TEXT_DISABLED = Srgb(0xB8, 0xAB, 0xC1);
-	inline const FLinearColor UI_BUTTON = Srgb(0x3E, 0x2A, 0x4A);
-	inline const FLinearColor UI_BUTTON_HOVER = Srgb(0x56, 0x43, 0x61);
-	inline const FLinearColor UI_BUTTON_PRESSED = Srgb(0x12, 0x0A, 0x17);
-	inline const FLinearColor UI_BUTTON_DISABLED = Srgb(0x34, 0x22, 0x3E);
-	inline const FLinearColor UI_BUTTON_FRAME = Srgb(0x12, 0x0A, 0x17);
-	inline const FLinearColor UI_SLOT = Srgb(0x12, 0x0A, 0x17);
-	inline const FLinearColor UI_SHADOW = Srgb(0x12, 0x0A, 0x17);
-	inline const FLinearColor UI_BADGE = Srgb(0xFF, 0x70, 0x55);
-	inline const FLinearColor UI_FOCUS = Srgb(0xFF, 0xD2, 0x3F);
-	inline const FLinearColor UI_SELECTED = Srgb(0xFF, 0xD2, 0x3F);
-	inline const FLinearColor UI_SELECTED_TEXT = Srgb(0x2A, 0x1A, 0x33);
+	inline const FLinearColor BLACK_FACE = Srgb(0x2A, 0x21, 0x31);
+	inline const FLinearColor BLACK_HEADER = Srgb(0xF4, 0xE7, 0xCF);
+	inline const FLinearColor UI_PANEL = Srgb(0xFF, 0xF8, 0xEB);
+	inline const FLinearColor UI_PANEL_BAND = Srgb(0xFB, 0xF0, 0xDC);
+	inline const FLinearColor UI_PANEL_FRAME = Srgb(0x2A, 0x21, 0x31);
+	inline const FLinearColor UI_TEXT = Srgb(0x2A, 0x21, 0x31);
+	inline const FLinearColor UI_TEXT_MUTED = Srgb(0x6E, 0x62, 0x76);
+	inline const FLinearColor UI_TEXT_DISABLED = Srgb(0x6A, 0x60, 0x58);
+	inline const FLinearColor UI_BUTTON = Srgb(0xF4, 0xE7, 0xCF);
+	inline const FLinearColor UI_BUTTON_HOVER = Srgb(0xFB, 0xF0, 0xDC);
+	inline const FLinearColor UI_BUTTON_PRESSED = Srgb(0xE8, 0xD7, 0xBA);
+	inline const FLinearColor UI_BUTTON_DISABLED = Srgb(0xEA, 0xDF, 0xCB);
+	inline const FLinearColor UI_BUTTON_FRAME = Srgb(0x2A, 0x21, 0x31);
+	inline const FLinearColor UI_SLOT = Srgb(0xF4, 0xE7, 0xCF);
+	inline const FLinearColor UI_SHADOW = Srgb(0x2A, 0x21, 0x31);
+	inline const FLinearColor UI_BADGE = Srgb(0xF2, 0x54, 0x5B);
+	inline const FLinearColor UI_FOCUS = Srgb(0x3D, 0x7B, 0xFF);
+	inline const FLinearColor UI_SELECTED = Srgb(0xFF, 0xC8, 0x3D);
+	inline const FLinearColor UI_SELECTED_TEXT = Srgb(0x2A, 0x21, 0x31);
 	inline const FLinearColor UI_CATNIP = Srgb(0xF2, 0xC6, 0x5B);
 	inline const FLinearColor UI_STARDUST = Srgb(0x85, 0x96, 0xC3);
 	inline const FLinearColor UI_TAB_UPGRADES = Srgb(0xF4, 0xA9, 0x68);
@@ -65,25 +72,35 @@ namespace PawTokens
 	inline const FLinearColor UI_TAB_REALMS = Srgb(0x70, 0x95, 0x4F);
 	inline const FLinearColor UI_TAB_CATCHES = Srgb(0xF2, 0xC6, 0x5B);
 	inline const FLinearColor UI_TAB_AWARDS = Srgb(0xF8, 0xA0, 0x8C);
-	inline const FLinearColor UI_BOSS_BANNER = Srgb(0xD2, 0x26, 0x3F);
-	inline const FLinearColor UI_BOSS_BANNER_TEXT = Srgb(0xF6, 0xEE, 0xF8);
-	inline const FLinearColor UI_FIELD_LABEL = Srgb(0xF6, 0xEE, 0xF8);
-	inline const FLinearColor UI_DANGER = Srgb(0xD2, 0x26, 0x3F);
-	inline const FLinearColor UI_GOOD = Srgb(0x70, 0x95, 0x4F);
-	inline const FLinearColor UI_CARD_PLATE = Srgb(0xF6, 0xEE, 0xF8);
-	inline const FLinearColor UI_CARD_INK = Srgb(0x2A, 0x1A, 0x33);
+	inline const FLinearColor UI_BOSS_BANNER = Srgb(0xC9, 0x33, 0x23);
+	inline const FLinearColor UI_BOSS_BANNER_TEXT = Srgb(0xFF, 0xFF, 0xFF);
+	inline const FLinearColor UI_FIELD_LABEL = Srgb(0xFF, 0xFD, 0xF6);
+	inline const FLinearColor UI_DANGER = Srgb(0xC9, 0x33, 0x23);
+	inline const FLinearColor UI_GOOD = Srgb(0x4E, 0x9A, 0x2E);
+	inline const FLinearColor UI_CARD_PLATE = Srgb(0xFF, 0xF8, 0xEB);
+	inline const FLinearColor UI_CARD_INK = Srgb(0x2A, 0x21, 0x31);
 	inline const FLinearColor UI_CARD_SWARM = Srgb(0x70, 0x95, 0x4F);
 	inline const FLinearColor UI_CARD_POUNCE = Srgb(0xEC, 0x7B, 0x7B);
 	inline const FLinearColor UI_CARD_AURA = Srgb(0x85, 0x96, 0xC3);
 	inline const FLinearColor UI_CARD_DECK = Srgb(0xF2, 0xC6, 0x5B);
-	inline const FLinearColor UI_CARD_TAKE = Srgb(0x2A, 0x1A, 0x33);
-	inline const FLinearColor UI_CARD_BANISH = Srgb(0xFF, 0x70, 0x55);
-	inline const FLinearColor SKY_BASE = Srgb(0x25, 0x1D, 0x33);
-	inline const FLinearColor SKY_CLOUD = Srgb(0x31, 0x25, 0x40);
-	inline const FLinearColor SKY_CLOUD_WARM = Srgb(0x36, 0x28, 0x42);
-	inline const FLinearColor SKY_STAR = Srgb(0xFF, 0xF9, 0xE3);
-	inline const FLinearColor SKY_PLATE = Srgb(0x38, 0x30, 0x45);
-	inline const FLinearColor SKY_PLATE_EDGE = Srgb(0x5B, 0x51, 0x6B);
+	inline const FLinearColor UI_CARD_TAKE = Srgb(0x2A, 0x21, 0x31);
+	inline const FLinearColor UI_CARD_BANISH = Srgb(0xC9, 0x33, 0x23);
+	inline const FLinearColor UI_PHOTO = Srgb(0xBF, 0xE3, 0xA3);
+	inline const FLinearColor UI_BAR_TRACK = Srgb(0xE8, 0xDA, 0xBF);
+	inline const FLinearColor UI_BAR_ZONE = Srgb(0x6C, 0xC0, 0x4A);
+	inline const FLinearColor UI_BAR_XP = Srgb(0x8B, 0x6B, 0xEF);
+	inline const FLinearColor UI_BAR_WAVE = Srgb(0x58, 0xB6, 0xFF);
+	inline const FLinearColor UI_STARDUST_BRIGHT = Srgb(0x8B, 0x6B, 0xEF);
+	inline const FLinearColor UI_TREE_OWNED = Srgb(0x6C, 0xC0, 0x4A);
+	inline const FLinearColor UI_TREE_READY_RING = Srgb(0xFF, 0xD4, 0x47);
+	inline const FLinearColor UI_TREE_LINK_ON = Srgb(0xFF, 0xF8, 0xEB);
+	inline const FLinearColor UI_TREE_LINK_OFF = Srgb(0x7C, 0x86, 0xAA);
+	inline const FLinearColor SKY_BASE = Srgb(0x2D, 0x3A, 0x63);
+	inline const FLinearColor SKY_CLOUD = Srgb(0x35, 0x42, 0x68);
+	inline const FLinearColor SKY_CLOUD_WARM = Srgb(0x38, 0x44, 0x6A);
+	inline const FLinearColor SKY_STAR = Srgb(0xFF, 0xF3, 0xA0);
+	inline const FLinearColor SKY_PLATE = Srgb(0x4A, 0x54, 0x78);
+	inline const FLinearColor SKY_PLATE_EDGE = Srgb(0x7C, 0x86, 0xAA);
 	inline const FLinearColor PLUM_BASE = Srgb(0x2A, 0x1A, 0x33);
 	inline const FLinearColor PLUM_DEEP = Srgb(0x12, 0x0A, 0x17);
 	inline const FLinearColor PLUM_RAISED = Srgb(0x3E, 0x2A, 0x4A);
@@ -96,7 +113,7 @@ namespace PawTokens
 
 	// Colours the palette has retired (gen_paw_tokens.py retired()): no baked asset may still hold one
 	// (Pawpocalypse.UI.Widgets.Palette; py tools/bake_widgets.py --run --recolour migrates them).
-	inline const TArray<uint32> PALETTE_RETIRED = { 0x1A1A1A, 0x8F886F, 0xD86061, 0xEBE5CF, 0xEEE2AC, 0xF6BBAD, 0xFFF6CF, 0xFFFDED };
+	inline const TArray<uint32> PALETTE_RETIRED = { 0x120A17, 0x1A1A1A, 0x251D33, 0x2A1A33, 0x2C253D, 0x312540, 0x312A43, 0x34223E, 0x362842, 0x373E57, 0x375249, 0x383045, 0x3D445D, 0x3D584F, 0x3E2A4A, 0x3E3652, 0x463452, 0x4B516B, 0x4B665D, 0x4C3A58, 0x4C3E31, 0x514766, 0x524437, 0x564361, 0x5A4766, 0x5B516B, 0x5F7A71, 0x5FD068, 0x615144, 0x7BA5C7, 0x8CC2B4, 0x8F886F, 0x91A2BA, 0x92B9D8, 0x98BE98, 0x98C274, 0xA4D0A4, 0xA4D2C6, 0xA7D6CA, 0xAAB7CA, 0xABD28A, 0xAEBBCF, 0xAFD1EC, 0xB3E5B2, 0xB8ABC1, 0xB98CFF, 0xC1E6DC, 0xC3E6A5, 0xC8D1DE, 0xCC967E, 0xD2263F, 0xD86061, 0xDCAB95, 0xDCCFE4, 0xE5D4B7, 0xEBE5CF, 0xEDE2C8, 0xEEE2AC, 0xF0C4B1, 0xF6BBAD, 0xF6EEF8, 0xF7F2DC, 0xFFD23F, 0xFFF6CF, 0xFFF9E3, 0xFFFDED };
 
 	// Colours Godot authored as literals in scenes and scripts (palette.py LITERALS).
 	inline const FLinearColor CEREMONY_FLASH = SrgbF(0.972, 0.949, 1); // reawaken_ceremony.tscn Flash color

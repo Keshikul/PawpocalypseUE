@@ -1,16 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
-<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<ellipse cx="64.0" cy="66.0" rx="48.1" ry="40.1" fill="#FFF9E3" stroke="none"/>
-<rect x="9.9" y="68.9" width="108.2" height="30.2" rx="13.1" fill="#FFF9E3" stroke="none"/>
-<ellipse cx="64.0" cy="66.0" rx="45.0" ry="37.0" fill="#FFF9E3" stroke="none"/>
-<rect x="13.0" y="72.0" width="102.0" height="24.0" rx="10.0" fill="#FFF9E3" stroke="none"/>
-<rect x="53.0" y="26.0" width="22.0" height="40.0" rx="8.0" fill="#FFF9E3" stroke="none"/>
-<rect x="13.0" y="75.5" width="102.0" height="17.0" rx="8.0" fill="#FFF9E3" stroke="none"/>
-<ellipse cx="64.0" cy="66.0" rx="43.1" ry="35.1" fill="#2A1A33" stroke="none"/>
-<rect x="14.9" y="73.9" width="98.2" height="20.2" rx="8.1" fill="#2A1A33" stroke="none"/>
-<ellipse cx="64.0" cy="66.0" rx="40.0" ry="32.0" fill="#F2C65B" stroke="none"/>
-<rect x="18.0" y="77.0" width="92.0" height="14.0" rx="5.0" fill="#F2C65B" stroke="none"/>
-<rect x="58.0" y="31.0" width="12.0" height="30.0" rx="3.0" fill="#BA9650" stroke="#2A1A33"/>
-<rect x="18.0" y="80.5" width="92.0" height="7.0" rx="3.0" fill="#BA9650" stroke="#2A1A33"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="5.288" data-ink="4.427">
+<g stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="69.53" cy="75.07" rx="44.27" ry="7.38" fill="#FFC83D" stroke="#2A2131" stroke-width="4.43"/>
+<polygon points="35.10,73.84 37.03,64.21 42.26,56.72 49.97,51.37 59.34,48.16 69.53,47.09 79.73,48.16 89.09,51.37 96.81,56.72 102.04,64.21 103.97,73.84" fill="#FFC83D" stroke="#2A2131" stroke-width="4.43"/>
+<rect x="64.61" y="38.17" width="9.84" height="36.90" rx="4.92" fill="#ffe194" stroke="none"/>
 </g>
 </svg>

@@ -17,7 +17,10 @@
 // takes the event before the dialog's own Back and page keys), so Esc cancels the listening, not the dialog.
 // The Output list: "Follow the system", the system's devices (UPawAudioSubsystem::OutputDeviceList), and the stored one if it
 // is gone (unplugged since it was saved); picking one plays there at once (the audio subsystem applies it).
-// NOT YET, with its phase: Language is "System", disabled (phase 7).
+// The Language list (phase 7; _fill_language_option): "System", then every language with translations in use in its own
+// name, "(draft)" in its own words until reviewed (PawText::Languages, LanguageLabel). Picking one saves it and shows it
+// at once (UPawSettingsSubsystem::SetLanguage); every list is filled again in the new language. A click's pick waits one
+// tick: the list is refilled from outside its own selection callback.
 
 #include "CoreMinimal.h"
 #include "CommonActivatableWidget.h"
@@ -80,6 +83,7 @@ public:
 	void PickPrompts(int32 Index);
 	void PickDock(int32 Index);
 	void PickOutput(int32 Index);
+	void PickLanguage(int32 Index);
 
 	// What the tests read (and only read).
 	const Pc::PcSettingsDialog& GetDialogState() const { return Dialog; }
@@ -138,6 +142,8 @@ private:
 	void OnPromptsPicked(FString Item, ESelectInfo::Type How);
 	UFUNCTION()
 	void OnDockPicked(FString Item, ESelectInfo::Type How);
+	UFUNCTION()
+	void OnLanguagePicked(FString Item, ESelectInfo::Type How);
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> Scrim;
@@ -221,6 +227,7 @@ private:
 
 	Pc::PcSettingsDialog Dialog;
 	TArray<FString> OutputDevices; // the Output list's devices by name, in its order
+	TArray<FString> LanguageCodes; // the Language list's settings values, in its order: "system", then the languages
 	bool bSyncing = false;         // the controls are being set from the settings: no change is the player's
 	TArray<UWidget*> Wired;
 };

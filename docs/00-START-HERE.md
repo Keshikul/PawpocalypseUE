@@ -36,7 +36,9 @@ port fixes Godot's faults instead of copying them (D16, "Do not port faults from
 | A | [appendix-a-content-catalogue.md](appendix-a-content-catalogue.md) | generated: every biome, boss, enemy, card, node, job, achievement |
 | B | [appendix-b-godot-to-unreal-map.md](appendix-b-godot-to-unreal-map.md) | generated: all 79 Godot scripts, where each goes and in which phase |
 | C | [appendix-c-code-constants.md](appendix-c-code-constants.md) | generated: the 580 numeric/colour constants and numeric `@export` defaults that live in Godot CODE, not `/data`, with their reasons |
-| | [WORKLIST-NIGHT-2026-11-17.md](WORKLIST-NIGHT-2026-11-17.md) | the night of 2026-11-17 (planned, waiting for the go): the nightly `-Full` on (104)-(108), and the restyle's S1, E1 and first creatures prepared off the tree |
+| | [WORKLIST-NIGHT-2026-11-17.md](WORKLIST-NIGHT-2026-11-17.md) | the night of 2026-11-17, first half: the nightly `-Full` (stopped at the designer's word, 30 gates PASS), S1, E1 and the first creatures prepared off the tree |
+| | [WORKLIST-NIGHT-2026-11-17-STEAM.md](WORKLIST-NIGHT-2026-11-17-STEAM.md) | the same night, second half ("Our focus is steam page and screenshots"): S1 and S2's text half in the game, the Steam page, the store screenshots |
+| | [STEAM-PAGE-DRAFT-2026-11-18.md](STEAM-PAGE-DRAFT-2026-11-18.md) | **the Steam page's words, drafted for sign-off** (every number from `Data/`); the images and the screenshots are on its review page |
 | | [WORKLIST-STICKER-2026-11-17.md](WORKLIST-STICKER-2026-11-17.md) | **the current restyle (D18, Sticker Box)**: the approved concepts, the look spec, S0-S7, the open decisions E1-E5 |
 | | [WORKLIST-RESTYLE-2026-11-07.md](WORKLIST-RESTYLE-2026-11-07.md) | the plum restyle (D14): its pipeline and gates stay; its look is replaced by D18 |
 | | [WORKLIST-SLICE6-2026-11-07.md](WORKLIST-SLICE6-2026-11-07.md) | phase 6 slice 6: the Unicorn ceremony (done), the Reawaken banner, Boba, the tutorial |
@@ -66,12 +68,33 @@ only the documents it points to; the **`2D/` folder** (`2D/01-2d-optimization-be
 
 The full plan with session prompts is [11-roadmap.md](11-roadmap.md).
 
-## Where the port is (2026-11-17)
+## Where the port is (2026-11-18)
 
-**Now: the Sticker Box restyle (D18, 2026-11-17).** The designer replaced the plum look: every enemy and boss (Bestiary) and
+**The focus (designer, 2026-11-17): "steam page and screenshots".**
+- The Steam page is drafted: the words, plus 13 store and library images at Steam's sizes made from the approved
+  drawings. They are in [STEAM-PAGE-DRAFT-2026-11-18](STEAM-PAGE-DRAFT-2026-11-18.md), with every image on the review
+  page (HANDOFF-LOG (109)).
+- The store screenshots are one command, `py tools/store_shots.py`: nine scripted scenes from the real game.
+- **The field is in Sticker Box since 2026-11-18 (S5 landed, HANDOFF-LOG (110))**: every character recorded from the
+  approved Bestiary (`node tools/art/sticker_record.js`), the Bestiary's grounds, the kit's icons and paw cursors, the
+  concept's aura and strike, and the dock's upgrade rows (HANDOFF-LOG (111)). The shots were retaken. What still shows
+  the old look: the other screens' layouts (S4), the chrome's shadow (S3), the card art and the skill and achievement
+  icons (S6), the props, the title font (E1). Drafts waiting for the designer: Missing Art
+  (https://claude.ai/artifact/J265sfqjxSbdsSNsXU3VSh) and `docs/TEXT-DRAFT-2026-11-18.csv`.
+- **2026-11-19**: the screens restyled as the concept draws them, the skill tree's nodes hexagons, localisation started
+  (HANDOFF-LOG (122)-(126)). Waiting for the designer: the card picture drafts
+  (https://claude.ai/artifact/EcGLpgn5XtJTHjRSXaoxbv) and the skill and badge drafts
+  (https://claude.ai/artifact/KYQRRKXK3xcMR1mfEpxXCq), HANDOFF-LOG (127).
+- All UI screens, with the eight the concept had not drawn, are on one page: Menu Screens
+  (https://claude.ai/artifact/2GuLR3DBNV8soFRfLDrn8K).
+- **2026-11-20, phase 7**: the translations load at run time (polyglot text), the languages' rules are ported and proven
+  (`PcLocales`, fixture `locales`; F52 fixed), Settings > Language works and offers only complete languages
+  (`-PawDraftLanguages` shows the unfinished ones). Next: the title's language menu (HANDOFF-LOG (128)).
+
+**The Sticker Box restyle (D18, 2026-11-17).** The designer replaced the plum look: every enemy and boss (Bestiary) and
 every UI screen (UI Screens) were drawn as concepts and approved before any Unreal change. The plan, the look spec and the
-links: [WORKLIST-STICKER-2026-11-17](WORKLIST-STICKER-2026-11-17.md). S0 done; **next S1, the palette.** It supersedes the
-plum restyle's R5 reviews and R6 below.
+links: [WORKLIST-STICKER-2026-11-17](WORKLIST-STICKER-2026-11-17.md). S0 done; **S1 (the UI colours), S2's text half (Nunito) and S5 (the field) done 2026-11-18**, with S6's first
+icons. It supersedes the plum restyle's R5 reviews and R6 below.
 
 **Before D18 (2026-11-12): the restyle's R5 (the field) was drawn and waited on the designer's last reviews; next was R6.**
 The night of 2026-11-10 made the code review's fixes that need no decision and fixed every Godot fault the port had copied
@@ -98,7 +121,8 @@ status; doc 09 §7 the gates as they are today.
 | 5 Pad and keyboard | **Work done** 2026-11-05 (42)-(49): Godot's input map as data, every screen on it, devices, glyphs and prompts, remapping and the Controls page, keys by position on any layout, the dock's held keys, the paw cursors, the pad-only playthrough. Waiting for the designer: hand-checks on real pads and a real AZERTY keyboard |
 | 6 Presentation | Slices 1-5d and 6a **done** 2026-11-05/07 (50)-(63): the field's art and atlas, the backdrops, the effects, the sound, the chrome, the icons, the motion, the rainbows and the tree's sky, the Unicorn ceremony. **The restyle (D14) runs before 6b-6d** (the Reawaken banner, Boba, the tutorial: `WORKLIST-SLICE6-2026-11-07.md`) |
 | The restyle (D14) | `WORKLIST-RESTYLE-2026-11-07.md`. **R0-R4 done** (65)-(70): the port's own palette (`tools/art/palette.py`), Plum ink, M PLUS Rounded 1c (`F_Paw`), plum chrome with Deep Plum edges and one solid shadow, Butter focus, the 16 px text floor, every screen fits at 150 % UI; the plain text (D15) (71)-(72). **R5 drawn** (73)-(90): D3 (aura, strike paw, crits), the look lint (everyday), the faces, the anatomy pass with one colour per character, the rig (moving wings and legs), the props. Waiting: the bosses, the imp, the rig's motion, the cat's pale coats, the draw-call budget (doc 01 Q11). R6, R7 to come |
-| 7-9 | Localisation, hardening and packaging, parity sign-off: not started (the fonts were done early in R2) |
+| 7 Localisation | **Started** 2026-11-19 (125): Godot's 20 translations carried over (`port_po.py`, `loc_status.py`); 2026-11-20 (128): loaded at run time, the languages' rules (`PcLocales`), Settings > Language. Next: the title's language menu, `--apply`, the translations (`docs/WORKLIST-LOC-2026-11-18.md`). The fonts were done early in R2 |
+| 8-9 | Hardening and packaging, parity sign-off: not started |
 
 - **Git**: committed and pushed through HANDOFF-LOG (108) (2026-11-17, at the designer's request: the `if` audit's
   fixes 1-4, the waiting engine guards, D18 planned, the colour inventory). Before that, through HANDOFF-LOG (103) (2026-11-12, at the designer's request: F3, CR17, the economy

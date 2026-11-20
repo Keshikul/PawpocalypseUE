@@ -216,6 +216,27 @@ TEST_CASE("Long: PcTree matches all 3,000 Godot SkillTreeManager rows" * doctest
 	CHECK(R.Rows == 3000);
 }
 
+TEST_CASE("D19: the five late nodes are priced for the Reawaken they are meant for")
+{
+	// Q13, decided 2026-11-18 (designer: "Raise the five prices"; tools/godot_fixes.py D19): about 40 % of the Stardust the
+	// Reawaken they are meant for brings, so something new arrives on every Reawaken 2-13 (docs/ECONOMY-REVIEW-2026-11-12.md
+	// section 9). Godot's were 6,400 / 600 / 520 / 9,000 / 450.
+	const Pc::PcGameData& D = Game();
+	const std::pair<const char*, double> Want[] = { { "curiosity", 20000.0 }, { "gridlock", 20000.0 }, { "overflow", 70000.0 },
+		{ "unlock_full_spectrum", 250000.0 }, { "standing_wave", 900000.0 } };
+	for (const auto& [Id, Cost] : Want)
+	{
+		const Pc::PcSkillBranch* B = nullptr;
+		for (const Pc::PcSkillBranch& Each : D.Branches)
+		{
+			B = Each.Id == Id ? &Each : B;
+		}
+		REQUIRE_MESSAGE(B != nullptr, Id);
+		CHECK_MESSAGE(B->LevelCosts.size() == 1, Id);
+		CHECK_MESSAGE(B->LevelCosts[0] == Cost, Id);
+	}
+}
+
 TEST_CASE("Tree rules from the Godot comments")
 {
 	const Pc::PcGameData& D = Game();

@@ -6,7 +6,9 @@
 // Pawpocalypse.UI.CardPick.Opens       no hand: nothing; a hand: the screen is up on the Menu stack (once), the field holds,
 //                                      the dim takes clicks, the title, the cards, the focus target.
 // Pawpocalypse.UI.CardPick.Look        NEW / LEVEL n of max, the body at the level taking it gives, the cost frame and warning,
-//                                      the flavour band and word, Blueprint's line, the Take label.
+//                                      the flavour band and word, Blueprint's line, the Take label; D18 (S4, the UI concept's):
+//                                      NEW on its starburst, the level's dots, the art panel's tint, the title on its panel,
+//                                      Reroll's arrow, the lifted card's Take on the yellow plate.
 // Pawpocalypse.UI.CardPick.Guard       the rule: too soon, a key held from before the deal, a repeat, a fresh key, the mouse.
 // Pawpocalypse.UI.CardPick.Take        a guarded click takes the card, closes, releases the field; a stale card closes too.
 // Pawpocalypse.UI.CardPick.Reroll      the button's count, a reroll re-deals and restarts the guard, none left hides it.
@@ -284,8 +286,33 @@ bool FPawPickLookTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("a held card: the level taking it gives"), S(Bounty->GetRankText()), FString(TEXT("LEVEL 2 of 3")));
 	TestEqual(TEXT("muted"), Bounty->GetRankColour(), PawTokens::UI_TEXT_MUTED);
 	TestEqual(TEXT("the body at that level"), S(Bounty->GetBodyText()), FString(TEXT("Signature enemies pay 3x Catnip.")));
-	TestEqual(TEXT("a new card says so"), S(Close->GetRankText()), FString(TEXT("NEW")));
-	TestEqual(TEXT("in the alert colour"), Close->GetRankColour(), PawTokens::UI_CARD_BANISH);
+	// D18 (S4): NEW is the concept's starburst; the line under the text says the level a new card gives too.
+	TestTrue(TEXT("a new card wears the NEW starburst"), Close->IsNewShown());
+	TestFalse(TEXT("a held card does not"), Bounty->IsNewShown());
+	TestEqual(TEXT("a new card: level one"), S(Close->GetRankText()), FString(TEXT("LEVEL 1 of 2")));
+	TestEqual(TEXT("muted too"), Close->GetRankColour(), PawTokens::UI_TEXT_MUTED);
+	TestEqual(TEXT("a dot per level"), Bounty->GetDotCount(), 3);
+	TestEqual(TEXT("filled to the level taking it gives"), Bounty->GetFilledDotCount(), 2);
+	TestEqual(TEXT("a new card's dots"), Close->GetDotCount(), 2);
+	TestEqual(TEXT("one filled"), Close->GetFilledDotCount(), 1);
+	// The art panel: the band's colour 55 % of the way to white (UI_CARD_DECK #F2C65B -> #F9E5B5; AURA #8596C3 -> #C8D0E4).
+	TestEqual(TEXT("the art panel's tint"), Bounty->GetArtPanelColour(), FLinearColor::FromSRGBColor(FColor(0xF9, 0xE5, 0xB5)));
+	TestEqual(TEXT("an aura card's tint"), Close->GetArtPanelColour(), FLinearColor::FromSRGBColor(FColor(0xC8, 0xD0, 0xE4)));
+	// The lifted card's Take is the thing to press: on the yellow plate; the others stay plain.
+	for (UPawCardFace* F : { Bounty, Close, Spite })
+	{
+		F->StepLift(0.016);
+	}
+	TestFalse(TEXT("no card lifted: no Take on yellow"), Bounty->GetTake()->HasCallLook() || Close->GetTake()->HasCallLook()
+		|| Spite->GetTake()->HasCallLook());
+	Close->HoldLiftForTest(true);
+	Close->StepLift(0.016);
+	Bounty->StepLift(0.016);
+	TestTrue(TEXT("the lifted card's Take is on yellow"), Close->GetTake()->HasCallLook());
+	TestFalse(TEXT("another card's is not"), Bounty->GetTake()->HasCallLook());
+	Close->HoldLiftForTest(false);
+	Close->StepLift(0.016);
+	TestFalse(TEXT("let go: plain again"), Close->GetTake()->HasCallLook());
 	TestEqual(TEXT("{v} and {c} at level one"), S(Close->GetBodyText()),
 		FString(TEXT("Your aura detonates for 5 seconds of damage, but shrinks to 0.7x its radius.")));
 	TestTrue(TEXT("a cost card wears the red frame"), Close->HasCostFrame());
@@ -298,6 +325,8 @@ bool FPawPickLookTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("a deck card's word"), S(Spite->GetFlavourText()), FString(TEXT("THE DECK")));
 	TestEqual(TEXT("a deck card's band"), Spite->GetBandColour(), PawTokens::GREY_HEADER);
 	TestEqual(TEXT("Take"), S(Bounty->GetTake()->GetLabel()), FString(TEXT("Take")));
+	TestTrue(TEXT("the title and subtitle on their card-stock panel (D18)"), Pick->IsTitleOnPanel());
+	TestEqual(TEXT("Reroll carries the Reawaken arrow (D18)"), Pick->GetRerollButton()->GetIconName(), FString(TEXT("ui_tab_reawaken")));
 	TestEqual(TEXT("Blueprint's line under the subtitle"), S(Pick->GetSubtitleText()),
 		FString(TEXT("Take one. You are not owed a good hand.\nNext hand will hold: Rigor, Spite")));
 	W.Close();

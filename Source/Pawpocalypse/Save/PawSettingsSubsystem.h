@@ -16,7 +16,11 @@
 //   the controls (the bindings, the swaps, the dead zone, the prompts): UPawInputDeviceSubsystem listens and applies them;
 //   the stick's inversion and the cursor speed: read where the stick steers (the cat, the skill tree's pan).
 //   the volumes and mute: read live by UPawAudioSubsystem; the output device: UPawAudioSubsystem listens and applies it.
-// NOT YET, each with its phase: the language (phase 7), the tutorial tips (stored; the tutorial is phase 6).
+//   the language (phase 7, settings_manager.gd apply_language): resolved (Pc::LocaleResolve: the setting, else the system's)
+//   and shown (PawText::ShowCulture) at startup and on change; a -culture= on the command line wins (the tour, the shots);
+//   never in the editor (the designer's own editor keeps its language). Under Steam, Steam's language for the game will
+//   feed the resolve once the game talks to Steam (Godot's build had no Steam either).
+// NOT YET, each with its phase: the tutorial tips (stored; the tutorial is phase 6).
 
 #include "CoreMinimal.h"
 #include "Containers/Ticker.h"
@@ -41,6 +45,15 @@ struct FPawVideoApplied
 	int64 MaxFps = 0;
 	int32 Count = 0;          // how many times the video settings were applied
 	bool bToEngine = false;   // the last one reached the engine
+};
+
+// The language the game was last set to show (the tests read it).
+struct FPawLanguageApplied
+{
+	FString Code;            // the setting resolved, Godot's code: "de", "es_MX", "en"
+	FString Culture;         // Unreal's culture for it: "de", "es-419", "en"
+	int32 Count = 0;         // how many times the language was applied
+	bool bToEngine = false;  // the last one reached the engine (never in the editor)
 };
 
 UCLASS()
@@ -75,6 +88,9 @@ public:
 	void SetConfirmReawaken(bool b);
 	void SetPromptStyle(const FString& Style);
 	void SetDockSide(const FString& Side);
+	// set_language(): "system" or a language's code; the same value changes nothing (Godot returns early), any other is saved
+	// and applied.
+	void SetLanguage(const FString& Code);
 	// Settings > Controls (controls_panel.gd through set_control): nothing happens when the value is the one held (Godot
 	// returns early), else it is stored (the two sliders clamped), saved and applied. The prompts and the bindings follow
 	// through UPawInputDeviceSubsystem (OnControlsChanged).
@@ -97,6 +113,7 @@ public:
 	FOnSettingsChanged OnChanged;
 
 	const FPawVideoApplied& GetVideoApplied() const { return Video; }
+	const FPawLanguageApplied& GetLanguageApplied() const { return Language; }
 	// Whether the video settings may reach the engine: never in the editor (the designer's own editor), never in a run with
 	// no settings storage (the bench, the tour: the command line rules), and only with a game viewport.
 	static bool MayApplyToEngine(bool bEditor, bool bStored, bool bViewport);
@@ -116,10 +133,12 @@ private:
 	void Save();
 	void Changed(bool bVideo);
 	void ApplyVideo();
+	void ApplyLanguage();
 
 	Pc::PcSettings Settings;
 	TSharedPtr<IPawSaveStorage> Storage;
 	FPawVideoApplied Video;
+	FPawLanguageApplied Language;
 	int32 Writes = 0;
 	bool bWindowFromCommandLine = false;
 	FTSTicker::FDelegateHandle StartupApply;

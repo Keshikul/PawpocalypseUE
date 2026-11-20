@@ -241,9 +241,9 @@ namespace
 	}
 }
 
-// The restyle's look of the aura and the strike (D3, designer 2026-11-09; tools/art/fx_look.py -> Realm/PawFxLook.h): the
-// aura lifted white with a Bone ring on a Plum edge (not Godot's gold), the clutching paw at the arc's tip with its toes along
-// the motion, crits in Butter (not Godot's pink). The palette's bytes are written out here, not read from PawFxLook.h, so a
+// The look of the aura and the strike (tools/art/fx_look.py -> Realm/PawFxLook.h): the aura the concept's yellow ring over a
+// faint fill of it, with no ink edge (Sticker Box, D18, 2026-11-18; not Godot's gold), the clutching paw at the arc's tip with
+// its toes along the motion (D3, designer 2026-11-09), crits in Sticker's yellow (not Godot's pink). The palette's bytes are written out here, not read from PawFxLook.h, so a
 // wrong token in the generated header fails too.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawVfxLookTest, "Pawpocalypse.Realm.Vfx.Look",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -256,9 +256,9 @@ bool FPawVfxLookTest::RunTest(const FString& Parameters)
 		W.Close();
 		return false;
 	}
-	const FColor Bone = Rgb(0xF6, 0xEE, 0xF8), Ink = Rgb(0x2A, 0x1A, 0x33), Butter = Rgb(0xFF, 0xD2, 0x3F);
+	const FColor Halo = Rgb(0xFF, 0xD4, 0x47), Ink = Rgb(0x2A, 0x21, 0x31), Butter = Rgb(0xFF, 0xC8, 0x3D); // Butter: Sticker's yellow
 	const FColor GodotGold = Rgb(246, 194, 92), GodotPink = Rgb(255, 107, 184), GodotEarned = Rgb(255, 158, 219);
-	const FColor Pad = Rgb(0xF8, 0xF1, 0xDE), Claw = Rgb(0xF6, 0xF6, 0xF6), SwipeBone = Rgb(254, 246, 234);
+	const FColor Pad = Rgb(0xF8, 0xF1, 0xDE), Claw = Rgb(0xF6, 0xF6, 0xF6), SwipeBone = Rgb(254, 246, 234), White = Rgb(255, 255, 255);
 	{
 		// The aura: owned, polled, drawn round the cat.
 		FPawVfx V;
@@ -267,15 +267,16 @@ bool FPawVfxLookTest::RunTest(const FString& Parameters)
 		FPawFxCanvas G, U, O;
 		V.Draw(W.Context(), G, U, O);
 		W.Game->Progress().BranchLevels["unlock_aura"] = 0;
-		const TArray<FVector2D> Ring = VertsOf(O, Bone);
-		TestTrue(TEXT("the aura's ring is Bone"), Ring.Num() > 0);
-		TestTrue(TEXT("on a Plum edge"), VertsOf(O, Ink).Num() > 0);
-		bool bLift = false;
+		bool bRing = false, bLift = false;
 		for (const FColor& C : O.Colors)
 		{
-			bLift |= C.R == 255 && C.G == 255 && C.B == 255 && C.A == 26;
+			bRing |= C.R == Halo.R && C.G == Halo.G && C.B == Halo.B && C.A == 217;
+			bLift |= C.R == Halo.R && C.G == Halo.G && C.B == Halo.B && C.A == 41;
 		}
-		TestTrue(TEXT("the inside lifted white at 10 %"), bLift);
+		const TArray<FVector2D> Ring = VertsOf(O, Halo);
+		TestTrue(TEXT("the aura's ring is the concept's yellow at 85 %"), bRing);
+		TestEqual(TEXT("no ink edge (the Sticker ring has none)"), VertsOf(O, Ink).Num(), 0);
+		TestTrue(TEXT("the inside a 16 % fill of the same yellow"), bLift);
 		TestEqual(TEXT("no gold (Godot's ring)"), VertsOf(O, GodotGold).Num(), 0);
 		const FVector2D Cat = W.Context().Cat;
 		double Far = 0.0;
@@ -286,7 +287,8 @@ bool FPawVfxLookTest::RunTest(const FString& Parameters)
 		TestTrue(TEXT("the ring round the cat at the aura's radius"), Far > 60.0 && Far < 300.0);
 	}
 	{
-		// A plain strike at a quarter of its sweep: the arc, and the paw at its tip, toes along the motion.
+		// A plain strike (Sticker Box, D18: the concept's swipe): a white arc on its ink edge and, from 35 % of the sweep, the
+		// three claw slashes on the victim in ink with no colour inside; no paw (D3's, off: PawFxLook::StrikePaw).
 		FPawVfx V;
 		const FPawVfx::FContext C = W.Context();
 		const FVector2D At(400.0, 400.0), To(460.0, 400.0); // the enemy straight right: the swipe's angle 0
@@ -294,19 +296,19 @@ bool FPawVfxLookTest::RunTest(const FString& Parameters)
 		V.Tick(W.Context(1.0, 0.06));
 		FPawFxCanvas G, U, O;
 		V.Draw(W.Context(), G, U, O);
-		const TArray<FVector2D> PadVerts = VertsOf(O, Pad), ClawVerts = VertsOf(O, Claw);
-		TestTrue(TEXT("the paw's pads drawn"), PadVerts.Num() > 0);
-		TestTrue(TEXT("its claws out"), ClawVerts.Num() > 0);
-		TestTrue(TEXT("the arc Bone-white (Godot's)"), VertsOf(O, SwipeBone).Num() > 0);
+		TestEqual(TEXT("no paw (its pads)"), VertsOf(O, Pad).Num(), 0);
+		TestEqual(TEXT("no paw (its claws)"), VertsOf(O, Claw).Num(), 0);
+		TestTrue(TEXT("the arc white (the concept's)"), VertsOf(O, White).Num() > 0);
+		TestEqual(TEXT("not Godot's Bone-white"), VertsOf(O, SwipeBone).Num(), 0);
 		TestEqual(TEXT("no Butter on a plain strike"), VertsOf(O, Butter).Num(), 0);
-		// vfx_swipe.gd: radius = reach x 0.88, the lead at -span/2 + span x sweep. Sweep 0.25.
-		const double Sweep = 0.06 / 0.24, Lead = -1.55 * 0.5 + 1.55 * Sweep, R = 62.0 * 0.88;
-		const FVector2D Tip = At + FVector2D(FMath::Cos(Lead), FMath::Sin(Lead)) * R;
-		const FVector2D Motion(-FMath::Sin(Lead), FMath::Cos(Lead));
-		const FVector2D PadAt = Centroid(PadVerts), ClawAt = Centroid(ClawVerts);
-		TestTrue(TEXT("the paw at the arc's tip"), (PadAt - Tip).Size() < 12.0);
-		TestTrue(TEXT("its claws ahead, along the motion"), FVector2D::DotProduct((ClawAt - PadAt).GetSafeNormal(), Motion) > 0.8);
-		TestTrue(TEXT("the paw at its size (46 px box)"), (ClawAt - PadAt).Size() > 6.0 && (ClawAt - PadAt).Size() < 23.0);
+		// Later in the sweep the slashes are in: every line drawn is the arc (white), its edge, or a slash, and the slashes
+		// add ink and no white: count the white and the ink before and after.
+		const int32 WhiteEarly = VertsOf(O, White).Num(), InkEarly = VertsOf(O, Ink).Num();
+		V.Tick(W.Context(1.0, 0.08)); // 0.14 s of 0.24: past ClawAt (0.35)
+		FPawFxCanvas G2, U2, O2;
+		V.Draw(W.Context(), G2, U2, O2);
+		TestTrue(TEXT("the slashes add ink"), VertsOf(O2, Ink).Num() > InkEarly);
+		TestEqual(TEXT("and no white (ink with no colour inside)"), VertsOf(O2, White).Num(), WhiteEarly);
 	}
 	{
 		// Crits, luck's and earned: Butter, never Godot's pinks.

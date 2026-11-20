@@ -8,6 +8,7 @@
 #include "Blueprint/WidgetBlueprintGeneratedClass.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/TextBlock.h"
+#include "Components/PanelWidget.h"
 #include "Engine/Blueprint.h"
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
@@ -315,6 +316,117 @@ bool FPawWidgetsTextFloorTest::RunTest(const FString& Parameters)
 		}
 	}
 	W.Close();
+	return true;
+}
+
+namespace
+{
+	// WCAG 2 relative luminance of a linear colour, and the contrast ratio of two.
+	double Luminance(const FLinearColor& C) { return 0.2126 * C.R + 0.7152 * C.G + 0.0722 * C.B; }
+	double ContrastRatio(const FLinearColor& A, const FLinearColor& B)
+	{
+		const double La = Luminance(A), Lb = Luminance(B);
+		return (FMath::Max(La, Lb) + 0.05) / (FMath::Min(La, Lb) + 0.05);
+	}
+	// What a part stands on: the nearest Border above it that paints something (a chrome plate is the card colour; a
+	// drawn box its own tint). False: nothing painted under it in this tree (over the field, or a piece's own look).
+	bool Backdrop(const UWidget* W, FLinearColor& Out)
+	{
+		for (const UPanelWidget* P = W ? W->GetParent() : nullptr; P; P = P->GetParent())
+		{
+			const UBorder* B = Cast<UBorder>(P);
+			if (!B || B->Background.DrawAs == ESlateBrushDrawType::NoDrawType)
+			{
+				continue;
+			}
+			const UObject* Art = B->Background.GetResourceObject();
+			if (Art && Art->GetName().StartsWith(TEXT("T_ui_")))
+			{
+				Out = PawTokens::UI_PANEL; // every chrome plate is the card colour since D18
+				return true;
+			}
+			const FLinearColor Tint = B->Background.TintColor.GetSpecifiedColor() * B->GetBrushColor();
+			if (!Art && Tint.A > 0.9f)
+			{
+				Out = Tint;
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawWidgetsReadableTest, "Pawpocalypse.UI.Widgets.ReadableOnPlates", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// D18 (S4, 2026-11-19): every text a Widget Blueprint puts on a plate reads against it (WCAG 2 AA: 4.5, or 3 for large text,
+// 24 px / 18 pt and up). The skill tree's Stardust pill and legend kept the plum era's cream text when the plates turned
+// cream, and showed nothing (the store shot 07).
+bool FPawWidgetsReadableTest::RunTest(const FString& Parameters)
+{
+	FWidgetsWorld W;
+	W.Open();
+	int32 Checked = 0;
+	for (UClass* Native : PawUi::BakedClasses())
+	{
+		if (!Native->IsChildOf(UUserWidget::StaticClass()))
+		{
+			continue;
+		}
+		UClass* Baked = PawUi::Resolve(Native);
+		UUserWidget* Made = Baked != Native ? W.Make(Baked) : nullptr;
+		if (!Made || !Made->WidgetTree)
+		{
+			continue;
+		}
+		Made->WidgetTree->ForEachWidget([&](UWidget* Part)
+		{
+			FLinearColor Text;
+			bool bLarge = false;
+			if (const UTextBlock* T = Cast<UTextBlock>(Part))
+			{
+				if (!T->GetColorAndOpacity().IsColorSpecified())
+				{
+					return;
+				}
+				Text = T->GetColorAndOpacity().GetSpecifiedColor();
+				bLarge = T->GetFont().Size >= 18.0f;
+				// A sticker title (yellow on its thick ink outline, the concept's): the outline is what meets the plate.
+				if (T->GetFont().OutlineSettings.OutlineSize >= 2)
+				{
+					Text = T->GetFont().OutlineSettings.OutlineColor;
+					bLarge = true;
+				}
+			}
+			else if (const UPawPromptText* PT = Cast<UPawPromptText>(Part))
+			{
+				Text = PT->TextColour;
+				bLarge = PT->TextPx >= 24.0f;
+			}
+			else if (const UPawIconText* IT = Cast<UPawIconText>(Part))
+			{
+				Text = IT->TextColour;
+				bLarge = IT->TextPx >= 24.0f;
+			}
+			else
+			{
+				return;
+			}
+			FLinearColor Under;
+			if (Text.A < 0.05f || !Backdrop(Part, Under))
+			{
+				return;
+			}
+			++Checked;
+			const double Ratio = ContrastRatio(Text, Under);
+			const double Need = bLarge ? 3.0 : 4.5;
+			if (Ratio < Need)
+			{
+				AddError(FString::Printf(TEXT("%s.%s: text %s on %s reads %.2f:1 (needs %.1f)"), *Native->GetName(), *Part->GetName(),
+					*Text.ToFColor(true).ToHex(), *Under.ToFColor(true).ToHex(), Ratio, Need));
+			}
+		});
+	}
+	TestTrue(TEXT("texts on plates were checked"), Checked > 50);
 	return true;
 }
 

@@ -60,6 +60,7 @@ namespace PawUi
 			{ TEXT("ui_separator"), 64, 8, 8, 2, 8, 2, 0 },
 			{ TEXT("ui_plate_small"), 64, 48, 12, 12, 12, 16, 4 },
 			{ TEXT("ui_button_selected"), 256, 64, 16, 16, 16, 16, 4 }, // R4a: Butter, sunk like the pressed plate
+			{ TEXT("ui_button_primary"), 256, 64, 16, 16, 16, 16, 4 }, // D18 (S4): the raised yellow
 		};
 		static_assert(UE_ARRAY_COUNT(ChromeTable) == static_cast<int32>(EPawChrome::Count), "one row per EPawChrome");
 
@@ -179,7 +180,7 @@ namespace PawUi
 		if (Font.OutlineSettings.OutlineSize > 0)
 		{
 			Text->SetShadowOffset(FVector2D(0.0, HeavyShadowPx));
-			Text->SetShadowColorAndOpacity(PawTokens::PLUM_DEEP);
+			Text->SetShadowColorAndOpacity(PawTokens::UI_SHADOW);
 		}
 		return Text;
 	}

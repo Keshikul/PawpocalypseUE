@@ -51,6 +51,9 @@ public:
 	FAlphas GetDrawnAlphas() const;
 	FText GetHeadlineText() const;
 	FText GetPayoutText() const;
+	// Sticker Box (D18): the concept's rays behind (the flash's picture) and its cat in the middle.
+	bool HasRays() const;
+	bool IsCatShown() const;
 
 private:
 	void Apply(const FAlphas& A);
@@ -61,6 +64,8 @@ private:
 	TObjectPtr<UTextBlock> Headline;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Payout;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> Cat;
 	double Elapsed = 0.0;
 	bool bPlaying = false;
 };

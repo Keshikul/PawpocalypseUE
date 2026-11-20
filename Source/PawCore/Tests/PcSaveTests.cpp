@@ -846,6 +846,21 @@ TEST_CASE("Save: the slot summary reads the save, not the game")
 	CHECK(M.FinalBossSeconds == 3000.0);
 	CHECK(M.Bosses == 2);
 	CHECK(M.LastPlayedUnix == 1.8e9);
+	// D18 (S4): the card shows the save's cat, so the summary carries what decides its stage, and the stage is the game's.
+	CHECK(M.BossesDefeated == S.BossesDefeated);
+	CHECK_FALSE(M.bFinalBossDefeated);
+	const Pc::PcGameData& D = Game();
+	CHECK(Pc::EvolutionStageFor(D, M.BossesDefeated, M.bFinalBossDefeated) == 3); // the first two bosses of the ladder
+	Pc::PcProgress P;
+	P.BossesDefeated = S.BossesDefeated;
+	CHECK(Pc::EvolutionStageFor(D, M.BossesDefeated, M.bFinalBossDefeated) == Pc::EvolutionStage(D, P));
+	S.BossesDefeated = {"tier_6"};   // out of order: the ladder stops at its first unbeaten boss
+	CHECK(Pc::EvolutionStageFor(D, Pc::SlotSummary(S).BossesDefeated, false) == 1);
+	S.BossesDefeated = std::set<std::string>(D.Code.BossRealms.begin(), D.Code.BossRealms.end());
+	S.bFinalBossDefeated = true;
+	const Pc::PcSlotSummary End = Pc::SlotSummary(S);
+	CHECK(End.bFinalBossDefeated);
+	CHECK(Pc::EvolutionStageFor(D, End.BossesDefeated, End.bFinalBossDefeated) == 7); // The Last Unicorn
 }
 
 TEST_CASE("Save: format 2 carries the Bait bank; a format-1 file keeps its beaten bosses and its kills become its Bait (D17)")

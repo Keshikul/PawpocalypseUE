@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<rect x="24.9" y="12.9" width="78.2" height="106.2" rx="11.1" fill="#2A1A33" stroke="none"/>
-<rect x="28.0" y="16.0" width="72.0" height="100.0" rx="8.0" fill="#F6EEF8" stroke="none"/>
-<rect x="38.0" y="27.0" width="52.0" height="78.0" rx="5.0" fill="#D9D0DC" stroke="#2A1A33"/>
-<ellipse cx="88.0" cy="70.0" rx="6.0" ry="6.0" fill="#B28F4E" stroke="#2A1A33"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="0.000" data-ink="7.514">
+<g stroke-linejoin="round" stroke-linecap="round">
+<rect x="17.76" y="23.54" width="52.02" height="80.92" rx="8.67" fill="#F4E7CF" stroke="#2A2131" stroke-width="7.51"/>
+<polyline points="52.44,64.00 98.68,64.00" fill="none" stroke="#2A2131" stroke-width="26.59"/>
+<polyline points="52.44,64.00 98.68,64.00" fill="none" stroke="#FF6B6B" stroke-width="11.56"/>
+<polygon points="87.12,43.77 110.24,64.00 87.12,84.23" fill="#FF6B6B" stroke="#2A2131" stroke-width="7.51"/>
 </g>
 </svg>

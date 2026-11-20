@@ -138,17 +138,22 @@ namespace Pc
 
 	int64_t EvolutionStage(const PcGameData& D, const PcProgress& P)
 	{
+		return EvolutionStageFor(D, P.BossesDefeated, P.bFinalBossDefeated);
+	}
+
+	int64_t EvolutionStageFor(const PcGameData& D, const std::set<std::string>& BossesDefeated, bool bFinalBossDefeated)
+	{
 		int64_t Stage = 1;
 		for (const std::string& Realm : D.Code.BossRealms)
 		{
-			if (!P.BossesDefeated.count(Realm))
+			if (!BossesDefeated.count(Realm))
 			{
 				break;
 			}
 			++Stage;
 		}
 		// THE LAST UNICORN (stage 7) is the Litter King's: finishing the game is the seventh step.
-		if (P.bFinalBossDefeated)
+		if (bFinalBossDefeated)
 		{
 			++Stage;
 		}

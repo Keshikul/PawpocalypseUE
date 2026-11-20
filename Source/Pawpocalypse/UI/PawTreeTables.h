@@ -112,11 +112,11 @@ namespace PawTree
 
 	// The tooltip's colours (_on_node_hovered's bbcode, two of them not in the palette): the blurb, "Fully bought.", the
 	// Next line, why it cannot be bought, and "You have n.".
-	inline const FLinearColor TipBlurb = PawTokens::Srgb(0xF6, 0xEE, 0xF8);
-	inline const FLinearColor TipFully = PawTokens::Srgb(0x70, 0x95, 0x4F);
-	inline const FLinearColor TipNext = PawTokens::Srgb(0xFF, 0xD2, 0x3F);
-	inline const FLinearColor TipReason = PawTokens::Srgb(0xDC, 0xCF, 0xE4);
-	inline const FLinearColor TipShort = PawTokens::Srgb(0xD2, 0x26, 0x3F);
+	inline const FLinearColor TipBlurb = PawTokens::Srgb(0x2A, 0x21, 0x31);
+	inline const FLinearColor TipFully = PawTokens::Srgb(0x4E, 0x9A, 0x2E);
+	inline const FLinearColor TipNext = PawTokens::Srgb(0x2A, 0x21, 0x31);
+	inline const FLinearColor TipReason = PawTokens::Srgb(0x6E, 0x62, 0x76);
+	inline const FLinearColor TipShort = PawTokens::Srgb(0xC9, 0x33, 0x23);
 
 	// scripts/systems/skill_tree_connector_layer.gd DIM (a link not walked) and SHUT (the road not taken); scripts/systems/skill_tree_ui.gd SHINE_COLOR, a self_modulate MULTIPLIER
 	// (above 1: the node brightens), not a colour.

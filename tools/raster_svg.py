@@ -34,9 +34,9 @@ ROOT = Path(__file__).resolve().parent.parent
 
 SVG = ROOT / "SourceArt" / "svg"
 CHROME = ("ui_button_normal", "ui_button_hover", "ui_button_pressed", "ui_button_disabled", "ui_panel", "ui_window",
-          "ui_bar_track", "ui_bar_fill", "ui_separator", "ui_plate_small", "ui_button_selected")
+          "ui_bar_track", "ui_bar_fill", "ui_separator", "ui_plate_small", "ui_button_selected", "ui_button_primary")
 # Paths under SourceArt/svg (globs): the icons Godot draws.
-ICONS = ("ui/ui_tab_*.svg", "ui/ui_icon_*.svg", "ui/ui_quick_*.svg", "ui/ui_menu_*.svg", "ui/ui_tick.svg",
+ICONS = ("ui/ui_tab_*.svg", "ui/ui_icon_*.svg", "ui/ui_quick_*.svg", "ui/ui_menu_*.svg", "ui/ui_tick.svg", "ui/ui_lock.svg",
          "ui/achievement_*.svg", "cards/*.svg", "skills/*.svg", "jobs/job_*.svg")
 # group -> (the folder under SourceArt/svg, the raster size in px (None: the SVG's own size), the SVGs' pattern or their
 # stems, where the PNGs go (None: SourceArt/png))
@@ -62,12 +62,23 @@ def raster(svg_path: Path, size: int):
     if not m:
         raise SystemExit("raster_svg: %s has no viewBox" % svg_path)
     w, h = float(m.group(3)), float(m.group(4))
-    if size is None:  # the SVG's own size, 1:1
-        rw, rh = round(w), round(h)
-        return Image.open(io.BytesIO(bytes(resvg_py.svg_to_bytes(svg_path=str(svg_path), width=rw, height=rh)))).convert("RGBA")
+    if size is None:  # the SVG's own size, 1:1: its viewBox (a card's width="256" is NOT its raster size), unless its root
+        # asks for another with data-raster="WxH" (the Reawaken ceremony's 1920 x 1080 rays, its 512 px cat; D18)
+        ask = re.search(r'data-raster="(\d+)x(\d+)"', text[:400])
+        rw, rh = (int(ask.group(1)), int(ask.group(2))) if ask else (round(w), round(h))
+        img = Image.open(io.BytesIO(bytes(resvg_py.svg_to_bytes(svg_path=str(svg_path), width=rw, height=rh)))).convert("RGBA")
+        rim = re.search(r'data-rim="([\d.]+)"', text[:400])
+        if rim and float(rim.group(1)) > 0:   # a Sticker drawing: its die-cut rim, as pack_atlas makes it
+            from pack_atlas import die_cut
+            img = die_cut(img, float(rim.group(1)) * rw / w)
+        return img
     scale = size / max(w, h)
     rw, rh = max(1, round(w * scale)), max(1, round(h * scale))
     img = Image.open(io.BytesIO(bytes(resvg_py.svg_to_bytes(svg_path=str(svg_path), width=rw, height=rh)))).convert("RGBA")
+    rim = re.search(r'data-rim="([\d.]+)"', text[:400])
+    if rim and float(rim.group(1)) > 0:   # a Sticker drawing (D18, the cursors): its die-cut rim, as pack_atlas makes it
+        from pack_atlas import die_cut
+        img = die_cut(img, float(rim.group(1)) * scale)
     if (rw, rh) == (size, size):
         return img
     out = Image.new("RGBA", (size, size), (0, 0, 0, 0))

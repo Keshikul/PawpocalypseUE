@@ -28,6 +28,7 @@
 #include "Components/Border.h"
 #include "Components/BorderSlot.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "UI/PawUiConstants.h"
 #include "UI/PawUiKit.h"
@@ -100,9 +101,12 @@ namespace
 		Pc::PcProgress& P() { return Game->Progress(); }
 		const Pc::PcGameData& D() { return Game->Data(); }
 
-		void PutSlot(int32 Slot, int64 Reawakens, int64 Kills, double Play, double Unix)
+		void PutSlot(int32 Slot, int64 Reawakens, int64 Kills, double Play, double Unix, std::set<std::string> Bosses = {},
+			bool bFinalBoss = false)
 		{
 			Pc::PcSaveState S;
+			S.BossesDefeated = std::move(Bosses);
+			S.bFinalBossDefeated = bFinalBoss;
 			S.ReawakenCount = Reawakens;
 			S.LifetimeKills = Kills;
 			S.TotalPlaySeconds = Play;
@@ -381,13 +385,15 @@ bool FPawTitlePlumTest::RunTest(const FString& Parameters)
 		{
 			TestTrue(Where + TEXT(": the logo is Butter"), Name->GetColorAndOpacity().GetSpecifiedColor().Equals(PawTokens::UI_SELECTED));
 			TestEqual(Where + TEXT(": the logo's size"), Name->GetFont().Size, PawUi::FontPt(PawUi::R4NamePx));
+			// D18 (S4, the UI concept's scrTitle): upright and centred at the top (R4c had it tilted at the top left).
 			const UWidget* Box = Name->GetParent();
-			TestTrue(Where + TEXT(": the logo tilted"), Box && FMath::IsNearlyEqual(Box->GetRenderTransform().Angle, static_cast<float>(PawUi::R4NameAngle)));
+			TestTrue(Where + TEXT(": the logo upright"), Box && FMath::IsNearlyEqual(Box->GetRenderTransform().Angle, static_cast<float>(PawUi::TitleLogoAngle)));
 			const UBorderSlot* InBox = Cast<UBorderSlot>(Name->Slot);
-			TestTrue(Where + TEXT(": the logo starts at its box's left edge (graft slot:NameText)"), InBox && InBox->GetHorizontalAlignment() == HAlign_Left);
+			TestTrue(Where + TEXT(": the logo centred in its box"), InBox && InBox->GetHorizontalAlignment() == HAlign_Center);
 			const UCanvasPanelSlot* S = CanvasSlotOf(const_cast<UTextBlock*>(Name));
-			TestTrue(Where + TEXT(": the logo at the top left"), S && S->GetAnchors().Minimum == FVector2D(0.0, 0.0)
-				&& FMath::IsNearlyEqual(S->GetOffsets().Left, static_cast<float>(PawUi::R4TitleMargin)));
+			TestTrue(Where + TEXT(": the logo at the top centre"), S && S->GetAnchors().Minimum == FVector2D(0.5, 0.0)
+				&& FMath::IsNearlyEqual(S->GetOffsets().Left, static_cast<float>(-0.5 * PawUi::R4NameWidth))
+				&& FMath::IsNearlyEqual(S->GetOffsets().Top, static_cast<float>(PawUi::TitleLogoTop)));
 		}
 		UPawButton* Continue = M->GetMenuButton(0);
 		if (TestNotNull(Where + TEXT(": Continue"), Continue))
@@ -410,6 +416,30 @@ bool FPawTitlePlumTest::RunTest(const FString& Parameters)
 					&& FMath::IsNearlyEqual(B->LabelPx, static_cast<float>(I == 0 ? PawUi::R4ContinuePx : PawUi::R4MenuButtonPx)));
 			}
 		}
+		// D18 (S4): the concept's cast on the garden, the Tiny Kitten and three mice, two of them mirrored; pictures only.
+		auto Picture = [](const UWidget* W) -> FString
+		{
+			const UImage* I = Cast<UImage>(W);
+			const UObject* Tex = I ? I->GetBrush().GetResourceObject() : nullptr;
+			return Tex ? Tex->GetName() : FString();
+		};
+		const UWidget* Cat = M->WidgetTree->FindWidget(TEXT("TitleCat"));
+		TestEqual(Where + TEXT(": the Tiny Kitten on the garden"), Picture(Cat), FString(TEXT("T_ui_icon_title_cat")));
+		TestTrue(Where + TEXT(": a picture, never a click"), Cat && Cat->GetVisibility() == ESlateVisibility::HitTestInvisible);
+		int32 Mice = 0, Mirrored = 0;
+		for (int32 I = 0; I < 3; ++I)
+		{
+			const UWidget* Mouse = M->WidgetTree->FindWidget(PawUi::Numbered(TEXT("TitleMouse"), I));
+			Mice += Picture(Mouse) == TEXT("T_ui_icon_title_mouse") ? 1 : 0;
+			Mirrored += Mouse && Mouse->GetRenderTransform().Scale.X < 0.0 ? 1 : 0;
+		}
+		TestEqual(Where + TEXT(": three mice"), Mice, 3);
+		TestEqual(Where + TEXT(": two mirrored, as the concept draws them"), Mirrored, 2);
+		const UWidget* Number = M->WidgetTree->FindWidget(TEXT("SlotNumber0"));
+		TestTrue(Where + TEXT(": the slot's number inside its card, at its top (D18)"), Number && Number->GetParent()
+			&& Number->GetParent()->GetFName() == TEXT("SlotStack0") && Number->GetParent()->GetChildIndex(Number) == 0);
+		const UTextBlock* Status = Cast<UTextBlock>(M->WidgetTree->FindWidget(TEXT("StatusText")));
+		TestTrue(Where + TEXT(": the status line in ink (D18)"), Status && Status->GetColorAndOpacity().GetSpecifiedColor().Equals(PawTokens::UI_TEXT));
 		const UBorder* Hint = Cast<UBorder>(M->WidgetTree->FindWidget(TEXT("HintPlate")));
 		TestTrue(Where + TEXT(": the hint on the small plum plate"), Hint && Hint->Background.GetResourceObject()
 			== PawUi::Chrome(PawUi::EPawChrome::PlateSmall).GetResourceObject()
@@ -674,6 +704,45 @@ bool FPawTitleLoadOutcomesTest::RunTest(const FString& Parameters)
 	W.Menu->PressSlot(Other);
 	TestEqual(TEXT("backup card: it plays"), W.Plays, 1);
 	TestEqual(TEXT("backup card: that game"), W.P().ReawakenCount, static_cast<int64_t>(6));
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTitleSlotCatsTest, "Pawpocalypse.UI.Title.SlotCats", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// D18 (S4, the UI concept's slotCard): each save card shows the save's cat at its stage (the game's rule, read from the
+// file: the ladder's bosses and the ending) on grass; an empty slot's well is card stock and holds no cat; a slot that
+// cannot be read has the off well and no cat.
+bool FPawTitleSlotCatsTest::RunTest(const FString& Parameters)
+{
+	FTitleWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	const std::vector<std::string>& Ladder = W.Game->Data().Code.BossRealms;
+	if (!TestTrue(TEXT("the boss ladder"), Ladder.size() >= 2))
+	{
+		W.Close();
+		return false;
+	}
+	W.PutSlot(0, 1, 100, 600.0, W.Clock - 60.0, { Ladder[0] });                                       // one boss: stage 2
+	W.PutSlot(2, 9, 9000, 9000.0, W.Clock - 60.0, std::set<std::string>(Ladder.begin(), Ladder.end()), true); // the end: 7
+	W.PutSlot(3, 2, 50, 300.0, W.Clock - 60.0, { Ladder[1] });                                        // out of order: 1
+	W.PutJunk(4);
+	W.Menu->Refresh();
+	W.Menu->PressLoad();
+	TestTrue(TEXT("the slots are up"), W.Menu->IsLayerShown(UPawMainMenu::ELayer::Slots));
+	TestEqual(TEXT("one boss beaten: the Armored Tomcat"), W.Menu->GetSlotCatName(0), FString(TEXT("T_ui_icon_slot_cat_2")));
+	TestEqual(TEXT("the game finished: The Last Unicorn"), W.Menu->GetSlotCatName(2), FString(TEXT("T_ui_icon_slot_cat_7")));
+	TestEqual(TEXT("a later boss alone: still the Tiny Kitten (the ladder in order)"), W.Menu->GetSlotCatName(3),
+		FString(TEXT("T_ui_icon_slot_cat_1")));
+	TestEqual(TEXT("a save stands on grass"), W.Menu->GetSlotPhotoColour(0), PawTokens::UI_PHOTO);
+	TestEqual(TEXT("an empty slot: no cat"), W.Menu->GetSlotCatName(1), FString());
+	TestEqual(TEXT("its well in card stock"), W.Menu->GetSlotPhotoColour(1), PawTokens::UI_PANEL_BAND);
+	TestEqual(TEXT("unreadable: no cat"), W.Menu->GetSlotCatName(4), FString());
+	TestEqual(TEXT("its well off"), W.Menu->GetSlotPhotoColour(4), PawTokens::UI_BUTTON_DISABLED);
 	W.Close();
 	return true;
 }

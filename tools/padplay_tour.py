@@ -31,7 +31,7 @@ def main() -> int:
     shutil.rmtree(SAVES, ignore_errors=True)
     SAVES.mkdir(parents=True)
     LOG.unlink(missing_ok=True)
-    cmd = [EDITOR, str(UPROJECT), "-game", "-windowed", "-ResX=1600", "-ResY=900", "-unattended", "-nosplash", "-nosound",
+    cmd = [EDITOR, str(UPROJECT), "-game", "-windowed", "-ResX=1600", "-ResY=900", "-unattended", "-nosplash", "-nosound", "-culture=en",
            "-SCCProvider=None", "-PawSaveDir=%s" % SAVES, "-ExecCmds=t.MaxFPS 60,paw.PadPlay", "-log=PawPadPlay.log"]
     try:
         subprocess.run(cmd, timeout=900)

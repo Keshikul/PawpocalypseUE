@@ -60,7 +60,7 @@
     ],
     "disc": "#F0E7B3"
   },
-  "ink": "#2A1A33",
+  "ink": "#2A2131",
   "eye": "#F6F6F6",
   "gold": "#F2C65B",
   "stardust": "#8596C3",
@@ -70,90 +70,118 @@
     "cat_body": "#9E9285",
     "cat_accent": "#474641",
     "cat_nose": "#F8A08C",
-    "kitten_body": "#F8F1DE",
-    "kitten_accent": "#F8A08C",
+    "kitten_body": "#BD966A",
+    "kitten_accent": "#A07D5F",
     "unicorn_body": "#F6F6F6"
   },
   "enemies": {
     "mouse": {
-      "body": "#8596C3",
-      "accent": "#6B81B9"
+      "body": "#7795C7",
+      "accent": "#60709B"
+    },
+    "flying_mouse": {
+      "body": "#BA9FD6",
+      "accent": "#8F77A5"
+    },
+    "golden_mouse": {
+      "body": "#F0C63E",
+      "accent": "#B5923B"
     },
     "rat": {
-      "body": "#D86061",
-      "accent": "#EC7B7B"
+      "body": "#C25D59",
+      "accent": "#94494E"
     },
     "vole": {
-      "body": "#E89956",
-      "accent": "#F4A968"
+      "body": "#D68C60",
+      "accent": "#A26A52"
+    },
+    "hamster": {
+      "body": "#E6A34C",
+      "accent": "#AE7A44"
     },
     "gristle": {
-      "body": "#F2C65B",
-      "accent": "#E89956"
+      "body": "#CCAD45",
+      "accent": "#9B8140"
     },
     "moth": {
-      "body": "#F6BBAD",
-      "accent": "#F8A08C"
+      "body": "#F0B5A3",
+      "accent": "#B58681"
     },
     "dog": {
-      "body": "#EEE2AC",
-      "accent": "#F2C65B"
+      "body": "#E0C89D",
+      "accent": "#916C41"
     },
     "goose": {
-      "body": "#F6F6F6",
-      "accent": "#F4A968"
+      "body": "#E1E2F5",
+      "accent": "#FA6E28"
+    },
+    "ghost": {
+      "body": "#C8F4FA",
+      "accent": "#D7F5F6"
+    },
+    "pigeon": {
+      "body": "#A09AB8",
+      "accent": "#7D7490"
+    },
+    "seagull": {
+      "body": "#E66653",
+      "accent": "#EC9281"
+    },
+    "parrot": {
+      "body": "#4BB84F",
+      "accent": "#2D78C2"
+    },
+    "crow": {
+      "body": "#5D8550",
+      "accent": "#8CA77F"
+    },
+    "toad": {
+      "body": "#88BD60",
+      "accent": "#AACE8A"
+    },
+    "crocodile": {
+      "body": "#5FA388",
+      "accent": "#8EBCA6"
+    },
+    "sludge_cat": {
+      "body": "#B6CC5E",
+      "accent": "#8C9751"
+    },
+    "bat": {
+      "body": "#6467B2",
+      "accent": "#5A599B"
+    },
+    "imp": {
+      "body": "#C24663",
+      "accent": "#943955"
+    },
+    "hound": {
+      "body": "#99533D",
+      "accent": "#78423A"
+    },
+    "slime_rat": {
+      "body": "#84A9BD",
+      "accent": "#99B7C5"
+    },
+    "robot_mouse": {
+      "body": "#93C7C2",
+      "accent": "#749397"
+    },
+    "ant": {
+      "body": "#BD6039",
+      "accent": "#D29376"
+    },
+    "cockroach": {
+      "body": "#6B4C31",
+      "accent": "#BCAC9A"
+    },
+    "dust_bunny": {
+      "body": "#DABFE0",
+      "accent": "#E2CCE3"
     },
     "squirrel": {
       "body": "#E89956",
       "accent": "#F4A968"
-    },
-    "cockroach": {
-      "body": "#474641",
-      "accent": "#E89956"
-    },
-    "toad": {
-      "body": "#AEDC84",
-      "accent": "#70954F"
-    },
-    "crocodile": {
-      "body": "#AEDC84",
-      "accent": "#70954F"
-    },
-    "pigeon": {
-      "body": "#F8F1DE",
-      "accent": "#F8A08C"
-    },
-    "seagull": {
-      "body": "#D86061",
-      "accent": "#EC7B7B"
-    },
-    "hamster": {
-      "body": "#E89956",
-      "accent": "#F4A968"
-    },
-    "parrot": {
-      "body": "#D86061",
-      "accent": "#EC7B7B"
-    },
-    "slime_rat": {
-      "body": "#9BA2AD",
-      "accent": "#6B81B9"
-    },
-    "robot_mouse": {
-      "body": "#CDCDCD",
-      "accent": "#6B81B9"
-    },
-    "dust_bunny": {
-      "body": "#F8F1DE",
-      "accent": "#EEE2AC"
-    },
-    "sludge_cat": {
-      "body": "#AEDC84",
-      "accent": "#70954F"
-    },
-    "golden_mouse": {
-      "body": "#F2C65B",
-      "accent": "#E89956"
     },
     "ghost_mouse": {
       "body": "#F6F6F6",
@@ -162,60 +190,36 @@
     "void_mouse": {
       "body": "#9BA2AD",
       "accent": "#6B81B9"
-    },
-    "crow": {
-      "body": "#70954F",
-      "accent": "#AEDC84"
-    },
-    "hound": {
-      "body": "#D86061",
-      "accent": "#EC7B7B"
-    },
-    "bat": {
-      "body": "#6B81B9",
-      "accent": "#8596C3"
-    },
-    "ghost": {
-      "body": "#F6F6F6",
-      "accent": "#8596C3"
-    },
-    "imp": {
-      "body": "#D86061",
-      "accent": "#F2C65B"
-    },
-    "ant": {
-      "body": "#E89956",
-      "accent": "#D86061"
     }
   },
   "bosses": {
     "park_tyrant": {
-      "body": "#AEDC84",
-      "accent": "#70954F"
+      "body": "#408F3B",
+      "accent": "#396C39"
     },
     "rival_champion": {
-      "body": "#E89956",
-      "accent": "#F4A968"
+      "body": "#CC7B35",
+      "accent": "#9B5E34"
     },
     "factory_foreman": {
-      "body": "#9BA2AD",
-      "accent": "#F2C65B"
+      "body": "#727F8F",
+      "accent": "#969EA7"
     },
     "litter_king": {
-      "body": "#F6BBAD",
-      "accent": "#F8A08C"
+      "body": "#D1C67D",
+      "accent": "#9F9267"
     },
     "void_god": {
-      "body": "#6B81B9",
-      "accent": "#8596C3"
+      "body": "#373F8A",
+      "accent": "#333572"
     },
     "generic": {
-      "body": "#F2C65B",
-      "accent": "#D86061"
+      "body": "#C72C46",
+      "accent": "#982740"
     },
     "add": {
-      "body": "#D86061",
-      "accent": "#EC7B7B"
+      "body": "#DB5E90",
+      "accent": "#A64A74"
     }
   },
   "backdrops": {
@@ -305,23 +309,23 @@
     }
   },
   "ui": {
-    "panel": "#2A1A33",
-    "panel_band": "#564361",
-    "panel_frame": "#120A17",
-    "text": "#F6EEF8",
-    "text_muted": "#DCCFE4",
-    "text_disabled": "#B8ABC1",
-    "button": "#3E2A4A",
-    "button_hover": "#564361",
-    "button_pressed": "#120A17",
-    "button_disabled": "#34223E",
-    "button_frame": "#120A17",
-    "slot": "#120A17",
-    "shadow": "#120A17",
-    "badge": "#FF7055",
-    "focus": "#FFD23F",
-    "selected": "#FFD23F",
-    "selected_text": "#2A1A33",
+    "panel": "#FFF8EB",
+    "panel_band": "#FBF0DC",
+    "panel_frame": "#2A2131",
+    "text": "#2A2131",
+    "text_muted": "#6E6276",
+    "text_disabled": "#6A6058",
+    "button": "#F4E7CF",
+    "button_hover": "#FBF0DC",
+    "button_pressed": "#E8D7BA",
+    "button_disabled": "#EADFCB",
+    "button_frame": "#2A2131",
+    "slot": "#F4E7CF",
+    "shadow": "#2A2131",
+    "badge": "#F2545B",
+    "focus": "#3D7BFF",
+    "selected": "#FFC83D",
+    "selected_text": "#2A2131",
     "catnip": "#F2C65B",
     "stardust": "#8596C3",
     "tab_upgrades": "#F4A968",
@@ -329,19 +333,19 @@
     "tab_realms": "#70954F",
     "tab_catches": "#F2C65B",
     "tab_awards": "#F8A08C",
-    "boss_banner": "#D2263F",
-    "boss_banner_text": "#F6EEF8",
-    "field_label": "#F6EEF8",
-    "danger": "#D2263F",
-    "good": "#70954F",
-    "card_plate": "#F6EEF8",
-    "card_ink": "#2A1A33",
+    "boss_banner": "#C93323",
+    "boss_banner_text": "#FFFFFF",
+    "field_label": "#FFFDF6",
+    "danger": "#C93323",
+    "good": "#4E9A2E",
+    "card_plate": "#FFF8EB",
+    "card_ink": "#2A2131",
     "card_swarm": "#70954F",
     "card_pounce": "#EC7B7B",
     "card_aura": "#8596C3",
     "card_deck": "#F2C65B",
-    "card_take": "#2A1A33",
-    "card_banish": "#FF7055"
+    "card_take": "#2A2131",
+    "card_banish": "#C93323"
   },
   "sky": {
     "base": "#251D33",
@@ -380,15 +384,74 @@
       "#6B81B9"
     ]
   },
-  "plum": {
-    "base": "#2A1A33",
-    "deep": "#120A17",
-    "raised": "#3E2A4A",
-    "bone": "#F6EEF8",
-    "lilac": "#DCCFE4",
-    "butter": "#FFD23F",
-    "catnip": "#5FD068",
-    "stardust": "#B98CFF",
-    "crimson": "#D2263F"
+  "props": {
+    "fur": [
+      "#B5A894",
+      "#D6C9B5",
+      "#EDE4D6"
+    ],
+    "bag": [
+      "#564E52",
+      "#6E6A63",
+      "#959189"
+    ],
+    "flowers": [
+      "#E8B0C4",
+      "#F0D27C",
+      "#B49AD6"
+    ],
+    "rock": [
+      "#9E93B5",
+      "#B5ABC9"
+    ],
+    "toaster": [
+      "#C25E4E"
+    ]
+  },
+  "gear": {
+    "rainbow": [
+      "#EE9384",
+      "#F3B87C",
+      "#F0D989",
+      "#A9D18C",
+      "#8FC7D6",
+      "#9AA4DC",
+      "#BE9BD3"
+    ],
+    "steel": "#B9BFC9",
+    "steel_dark": "#8A93A2",
+    "hoof": "#5E5566",
+    "unicorn_coat": "#F3EFE4",
+    "unicorn_muzzle": "#E9B9BE",
+    "ice": "#7FD4E8",
+    "alicorn": [
+      "#CFE4F5",
+      "#B9D6EE",
+      "#A8C8E4"
+    ],
+    "nightmare_coat": "#6A5F86",
+    "nightmare_mane": "#B9A6E8",
+    "nightmare_mane_dark": "#8E7FC9",
+    "nightmare_deep": "#6E5FA8",
+    "nightmare_horn": "#D8CBF2",
+    "halo_wings": "#EFCE86",
+    "haft": "#4A4266"
+  },
+  "sticker": {
+    "ink": "#2A2131",
+    "card": "#FFF8EB",
+    "raised": "#F4E7CF",
+    "hover": "#FBF0DC",
+    "pressed": "#E8D7BA",
+    "off": "#EADFCB",
+    "off_text": "#6A6058",
+    "muted": "#6E6276",
+    "yellow": "#FFC83D",
+    "focus": "#3D7BFF",
+    "danger": "#C93323",
+    "badge": "#F2545B",
+    "good": "#4E9A2E",
+    "white": "#FFFFFF",
+    "rim": "#FFFDF6"
   }
 }

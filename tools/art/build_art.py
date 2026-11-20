@@ -11,7 +11,8 @@ SourceArt/svg mirrors Godot's assets/art: <folder>/<stem>.svg, where folder is c
 skills, jobs, props, ui (ui/input/<family> the glyphs), plus the generated PNGs: the 12 backdrop floors (backdrops/) and the
 ground shadow (props/ground_shadow.png, make_ground_shadow.py's soft variant). Four UI drawings were made by hand in Godot
 (app_icon, ui_menu_bug / discord / language): their sources are tools/art/hand/ui. The Boba photos are not drawn: phase 6's
-Boba slice brings them.
+Boba slice brings them. Last, the icons the UI concept's kit draws (Sticker Box, D18: sticker_art.write_icons) go over the
+grammar's and the hand-made menu icons of the same files; the app icon stays the hand-made one.
 
 Never hand-edit a file under SourceArt/svg: change its generator, then run this (docs/07 §2.1).
 """
@@ -50,6 +51,14 @@ def generate(out: Path) -> None:
         rel = f.relative_to(ART / "hand")
         (out / rel.parent).mkdir(parents=True, exist_ok=True)
         shutil.copyfile(f, out / rel)
+    r = subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, %r); import sticker_art; "
+                        "sticker_art.write_icons(%r); sticker_art.write_ceremony(%r); sticker_art.write_card_pick(%r); "
+                        "sticker_art.write_title(%r); sticker_art.write_slots(%r); sticker_art.write_job_cats(%r)"
+                        % (str(ART), str(out / "ui"), str(out / "ui"), str(out / "ui"), str(out / "ui"), str(out / "ui"),
+                           str(out / "ui"))], cwd=str(ROOT), capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if r.returncode != 0:
+        raise SystemExit("build_art: the Sticker icons failed:\n%s%s" % (r.stdout[-2000:], r.stderr[-2000:]))
 
 
 def tree(root: Path, skip=()) -> dict:

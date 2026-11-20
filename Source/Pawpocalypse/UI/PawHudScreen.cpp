@@ -10,7 +10,6 @@
 #include "Components/ProgressBar.h"
 #include "Components/ScrollBox.h"
 #include "Components/ScrollBoxSlot.h"
-#include "Components/Spacer.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
@@ -94,10 +93,9 @@ namespace
 	constexpr double ClaimWidth = 112.0, ClaimHeight = 42.0; // hud.gd _build_achievement_list
 	constexpr double ButtonIconPx = 26.0;      // currency_icons.gd BUTTON_ICON_PX (icon_max_width)
 	constexpr double QuickBarHeight = 66.0;    // hud.tscn QuickBar custom_minimum_size.y
-	constexpr double QuickIconPx = 40.0;       // the TextureButtons' custom_minimum_size
-	constexpr double QuickSeparation = 14.0;   // QuickBar separation
 	constexpr double AchievementIconPx = 36.0; // hud.gd _build_achievement_list
 	constexpr double JobIconPx = 40.0;         // hud.gd _build_job_page
+	constexpr double CardIconPx = 40.0;        // D18 (S4): a Catches row's card picture (the concept's tile)
 	constexpr double JobButtonWidth = 104.0;   // hud.gd _build_job_page (42 high, as Claim)
 	constexpr float RowTextWrap = 360.0f;      // a row's text beside its button
 	constexpr float MarkSize = 14.0f;          // the achievement mark (★ ◆ ☆: the font has none until phase 6's art)
@@ -111,6 +109,27 @@ namespace
 	{
 		static const TCHAR* Keys[] = { TEXT("PAGE_upgrades"), TEXT("PAGE_reawaken"), TEXT("PAGE_realms"), TEXT("PAGE_catches"), TEXT("PAGE_awards"), TEXT("PAGE_jobs") };
 		return Keys[static_cast<int32>(T)];
+	}
+	// D18 (S4): an upgrade's icon (ui_icon_upgrade_<id>), and a row's icon set only when it changes (a refresh is often).
+	FString UpgradeIcon(const std::string& Id)
+	{
+		return FString(TEXT("ui_icon_upgrade_")) + UTF8_TO_TCHAR(Id.c_str());
+	}
+	void ShowRowIcon(UPawButton* Row, const FString& Stem)
+	{
+		if (Row && Row->GetIconName() != Stem)
+		{
+			Row->SetIcon(Stem, PawUi::ShopIconPx);
+		}
+	}
+	// D18 (S4, the UI concept's dock): a page's title, heavy and on the left (Godot: centred, the label's 17 px).
+	UTextBlock* MakePageTitle(UWidgetTree* T, PcDockTab Tab)
+	{
+		UTextBlock* Title = PawUi::Heavy(PawUi::MakeText(T, PawUi::DockTitlePx, PawTokens::UI_TEXT, false,
+			PawUi::Numbered(TEXT("PageTitle"), static_cast<int32>(Tab))));
+		Title->SetText(PawText::Ui(PageKey(Tab)));
+		Title->SetJustification(ETextJustify::Left);
+		return Title;
 	}
 	// hud.gd's tab ids (the icon is ui_tab_<id>), in PcDockTab order.
 	FString TabIconId(PcDockTab T)
@@ -214,16 +233,17 @@ void UPawHudScreen::OnLayoutReady()
 	Remembered.SetNum(TabCount);
 	PawUi::CollectNamed(WidgetTree, TEXT("Tab"), TabCount, Tabs);
 	PawUi::CollectNamed(WidgetTree, TEXT("PageTitle"), TabCount, PageTitles);
+	PawUi::CollectNamed(WidgetTree, TEXT("Amount"), static_cast<int32>(Pc::BuyMultipliers().size()), AmountButtons);
 	auto SlotOf = [](UWidget* W) { return W ? Cast<UOverlaySlot>(W->Slot) : nullptr; };
 	DockSlot = SlotOf(DockBox);
 	StatusSlot = SlotOf(StatusRow);
-	XpSlot = SlotOf(XpRow);
+	XpSlot = SlotOf(XpPlate); // D18 (S4): the plate holds the row
 	ClockSlot = SlotOf(PounceClock);
-	PouncePromptSlot = SlotOf(PouncePrompt);
+	PouncePromptSlot = SlotOf(WidgetTree->FindWidget(TEXT("PounceBox"))); // D18 (S4): the plate holds the key
 	BossSlot = SlotOf(WidgetTree->FindWidget(TEXT("BossBox")));
 	if (ZoneReady)
 	{
-		ZoneReady->SetFollow(ZonePlate); // zone_rainbow.follow = zone_plate
+		ZoneReady->SetFollow(FieldPlate ? FieldPlate.Get() : ZonePlate.Get()); // D18 (S4): round the status panel (Godot: the zone plate)
 	}
 	auto Click = [this](UPawButton* B, TFunction<void()> Do)
 	{
@@ -252,21 +272,33 @@ void UPawHudScreen::OnLayoutReady()
 	{
 		if (Q.Button)
 		{
-			Q.Button->SetIcon(Q.Icon, QuickIconPx);
+			Q.Button->SetIcon(Q.Icon, PawUi::QuickPlateIconPx); // D18 (S4): on its plate (Godot: the bare 40 px icon)
 			Q.Button->SetToolTipText(PawText::Ui(Q.Tip));
 			Q.Button->SetIsFocusable(false); // the mouse's: the dock's pad order never lands here
 			Click(Q.Button, [this, Press = Q.Press]() { (this->*Press)(); });
 		}
 	}
 	// hud.gd _apply_currency_icons, on ready: the icon carries the unit, never the word.
-	for (UPawButton* B : { ReawakenButton.Get(), ClaimAllButton.Get() })
+	if (ClaimAllButton)
 	{
-		if (B)
+		ClaimAllButton->SetIcon(PawUi::CurrencyIconName(TEXT("stardust")), ButtonIconPx);
+	}
+	if (ReawakenButton)
+	{
+		// D18 (S4, the UI concept's scrReawaken): the Reawaken swirl (the tab's), not the Stardust star.
+		ReawakenButton->SetIcon(PawUi::TabIconName(TabIconId(PcDockTab::Reawaken)), ButtonIconPx);
+	}
+	// D18 (S4): the buy amount's switch, each button picks its amount (the words: the string table's, here, in either mode).
+	for (int32 I = 0; I < AmountButtons.Num(); ++I)
+	{
+		if (AmountButtons[I])
 		{
-			B->SetIcon(PawUi::CurrencyIconName(TEXT("stardust")), ButtonIconPx);
+			const int64 M = Pc::BuyMultipliers()[static_cast<size_t>(I)];
+			AmountButtons[I]->Index = I;
+			AmountButtons[I]->SetLabel(PawText::Ui(MultiplierKey(M)));
+			Click(AmountButtons[I], [this, M]() { PickMultiplier(M); });
 		}
 	}
-	Click(MultiplierButton, [this]() { CycleMultiplier(); });
 	Click(BaitButton, [this]() { PressBait(); });
 	Click(AutoTravelButton, [this]() { ToggleAutoTravel(); });
 	Click(ReawakenButton, [this]() { PressReawaken(); });
@@ -360,61 +392,97 @@ void UPawHudScreen::BuildOverlay(UOverlay* Root)
 	AddCurrency(TEXT("catnip"), TEXT("CatnipIcon"), CatnipIcon, CatnipText, TEXT("CatnipText"), TEXT("CatnipPill"), true);
 	AddCurrency(TEXT("stardust"), TEXT("StardustIcon"), StardustIcon, StardustText, TEXT("StardustText"), TEXT("StardustPill"), false);
 
-	// The wave line, above the zone plate: "is anything happening where I stand".
-	// R4d: on its plum plate (it stood on the field, outlined, over the bushes).
+	// D18 (S4, the UI concept's HUD): ONE panel under the pills, as wide as they are: the biome's name, then "when do I get
+	// somewhere new" (the next biome's line and its green bar), then "is anything happening where I stand" (the wave line
+	// and its blue bar). Godot: two plates, the wave's above the zone's. Every part named (a graft finds parts by name).
+	FieldPlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("FieldPlate"));
+	FieldPlate->SetBrush(PawUi::Chrome(PawUi::EPawChrome::PlateSmall));
+	FieldPlate->SetPadding(PawUi::PlatePadding(FMargin(PawUi::FieldPlatePadX, PawUi::FieldPlatePadY), PawUi::EPawChrome::PlateSmall));
+	FieldPlate->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	StatusRow->AddChildToVerticalBox(FieldPlate)->SetPadding(FMargin(0.0f, 8.0f, 0.0f, 0.0f));
+	UVerticalBox* FieldBody = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("FieldBody"));
+	FieldBody->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	FieldPlate->SetContent(FieldBody);
+	BiomeName = PawUi::Heavy(PawUi::MakeText(T, PawUi::FieldNamePx, PawTokens::UI_TEXT, false, TEXT("BiomeName")));
+	FieldBody->AddChildToVerticalBox(BiomeName);
+	auto Flat = [](UBorder* B)
+	{
+		B->SetBrush(PawUi::NoBrush());
+		B->SetPadding(FMargin(0.0f));
+	};
+
+	// The wave line (a bare part of the panel since D18; R4d had it on its own plum plate).
 	UBorder* WavePlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("WavePlate"));
-	WavePlate->SetBrush(PawUi::Chrome(PawUi::EPawChrome::PlateSmall));
-	WavePlate->SetPadding(PawUi::PlatePadding(FMargin(PawUi::R4WavePadX, PawUi::R4WavePadY), PawUi::EPawChrome::PlateSmall));
+	Flat(WavePlate);
 	WavePlate->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	StatusRow->AddChildToVerticalBox(WavePlate)->SetPadding(FMargin(0.0f, 6.0f, 0.0f, 0.0f));
 	WaveBox = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("WaveBox"));
 	WaveBox->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	WavePlate->SetContent(WaveBox);
-	// hud.gd: the Bait icon before the wave line (wrap_label "bait").
-	WaveLine = IconLine(T, TEXT("bait"), PawUi::SmallPx, PawTokens::UI_TEXT, 0.0f, TEXT("WaveLine"), false);
+	// hud.gd: the Bait icon before the wave line (wrap_label "bait"). D18: muted, as the concept's.
+	WaveLine = IconLine(T, TEXT("bait"), PawUi::SmallPx, PawTokens::UI_TEXT_MUTED, 0.0f, TEXT("WaveLine"), false);
 	WaveBox->AddChildToVerticalBox(WaveLine);
-	WaveBar = PawUi::MakeThemeBar(T, TEXT("WaveBar")); // a theme ProgressBar (hud.gd: no override)
-	USizeBox* WaveBarBox = T->ConstructWidget<USizeBox>();
+	// D18 (S4): the concept's bar, blue (Godot: the theme's ProgressBar).
+	WaveBar = PawUi::MakeBar(T, PawTokens::UI_BAR_TRACK, PawTokens::UI_BAR_WAVE, PawTokens::UI_PANEL_FRAME,
+		static_cast<float>(PawUi::StatusBarEdge), static_cast<float>(PawUi::StatusBarRadius), TEXT("WaveBar"));
+	USizeBox* WaveBarBox = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("WaveBarBox"));
 	WaveBarBox->SetHeightOverride(PawUi::WaveBarHeight);
 	WaveBarBox->SetContent(WaveBar);
 	WaveBarBox->SetVisibility(ESlateVisibility::HitTestInvisible);
-	WaveBox->AddChildToVerticalBox(WaveBarBox)->SetPadding(FMargin(0.0f, 2.0f, 0.0f, 0.0f));
+	WaveBox->AddChildToVerticalBox(WaveBarBox)->SetPadding(FMargin(0.0f, 3.0f, 0.0f, 0.0f));
 
-	// The zone plate: "when do I get somewhere new" (the small plum plate since R3's shapes; Godot's was paper at 0.92).
+	// The next biome's line (the zone plate; a bare part of the panel since D18).
 	ZonePlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("ZonePlate"));
-	ZonePlate->SetBrush(PawUi::Chrome(PawUi::EPawChrome::PlateSmall));
-	ZonePlate->SetPadding(PawUi::PlatePadding(FMargin(PawUi::ZonePlatePadX, PawUi::ZonePlatePadY), PawUi::EPawChrome::PlateSmall));
+	Flat(ZonePlate);
 	ZonePlate->SetVisibility(ESlateVisibility::HitTestInvisible);
-	StatusRow->AddChildToVerticalBox(ZonePlate)->SetPadding(FMargin(0.0f, 6.0f, 0.0f, 0.0f));
-	UVerticalBox* ZoneBody = T->ConstructWidget<UVerticalBox>();
+	UVerticalBox* ZoneBody = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("ZoneBody"));
 	ZonePlate->SetContent(ZoneBody);
-	ZoneText = PawUi::MakeText(T, PawUi::SmallPx, PawTokens::UI_TEXT, false, TEXT("ZoneText"));
+	ZoneText = PawUi::Heavy(PawUi::MakeText(T, PawUi::SmallPx, PawTokens::UI_TEXT, false, TEXT("ZoneText")));
 	ZoneBody->AddChildToVerticalBox(ZoneText);
-	ZoneBar = PawUi::MakeBar(T, PawTokens::UI_SLOT, PawTokens::GOLD, PawTokens::UI_PANEL_FRAME, PawUi::R4BarEdge, 4.0f, TEXT("ZoneBar"));
-	USizeBox* ZoneBarBox = T->ConstructWidget<USizeBox>();
+	ZoneBar = PawUi::MakeBar(T, PawTokens::UI_BAR_TRACK, PawTokens::UI_BAR_ZONE, PawTokens::UI_PANEL_FRAME,
+		static_cast<float>(PawUi::StatusBarEdge), static_cast<float>(PawUi::StatusBarRadius), TEXT("ZoneBar"));
+	USizeBox* ZoneBarBox = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("ZoneBarBox"));
 	ZoneBarBox->SetHeightOverride(PawUi::ZoneBarHeight);
 	ZoneBarBox->SetContent(ZoneBar);
 	ZoneBody->AddChildToVerticalBox(ZoneBarBox)->SetPadding(FMargin(0.0f, 3.0f, 0.0f, 0.0f));
+	const float Gap = static_cast<float>(PawUi::FieldRowGap);
+	FieldBody->AddChildToVerticalBox(ZonePlate)->SetPadding(FMargin(0.0f, Gap, 0.0f, 0.0f));
+	FieldBody->AddChildToVerticalBox(WavePlate)->SetPadding(FMargin(0.0f, Gap, 0.0f, 0.0f));
 
-	// The Catches XP bar along the field's bottom: level now, the bar, level next (hud.tscn XPBar).
+	// The Catches XP bar along the field's bottom: level now, the bar, level next (hud.tscn XPBar). D18 (S4, the UI
+	// concept's HUD): on a plate, "Level n" before a purple bar; the next level stays at the bar's end (the concept leaves
+	// it out; it says where the bar leads).
+	XpPlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("XpPlate"));
+	XpPlate->SetBrush(PawUi::Chrome(PawUi::EPawChrome::PlateSmall));
+	XpPlate->SetPadding(PawUi::PlatePadding(FMargin(PawUi::XpPlatePadX, PawUi::XpPlatePadY), PawUi::EPawChrome::PlateSmall));
+	XpPlate->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	XpSlot = Root->AddChildToOverlay(XpPlate);
 	XpRow = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("XpRow"));
 	XpRow->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	XpSlot = Root->AddChildToOverlay(XpRow);
-	auto LevelBox = [&](TObjectPtr<UTextBlock>& Label, ETextJustify::Type Justify, const TCHAR* Name)
+	XpPlate->SetContent(XpRow);
+	auto LevelBox = [&](TObjectPtr<UTextBlock>& Label, ETextJustify::Type Justify, const TCHAR* Name, bool bNow)
 	{
-		USizeBox* Box = T->ConstructWidget<USizeBox>();
-		Box->SetWidthOverride(PawUi::XpLevelWidth);
+		USizeBox* Box = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), FName(FString(Name) + TEXT("Box")));
+		if (bNow)
+		{
+			Box->SetMinDesiredWidth(PawUi::XpLevelWidth); // "Level 12" grows; Godot's "12" had a fixed 52
+		}
+		else
+		{
+			Box->SetWidthOverride(PawUi::XpLevelWidth);
+		}
 		Box->SetVisibility(ESlateVisibility::HitTestInvisible);
-		Label = PawUi::Heavy(PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, true, Name));
+		Label = PawUi::Heavy(PawUi::MakeText(T, bNow ? PawUi::XpLabelPx : PawUi::LabelPx, bNow ? PawTokens::UI_TEXT : PawTokens::UI_TEXT_MUTED,
+			false, Name));
 		Label->SetJustification(Justify);
 		Box->SetContent(Label);
 		UHorizontalBoxSlot* S = XpRow->AddChildToHorizontalBox(Box);
 		S->SetVerticalAlignment(VAlign_Center);
 	};
-	LevelBox(XpNow, ETextJustify::Right, TEXT("XpNow"));
-	// R4d: a raised track with a Deep Plum edge, the fill Butter (the board's level bar).
-	XpBar = PawUi::MakeBar(T, PawTokens::UI_BUTTON, PawTokens::UI_SELECTED, PawTokens::UI_PANEL_FRAME, 3.0f, 6.0f, TEXT("XpBar"));
-	USizeBox* XpBarBox = T->ConstructWidget<USizeBox>();
+	LevelBox(XpNow, ETextJustify::Left, TEXT("XpNow"), true);
+	// D18 (S4): the concept's bar, purple (R4d: a raised track with a Butter fill).
+	XpBar = PawUi::MakeBar(T, PawTokens::UI_BAR_TRACK, PawTokens::UI_BAR_XP, PawTokens::UI_PANEL_FRAME,
+		static_cast<float>(PawUi::StatusBarEdge), static_cast<float>(PawUi::XpBarHeight * 0.5), TEXT("XpBar"));
+	USizeBox* XpBarBox = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("XpBarBox"));
 	XpBarBox->SetHeightOverride(PawUi::XpBarHeight);
 	XpBarBox->SetContent(XpBar);
 	XpBarBox->SetVisibility(ESlateVisibility::HitTestInvisible);
@@ -422,16 +490,33 @@ void UPawHudScreen::BuildOverlay(UOverlay* Root)
 	BarSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 	BarSlot->SetVerticalAlignment(VAlign_Center);
 	BarSlot->SetPadding(FMargin(12.0f, 0.0f));
-	LevelBox(XpNext, ETextJustify::Left, TEXT("XpNext"));
+	LevelBox(XpNext, ETextJustify::Left, TEXT("XpNext"), false);
 
 	// The Pounce clock: the field's bottom corner away from the dock, above the XP bar.
 	PounceClock = T->ConstructWidget<UPawPounceClock>(PawUi::Resolve<UPawPounceClock>(), TEXT("PounceClock"));
 	ClockSlot = Root->AddChildToOverlay(PounceClock);
-	// Its fire button beside it, on the side towards the field (hud.gd _place_pounce_gauge).
+	// Its fire button beside it, on the side towards the field (hud.gd _place_pounce_gauge). D18 (S4, the UI concept's
+	// scrUpgrades): "Pounce" and the key on a plate, as tall as the box that centres it on the clock.
+	USizeBox* PounceBox = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("PounceBox"));
+	PounceBox->SetHeightOverride(PawUi::PouncePlateHeight);
+	PounceBox->SetVisibility(ESlateVisibility::HitTestInvisible);
+	PouncePromptSlot = Root->AddChildToOverlay(PounceBox);
+	UBorder* PouncePlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("PouncePlate"));
+	PouncePlate->SetBrush(PawUi::Chrome(PawUi::EPawChrome::PlateSmall));
+	PouncePlate->SetPadding(PawUi::PlatePadding(FMargin(PawUi::PouncePlatePadX, 0.0f), PawUi::EPawChrome::PlateSmall));
+	PouncePlate->SetVerticalAlignment(VAlign_Center);
+	PounceBox->SetContent(PouncePlate);
+	UHorizontalBox* PounceLine = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("PounceLine"));
+	PouncePlate->SetContent(PounceLine);
+	UTextBlock* PounceLabel = PawUi::Heavy(PawUi::MakeText(T, PawUi::PounceLabelPx, PawTokens::UI_TEXT, false, TEXT("PounceLabel")));
+	PounceLabel->SetText(PawText::Ui(TEXT("CONTROLS_row_pounce")));
+	PounceLine->AddChildToHorizontalBox(PounceLabel)->SetVerticalAlignment(VAlign_Center);
 	PouncePrompt = T->ConstructWidget<UPawPromptIcon>(PawUi::Resolve<UPawPromptIcon>(), TEXT("PouncePrompt"));
 	PouncePrompt->Action = TEXT("pounce");
 	PouncePrompt->IconPx = static_cast<int32>(PawUi::PouncePromptPx);
-	PouncePromptSlot = Root->AddChildToOverlay(PouncePrompt);
+	UHorizontalBoxSlot* PromptSlot = PounceLine->AddChildToHorizontalBox(PouncePrompt);
+	PromptSlot->SetVerticalAlignment(VAlign_Center);
+	PromptSlot->SetPadding(FMargin(static_cast<float>(PawUi::PounceLabelGap), 0.0f, 0.0f, 0.0f));
 
 	// The boss panel, centred on the field (tier_controller.gd _summon_boss: paper, ink frame, status / bar / clock).
 	USizeBox* BossBox = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("BossBox"));
@@ -445,10 +530,27 @@ void UPawHudScreen::BuildOverlay(UOverlay* Root)
 	BossBox->SetContent(BossPanel);
 	UVerticalBox* BossBody = T->ConstructWidget<UVerticalBox>();
 	BossPanel->SetContent(BossBody);
-	BossText = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, false, TEXT("BossText"));
-	BossText->SetJustification(ETextJustify::Center);
-	BossBody->AddChildToVerticalBox(BossText)->SetHorizontalAlignment(HAlign_Center);
-	BossBar = PawUi::MakeBar(T, PawTokens::UI_SLOT, PawTokens::UI_DANGER, PawTokens::UI_SLOT, 0.0f, 4.0f, TEXT("BossBar"));
+	// D18 (S4, the UI concept's scrBoss): the line heavy on the left, SHIELDED on its own red tag on the right (Godot: a
+	// suffix on the centred line).
+	UHorizontalBox* BossHead = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("BossHead"));
+	BossBody->AddChildToVerticalBox(BossHead);
+	BossText = PawUi::Heavy(PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, false, TEXT("BossText")));
+	BossText->SetJustification(ETextJustify::Left);
+	UHorizontalBoxSlot* BossTextSlot = BossHead->AddChildToHorizontalBox(BossText);
+	BossTextSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+	BossTextSlot->SetVerticalAlignment(VAlign_Center);
+	UBorder* BossShield = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("BossShield"));
+	BossShield->SetBrush(PawUi::Rounded(PawTokens::UI_DANGER, PawTokens::INK, static_cast<float>(PawUi::AwardPlateEdgePx), 14.0f));
+	BossShield->SetPadding(FMargin(static_cast<float>(PawUi::BossTagPadX), static_cast<float>(PawUi::BossTagPadY)));
+	BossShield->SetVisibility(ESlateVisibility::Collapsed);
+	UHorizontalBoxSlot* ShieldSlot = BossHead->AddChildToHorizontalBox(BossShield);
+	ShieldSlot->SetVerticalAlignment(VAlign_Center);
+	ShieldSlot->SetPadding(FMargin(10.0f, 0.0f, 0.0f, 0.0f));
+	UTextBlock* ShieldText = PawUi::Heavy(PawUi::MakeText(T, PawUi::BossTagPx, PawTokens::UI_BOSS_BANNER_TEXT, false, TEXT("BossShieldText")));
+	ShieldText->SetText(PawText::Ui(TEXT("BOSS_shielded")));
+	BossShield->SetContent(ShieldText);
+	BossBar = PawUi::MakeBar(T, PawTokens::UI_BAR_TRACK, PawTokens::UI_BADGE, PawTokens::UI_PANEL_FRAME,
+		static_cast<float>(PawUi::StatusBarEdge), static_cast<float>(PawUi::BossBarRadius), TEXT("BossBar"));
 	USizeBox* BossBarBox = T->ConstructWidget<USizeBox>();
 	BossBarBox->SetHeightOverride(PawUi::BossBarHeight);
 	BossBarBox->SetContent(BossBar);
@@ -526,6 +628,13 @@ void UPawHudScreen::BuildDock(UOverlay* Root)
 	QuickRule->SetBrush(PawUi::Chrome(PawUi::EPawChrome::Separator));
 	QuickRule->SetPadding(FMargin(0.0f, 2.0f));
 	Body->AddChildToVerticalBox(QuickRule)->SetPadding(FMargin(0.0f, 8.0f, 0.0f, 0.0f));
+	// A one-line legend at the foot of the dock (hud.gd: a PromptLabel, 14 px, prompts 22 px, centred). D18 (S4): above the
+	// quick bar, as the UI concept draws it (Godot: under it).
+	DockLegend = T->ConstructWidget<UPawPromptText>(PawUi::Resolve<UPawPromptText>(), TEXT("DockLegend"));
+	DockLegend->IconPx = static_cast<int32>(PawUi::DockLegendPromptPx);
+	DockLegend->TextPx = static_cast<float>(PawUi::DockLegendPx);
+	DockLegend->TextColour = PawTokens::UI_TEXT;
+	Body->AddChildToVerticalBox(DockLegend)->SetPadding(FMargin(0.0f, 8.0f, 0.0f, 0.0f));
 	USizeBox* QuickBox = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("QuickBarBox"));
 	QuickBox->SetMinDesiredHeight(QuickBarHeight);
 	QuickBox->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
@@ -535,7 +644,7 @@ void UPawHudScreen::BuildDock(UOverlay* Root)
 	QuickBox->SetContent(QuickBar);
 	if (USizeBoxSlot* QS = Cast<USizeBoxSlot>(QuickBar->Slot))
 	{
-		QS->SetHorizontalAlignment(HAlign_Center);
+		QS->SetHorizontalAlignment(HAlign_Fill); // D18 (S4): the four plates share the width (Godot: centred icons)
 		QS->SetVerticalAlignment(VAlign_Fill);
 	}
 	const TCHAR* QuickNames[] = { TEXT("QuickSettings"), TEXT("QuickSkills"), TEXT("QuickSave"), TEXT("QuickQuit") };
@@ -544,18 +653,13 @@ void UPawHudScreen::BuildDock(UOverlay* Root)
 		UPawButton* Q = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), QuickNames[I]);
 		TObjectPtr<UPawButton>* Parts[] = { &QuickSettings, &QuickSkills, &QuickSave, &QuickQuit };
 		*Parts[I] = Q;
-		Q->SetBare(true);
-		Q->SetMinDimensions(static_cast<int32>(QuickIconPx), static_cast<int32>(QuickIconPx));
+		// D18 (S4): a plate each, as the UI concept's dock (Godot: TextureButtons, the bare icon; SHRINK_END, 14 apart).
+		Q->SetMinDimensions(0, static_cast<int32>(PawUi::QuickPlateHeight));
 		UHorizontalBoxSlot* S = QuickBar->AddChildToHorizontalBox(Q);
-		S->SetVerticalAlignment(VAlign_Bottom); // size_flags_vertical SHRINK_END
-		S->SetPadding(FMargin(I == 0 ? 0.0f : static_cast<float>(QuickSeparation), 0.0f, 0.0f, 0.0f));
+		S->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+		S->SetVerticalAlignment(VAlign_Bottom);
+		S->SetPadding(FMargin(I == 0 ? 0.0f : static_cast<float>(PawUi::QuickPlateGap), 0.0f, 0.0f, 0.0f));
 	}
-	// A one-line legend at the foot of the dock (hud.gd: a PromptLabel, 14 px, prompts 22 px, centred).
-	DockLegend = T->ConstructWidget<UPawPromptText>(PawUi::Resolve<UPawPromptText>(), TEXT("DockLegend"));
-	DockLegend->IconPx = static_cast<int32>(PawUi::DockLegendPromptPx);
-	DockLegend->TextPx = static_cast<float>(PawUi::DockLegendPx);
-	DockLegend->TextColour = PawTokens::UI_TEXT;
-	Body->AddChildToVerticalBox(DockLegend)->SetPadding(FMargin(0.0f, 8.0f, 0.0f, 0.0f));
 	// hud.tscn QuickStatus: "Saved." after the quick bar's save (centred, wrapping); empty, it takes no room.
 	QuickStatus = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, false, TEXT("QuickStatus"));
 	QuickStatus->SetJustification(ETextJustify::Center);
@@ -589,17 +693,39 @@ void UPawHudScreen::BuildUpgradesPage(UVerticalBox* Page)
 	UWidgetTree* T = WidgetTree;
 	UHorizontalBox* Header = T->ConstructWidget<UHorizontalBox>();
 	Page->AddChildToVerticalBox(Header)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
-	UTextBlock* Title = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, false,
-		PawUi::Numbered(TEXT("PageTitle"), static_cast<int32>(PcDockTab::Upgrades)));
-	Title->SetText(PawText::Ui(PageKey(PcDockTab::Upgrades)));
-	Title->SetJustification(ETextJustify::Center);
+	UTextBlock* Title = MakePageTitle(T, PcDockTab::Upgrades);
 	UHorizontalBoxSlot* TitleSlot = Header->AddChildToHorizontalBox(Title);
 	TitleSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 	TitleSlot->SetVerticalAlignment(VAlign_Center);
 	PageTitles.Add(Title);
-	MultiplierButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("MultiplierButton"));
-	MultiplierButton->SetMinDimensions(static_cast<int32>(PawUi::MultiplierButtonWidth), static_cast<int32>(PawUi::MultiplierButtonHeight));
-	Header->AddChildToHorizontalBox(MultiplierButton)->SetVerticalAlignment(VAlign_Center);
+	// D18 (S4, the UI concept's scrUpgrades): the buy amount on its own row, "Buy amount" and a switch of four on a raised
+	// plate, the chosen one yellow (Godot: one button that cycles, "Buy x1", beside the title). Q (the pad's buy_amount)
+	// still steps through them.
+	UHorizontalBox* AmountRow = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("AmountRow"));
+	Page->AddChildToVerticalBox(AmountRow)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 8.0f));
+	UTextBlock* AmountLabel = PawUi::Heavy(PawUi::MakeText(T, PawUi::AmountLabelPx, PawTokens::UI_TEXT_MUTED, false, TEXT("AmountLabel")));
+	AmountLabel->SetText(PawText::Ui(TEXT("SHOP_amount_label")));
+	UHorizontalBoxSlot* LabelSlot = AmountRow->AddChildToHorizontalBox(AmountLabel);
+	LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+	LabelSlot->SetVerticalAlignment(VAlign_Center);
+	UBorder* AmountPlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("AmountPlate"));
+	AmountPlate->SetBrush(PawUi::Rounded(PawTokens::UI_BUTTON, PawTokens::INK, static_cast<float>(PawUi::AmountPlateEdgePx),
+		static_cast<float>(PawUi::AmountPlateRadius)));
+	AmountPlate->SetPadding(FMargin(static_cast<float>(PawUi::AmountPlatePad)));
+	AmountPlate->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	AmountRow->AddChildToHorizontalBox(AmountPlate)->SetVerticalAlignment(VAlign_Center);
+	UHorizontalBox* AmountSwitch = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("AmountSwitch"));
+	AmountPlate->SetContent(AmountSwitch);
+	AmountButtons.Reset();
+	for (int32 I = 0; I < static_cast<int32>(Pc::BuyMultipliers().size()); ++I)
+	{
+		UPawButton* B = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), PawUi::Numbered(TEXT("Amount"), I));
+		B->Index = I;
+		B->SetMinDimensions(static_cast<int32>(PawUi::AmountButtonWidth), static_cast<int32>(PawUi::AmountButtonHeight));
+		B->SetLabelSize(PawUi::LabelPx);
+		AmountSwitch->AddChildToHorizontalBox(B)->SetPadding(FMargin(I == 0 ? 0.0f : static_cast<float>(PawUi::AmountGap), 0.0f, 0.0f, 0.0f));
+		AmountButtons.Add(B);
+	}
 
 	// The rows: BuildShopRows, at runtime, into this page's list. R4h: the list scrolls, as the other pages' do (at 150 % UI,
 	// and on a short screen, the rows ran under the quick bar); the selection pulls its row into view.
@@ -631,6 +757,9 @@ void UPawHudScreen::BuildShopRows()
 		Row->SetMinDimensions(0, static_cast<int32>(PawUi::R4RowHeight)); // R4e: the board's taller rows, words on the left
 		Row->SetAlignLeft(true);
 		Row->SetLabelSize(PawUi::R4RowPx);
+		// D18 (S4): the upgrade's icon before its name (the UI concept's row); a row with no icon yet keeps the place.
+		Row->SetIconSlotKept(true);
+		Row->SetIcon(UpgradeIcon(Order[static_cast<size_t>(I)]), PawUi::ShopIconPx);
 		// A row buys on the PRESS (a held press repeats, dock_navigator.gd), not on the release.
 		Row->SetPressMethod(EButtonPressMethod::ButtonPress);
 		Row->SetClickMethod(EButtonClickMethod::MouseDown);
@@ -671,6 +800,8 @@ void UPawHudScreen::BuildRealmRows()
 		Row->Index = I;
 		Row->SetMinDimensions(0, static_cast<int32>(RealmRowHeight));
 		Row->SetWrapAt(ButtonWrap);
+		Row->SetAlignLeft(true);      // D18 (S4, the UI concept's scrRealms): the words on the left, after the row's icon
+		Row->SetIconSlotKept(true);
 		Row->OnClicked().AddWeakLambda(this, [this, I]() { PressRealm(I); });
 		Scroll->AddChild(Row);
 		if (UPanelSlot* S = Row->Slot)
@@ -698,8 +829,8 @@ void UPawHudScreen::BuildCardRows()
 	{
 		UPawButton* Row = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>());
 		Row->Index = I;
-		Row->SetFlat(true);
-		Row->SetAlignLeft(true);
+		Row->SetAlignLeft(true);      // D18 (S4): on its plate (Godot: flat), the card's picture before the words
+		Row->SetIconSlotKept(true);
 		Row->SetLabelSize(CardHeadingPx);
 		Row->SetWrapAt(ButtonWrap);
 		Scroll->AddChild(Row);
@@ -720,7 +851,12 @@ void UPawHudScreen::BuildAchievementRows()
 	const int32 Count = G && G->IsDataReady() ? static_cast<int32>(G->Data().Achievements.size()) : 0;
 	for (int32 I = 0; I < Count; ++I)
 	{
+		// D18 (S4, the UI concept's scrAwards): each achievement on its plate (RefreshAchievements paints it).
+		UBorder* Plate = T->ConstructWidget<UBorder>();
+		Plate->SetPadding(FMargin(static_cast<float>(PawUi::AwardPlatePadX), static_cast<float>(PawUi::AwardPlatePadY)));
+		Plate->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		UHorizontalBox* Line = T->ConstructWidget<UHorizontalBox>();
+		Plate->SetContent(Line);
 		// The icon, by constructed name (hud.gd: Art.texture("achievement_%s")), 36 px, 8 px before the text.
 		UImage* Icon = T->ConstructWidget<UImage>();
 		Icon->SetBrush(PawUi::IconBrush(PawUi::AchievementIconName(UTF8_TO_TCHAR(G->Data().Achievements[static_cast<size_t>(I)].Id.c_str())), AchievementIconPx));
@@ -731,7 +867,7 @@ void UPawHudScreen::BuildAchievementRows()
 		AchievementIcons.Add(Icon);
 		UBorder* Mark = T->ConstructWidget<UBorder>();
 		Mark->SetPadding(FMargin(MarkSize * 0.5f));
-		Mark->SetVisibility(ESlateVisibility::HitTestInvisible);
+		Mark->SetVisibility(ESlateVisibility::Collapsed); // D18 (S4): the plate and the trophy say it (Godot's ★◆☆ disc)
 		UHorizontalBoxSlot* MarkSlot = Line->AddChildToHorizontalBox(Mark);
 		MarkSlot->SetVerticalAlignment(VAlign_Top);
 		MarkSlot->SetPadding(FMargin(0.0f, 6.0f, 8.0f, 0.0f));
@@ -739,14 +875,27 @@ void UPawHudScreen::BuildAchievementRows()
 		UHorizontalBoxSlot* TextsSlot = Line->AddChildToHorizontalBox(Texts);
 		TextsSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 		TextsSlot->SetVerticalAlignment(VAlign_Center);
-		UTextBlock* Name = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT);
+		UTextBlock* Name = PawUi::Heavy(PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT));
 		Name->SetAutoWrapText(false);
 		Name->SetWrapTextAt(RowTextWrap);
 		Texts->AddChildToVerticalBox(Name);
-		UTextBlock* Line2 = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT);
+		// D18 (S4): a row still going: its bar, then the numbers (the concept's); a done one: the description alone.
+		UHorizontalBox* Sub = T->ConstructWidget<UHorizontalBox>();
+		Texts->AddChildToVerticalBox(Sub)->SetPadding(FMargin(0.0f, 2.0f, 0.0f, 0.0f));
+		UProgressBar* Bar = PawUi::MakeBar(T, PawTokens::UI_BAR_TRACK, PawTokens::UI_SELECTED, PawTokens::UI_PANEL_FRAME,
+			static_cast<float>(PawUi::StatusBarEdge), static_cast<float>(PawUi::AwardBarHeight * 0.5));
+		USizeBox* BarBox = T->ConstructWidget<USizeBox>();
+		BarBox->SetHeightOverride(PawUi::AwardBarHeight);
+		BarBox->SetContent(Bar);
+		BarBox->SetVisibility(ESlateVisibility::Collapsed);
+		UHorizontalBoxSlot* BarSlot = Sub->AddChildToHorizontalBox(BarBox);
+		BarSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+		BarSlot->SetVerticalAlignment(VAlign_Center);
+		BarSlot->SetPadding(FMargin(0.0f, 0.0f, static_cast<float>(PawUi::AwardBarGap), 0.0f));
+		UTextBlock* Line2 = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT_MUTED);
 		Line2->SetAutoWrapText(false);
 		Line2->SetWrapTextAt(RowTextWrap);
-		Texts->AddChildToVerticalBox(Line2)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 0.0f));
+		Sub->AddChildToHorizontalBox(Line2)->SetVerticalAlignment(VAlign_Center);
 		UPawButton* Claim = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>());
 		Claim->Index = I;
 		Claim->SetMinDimensions(static_cast<int32>(ClaimWidth), static_cast<int32>(ClaimHeight));
@@ -755,8 +904,10 @@ void UPawHudScreen::BuildAchievementRows()
 		UHorizontalBoxSlot* ClaimSlot = Line->AddChildToHorizontalBox(Claim);
 		ClaimSlot->SetVerticalAlignment(VAlign_Center);
 		ClaimSlot->SetPadding(FMargin(8.0f, 0.0f, 0.0f, 0.0f));
-		Scroll->AddChild(Line);
-		PadScrollChild(Line);
+		Scroll->AddChild(Plate);
+		PadScrollChild(Plate);
+		AchievementBars.Add(Bar);
+		AchievementPlates.Add(Plate);
 		AchievementMarks.Add(Mark);
 		AchievementNames.Add(Name);
 		AchievementDetails.Add(Line2);
@@ -777,7 +928,12 @@ void UPawHudScreen::BuildJobRows()
 	const int32 Count = G && G->IsDataReady() ? static_cast<int32>(Pc::AllJobs(G->Data()).size()) : 0;
 	for (int32 I = 0; I < Count; ++I)
 	{
+		// D18 (S4, the UI concept's scrJobs): each job on its plate (RefreshJobs paints it: yellow while worn).
+		UBorder* Plate = T->ConstructWidget<UBorder>();
+		Plate->SetPadding(FMargin(static_cast<float>(PawUi::AwardPlatePadX), static_cast<float>(PawUi::AwardPlatePadY)));
+		Plate->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		UHorizontalBox* Line = T->ConstructWidget<UHorizontalBox>();
+		Plate->SetContent(Line);
 		// The job's icon (its icon_path), 40 px, 8 px before the text (hud.gd _build_job_page).
 		UImage* Icon = T->ConstructWidget<UImage>();
 		Icon->SetBrush(PawUi::IconBrush(UTF8_TO_TCHAR(Pc::AllJobs(G->Data())[static_cast<size_t>(I)]->IconPath.c_str()), JobIconPx));
@@ -790,7 +946,7 @@ void UPawHudScreen::BuildJobRows()
 		UHorizontalBoxSlot* TextsSlot = Line->AddChildToHorizontalBox(Texts);
 		TextsSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 		TextsSlot->SetVerticalAlignment(VAlign_Center);
-		UTextBlock* Name = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT);
+		UTextBlock* Name = PawUi::Heavy(PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT));
 		Name->SetAutoWrapText(false);
 		Name->SetWrapTextAt(RowTextWrap);
 		Texts->AddChildToVerticalBox(Name);
@@ -805,8 +961,9 @@ void UPawHudScreen::BuildJobRows()
 		UHorizontalBoxSlot* StateSlot = Line->AddChildToHorizontalBox(State);
 		StateSlot->SetVerticalAlignment(VAlign_Center);
 		StateSlot->SetPadding(FMargin(8.0f, 0.0f, 0.0f, 0.0f));
-		Scroll->AddChild(Line);
-		PadScrollChild(Line);
+		Scroll->AddChild(Plate);
+		PadScrollChild(Plate);
+		JobPlates.Add(Plate);
 		JobNames.Add(Name);
 		JobDetails.Add(Line2);
 		JobButtons.Add(State);
@@ -854,7 +1011,8 @@ void UPawHudScreen::ApplyDockSide()
 		{
 			if (UVerticalBoxSlot* S = Cast<UVerticalBoxSlot>(Child->Slot))
 			{
-				S->SetHorizontalAlignment(bLeft ? HAlign_Right : HAlign_Left);
+				// D18 (S4): the status panel as wide as the pills (wider when its words need it).
+				S->SetHorizontalAlignment(Child == FieldPlate ? HAlign_Fill : (bLeft ? HAlign_Right : HAlign_Left));
 			}
 		}
 		if (UVerticalBoxSlot* S = WaveLine ? Cast<UVerticalBoxSlot>(WaveLine->Slot) : nullptr)
@@ -890,18 +1048,69 @@ void UPawHudScreen::ApplyDockSide()
 		const float Margin = static_cast<float>(PawUi::PounceMargin);
 		const float Floor = static_cast<float>(PawUi::XpBarBottom + 36.0 + PawUi::PounceMargin);
 		const float Beside = Margin + static_cast<float>(PawUi::PounceDiameter + PawUi::PouncePromptGap);
-		const float Lift = Floor + static_cast<float>((PawUi::PounceDiameter - PawUi::PouncePromptPx) * 0.5);
+		const float Lift = Floor + static_cast<float>((PawUi::PounceDiameter - PawUi::PouncePlateHeight) * 0.5);
 		PouncePromptSlot->SetHorizontalAlignment(bLeft ? HAlign_Right : HAlign_Left);
 		PouncePromptSlot->SetVerticalAlignment(VAlign_Bottom);
 		PouncePromptSlot->SetPadding(FMargin(bLeft ? 0.0f : Beside, 0.0f, bLeft ? Beside : 0.0f, Lift));
 	}
-	// The boss panel centres on the FIELD, not the screen.
-	if (BossSlot)
+	// The boss panel: beside the status panel where it fits (PlaceBossPanel, every tick, as the status and the window change).
+	PlaceBossPanel();
+}
+
+void UPawHudScreen::PlaceBossPanel()
+{
+	// D18 (S4, the UI concept's scrBoss): the boss panel at the top of the field BESIDE the status panel, between it and
+	// the dock, where BossFitWidth fits; UNDER the status panel where it does not (a small window, a large UI size); as
+	// wide as BossBannerWidth or the room, centred in the room. Never over the pills or the dock (UI.Layout.Boss).
+	// Placed LEFT-aligned at a computed x: Slate centres a child at (allotted - child) / 2 + left padding - right padding
+	// (LayoutUtils.h AlignChild), NOT in the middle of the padded room, so Godot's "centred on the field" (HAlign_Center
+	// with the dock's width as padding) put the panel at x 12 over the pills at 1920 x 1080 (the store shot 02).
+	// The slot and the width are written only when they change.
+	if (!BossSlot || !StatusRow)
 	{
-		BossSlot->SetHorizontalAlignment(HAlign_Center);
-		BossSlot->SetVerticalAlignment(VAlign_Top);
-		BossSlot->SetPadding(FMargin(bLeft ? Dock : 0.0f, static_cast<float>(PawUi::BossBannerTop), bLeft ? 0.0f : Dock, 0.0f));
+		return;
 	}
+	const bool bLeft = DockOnLeft(this);
+	const float Dock = static_cast<float>(PawUi::DockWidth);
+	const float Edge = static_cast<float>(PawUi::EdgeMargin);
+	const float Gap = static_cast<float>(PawUi::BossGap);
+	const float Wide = static_cast<float>(LastSize.X > 0.0 ? LastSize.X : 1920.0);
+	const FVector2D Status = StatusRow->GetDesiredSize();
+	const float Side = Edge + static_cast<float>(Status.X) + Gap; // the field's far edge past the status panel
+	float Left = bLeft ? Dock + Gap : Side;
+	float Right = bLeft ? Wide - Side : Wide - Dock - Gap;
+	float Top = static_cast<float>(PawUi::BossBannerTop);
+	if (Right - Left < static_cast<float>(PawUi::BossFitWidth))
+	{
+		// Under the status panel, across the field.
+		Left = bLeft ? Dock + Gap : Edge;
+		Right = bLeft ? Wide - Edge : Wide - Dock - Gap;
+		Top = static_cast<float>(PawUi::StatusRowTop + Status.Y) + Gap;
+	}
+	const float Width = FMath::Max(0.0f, FMath::Min(static_cast<float>(PawUi::BossBannerWidth), Right - Left));
+	const FMargin Want(Left + (Right - Left - Width) * 0.5f, Top, 0.0f, 0.0f);
+	if (BossSlot->GetHorizontalAlignment() != HAlign_Left || BossSlot->GetVerticalAlignment() != VAlign_Top)
+	{
+		BossSlot->SetHorizontalAlignment(HAlign_Left);
+		BossSlot->SetVerticalAlignment(VAlign_Top);
+	}
+	if (!(BossSlot->GetPadding() == Want))
+	{
+		BossSlot->SetPadding(Want);
+	}
+	if (USizeBox* Box = Cast<USizeBox>(BossSlot->Content))
+	{
+		if (!FMath::IsNearlyEqual(Box->GetWidthOverride(), Width, 0.5f))
+		{
+			Box->SetWidthOverride(Width);
+		}
+	}
+}
+
+bool UPawHudScreen::IsBossShieldTagShown() const
+{
+	const UWidget* Tag = WidgetTree ? WidgetTree->FindWidget(TEXT("BossShield")) : nullptr;
+	return Tag && Tag->GetVisibility() != ESlateVisibility::Collapsed && Tag->GetVisibility() != ESlateVisibility::Hidden;
 }
 
 void UPawHudScreen::ReportDockForSize(const FVector2D& Size)
@@ -1018,9 +1227,40 @@ void UPawHudScreen::PressRow(int32 Row)
 
 void UPawHudScreen::CycleMultiplier()
 {
-	BuyMultiplierRef() = Pc::NextBuyMultiplier(BuyMultiplierRef());
+	PickMultiplier(Pc::NextBuyMultiplier(BuyMultiplierRef()));
+}
+
+void UPawHudScreen::PickMultiplier(int64 Multiplier)
+{
+	// D18 (S4): with the switch in focus, focus follows the amount picked (Q steps it while the pad stands on it).
+	bool bSwitchFocused = false;
+	for (UPawButton* B : AmountButtons)
+	{
+		bSwitchFocused = bSwitchFocused || HasFocus(B);
+	}
+	BuyMultiplierRef() = Multiplier;
 	UPawAudioSubsystem::PlayFrom(this, TEXT("ui_click")); // _on_multiplier_button_pressed
 	RefreshNow();
+	if (bSwitchFocused && GetOwningLocalPlayer())
+	{
+		if (UPawButton* Chosen = GetChosenAmountButton())
+		{
+			Chosen->SetFocus();
+		}
+	}
+}
+
+UPawButton* UPawHudScreen::GetChosenAmountButton() const
+{
+	const std::vector<int64_t>& V = Pc::BuyMultipliers();
+	for (int32 I = 0; I < AmountButtons.Num() && I < static_cast<int32>(V.size()); ++I)
+	{
+		if (V[static_cast<size_t>(I)] == BuyMultiplierRef())
+		{
+			return AmountButtons[I];
+		}
+	}
+	return AmountButtons.Num() > 0 ? AmountButtons[0].Get() : nullptr;
 }
 
 int64 UPawHudScreen::GetBuyMultiplier() const
@@ -1043,7 +1283,15 @@ TArray<UWidget*> UPawHudScreen::PageColumn() const
 	switch (ActiveTabRef())
 	{
 	case PcDockTab::Upgrades:
-		AddShown(MultiplierButton);
+	{
+		// D18 (S4): the switch is one stop of the column: the button in focus, else the amount in use.
+		UWidget* Amount = GetChosenAmountButton();
+		for (UPawButton* B : AmountButtons)
+		{
+			Amount = HasFocus(B) ? B : Amount;
+		}
+		AddShown(Amount);
+	}
 		for (UPawButton* Row : Rows)
 		{
 			AddShown(Row);
@@ -1051,23 +1299,23 @@ TArray<UWidget*> UPawHudScreen::PageColumn() const
 		break;
 	case PcDockTab::Realms:
 		AddShown(BaitButton);
-		AddShown(AutoTravelButton);
 		for (UPawButton* Row : RealmRows)
 		{
 			AddShown(Row);
 		}
+		AddShown(AutoTravelButton); // D18 (S4): under the map, as drawn
 		break;
 	case PcDockTab::Reawaken:
+		AddShown(AskButton); // D18 (S4): above the button, as drawn
 		AddShown(ReawakenButton);
 		AddShown(CancelButton);
-		AddShown(AskButton);
 		break;
 	case PcDockTab::Catches:
-		AddShown(AutoPickButton);
 		for (UPawButton* Row : CardRows)
 		{
 			AddShown(Row);
 		}
+		AddShown(AutoPickButton); // D18 (S4): under the list, as drawn
 		break;
 	case PcDockTab::Achievements:
 		AddShown(ClaimAllButton);
@@ -1128,6 +1376,25 @@ void UPawHudScreen::WriteNavigation()
 		W->SetNavigationRuleBase(EUINavigation::Left, EUINavigationRule::Stop);
 		W->SetNavigationRuleBase(EUINavigation::Right, EUINavigationRule::Stop);
 	}
+	// D18 (S4): the buy amount's switch, left and right along it; up to the tab, down to the first row, from any of the four.
+	if (ActiveTabRef() == PcDockTab::Upgrades && Column.Num() > 0)
+	{
+		for (int32 I = 0; I < AmountButtons.Num(); ++I)
+		{
+			UPawButton* B = AmountButtons[I];
+			if (!B)
+			{
+				continue;
+			}
+			B->SetNavigationRuleExplicit(EUINavigation::Up, Here);
+			if (Column.Num() > 1) { B->SetNavigationRuleExplicit(EUINavigation::Down, Column[1]); }
+			else { B->SetNavigationRuleBase(EUINavigation::Down, EUINavigationRule::Stop); }
+			if (I > 0) { B->SetNavigationRuleExplicit(EUINavigation::Left, AmountButtons[I - 1]); }
+			else { B->SetNavigationRuleBase(EUINavigation::Left, EUINavigationRule::Stop); }
+			if (I + 1 < AmountButtons.Num()) { B->SetNavigationRuleExplicit(EUINavigation::Right, AmountButtons[I + 1]); }
+			else { B->SetNavigationRuleBase(EUINavigation::Right, EUINavigationRule::Stop); }
+		}
+	}
 }
 
 void UPawHudScreen::RememberFocus()
@@ -1159,7 +1426,12 @@ UWidget* UPawHudScreen::NativeGetDesiredFocusTarget() const
 	}
 	if (Column.Num() > 0)
 	{
-		// The Upgrades page opens on its first row, not on the multiplier (the shop is what the player came for).
+		// The Upgrades page opens on its first row, not on the multiplier (the shop is what the player came for); the
+		// Reawaken page on its button, not on the check box above it (D18).
+		if (ActiveTabRef() == PcDockTab::Reawaken && ReawakenButton && Column.Contains(ReawakenButton.Get()))
+		{
+			return ReawakenButton;
+		}
 		return ActiveTabRef() == PcDockTab::Upgrades && Column.Num() > 1 ? Column[1] : Column[0];
 	}
 	return GetTabButton(ActiveTabRef());
@@ -1347,6 +1619,7 @@ void UPawHudScreen::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
 	ReportDockForSize(FVector2D(Geometry.GetLocalSize()));
+	PlaceBossPanel();
 	Pump(DeltaSeconds);
 }
 
@@ -1691,10 +1964,16 @@ void UPawHudScreen::RefreshShop(const UPawGameSubsystem& G)
 {
 	const Pc::PcGameData& D = G.Data();
 	const Pc::PcProgress& P = G.Progress();
+	// D18 (S4): the amount in use on the yellow plate (the open tab's look).
 	{
-		FFormatNamedArguments Args;
-		Args.Add(TEXT("multiplier"), PawText::Ui(MultiplierKey(BuyMultiplierRef())));
-		MultiplierButton->SetLabel(PawText::Ui(TEXT("SHOP_buy_multiplier"), Args));
+		UPawButton* Chosen = GetChosenAmountButton();
+		for (UPawButton* B : AmountButtons)
+		{
+			if (B)
+			{
+				B->SetActiveLook(B == Chosen);
+			}
+		}
 	}
 	const std::vector<std::string>& Order = Pc::ShopRowOrder();
 	for (int32 I = 0; I < Rows.Num(); ++I)
@@ -1708,24 +1987,36 @@ void UPawHudScreen::RefreshShop(const UPawGameSubsystem& G)
 			continue;
 		}
 		FFormatNamedArguments Args;
-		Args.Add(TEXT("name"), PawText::Data(TEXT("UPG"), Id));
 		Args.Add(TEXT("level"), PawText::Count(S.Level));
+		// Sticker Box (D18, S4): the UI concept's row. The name, "Lv N" under it, and the price on its own plate at the right
+		// (the raised yellow when it can be paid); the whole row is still the one button that buys.
+		const FText Name = PawText::Data(TEXT("UPG"), Id);
 		switch (S.Kind)
 		{
 		case Pc::PcShopRowKind::KittenLocked:
+			ShowRowIcon(Row, TEXT("ui_lock")); // D18 (S4): the concept's lock (Godot: the row greyed)
 			Row->SetLabel(PawText::Ui(Id == "kitten_power" ? TEXT("SHOP_kitten_power_locked") : TEXT("SHOP_kitten_speed_locked")));
+			Row->SetDetail(FText::GetEmpty(), PawTokens::UI_TEXT_MUTED);
+			Row->SetPriceTag(false, FText::GetEmpty(), false, false);
 			break;
 		case Pc::PcShopRowKind::Max:
-			Row->SetLabel(PawText::Ui(TEXT("SHOP_row_max"), Args));
+			ShowRowIcon(Row, UpgradeIcon(Id));
+			Row->SetLabel(Name);
+			Row->SetDetail(PawText::Ui(TEXT("SHOP_row_level"), Args), PawTokens::UI_TEXT_MUTED);
+			Row->SetPriceTag(true, PawText::Ui(TEXT("SHOP_row_max_plate")), false, false);
 			break;
 		case Pc::PcShopRowKind::Bulk:
+			ShowRowIcon(Row, UpgradeIcon(Id));
 			Args.Add(TEXT("levels"), PawText::Count(S.Levels));
-			Args.Add(TEXT("price"), PawText::Amount(S.Price));
-			Row->SetLabel(PawText::Ui(TEXT("SHOP_row_bulk"), Args));
+			Row->SetLabel(Name);
+			Row->SetDetail(PawText::Ui(TEXT("SHOP_row_level_bulk"), Args), PawTokens::UI_TEXT_MUTED);
+			Row->SetPriceTag(true, PawText::Amount(S.Price), S.bEnabled, true);
 			break;
 		default:
-			Args.Add(TEXT("price"), PawText::Amount(S.Price));
-			Row->SetLabel(PawText::Ui(TEXT("SHOP_row_price"), Args));
+			ShowRowIcon(Row, UpgradeIcon(Id));
+			Row->SetLabel(Name);
+			Row->SetDetail(PawText::Ui(TEXT("SHOP_row_level"), Args), PawTokens::UI_TEXT_MUTED);
+			Row->SetPriceTag(true, PawText::Amount(S.Price), S.bEnabled, true); // the price, on its plate
 			break;
 		}
 		Row->SetLocked(!S.bEnabled); // a row it cannot pay stays selectable: the player reads it
@@ -1742,7 +2033,11 @@ void UPawHudScreen::RefreshStatus(const UPawRealmSubsystem& R, const UPawGameSub
 	SetText(StardustText, PawText::Amount(P.Stardust));
 
 	const Pc::PcCatchesBar Xp = Pc::CatchesBar(D, P);
-	SetText(XpNow, PawText::Count(Xp.Level));
+	{
+		FFormatNamedArguments LevelArgs;
+		LevelArgs.Add(TEXT("level"), PawText::Count(Xp.Level));
+		SetText(XpNow, PawText::Ui(TEXT("HUD_level"), LevelArgs)); // D18 (S4): "Level n" (Godot: the number alone)
+	}
 	SetText(XpNext, PawText::Count(Xp.Level + 1));
 	XpKept = PawUi::SetBarValue(XpBar, Xp.Fraction, PawUi::XpBarStep, 0.0); // hud.tscn: step 0.0001, a flat fill
 
@@ -1764,13 +2059,20 @@ void UPawHudScreen::RefreshStatus(const UPawRealmSubsystem& R, const UPawGameSub
 			Args.Add(TEXT("cost"), PawText::Amount(Wave.Cost));
 			SetText(WaveLine, PawText::Ui(TEXT("WAVE_plain"), Args));
 		}
-		PawUi::SetBarValue(WaveBar, Wave.Fraction, Pc::GodotRangeStep, PawUi::ThemeFillMinWidth()); // the theme's nine-patch
+		PawUi::SetBarValue(WaveBar, Wave.Fraction, Pc::GodotRangeStep, 0.0); // D18 (S4): a flat fill (Godot: the theme's nine-patch)
 	}
 
+	// D18 (S4): the status panel's first line, the biome the cat is in.
+	if (F.TierIndex >= 0 && F.TierIndex < static_cast<int64_t>(D.Tiers.size()))
+	{
+		SetText(BiomeName, PawText::Data(TEXT("TIER"), D.Tiers[static_cast<size_t>(F.TierIndex)].Id));
+	}
 	const Pc::PcZonePlate Zone = Pc::ZonePlate(F, D, P);
 	SetShown(ZonePlate, Zone.Kind != Pc::PcZonePlateKind::Hidden, ESlateVisibility::HitTestInvisible);
-	// The plate leans back and forth while it shouts: the same nervous "go on" the Reawaken tab does.
-	Juice.Jitter(ZonePlate, Zone.Kind != Pc::PcZonePlateKind::Hidden && Zone.bRainbow, FPawJuice::EffectsOn(this));
+	// The plate leans back and forth while it shouts: the same nervous "go on" the Reawaken tab does. D18 (S4): the whole
+	// status panel, which the rainbow goes round.
+	Juice.Jitter(FieldPlate ? FieldPlate.Get() : ZonePlate.Get(), Zone.Kind != Pc::PcZonePlateKind::Hidden && Zone.bRainbow,
+		FPawJuice::EffectsOn(this));
 	if (Zone.Kind != Pc::PcZonePlateKind::Hidden)
 	{
 		FFormatNamedArguments Args;
@@ -1831,7 +2133,7 @@ void UPawHudScreen::RefreshField(const UPawRealmSubsystem& R, const UPawGameSubs
 
 	const Pc::PcPounceClock Clock = Pc::PounceClock(F, G.Progress());
 	SetShown(PounceClock, Clock.bVisible, ESlateVisibility::HitTestInvisible);
-	SetShown(PouncePrompt, Clock.bVisible, ESlateVisibility::HitTestInvisible);
+	SetShown(GetPouncePlate(), Clock.bVisible, ESlateVisibility::HitTestInvisible); // D18 (S4): the plate with the key
 
 	const Pc::PcBossPanel Panel = Pc::BossPanel(F, D);
 	const bool bMessage = !BossMessage.IsEmpty() && BossMessageTier == F.TierIndex && !Panel.bVisible;
@@ -1850,20 +2152,11 @@ void UPawHudScreen::RefreshField(const UPawRealmSubsystem& R, const UPawGameSubs
 	Args.Add(TEXT("boss"), PawText::Data(TEXT("BOSS"), D.Tiers[static_cast<size_t>(F.TierIndex)].BossData));
 	Args.Add(TEXT("phase"), PawText::Count(Panel.Phase));
 	Args.Add(TEXT("hp"), PawText::Fixed(Panel.Fraction * 100.0, 1)); // "%.1f"
-	if (Panel.bShielded)
-	{
-		FFormatNamedArguments Note;
-		Note.Add(TEXT("note"), PawText::Ui(TEXT("BOSS_shielded")));
-		Args.Add(TEXT("shield"), PawText::Ui(TEXT("BOSS_shield_suffix"), Note));
-	}
-	else
-	{
-		Args.Add(TEXT("shield"), FText::GetEmpty());
-	}
 	SetText(BossText, PawText::Ui(TEXT("BOSS_status"), Args));
+	SetShown(WidgetTree->FindWidget(TEXT("BossShield")), Panel.bShielded, ESlateVisibility::HitTestInvisible);
 	BossBar->SetPercent(static_cast<float>(Panel.Fraction));
-	// Recolour rather than a second indicator: the bar is where the eye is during the fight.
-	PawUi::SetBarFill(BossBar, Panel.bShielded ? PawTokens::STARDUST : PawTokens::UI_DANGER, 4.0f);
+	// Recolour as well: the bar is where the eye is during the fight.
+	PawUi::SetBarFill(BossBar, Panel.bShielded ? PawTokens::STARDUST : PawTokens::UI_BADGE, static_cast<float>(PawUi::BossBarRadius));
 	SetShown(BossTimer, Panel.bTimerVisible, ESlateVisibility::HitTestInvisible);
 	if (Panel.bTimerVisible)
 	{
@@ -1893,13 +2186,11 @@ UTextBlock* UPawHudScreen::PageText(UVerticalBox* Page, const FLinearColor& Colo
 void UPawHudScreen::BuildRealmsPage(UVerticalBox* Page)
 {
 	UWidgetTree* T = WidgetTree;
-	UTextBlock* Title = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, false,
-		PawUi::Numbered(TEXT("PageTitle"), static_cast<int32>(PcDockTab::Realms)));
-	Title->SetText(PawText::Ui(PageKey(PcDockTab::Realms)));
-	Page->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Center);
+	UTextBlock* Title = MakePageTitle(T, PcDockTab::Realms);
+	Page->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Fill);
 	PageTitles.Add(Title);
-	StageText = PageText(Page, PawTokens::UI_TEXT_MUTED, PageWrap, TEXT("StageText"));
-	UTextBlock* Hint = PageText(Page, PawTokens::UI_TEXT, PageWrap);
+	StageText = PawUi::Heavy(PageText(Page, PawTokens::UI_TEXT, PageWrap, TEXT("StageText"))); // D18 (S4): the concept's, heavy
+	UTextBlock* Hint = PageText(Page, PawTokens::UI_TEXT, PageWrap, TEXT("RealmsBlurb")); // named: a graft finds parts by name
 	Hint->SetText(PawText::Ui(TEXT("REALMS_hint")));
 
 	BaitButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("BaitButton"));
@@ -1907,56 +2198,78 @@ void UPawHudScreen::BuildRealmsPage(UVerticalBox* Page)
 	BaitButton->SetWrapAt(ButtonWrap);
 	Page->AddChildToVerticalBox(BaitButton)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
 
-	AutoTravelButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("AutoTravelButton"));
-	AutoTravelButton->SetLabel(PawText::Ui(TEXT("REALMS_auto_travel")));
-	AutoTravelButton->SetCheck(true, false);
-	Page->AddChildToVerticalBox(AutoTravelButton)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
-
 	// Twelve rows: the list is a map (hud.gd), scrolled when it is taller than the dock.
 	UScrollBox* Scroll = T->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("RealmList"));
 	UVerticalBoxSlot* ScrollSlot = Page->AddChildToVerticalBox(Scroll);
 	ScrollSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 	Scroll->SetScrollWhenFocusChanges(EScrollWhenFocusChanges::InstantScroll);
 	// The rows: BuildRealmRows, at runtime, into RealmList.
+
+	// D18 (S4, the UI concept's scrRealms): Auto-travel a plain check box under the map (Godot: a button above it).
+	AutoTravelButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("AutoTravelButton"));
+	AutoTravelButton->SetLabel(PawText::Ui(TEXT("REALMS_auto_travel")));
+	AutoTravelButton->SetCheck(true, false);
+	AutoTravelButton->SetFlat(true);
+	AutoTravelButton->SetAlignLeft(true);
+	Page->AddChildToVerticalBox(AutoTravelButton)->SetPadding(FMargin(0.0f, 6.0f, 0.0f, 0.0f));
 }
 
 void UPawHudScreen::BuildReawakenPage(UVerticalBox* Page)
 {
 	UWidgetTree* T = WidgetTree;
-	UTextBlock* Title = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, false,
-		PawUi::Numbered(TEXT("PageTitle"), static_cast<int32>(PcDockTab::Reawaken)));
-	Title->SetText(PawText::Ui(PageKey(PcDockTab::Reawaken)));
-	Page->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Center);
+	UTextBlock* Title = MakePageTitle(T, PcDockTab::Reawaken);
+	Page->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Fill);
 	PageTitles.Add(Title);
 	PageText(Page, PawTokens::UI_TEXT, PageWrap)->SetText(PawText::Ui(TEXT("REAWAKEN_blurb")));
 	ReawakenProgressLine = IconLine(T, TEXT("catnip"), PawUi::LabelPx, PawTokens::UI_TEXT, PageWrap - 32.0f, TEXT("ReawakenProgressLine"));
 	Page->AddChildToVerticalBox(ReawakenProgressLine)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
 	// hud.tscn ReawakenBar: rainbow_bar.gd, the theme's track under a scrolling rainbow and its sparks (phase 6 slice 5d).
 	ReawakenRainbow = T->ConstructWidget<UPawRainbowBar>(PawUi::Resolve<UPawRainbowBar>(), TEXT("ReawakenRainbow"));
-	USizeBox* BarBox = T->ConstructWidget<USizeBox>();
+	USizeBox* BarBox = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("ReawakenBarBox"));
 	BarBox->SetHeightOverride(ReawakenBarHeight);
 	BarBox->SetContent(ReawakenRainbow);
-	Page->AddChildToVerticalBox(BarBox)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 8.0f));
-	PageText(Page, PawTokens::UI_TEXT, 0.0f)->SetText(PawText::Ui(TEXT("REAWAKEN_payout_header")));
-	// The payout: the Stardust disc, then "+n" (the icon, not the word).
-	UHorizontalBox* Payout = T->ConstructWidget<UHorizontalBox>();
-	Page->AddChildToVerticalBox(Payout)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
+	Page->AddChildToVerticalBox(BarBox)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 10.0f));
+	// D18 (S4, the UI concept's scrReawaken): the payout in its own box: the heading muted and spaced; the Stardust star, "+n"
+	// big and purple, the total beside it; the two multiplier lines heavy (Godot: five loose lines).
+	UBorder* PayoutPanel = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("PayoutPanel"));
+	PayoutPanel->SetBrush(PawUi::Rounded(PawTokens::UI_PANEL, PawTokens::INK, static_cast<float>(PawUi::PayoutEdgePx),
+		static_cast<float>(PawUi::PayoutRadius)));
+	PayoutPanel->SetPadding(FMargin(static_cast<float>(PawUi::PayoutPadX), static_cast<float>(PawUi::PayoutPadY)));
+	PayoutPanel->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	Page->AddChildToVerticalBox(PayoutPanel)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 10.0f));
+	UVerticalBox* PayoutBody = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("PayoutBody"));
+	PayoutPanel->SetContent(PayoutBody);
+	UTextBlock* PayoutHead = PawUi::Heavy(PawUi::MakeText(T, PawUi::PayoutHeadPx, PawTokens::UI_TEXT_MUTED, false, TEXT("PayoutHead")));
+	FSlateFontInfo HeadFont = PayoutHead->GetFont();
+	HeadFont.LetterSpacing = PawUi::PayoutHeadSpacing;
+	PayoutHead->SetFont(HeadFont);
+	PayoutHead->SetText(PawText::Ui(TEXT("REAWAKEN_payout_header")));
+	PayoutBody->AddChildToVerticalBox(PayoutHead);
+	UHorizontalBox* Payout = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("PayoutLine"));
+	PayoutBody->AddChildToVerticalBox(Payout)->SetPadding(FMargin(0.0f, 4.0f, 0.0f, 6.0f));
 	PayoutIcon = T->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("PayoutIcon"));
-	PayoutIcon->SetBrush(PawUi::IconBrush(PawUi::CurrencyIconName(TEXT("stardust")), 24.0)); // LABEL_ICON_PX
+	PayoutIcon->SetBrush(PawUi::IconBrush(PawUi::CurrencyIconName(TEXT("stardust")), PawUi::PayoutIconPx));
 	PayoutIcon->SetVisibility(ESlateVisibility::HitTestInvisible);
 	Payout->AddChildToHorizontalBox(PayoutIcon)->SetVerticalAlignment(VAlign_Center);
-	PayoutText = PawUi::Heavy(PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, false, TEXT("PayoutText")));
+	PayoutText = PawUi::Heavy(PawUi::MakeText(T, PawUi::PayoutNumberPx, PawTokens::UI_STARDUST_BRIGHT, false, TEXT("PayoutText")));
 	UHorizontalBoxSlot* PayoutSlot = Payout->AddChildToHorizontalBox(PayoutText);
 	PayoutSlot->SetVerticalAlignment(VAlign_Center);
 	PayoutSlot->SetPadding(FMargin(8.0f, 0.0f, 0.0f, 0.0f));
-	TotalLine = IconLine(T, TEXT("stardust"), PawUi::LabelPx, PawTokens::UI_TEXT, 0.0f, TEXT("TotalLine"));
-	Page->AddChildToVerticalBox(TotalLine)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
-	MultiplierText = PageText(Page, PawTokens::UI_TEXT, PageWrap, TEXT("MultiplierText"));
-	CatnipMultiplierText = PageText(Page, PawTokens::UI_TEXT, PageWrap, TEXT("CatnipMultiplierText"));
-	USpacer* Spacer = T->ConstructWidget<USpacer>();
-	Page->AddChildToVerticalBox(Spacer)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+	PayoutSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+	TotalLine = IconLine(T, TEXT("stardust"), PawUi::LabelPx, PawTokens::UI_TEXT_MUTED, 0.0f, TEXT("TotalLine"));
+	Payout->AddChildToHorizontalBox(TotalLine)->SetVerticalAlignment(VAlign_Center);
+	MultiplierText = PawUi::Heavy(PageText(PayoutBody, PawTokens::UI_TEXT, PageWrap - 2.0f * static_cast<float>(PawUi::PayoutPadX), TEXT("MultiplierText")));
+	CatnipMultiplierText = PawUi::Heavy(PageText(PayoutBody, PawTokens::UI_TEXT, PageWrap - 2.0f * static_cast<float>(PawUi::PayoutPadX),
+		TEXT("CatnipMultiplierText")));
 	UnicornText = PageText(Page, PawTokens::UI_TEXT, PageWrap, TEXT("UnicornText"));
 	UnicornText->SetText(PawText::Ui(TEXT("REAWAKEN_unicorn")));
+	// D18 (S4): "Ask before Reawakening", a plain check box above the button (Godot: a button under it).
+	AskButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("AskButton"));
+	AskButton->SetLabel(PawText::Ui(TEXT("REAWAKEN_ask")));
+	AskButton->SetCheck(true, true);
+	AskButton->SetFlat(true);
+	AskButton->SetAlignLeft(true);
+	Page->AddChildToVerticalBox(AskButton)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 10.0f));
 
 	ReawakenButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("ReawakenButton"));
 	ReawakenButton->SetMinDimensions(0, static_cast<int32>(ReawakenButtonHeight));
@@ -1967,10 +2280,6 @@ void UPawHudScreen::BuildReawakenPage(UVerticalBox* Page)
 	CancelButton->SetLabel(PawText::Ui(TEXT("REAWAKEN_cancel")));
 	CancelButton->SetVisibility(ESlateVisibility::Collapsed);
 	Page->AddChildToVerticalBox(CancelButton)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
-	AskButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("AskButton"));
-	AskButton->SetLabel(PawText::Ui(TEXT("REAWAKEN_ask")));
-	AskButton->SetCheck(true, true);
-	Page->AddChildToVerticalBox(AskButton);
 }
 
 void UPawHudScreen::RefreshRealms(const UPawRealmSubsystem& R, const UPawGameSubsystem& G)
@@ -2067,9 +2376,9 @@ void UPawHudScreen::RefreshRealms(const UPawRealmSubsystem& R, const UPawGameSub
 			Line = PawText::Ui(TEXT("REALMS_row_owed"), Args);
 			break;
 		case Pc::PcRealmRowKind::Here:
+			// "here" must not read like "locked": the two states a map most needs apart. D18 (S4): the yellow plate and the
+			// paw (the concept's; Godot: green words).
 			Line = PawText::Ui(TEXT("REALMS_row_here"), Args);
-			bColour = bColourLocked = true; // "here" must not read like "locked": the two states a map most needs apart
-			Colour = PawTokens::UI_GOOD;
 			break;
 		case Pc::PcRealmRowKind::TravelBoss:
 			Args.Add(TEXT("boss"), PawText::Data(TEXT("BOSS"), S.BossId));
@@ -2092,13 +2401,23 @@ void UPawHudScreen::RefreshRealms(const UPawRealmSubsystem& R, const UPawGameSub
 			Line = PawText::Ui(TEXT("REALMS_row_reward"), Reward);
 		}
 		Row->SetLabel(Line);
-		// The amount's unit on a row that asks for Catnip; none where the row asks for nothing (hud.gd).
-		Row->SetIcon(S.Kind == Pc::PcRealmRowKind::NeedsCatnip ? PawUi::CurrencyIconName(TEXT("catnip")) : FString(), ButtonIconPx);
-		Row->SetLocked(!S.bEnabled);
+		// The amount's unit on a row that asks for Catnip (hud.gd). D18 (S4, the UI concept's scrRealms): every other row an
+		// icon too: a flag to travel, the paw where the cat is, the lock where it cannot go yet.
+		const bool bHere = S.Kind == Pc::PcRealmRowKind::Here;
+		const FString Icon = S.Kind == Pc::PcRealmRowKind::NeedsCatnip ? PawUi::CurrencyIconName(TEXT("catnip"))
+			: bHere ? PawUi::TabIconName(TabIconId(PcDockTab::Upgrades))
+			: (S.Kind == Pc::PcRealmRowKind::Travel || S.Kind == Pc::PcRealmRowKind::TravelBoss) ? PawUi::TabIconName(TabIconId(PcDockTab::Realms))
+			: FString(TEXT("ui_lock"));
+		if (Row->GetIconName() != Icon)
+		{
+			Row->SetIcon(Icon, ButtonIconPx);
+		}
+		// The cat's own biome: on the yellow plate, not locked (a press there does nothing: PressRealm asks PcHud).
+		Row->SetLocked(!S.bEnabled && !bHere);
+		Row->SetActiveLook(bHere);
 		Row->SetLabelColour(bColour, Colour, bColourLocked);
-		// A biome that has JUST become reachable warms up (BIOME_READY_TINT): exactly one thing on screen does this. R4a: the
-		// Butter call plate with ink words (a 45 % GOLD tint over plum read khaki).
-		Row->SetCallLook(S.bNew);
+		// A biome that has JUST become reachable leans (BIOME_READY_TINT's moment): exactly one thing on screen does this.
+		// D18 (S4): it no longer turns yellow (R4a's call plate): yellow is where the cat is, as the concept draws it.
 		Juice.Jitter(Row, S.bNew, FPawJuice::EffectsOn(this));
 	}
 }
@@ -2151,6 +2470,7 @@ void UPawHudScreen::RefreshReawaken(const UPawGameSubsystem& G)
 		break;
 	}
 	ReawakenButton->SetLocked(!Page.bReady);
+	ReawakenButton->SetCallLook(Page.bReady); // D18 (S4): the thing to press, yellow (the concept's)
 	SetShown(CancelButton, bReawakenArmed, ESlateVisibility::Visible);
 	AskButton->SetCheck(true, ConfirmReawaken(this));
 }
@@ -2224,31 +2544,32 @@ namespace
 void UPawHudScreen::BuildCatchesPage(UVerticalBox* Page)
 {
 	UWidgetTree* T = WidgetTree;
-	UTextBlock* Title = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, false,
-		PawUi::Numbered(TEXT("PageTitle"), static_cast<int32>(PcDockTab::Catches)));
-	Title->SetText(PawText::Ui(PageKey(PcDockTab::Catches)));
-	Page->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Center);
+	UTextBlock* Title = MakePageTitle(T, PcDockTab::Catches);
+	Page->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Fill);
 	PageTitles.Add(Title);
-	CatchesSummary = PageText(Page, PawTokens::UI_TEXT, PageWrap, TEXT("CatchesSummary"));
+	CatchesSummary = PawUi::Heavy(PageText(Page, PawTokens::UI_TEXT, PageWrap, TEXT("CatchesSummary"))); // D18 (S4): heavy
+
+	// EVERY CARD, not only the taken ones (designer, 2026-09-11): a list of what you have cannot say how to get the rest.
+	// Each row is a button so a pad can select it and read it (controller plan phase 3); pressing does nothing. D18 (S4,
+	// the UI concept's scrCatches): on plates with the card's picture, the run's cards first, the out-of-reach ones last.
+	PageScroll(Page, TEXT("CardList"));
+	// The rows: BuildCardRows, at runtime, into CardList.
+
+	// D18 (S4): Auto-pick a plain check box under the list (Godot: above it).
 	AutoPickButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("AutoPickButton"));
 	AutoPickButton->SetLabel(PawText::Ui(TEXT("CATCHES_auto_pick")));
 	AutoPickButton->SetCheck(true, false);
+	AutoPickButton->SetFlat(true);
+	AutoPickButton->SetAlignLeft(true);
 	AutoPickButton->SetVisibility(ESlateVisibility::Collapsed); // until Auto-Card is owned: a switch for nothing reads broken
-	Page->AddChildToVerticalBox(AutoPickButton)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
-
-	// EVERY CARD, not only the taken ones (designer, 2026-09-11): a list of what you have cannot say how to get the rest.
-	// Each row is a flat button so a pad can select it and read it (controller plan phase 3); pressing does nothing.
-	PageScroll(Page, TEXT("CardList"));
-	// The rows: BuildCardRows, at runtime, into CardList.
+	Page->AddChildToVerticalBox(AutoPickButton)->SetPadding(FMargin(0.0f, 6.0f, 0.0f, 0.0f));
 }
 
 void UPawHudScreen::BuildAchievementsPage(UVerticalBox* Page)
 {
 	UWidgetTree* T = WidgetTree;
-	UTextBlock* Title = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, false,
-		PawUi::Numbered(TEXT("PageTitle"), static_cast<int32>(PcDockTab::Achievements)));
-	Title->SetText(PawText::Ui(PageKey(PcDockTab::Achievements)));
-	Page->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Center);
+	UTextBlock* Title = MakePageTitle(T, PcDockTab::Achievements);
+	Page->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Fill);
 	PageTitles.Add(Title);
 	AchievementSummaryLine = IconLine(T, TEXT("stardust"), PawUi::LabelPx, PawTokens::UI_TEXT, PageWrap - 32.0f, TEXT("AchievementSummaryLine"));
 	Page->AddChildToVerticalBox(AchievementSummaryLine)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
@@ -2265,12 +2586,10 @@ void UPawHudScreen::BuildAchievementsPage(UVerticalBox* Page)
 void UPawHudScreen::BuildJobsPage(UVerticalBox* Page)
 {
 	UWidgetTree* T = WidgetTree;
-	UTextBlock* Title = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT, false,
-		PawUi::Numbered(TEXT("PageTitle"), static_cast<int32>(PcDockTab::Jobs)));
-	Title->SetText(PawText::Ui(PageKey(PcDockTab::Jobs)));
-	Page->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Center);
+	UTextBlock* Title = MakePageTitle(T, PcDockTab::Jobs);
+	Page->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Fill);
 	PageTitles.Add(Title);
-	PageText(Page, PawTokens::UI_TEXT, PageWrap)->SetText(PawText::Ui(TEXT("JOBS_blurb")));
+	PageText(Page, PawTokens::UI_TEXT, PageWrap, TEXT("JobsBlurb"))->SetText(PawText::Ui(TEXT("JOBS_blurb")));
 
 	// One row per job: the text, and a button that is a STATEMENT, not a control (Worn / Owned / Locked): swapping mid-run
 	// is what the lock prevents. Locked, never disabled, so the pad still reads every row (UPawButton).
@@ -2303,11 +2622,41 @@ void UPawHudScreen::RefreshCatches(const UPawGameSubsystem& G)
 	SetShown(AutoPickButton, Page.bAutoPickShown, ESlateVisibility::Visible);
 	AutoPickButton->SetCheck(true, G.Slot().bAutoPickCard);
 
-	for (int32 I = 0; I < CardRows.Num() && I < static_cast<int32>(Page.Rows.size()); ++I)
+	// D18 (S4, the UI concept's scrCatches): the run's cards first, then the ones that can be taken, then the ones that
+	// cannot (banished, or something in the way), each group in Godot's order.
+	auto Rank = [](const Pc::PcCatchesRow& S)
 	{
-		const Pc::PcCatchesRow& S = Page.Rows[static_cast<size_t>(I)];
+		const bool bOut = S.Hint.Kind == Pc::PcCardHintKind::Banished || S.Hint.Kind == Pc::PcCardHintKind::Requirement
+			|| S.Hint.Kind == Pc::PcCardHintKind::NotEnoughKittens;
+		return S.bHeld ? 0 : bOut ? 2 : 1;
+	};
+	TArray<int32> Order;
+	for (int32 I = 0; I < static_cast<int32>(Page.Rows.size()); ++I)
+	{
+		Order.Add(I);
+	}
+	Order.StableSort([&](int32 A, int32 B) { return Rank(Page.Rows[static_cast<size_t>(A)]) < Rank(Page.Rows[static_cast<size_t>(B)]); });
+	CardRowIds.SetNum(CardRows.Num());
+	for (int32 I = 0; I < CardRows.Num() && I < Order.Num(); ++I)
+	{
+		const Pc::PcCatchesRow& S = Page.Rows[static_cast<size_t>(Order[I])];
 		UPawButton* Row = CardRows[I];
+		CardRowIds[I] = UTF8_TO_TCHAR(S.CardId.c_str());
 		const FText Name = PawText::Data(TEXT("CARD"), S.CardId);
+		// The card's picture (the card pick's), or the lock where it cannot be had this run.
+		FString Icon = TEXT("ui_lock");
+		if (Rank(S) < 2)
+		{
+			for (const Pc::PcCard& Card : D.Cards)
+			{
+				Icon = Card.Id == S.CardId ? FPaths::GetBaseFilename(UTF8_TO_TCHAR(Card.IconPath.c_str())) : Icon;
+			}
+		}
+		if (Row->GetIconName() != Icon)
+		{
+			Row->SetIcon(Icon, CardIconPx);
+		}
+		Row->SetLocked(Rank(S) == 2);
 		if (S.bHeld)
 		{
 			FFormatNamedArguments Heading;
@@ -2334,8 +2683,9 @@ void UPawHudScreen::RefreshCatches(const UPawGameSubsystem& G)
 			}
 			Row->SetDetail(Hint, PawTokens::UI_TEXT_MUTED);
 		}
-		// Gold for what you have, grey for what you do not: the list is scanned far more than it is read.
-		Row->SetLabelColour(true, S.bHeld ? PawTokens::UI_GOOD : PawTokens::UI_TEXT_MUTED);
+		// Gold for what you have, grey for what you do not: the list is scanned far more than it is read. D18 (S4): ink
+		// on the plates, the held ones first and the out-of-reach ones locked (the concept's).
+		Row->SetLabelColour(false, PawTokens::UI_TEXT);
 	}
 }
 
@@ -2373,8 +2723,30 @@ void UPawHudScreen::RefreshAchievements(const UPawGameSubsystem& G)
 		}
 		SetText(AchievementDetails[I], Second);
 		SetShown(AchievementDetails[I], !Second.IsEmpty());
-		PawUi::SetTextColour(AchievementNames[I], Colour);
-		PawUi::SetTextColour(AchievementDetails[I], Colour);
+		// D18 (S4, the UI concept's scrAwards): the name ink, the line under it muted; a secret row on the off plate, the
+		// rest on the raised one; the trophy faded until it is earned; a bar before the numbers while it is still going.
+		const bool bSecret = S.Kind == Pc::PcAchievementRowKind::Secret;
+		const bool bGoing = !bSecret && S.Kind != Pc::PcAchievementRowKind::Claimed && S.Kind != Pc::PcAchievementRowKind::Earned;
+		PawUi::SetTextColour(AchievementNames[I], bSecret ? PawTokens::UI_TEXT_DISABLED : PawTokens::UI_TEXT);
+		PawUi::SetTextColour(AchievementDetails[I], PawTokens::UI_TEXT_MUTED);
+		if (AchievementPlates.IsValidIndex(I))
+		{
+			AchievementPlates[I]->SetBrush(PawUi::Rounded(bSecret ? PawTokens::UI_BUTTON_DISABLED : PawTokens::UI_BUTTON,
+				bSecret ? PawTokens::UI_TEXT_DISABLED : PawTokens::INK, static_cast<float>(PawUi::AwardPlateEdgePx),
+				static_cast<float>(PawUi::AwardPlateRadius)));
+		}
+		if (AchievementBars.IsValidIndex(I))
+		{
+			SetShown(AchievementBars[I]->GetParent(), bGoing, ESlateVisibility::HitTestInvisible);
+			if (bGoing)
+			{
+				PawUi::SetBarValue(AchievementBars[I], S.Threshold > 0.0 ? S.Value / S.Threshold : 0.0, Pc::GodotRangeStep, 0.0);
+			}
+		}
+		if (AchievementIcons.IsValidIndex(I))
+		{
+			AchievementIcons[I]->SetRenderOpacity(bGoing || bSecret ? static_cast<float>(PawUi::AwardIconFaded) : 1.0f);
+		}
 		// The mark: filled for claimed and earned, hollow for the rest (★ ◆ ☆).
 		const bool bDone = S.Kind == Pc::PcAchievementRowKind::Claimed || S.Kind == Pc::PcAchievementRowKind::Earned;
 		AchievementMarks[I]->SetBrush(PawUi::Rounded(bDone ? Colour : PawTokens::UI_PANEL, Colour, 2.0f, MarkSize * 0.5f));
@@ -2388,6 +2760,7 @@ void UPawHudScreen::RefreshAchievements(const UPawGameSubsystem& G)
 			Args.Add(TEXT("amount"), PawText::Amount(S.Reward));
 			Claim->SetLabel(PawText::Ui(TEXT("AWARDS_claim"), Args));
 			Claim->SetIcon(PawUi::CurrencyIconName(TEXT("stardust")), ButtonIconPx); // the icon carries the unit
+			Claim->SetCallLook(true); // D18 (S4): a reward waiting is the thing to press, yellow
 		}
 	}
 	FFormatNamedArguments Args;
@@ -2401,6 +2774,7 @@ void UPawHudScreen::RefreshAchievements(const UPawGameSubsystem& G)
 		FFormatNamedArguments All;
 		All.Add(TEXT("amount"), PawText::Amount(Page.WaitingStardust));
 		ClaimAllButton->SetLabel(PawText::Ui(TEXT("AWARDS_claim_all"), All));
+		ClaimAllButton->SetCallLook(true); // D18 (S4): yellow, as the concept draws it
 	}
 	else
 	{
@@ -2450,8 +2824,23 @@ void UPawHudScreen::RefreshJobs(const UPawGameSubsystem& G)
 			break;
 		}
 		SetText(JobDetails[I], Second);
+		// D18 (S4, the UI concept's scrJobs): the worn job on the yellow plate, an owned or buyable one on the raised plate,
+		// a locked one on the off plate with its hat faded; the name ink (grey when locked), the line under it muted.
+		const bool bWorn = S.Kind == Pc::PcJobRowKind::Worn;
+		const bool bShut = S.Kind != Pc::PcJobRowKind::Worn && S.Kind != Pc::PcJobRowKind::Owned && S.Kind != Pc::PcJobRowKind::Ready;
+		if (JobPlates.IsValidIndex(I))
+		{
+			JobPlates[I]->SetBrush(PawUi::Rounded(bWorn ? PawTokens::UI_SELECTED : bShut ? PawTokens::UI_BUTTON_DISABLED : PawTokens::UI_BUTTON,
+				bShut ? PawTokens::UI_TEXT_DISABLED : PawTokens::INK, static_cast<float>(PawUi::AwardPlateEdgePx),
+				static_cast<float>(PawUi::AwardPlateRadius)));
+		}
+		if (JobIcons.IsValidIndex(I))
+		{
+			JobIcons[I]->SetRenderOpacity(bShut ? static_cast<float>(PawUi::AwardIconFaded) : 1.0f);
+		}
+		Colour = bShut ? PawTokens::UI_TEXT_DISABLED : PawTokens::UI_TEXT;
 		PawUi::SetTextColour(JobNames[I], Colour);
-		PawUi::SetTextColour(JobDetails[I], Colour);
+		PawUi::SetTextColour(JobDetails[I], bShut ? PawTokens::UI_TEXT_DISABLED : PawTokens::UI_TEXT_MUTED);
 		JobButtons[I]->SetLabel(PawText::Ui(State));
 		// "You are wearing this" must not render in the same grey as "locked" (hud.gd's font_disabled_color note).
 		const bool bOwned = S.Kind == Pc::PcJobRowKind::Worn || S.Kind == Pc::PcJobRowKind::Owned;
@@ -2718,6 +3107,16 @@ FText UPawHudScreen::GetZoneText() const { return ZoneText ? ZoneText->GetText()
 FText UPawHudScreen::GetWaveText() const { return WaveLine ? WaveLine->GetText() : FText::GetEmpty(); }
 FText UPawHudScreen::GetBossText() const { return BossText ? BossText->GetText() : FText::GetEmpty(); }
 FText UPawHudScreen::GetBossTimerText() const { return BossTimer ? BossTimer->GetText() : FText::GetEmpty(); }
+UWidget* UPawHudScreen::GetFieldPlate() const { return FieldPlate; }
+
+UWidget* UPawHudScreen::GetPouncePlate() const
+{
+	UWidget* Box = WidgetTree ? WidgetTree->FindWidget(TEXT("PounceBox")) : nullptr;
+	return Box ? Box : static_cast<UWidget*>(PouncePrompt.Get());
+}
+
+FText UPawHudScreen::GetBiomeNameText() const { return BiomeName ? BiomeName->GetText() : FText::GetEmpty(); }
+
 FText UPawHudScreen::GetXpText(bool bNext) const
 {
 	const UTextBlock* T = bNext ? XpNext.Get() : XpNow.Get();

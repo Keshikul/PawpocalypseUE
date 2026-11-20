@@ -25,6 +25,7 @@
 #include "Engine/World.h"
 #include "Blueprint/WidgetNavigation.h"
 #include "Misc/AutomationTest.h"
+#include "UI/PawLayoutCheck.h"
 #include "UI/PawWidgets.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -666,15 +667,17 @@ bool FPawTreePaintTest::RunTest(const FString& Parameters)
 	}
 	TestTrue(TEXT("an owned link wears its branch's colour"), LinkTo(Child).Colour.Equals(Want));
 
-	// The frames: one series, LOCKED < READY < OWNED in brightness, for every trunk's colour; the node wears it.
+	// The frames (D18, S4, the UI concept's scrTree): owned green on ink, a node to buy now raised in the gold ring, the
+	// rest slate and the darkest of the three; the same for every trunk (Godot: the trunk's colour, a brightness ladder).
 	for (const PawTree::FBranchColour& C : PawTree::BranchColours)
 	{
 		FLinearColor LF, LE, RF, RE, OF, OE;
 		UPawTreeNode::FrameColours(Pc::PcTreeNodeState::Locked, C.Colour, LF, LE);
 		UPawTreeNode::FrameColours(Pc::PcTreeNodeState::Ready, C.Colour, RF, RE);
 		UPawTreeNode::FrameColours(Pc::PcTreeNodeState::Owned, C.Colour, OF, OE);
-		if (!TestTrue(FString::Printf(TEXT("%s: locked <= ready <= owned"), C.Id), Luma(LF) <= Luma(RF) + 1e-6 && Luma(RF) <= Luma(OF) + 1e-6
-			&& LE.A < RE.A && RE.A < OE.A + 1e-6))
+		if (!TestTrue(FString::Printf(TEXT("%s: owned green on ink, ready in the gold ring, locked the darkest"), C.Id),
+			OF.Equals(PawTokens::UI_TREE_OWNED) && OE.Equals(PawTokens::INK) && RE.Equals(PawTokens::UI_TREE_READY_RING)
+			&& Luma(LF) < Luma(RF) && Luma(LF) < Luma(OF)))
 		{
 			break;
 		}
@@ -688,9 +691,17 @@ bool FPawTreePaintTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("a ladder's counter"), S(Claws->GetCounter()), FString::Printf(TEXT("1/%lld"),
 		static_cast<long long>(Pc::BranchMaxLevel(*D.FindBranch(TCHAR_TO_UTF8(PawTree::BranchColours[0].Id))))));
 	TestTrue(TEXT("an unlock has no counter"), Tree->GetNode(TEXT("unlock_aura"))->GetCounter().IsEmpty());
-	// R4f (the board "Skill tree (plum)"): a skill is round, an unlock a rounded square.
-	TestEqual(TEXT("a skill node is round"), Claws ? Claws->GetFrameRadius() : 0.0f, static_cast<float>(Pc::TreeLayout::NodeSize * 0.5));
-	TestEqual(TEXT("an unlock node is a rounded square"), Tree->GetNode(TEXT("unlock_aura"))->GetFrameRadius(), 14.0f);
+	// D18 (S4, the designer 2026-11-19: "do hexagon"): every node a hexagon (the concept's), painted by the node; the old
+	// rounded frame clear (R4f: a skill round, an unlock a rounded square); an unlock's edge heavier.
+	const UPawTreeNode* Aura = Tree->GetNode(TEXT("unlock_aura"));
+	TestTrue(TEXT("the old frame is clear"), Claws && Aura && Claws->IsFrameClear() && Aura->IsFrameClear());
+	const int32 Before = Claws ? Claws->GetHexPaints() : 0;
+	PawLayout::Arrange(Tree, FVector2D(1920.0, 1080.0), 1.0f, 1);
+	TestTrue(TEXT("a node paints its hexagon"), Claws && Claws->GetHexPaints() > Before);
+	TestTrue(TEXT("an unlock's edge is heavier"), Aura && Claws && Aura->GetFrameEdgeWidth() > Claws->GetFrameEdgeWidth());
+	const TArray<FVector2D> Ring = UPawTreeLinks::RingPath(FVector2D(0.0, 0.0), FVector2D(40.0));
+	TestTrue(TEXT("a ring is a hexagon, point up, closed"), Ring.Num() > 6 && FMath::IsNearlyEqual(Ring[0].Y, -40.0, 1e-6)
+		&& FMath::IsNearlyEqual(Ring[0].X, 0.0, 1e-6) && Ring[0].Equals(Ring.Last()));
 	W.Close();
 	return true;
 }

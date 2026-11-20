@@ -95,6 +95,7 @@ namespace
 		Fx,
 		Buy,
 		FontSheet,
+		Do,
 	};
 	struct FStep
 	{
@@ -148,13 +149,13 @@ namespace
 				SNew(STextBlock)
 					.Text(FText::FromString(Lines[I]))
 					.Font(FSlateFontInfo(PawUi::PawFont(), bTitle ? 28 : 17, bTitle ? TEXT("Black") : TEXT("Regular")))
-					.ColorAndOpacity(FSlateColor(bTitle ? PawTokens::PLUM_BUTTER : PawTokens::PLUM_BONE))
+					.ColorAndOpacity(FSlateColor(bTitle ? PawTokens::UI_TEXT : PawTokens::UI_TEXT_MUTED))
 					.AutoWrapText(true)
 			];
 		}
 		GFontSheet = SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-			.BorderBackgroundColor(FSlateColor(PawTokens::PLUM_BASE))
+			.BorderBackgroundColor(FSlateColor(PawTokens::UI_PANEL))
 			.Padding(FMargin(48.0f, 40.0f))
 			[
 				Box
@@ -194,6 +195,16 @@ namespace
 		if (Step.Kind == EStep::FontSheet)
 		{
 			ShowFontSheet(Step.Press);
+			return true;
+		}
+		if (Step.Kind == EStep::Do)
+		{
+			// Any console command, in the queue's order (a cheat between two shots: tools/store_shots.py).
+			UWorld* World = GEngine && GEngine->GameViewport ? GEngine->GameViewport->GetWorld() : nullptr;
+			if (!GEngine || !GEngine->Exec(World, *Step.Press))
+			{
+				UE_LOG(LogPaw, Warning, TEXT("paw.Do: '%s' was not run"), *Step.Press);
+			}
 			return true;
 		}
 		if (Step.Kind == EStep::Press)
@@ -373,7 +384,9 @@ namespace
 				const Pc::PcBoss* B = F.TierIndex >= 0 ? D.FindBoss(D.Tiers[static_cast<size_t>(F.TierIndex)].BossData) : nullptr;
 				if (B)
 				{
-					P.TierKillCount += Pc::BaitShortfall(D, P, *B) * B->KillsPerBait;
+					// D17 E2: the Bait is a bank per biome (BaitKillsByBiome), not the wave's kill count (found 2026-11-18:
+					// topping up TierKillCount left the shortfall as it was, and the boss never came out).
+					P.BaitKillsByBiome[P.CurrentBiomeId] += Pc::BaitShortfall(D, P, *B) * B->KillsPerBait;
 					P.Catnip = FMath::Max(P.Catnip, 1e15);
 				}
 				if (!B || !Pc::SummonFieldBoss(R->GetSim().Field, D, P))
@@ -589,6 +602,16 @@ namespace
 			Step.Kind = EStep::Title;
 			Step.Press = Args.Num() > 0 ? Args[0] : FString();
 			Step.Arg = Args.Num() > 1 ? FCString::Atoi(*Args[1]) : 0;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand DoCommand(TEXT("paw.Do"), TEXT("paw.Do <command...>: run a console command when the tour queue reaches it (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Do;
+			Step.Press = FString::Join(Args, TEXT(" "));
 			Queue(Step);
 		}));
 

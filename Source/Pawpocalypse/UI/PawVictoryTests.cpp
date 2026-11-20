@@ -37,6 +37,8 @@
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
 #include "UI/PawUiKit.h"
+#include "UI/PawUiConstants.h"
+#include "Blueprint/WidgetTree.h"
 #include "UI/PawVictoryScreen.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "UI/PawTextTesting.h"
@@ -201,15 +203,27 @@ bool FPawVictoryEndingTest::RunTest(const FString& Parameters)
 		TestEqual(TEXT("OK"), S(V->GetOkButton()->GetLabel()), FString(TEXT("OK")));
 		// The game theme (F21, designer 2026-11-03): the theme's button, ink text, on the paper WindowPanel.
 		TestTrue(TEXT("OK wears the game theme's button"), V->GetOkButton()->HasThemeLook());
-		// R4g: the headline a Butter title (outlined in ink), as the plum boards draw titles.
+		TestTrue(TEXT("on the yellow plate (D18, the concept's)"), V->GetOkButton()->HasCallLook());
+		// R4g: the headline a Butter title (outlined in ink); D18 (S4): the ceremony's heavier outline at the concept's size.
 		TestTrue(TEXT("a Butter headline"), V->GetHeadline()->GetColorAndOpacity().GetSpecifiedColor().Equals(PawTokens::UI_SELECTED)
-			&& V->GetHeadline()->GetFont().OutlineSettings.OutlineSize == PawUi::ButterTitleOutline);
+			&& V->GetHeadline()->GetFont().OutlineSettings.OutlineSize == PawUi::CeremonyTitleOutline);
 		// The theme's WindowPanel: ui_window.svg's nine-patch (phase 6 slice 5a; Pawpocalypse.UI.Chrome checks every brush).
 		const FSlateBrush& Plate = V->GetPanel()->Background;
 		TestTrue(TEXT("on the window plate"), Plate.DrawAs == ESlateBrushDrawType::Box && Plate.GetResourceObject() != nullptr
 			&& Plate.GetResourceObject() == PawUi::Chrome(PawUi::EPawChrome::Window).GetResourceObject());
 		TestEqual(TEXT("OK is wired to itself (a one-button screen)"), V->GetWired().Num(), 1);
 		TestEqual(TEXT("the dim eats every click"), V->GetDim()->GetVisibility(), ESlateVisibility::Visible);
+		// D18 (S4, the UI concept's scrVictory): the realm stays bright under it; VICTORY the big sticker title.
+		const UBorder* DimPlate = Cast<UBorder>(V->GetDim());
+		TestTrue(TEXT("the layer paints nothing (the realm stays bright)"), DimPlate && DimPlate->Background.DrawAs == ESlateBrushDrawType::NoDrawType);
+		// The code layout says the same (the asset holds its own copy).
+		PawUi::SetCodeLayoutForced(true);
+		const UPawVictoryScreen* Code = CreateWidget<UPawVictoryScreen>(W.GI, UPawVictoryScreen::StaticClass());
+		PawUi::SetCodeLayoutForced(false);
+		const UBorder* CodeDim = Code ? Cast<UBorder>(Code->GetDim()) : nullptr;
+		TestTrue(TEXT("the code layout's layer paints nothing too"), CodeDim && CodeDim->Background.DrawAs == ESlateBrushDrawType::NoDrawType);
+		const UTextBlock* Head = Cast<UTextBlock>(V->WidgetTree->FindWidget(TEXT("Headline")));
+		TestTrue(TEXT("VICTORY at the concept's size"), Head && FMath::IsNearlyEqual(Head->GetFont().Size, PawUi::FontPt(PawUi::VictoryHeadlinePx)));
 		// The field stays held while the screen is up.
 		const uint64 Steps = W.Realm->GetSim().Field.StepCount;
 		W.Realm->AdvanceFrame(FPawRealmSim::Step * 4.0);

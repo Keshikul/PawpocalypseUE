@@ -16,8 +16,10 @@
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Containers/Ticker.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "PcLocales.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "Save/PawSettingsSubsystem.h"
 #include "UI/PawButton.h"
@@ -216,7 +218,7 @@ bool UPawSettingsDialog::Initialize()
 
 		// The scrim (Color(SKY base, 0.8)): it eats every click.
 		Scrim = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Scrim"));
-		Scrim->SetBrush(Rounded(PawTokens::SKY_BASE.CopyWithNewOpacity(static_cast<float>(PauseScrimAlpha)), PawTokens::INK, 0.0f, 0.0f));
+		Scrim->SetBrush(Rounded(PawTokens::INK.CopyWithNewOpacity(static_cast<float>(PauseScrimAlpha)), PawTokens::INK, 0.0f, 0.0f));
 		Scrim->SetVisibility(ESlateVisibility::Visible);
 		UOverlaySlot* ScrimSlot = Root->AddChildToOverlay(Scrim);
 		ScrimSlot->SetHorizontalAlignment(HAlign_Fill);
@@ -238,7 +240,8 @@ bool UPawSettingsDialog::Initialize()
 		Window->SetContent(Body);
 		const float Gap = static_cast<float>(PauseBodySeparation);
 
-		Title = Heavy(MakeText(T, LabelPx, PawTokens::UI_TEXT, false, TEXT("Title")));
+		// D18 (S4): SETTINGS as the concept's sticker title, yellow on its ink outline.
+		Title = ButterTitle(MakeText(T, SettingsTitlePx, PawTokens::UI_SELECTED, false, TEXT("Title")), ButterTitleOutline);
 		Title->SetJustification(ETextJustify::Center);
 		Title->SetText(PawText::Ui(TEXT("SETTINGS_title")));
 		Body->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Center);
@@ -341,6 +344,11 @@ void UPawSettingsDialog::OnLayoutReady()
 			B->OnClicked().AddWeakLambda(this, MoveTemp(Do));
 		}
 	};
+	// D18 (S4): Close, the thing to press when done, on the yellow plate (the concept's).
+	if (CloseButton)
+	{
+		CloseButton->SetCallLook(true);
+	}
 	Click(SectionAudio, [this]() { PressSection(Pc::PcSettingsSection::Audio); });
 	Click(SectionVideo, [this]() { PressSection(Pc::PcSettingsSection::Video); });
 	Click(SectionControls, [this]() { PressSection(Pc::PcSettingsSection::Controls); });
@@ -358,13 +366,11 @@ void UPawSettingsDialog::OnLayoutReady()
 	if (MaxFpsOption) { MaxFpsOption->OnSelectionChanged.AddUniqueDynamic(this, &UPawSettingsDialog::OnFpsPicked); }
 	if (PromptsOption) { PromptsOption->OnSelectionChanged.AddUniqueDynamic(this, &UPawSettingsDialog::OnPromptsPicked); }
 	if (DockSideOption) { DockSideOption->OnSelectionChanged.AddUniqueDynamic(this, &UPawSettingsDialog::OnDockPicked); }
-	// The language list arrives with the languages (phase 7): "System", a door that cannot open yet.
 	if (LanguageOption)
 	{
-		bSyncing = true;
-		Fill(LanguageOption, { Str(PawText::Ui(TEXT("SETTINGS_language_system"))) }, 0);
-		bSyncing = false;
-		LanguageOption->SetIsEnabled(false);
+		LanguageOption->OnSelectionChanged.AddUniqueDynamic(this, &UPawSettingsDialog::OnLanguagePicked);
+		// The asset was baked while the list was a door that could not open (phase 7): it opens now.
+		LanguageOption->SetIsEnabled(true);
 	}
 	Dialog.Section = Pc::PcSettingsSection::Audio; // _ready(): show_section("Audio")
 	FillOptions();
@@ -467,6 +473,16 @@ void UPawSettingsDialog::FillOptions()
 		Str(PawText::Ui(TEXT("SETTINGS_prompts_steam_deck"))) }, static_cast<int32>(Pc::SettingsPromptsSelected(P)));
 	Fill(DockSideOption, { Str(PawText::Ui(TEXT("SETTINGS_dock_left"))), Str(PawText::Ui(TEXT("SETTINGS_dock_right"))) },
 		static_cast<int32>(Pc::SettingsDockSelected(P)));
+	// _fill_language_option(): "System" (a translation), then the languages in their own names; the stored value selected,
+	// else "System" (_select_language_item: a language no longer available shows as System).
+	LanguageCodes = { FString(UTF8_TO_TCHAR(Pc::LocaleSystem)) };
+	Items = { Str(PawText::Ui(TEXT("SETTINGS_language_system"))) };
+	for (const FString& Code : PawText::Languages())
+	{
+		LanguageCodes.Add(Code);
+		Items.Add(Str(PawText::LanguageLabel(Code)));
+	}
+	Fill(LanguageOption, Items, FMath::Max(LanguageCodes.IndexOfByKey(FString(UTF8_TO_TCHAR(P.Language.c_str()))), 0));
 	// _fill_output_option(): refilled on every open (devices come and go): the system's devices, "Default" first.
 	std::vector<std::string> System = { "Default" };
 	if (const UPawAudioSubsystem* Audio = UPawAudioSubsystem::Of(this))
@@ -844,6 +860,32 @@ void UPawSettingsDialog::PickOutput(int32 Index)
 		S->SetOutputDevice(OutputDevices[Index]);
 		ShowPicked(OutputOption, Index);
 	}
+}
+
+void UPawSettingsDialog::PickLanguage(int32 Index)
+{
+	// _on_language_selected(): SettingsManager.set_language(), then every list again in the new language (Godot refills the
+	// Language, Prompts and Dock lists on language_changed; here every list and line, the same as an open).
+	if (UPawSettingsSubsystem* S = Settings(); S && LanguageCodes.IsValidIndex(Index))
+	{
+		S->SetLanguage(LanguageCodes[Index]);
+		Sync();
+	}
+}
+
+void UPawSettingsDialog::OnLanguagePicked(FString, ESelectInfo::Type How)
+{
+	if (bSyncing || !ByPlayer(How) || !LanguageOption)
+	{
+		return;
+	}
+	// Refilling a list from inside its own selection callback re-enters it: the pick waits one tick.
+	const int32 Index = LanguageOption->GetSelectedIndex();
+	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateWeakLambda(this, [this, Index](float)
+	{
+		PickLanguage(Index);
+		return false;
+	}));
 }
 
 void UPawSettingsDialog::OnOutputPicked(FString, ESelectInfo::Type How)

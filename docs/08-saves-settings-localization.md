@@ -202,8 +202,19 @@ translators.
 5. Gate: every culture 100% (or a reviewed exception list), no placeholder lost or renamed (compare `{...}` sets per string),
    pseudo-locale tour at the smallest resolution and largest UI scale finds no overflow `[KB U/20 §2]`.
 
+**As built (phase 7, 2026-11-19/20; `docs/WORKLIST-LOC-2026-11-18.md` §2a, §2b).** Steps 2-4 above were replaced: no PO
+round trip and no `.locres`. `port_po.py` writes each culture's translations next to the tables
+(`Localization/Translations/<culture>/<Table>.csv`, `"Key","Text","Source"`), and the game registers them at startup as
+polyglot text (`PawText::RegisterTranslations`, KB U/20 §3): every string-table text follows the culture live. A row is used
+only when its Source is today's English and its `{placeholders}` are the English's; anything else shows the English until
+translated again (`tools/loc_status.py` lists it). The language setting keeps Godot's codes (`settings.cfg` stays Godot's);
+`Pc::Languages()` (`PcLocales`, port of `locales.gd`, fixture `locales`) maps each to its culture. A language is offered only
+when its translation is complete (Godot: only loaded `.po` files, "so an unfinished language cannot be chosen by accident");
+`-PawDraftLanguages` offers the unfinished ones too, for review.
+
 - **Unreal culture codes** differ from Godot's: `zh_Hans` -> `zh-Hans`, `zh_Hant` -> `zh-Hant`, `pt_BR` -> `pt-BR`, `es_MX` ->
-  `es-MX`. Map them once in `port_po.py` and in the language menu.
+  `es-419` (Steam's Latin American Spanish), `pt` -> `pt-PT`; Dutch `nl` and Danish `da` are the port's own. Mapped once, in
+  `PcLocales.cpp` (and `port_po.py` for the files' folders).
 - Numbers: Godot prints them culture-invariant (no grouping, '.' point), so the port does too (`PawText::Count` / `Fixed`;
   `FText::AsNumber` would group and localise them: gated out of the UI code). The abbreviated big-number format (`Amounts.short`: K, M, B, then scientific) is a
   game rule in PawCore, its suffixes are translatable strings.

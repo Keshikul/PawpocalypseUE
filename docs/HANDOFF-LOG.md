@@ -9,6 +9,843 @@ in whichever file holds it.
 
 ---
 
+## 2026-11-20 (128) - Phase 7: the translations at run time, the languages' rules (F52), Settings > Language
+
+**Where the project is.** On (127), uncommitted. The designer: "last session stopped. continue it". Session (127) had
+ended cleanly, waiting for the designer's word on the card drafts and the skill and badge drafts (no answers or comments
+on either page yet). Continued with what needs no decision: phase 7's next step from (125), the run-time loader and the
+language list. No art, words or numbers changed.
+
+**What happened.**
+- **The languages' rules: `PcLocales`** (PawCore; port of `locales.gd`): each language's name in itself, Unreal's culture,
+  Steam's name; `available`, `from_system`, `from_steam`, the picker's label, `apply_language`'s choice (`LocaleResolve`).
+  The setting keeps Godot's codes (`es_MX`, `pt`, `zh_Hans`): settings.cfg stays Godot's. Dutch and Danish in the table
+  after Swedish. Proven against the real `locales.gd` (new fixture `locales`: the script recompiled with the OS language
+  and the loaded `.po` set as probes; 104 loaded sets x 85 OS locales and 28 Steam names, and every language's label with
+  its own "(draft)" from Godot's `.po` files; reproduces byte for byte). **F52 fixed (D16, doc 01 §5)**: a Portugal system
+  got Brazilian Portuguese, Spanish outside Spain and Mexico got Spain's Spanish, Macau got Simplified Chinese
+  (`godot_fixes.py` applies the same fix to the fixture's Godot; the designer's findings file has F52, uncommitted).
+- **The loader** (`PawText::RegisterTranslations`, at module start): the carried files registered as polyglot text; a
+  row is used only when its Source is today's English and its `{placeholders}` are the English's. Counts per culture:
+  in use, left out, missing (838 lines need words, counted as `loc_status.py` counts). `PawText::ShowCulture`.
+- **Shown at start and on change** (`UPawSettingsSubsystem::ApplyLanguage`): the setting resolved (system: the OS
+  language), `-culture=` wins, never in the editor. The store shots and the pad tour pass `-culture=en`.
+- **Settings > Video > Language** opened: "System", then every complete language in its own name with its own
+  "(draft)" (`SETTINGS_language_draft`: Godot's "(draft)", carried with its 20 translations). **Only complete languages
+  are offered** (Godot: only loaded `.po` files, "so an unfinished language cannot be chosen by accident"; its files were
+  complete). No language is complete today (320 lines each), so the list is System and English; **`-PawDraftLanguages`**
+  lists the unfinished ones (their missing lines in English). A click's pick waits one tick (the list is refilled
+  outside its own selection callback). The Video page now opens on Language (Godot: its first control).
+- **Found:** in the editor, game translations never showed: the localisation preview needs a compiled `Game.locmeta`
+  (none here) and, when on, writes polyglot strings in the editor ini's preview language. `Localization.ForceLoadGameLocalizationInEditor`
+  does it (KB U/20 §3, dated note; symptom index). `tools/run_automation.py` crashed printing a failure's Japanese on a
+  cp1252 console: fixed (a stand-in character).
+
+**Proof.** PawCore 211 cases PASS (`Locales: *` four cases, every fixture row); 10 PawCore sabotages CAUGHT
+(`locales_*`). Engine: `Pawpocalypse.UI.Language.Translations` (20 cultures; German and Japanese live, a text made
+before the switch follows it, a formatted line, a two-line line, a stale line in English until its English matches),
+`.Labels` (every label Godot's), `.Loader` (crafted files: each kind of row, the counts, a complete Danish offered, an
+unfinished German only on request), `Pawpocalypse.UI.Settings.Language`, and the settings suite: 13 PASS. 14 game-module
+sabotages `language_*` CAUGHT (two first refused to compile or lost their target: fixed and seen caught). `check_all`
+(everyday) passed, exit 0 (`build/check_all_20261120_lang2.log`; the first run failed only on a sabotage target this
+session had moved). The `locales` fixture reproduces byte for byte (`make_godot_fixtures.py --only locales --check`).
+
+### Open
+- **The title's Language button and its menu** (Godot's `_open_language_menu`: a paper list above the button, the
+  current language ticked, hover and focus, Escape and a click outside close it). The concept draws only the button: the
+  menu follows the kit and goes on the morning page.
+- `loc_status --apply` (a work file into the culture's files, stamped with the English the translator saw).
+- The translations themselves: 320 lines in each of 18 languages, 323 in cs/pl/ru/uk, 838 in Dutch and Danish.
+- Code-built text that a screen turns into a string once (lists, cached labels) shows the old language until the screen
+  rebuilds: Godot rebuilds on `language_changed`. Settings rebuilds its lists; the title, HUD and tree are to check with
+  `-PawDraftLanguages` once their language can change while they are up.
+- For the designer: whether players should see unfinished languages (today: no, as Godot).
+
+### Next step
+The title's language menu (a grafted layer in `WBP_MainMenu`, rows built from `PawText::Languages()`), its tests and
+sabotages; then `loc_status --apply`; then translation.
+
+## 2026-11-19 (127) - The skill pictures and the achievement badges drafted (1.12)
+
+**Where the project is.** On (126), uncommitted. The designer: "Do drafts". Taken as: draft the skill and achievement
+pictures now, the same way as the cards. The card drafts are not yet approved, so nothing was recorded into the game.
+
+**What happened.** Two new draft files, in the kit's grammar like `concept_cards.js` (primitives the recorder knows, colours
+only from L.c, U or mix() of them), run after the concept's kit, `concept_cards.js` and `concept_icons.js`:
+- `tools/art/concept_skills.js`: `SKILL.<id>` for the 77 skill nodes (the ten job nodes keep their approved hats),
+  `SKILL_WHY`, the helpers `SK`. One mark per idea (its header lists them): the aura = the gold ring of the approved Aura
+  Radius icon, Catnip = the leaf, damage = three curved red scratches (`SK.claws`; not the concept's straight white lines:
+  the designer on Shred, "The lines are too straight"), crit = the Crit Chance burst, increase = green arrow, one more =
+  green plus, automatic = gear. Skills named as an approved upgrade show it (Pounce Power, Aura Reach, Overkill); Dent is
+  the approved Shred icon with the arrow.
+- `tools/art/concept_badges.js`: `badge(family, tier)` for the 18 families in `Data/AchievementData.csv`: today's rule
+  kept (`sweet_ui.py`: one rosette, rim = tier by rank in thirds), the kit's scallop rosette, a paper centre (br_*: the
+  tree's hexagon), the family's symbol at 0.68 (smaller drowned in the kit's fixed line). up_* = that upgrade's dock icon.
+- Review page: https://claude.ai/artifact/KYQRRKXK3xcMR1mfEpxXCq (generator `build/drafts/make_skill_badge_drafts.py`;
+  names from `ST_Data`, so Stacked Deck, not Godot's name; `build/drafts/smoke.js` renders every piece headless: 338, none
+  empty; sheets `build/drafts/sheet.js SKILL|BADGE`). Four questions on it: the skills, the badges, the red scratches for
+  damage everywhere, and redrawing the cards' coins (Catnip) and blue ring (aura) to the leaf and the gold ring.
+
+No game file changed; no gate touched (`sticker_record.js` reads only `concept_icons.js` and `concept_hats.js`).
+
+### Open
+- For the recording step: the card drafts use two things the recorder refuses: `KC.crater`'s literal `#5E3F2A` (no name)
+  and `hot_borders`'s `R(..., 'none')` (not a colour). Name or redraw them before recording the cards.
+- Not drafted: the art's `achievement_br_ferocity_5` and `achievement_br_mystique_6` (no such achievement in `Data/`), and
+  `skill_prism`, `skill_full_spectrum` (no node uses them).
+
+### Next step
+The designer's word on the card drafts (https://claude.ai/artifact/EcGLpgn5XtJTHjRSXaoxbv) and on these. On approval:
+`sticker_record.js` reads `concept_cards.js`, `concept_skills.js` and `concept_badges.js` as it reads
+`concept_icons.js`; `sticker_art` writes `cards/card_<id>.svg`, `skills/skill_<id>.svg` and `ui/achievement_<id>.svg`
+(the badge's tier from the family's rank, as `sweet_ui.ACHIEVEMENTS` does); raster, import, `check_all`.
+
+## 2026-11-19 (126) - The designer's answers; the skill tree's hexagons (1.8b)
+
+**Where the project is.** On (125), uncommitted. The designer, on the review page's questions: "1yes. 2 do hexagon. 3 yes":
+the two draft words approved (`SHOP_amount_label` "Buy amount", `HUD_level` "Level {level}": TEXT-DRAFT and ST_UI say
+so); the skill tree's nodes as the concept's hexagons; drafts for the card, skill and achievement pictures (next).
+
+**What happened (1.8b).** Every node is a hexagon, point up, filling its box top to bottom (the concept's treeNode),
+painted by a new piece `UPawHexPlate` (its own Widget Blueprint, `WBP_HexPlate`; in `PawUi::BakedClasses` before the
+node) that the node holds as its FIRST part, under the icon and the counter: a user widget's own NativePaint runs after
+its children, so the node painting the hexagon itself covered its icon (seen, then moved). The plate takes the state's
+fill and edge (the canvas wants sRGB floats: the tokens are converted) and the node's tint (its shine). The node's old
+Frame stays, clear. The rainbow, pulse and job rings trace hexagons (`UPawTreeLinks::HexPath`); the glow behind a node to
+buy now is round (Godot: a rounded square).
+
+**Proof.** `UI.Tree.Paint`: the old frame clear, the plate painted on an arrange, an unlock's edge heavier, the ring a
+closed hexagon point up. Sabotage `tree_node_no_hexagon` CAUGHT. Graft: `PawTreeNode=add:Plate` (WBP_HexPlate baked).
+A crash on the way: `Pts.Add(Pts[1])` (KB Unreal/24 has it; copied first now). `Pawpocalypse.UI` + `Input` 119 PASS.
+Shot `build/night5/tree_hex.png`.
+
+**Then (the designer's 3).** The 28 card pictures drafted in the UI concept's kit grammar (`tools/art/concept_cards.js`:
+`CARD.<id>`, helpers `KC`, a one-line "what it shows" per card in `CARD_WHY`), each beside today's picture, on
+https://claude.ai/artifact/EcGLpgn5XtJTHjRSXaoxbv (generator `build/steam/page/make_picture_drafts.py`; a sheet for a
+look, `build/night5/cards_sheet.js`). Drafts only: nothing in the game. Batched on purpose: the style approved on the
+cards first, then the 79 skill pictures and the 20 achievement families the same way. `check_all` passed, exit 0
+(`build/check_all_20261119_hex.log`; R4f's round-node sabotage became `tree_hex_on_its_side`, CAUGHT).
+
+### Next step
+The designer's word on the card drafts. On approval: record them (`sticker_record.js` reads `concept_cards.js` as it reads
+`concept_icons.js`; `sticker_art` writes `cards/card_<id>.svg`), raster, import; then draft the skills and achievements.
+
+## 2026-11-19 (125) - Night: localisation started: Godot's 20 translations carried over, the status and work files
+
+**Where the project is.** On (124), uncommitted. The restyle's screens are done but 1.8b (the tree's hexagons) and 1.12
+(card, skill and achievement art: drafts for the designer first); section 2 (localisation) started, as ordered.
+
+**What happened.** `tools/port_po.py` carries Godot's translations to the port's three string tables by English and
+context into `Content/Pawpocalypse/Localization/Translations/<culture>/<Table>.csv` ("Key","Text","Source": the English
+each was made for, so a later English edit makes only that line stale). 517 of 837 lines in 16 languages, 514 in cs, pl,
+ru, uk; 320 lines per language to translate (the port's changed and new English), all 837 in Dutch and Danish.
+`tools/loc_status.py`: translated / missing / stale / broken per culture (self-test plants each case); `--todo` writes
+`build/loc/todo/<culture>.csv` with the English, the comment and the glossary's terms. Both tools are gates in
+`check_all` (`translations carried over`: a planted row CAUGHT). Culture names settled (es-419, pt-PT, ...). Details,
+and the proposed run-time route (polyglot text, KB Unreal/20 §3): `docs/WORKLIST-LOC-2026-11-18.md` §2a.
+
+### Open
+- Translating: about 8,100 lines (320 x 20 + 837 x 2), each language with a native read before it ships.
+- `--apply` (a work file into the culture's files, stamped with the English the translator saw), the run-time loader,
+  the language menu, ICU plurals for cs / pl / ru / uk.
+
+**End of the night.** The everyday `check_all` passed, exit 0 (`build/check_all_20261119_night2.log`; it first caught
+a `FromString` and two colour literals in the Unicorn ceremony's paint: fixed). The Steam screenshots were shot again
+with tonight's game (`build/steam/shots`, 9 of 9; not uploaded to Drive). The morning review page (each screen beside
+the concept, the faults found, what waits for the designer, the translation table):
+https://claude.ai/artifact/RCMPJYVDVQB1cWnzWHj54m (generator `build/night5/make_review.py`).
+
+### Next step
+The designer's answers on the review page (the two draft words; the tree's hexagons and its store shot; drafts for the
+card, skill and achievement pictures; the confetti and the Bait panel). Then phase 7 on: `loc_status --apply`, the
+run-time loader and the language menu, and the translations themselves (`build/loc/todo/<culture>.csv`).
+
+## 2026-11-19 (124) - Night: the victory screen and the check box as the concept draws them (restyle 1.10, 1.11)
+
+**Where the project is.** On (123), uncommitted.
+
+**What happened.**
+- **Victory (scrVictory):** VICTORY at the concept's 84 px with the ceremony's heavier ink outline; the realm stays bright
+  under the panel (the layer still takes every click but paints nothing; Godot: a 0.88 near-black dim). Not built: the
+  confetti (the concept's; a field effect for later).
+- **The check box (the concept's toggle()):** 26 px, cream when off, yellow with the ink tick (`ui_tick`, now inside the
+  box: `CheckTick`) when on, on an ink edge (R3: an ink fill when on, a muted edge). One piece: every check box in the
+  game (Settings, Ask before Reawakening, Auto-travel, Auto-pick).
+- 1.12 (the card faces' art, the skill and achievement icons in the kit's style) is NOT started: the concepts never drew
+  those pictures, so they are drafts for the designer first (the plan says so); tonight went to the screens.
+
+**Proof.** Grafts: WBP_VictoryScreen (text Headline, restyle Dim), WBP_Button (add CheckTick, restyle CheckBox).
+`UI.Victory.Ending` reads the clear layer in the asset AND the code layout (a code-only sabotage was MISSED by Parity, so
+the test now checks both), the headline's size and outline; `UI.Hud.ReawakenLook` reads the check box both ways.
+Sabotages CAUGHT: victory_dark_dim, check_ticked_ink, check_tick_never_shown. `Pawpocalypse.UI` + `Input` 119 PASS.
+Shots `build/night5/victory_a.png`, `check_a.png`.
+
+### Next step
+Section 2 of the night's plan: localisation (phase 7), starting with Godot's translations carried over.
+
+## 2026-11-19 (123) - Night: the Unicorn ceremony as the concept draws it (restyle 1.9)
+
+**Where the project is.** On (122), uncommitted.
+
+**What happened.** The ceremony (PawCore's Godot-exact timeline, painted by `UPawUnicornCeremony`) gains the concept's
+scrUnicorn: its coral rays and four white sparks (`ui_icon_unicorn_rays`, `sticker_art.write_ceremony`, the concept's
+literals `UNICORN_RAYS` / `UNICORN_SPARKS`; 1920 x 1080 like the Reawaken ceremony's rays) behind the rainbow instead of
+Godot's ink dim, faded in and out as the dim was (the dim stays where the picture is missing); "UNICORN" as its sticker
+title (the skill's name in capitals, yellow on a thick ink outline) and the line that says what changed
+(`REAWAKEN_unicorn`, the Reawaken tab's words: no new string) on a cream plate under the rider. Painted, so no layout
+asset changed. The title sits at 80 in the concept's frame (its 140 overlapped the game's rider, who stands higher).
+
+**Proof.** `UI.Unicorn.Plays` asserts the rays, the title and the line (the batch count lost the dim's 2 triangles);
+`UI.Icons` exempts the picture from the 128 px rule like the other ceremony pictures. Sabotages CAUGHT:
+unicorn_dim_not_rays, unicorn_no_title. Shot `build/night5/unicorn_a.png`.
+
+### Next step
+1.10: the victory screen as the concept's scrVictory.
+
+## 2026-11-19 (122) - Night: the skill tree in the concept's colours (1.8a); unreadable text on plates found and fixed
+
+**Where the project is.** On (121), uncommitted.
+
+**Faults found (the store shot 07 shows them).** The skill tree's Stardust pill and its legend showed NOTHING: their text
+was the plum era's cream (`SKY_STAR`) on the now-cream plate, 1.00:1. The pause menu's status line was green on cream
+(3.3:1) and green even for "Slot n was not saved." and the overwrite warning. Fixed to ink. Continue stood on the legend
+in the spend step at every size.
+
+**New guard: `Pawpocalypse.UI.Widgets.ReadableOnPlates`.** Every text, prompt line and icon line every Widget Blueprint
+puts on a painted plate must read against it (WCAG 2 AA: 4.5:1, 3:1 at 24 px and up; a sticker title is judged by its
+ink outline). It FAILED on exactly the three faults above, then passed after the grafts. Sabotage
+`tree_text_cream_on_cream` CAUGHT (Parity).
+
+**What happened (1.8a, the concept's scrTree, colours and chrome).**
+- The sky: the concept's night blue (`SKY` in `palette.py`; the plum sky kept as `SKY_PLUM`), its pale yellow dots, the
+  clouds a breath lighter than the blue.
+- Nodes: owned green on ink, a node to buy now raised in the heavy gold ring, the rest slate on a slate edge with the
+  icon faded (Godot: the trunk's colour, a brightness ladder). The lock is NOT drawn on slate nodes: "Locked" here also
+  means "reachable but too dear", and a lock would mislead.
+- Links: ink with a cream core where owned, slate where not.
+- Continue: yellow with the Reawaken swirl; it stays big and in the middle (the designer, 2026-08-23: "not so in the
+  corner"; the concept has it in the corner), raised above the legend; the legend moved to the bottom-left (the
+  concept's place).
+- Every dimming scrim (pause, settings, card pick, job picker, the title's layers) is ink now, the concept's scrim; they
+  borrowed the plum sky's base, which is now blue.
+- Tests updated to the new rule: `Tree.Paint` (owned green on ink, ready in the gold ring, locked darkest), the PawCore
+  sky test (the fixture proves position, size and alpha; the colours are the palette's: star, clouds between its two;
+  the base compared in float). New: `Layout.Tree`'s spend step (Continue covers no legend: FAILED before the move).
+  Sabotages CAUGHT: tree_owned_not_green, sky_star_in_cloud_colour (PawCore).
+- `Pawpocalypse.UI` + `Input` 119 PASS; PawCore 207 PASS. Shot `build/night5/tree_a.png`.
+
+### Open
+- 1.8b: the concept's hexagon nodes (today: round skills, rounded-square unlocks), its yellow star hub and the branch
+  name pills; the side panel as its white card with the Buy button.
+
+### Next step
+1.9 (the Unicorn ceremony). Checkpoint: the everyday `check_all` passed, exit 0 (`build/check_all_20261119_night.log`), after eight older sabotages were aimed at tonight's code (each seen CAUGHT again; `wave_plate_flat` became `field_plate_flat`) and the sky test's casts written without the word float (PawCore's no-float rule).
+
+## 2026-11-19 (121) - Night: the boss panel (restyle 1.7), and why it covered the pills
+
+**Where the project is.** On (120), uncommitted.
+
+**A bug found (in the store shot 02 too).** At 1920 x 1080 the boss panel sat at x 12, over the Catnip and Stardust
+pills. Cause (engine): Slate centres a child at `(allotted - child) / 2 + padding.Left - padding.Right`
+(`LayoutUtils.h` AlignChild), not in the middle of the padded room, so the port's "centred on the field" (HAlign_Center,
+the dock's width as padding) put it at (1920 - 760) / 2 - 568 = 12. KB `Unreal/24` has the row now.
+
+**What happened (1.7, the concept's scrBoss).**
+- `PlaceBossPanel` (every tick, writes only on change): the panel BESIDE the status panel, between it and the dock, where
+  480 units fit; under the status panel where not (1280 x 800 at 150 %, 1920 x 1080 at 150 %); as wide as 760 or the
+  room; placed left-aligned at a computed x, the width set on `BossBox`.
+- The line heavy on the left; SHIELDED on its own red tag on the right (`BossShield`; Godot: a suffix on the line, so
+  `BOSS_shield_suffix` is gone and `BOSS_status` lost its always-empty `{shield}`: no visible word changed); the bar the
+  concept's (a track, an ink edge, the coral fill; Stardust while shielded).
+
+**Proof.** New `UI.Layout.Boss`: summons the Park Tyrant and measures at the four sizes, dock on either side: the panel
+covers no pill, the status panel or the dock, and at 1920 x 1080 sits beside the status panel. Godot's placement put
+back (sabotage `boss_centred_on_the_field`) is CAUGHT by it; `boss_shield_tag_hidden` CAUGHT by `Hud.Boss` (new shield
+checks). Grafts: wrap BossText > BossHead, add BossShield, restyle BossBar. `Pawpocalypse.UI` + `Input`: 118 PASS.
+Shot: `build/night5/boss_a.png`.
+
+### Open
+- **The Steam screenshots need shooting again** (`py tools/store_shots.py`): 02 shows the old overlap, and every shot
+  shows the HUD before tonight's restyle. Then the Drive store folder (it still has v2 of the text).
+- The controls table's cells use the same centre-with-left-padding pattern (`PawControlsPanel.cpp` ~284): a 5 px shift,
+  not chased.
+
+### Next step
+1.8: the skill tree as the concept's scrTree.
+
+## 2026-11-19 (120) - Night: the dock's other five tabs as the UI concept draws them (restyle 1.2 to 1.6)
+
+**Where the project is.** On (119), uncommitted; the night's plan `docs/WORKLIST-NIGHT-2026-11-18.md` (1.1 to 1.6 done).
+
+**What happened.**
+- **Reawaken (scrReawaken):** the payout in its own box (`PayoutPanel`: the heading muted and spaced, the Stardust star
+  and "+n" 48 px in the concept's purple `UI_STARDUST_BRIGHT`, the total beside it, both multiplier lines heavy); "Ask
+  before Reawakening" a plain check box (flat) ABOVE the button; the button yellow when it can be pressed, with the
+  Reawaken swirl (Godot: Stardust's); the tab opens on the button. The rainbow progress bar is kept (Godot's "ready").
+- **Realms (scrRealms):** the stage line heavy; every row's words on the left after an icon (a flag to travel, the paw
+  where the cat is, the lock where it cannot go, Catnip where Catnip is missing); the cat's biome on the yellow plate and
+  no longer locked (a press there does nothing: PcHud's row is not enabled); a newly open biome only leans (R4a made it
+  yellow; yellow now means "here", as drawn); Auto-travel a plain check box under the map. Not built: the Bait box's own
+  rainbow-framed panel (the Bait button keeps its call look and lean).
+- **The Catches (scrCatches):** every card stays listed (designer, 2026-09-11), ordered: the run's cards, then the ones
+  that can be taken, then the ones that cannot (banished, a skill or kittens missing), those locked with the lock; every
+  row on its plate with the card's picture; the summary heavy; Auto-pick a plain check box under the list. The concept's
+  "four slots" are a drawing, not a rule (nothing in Godot or the port limits a run to four); no "Not available this run"
+  heading (it would be a new string: the designer's call).
+- **Achievements (scrAwards):** each row on its plate (a secret one on the off plate); the name heavy and ink, the line
+  under it muted; a bar before the numbers while it is still going; the trophy faded until earned; Claim and Claim all
+  yellow. Godot's ★◆☆ disc (a stand-in until art) is hidden: the trophy and the plate say it.
+- **Jobs (scrJobs):** each job on its plate, the worn one yellow, a locked one on the off plate with its hat faded; the
+  name heavy. The state pill (Worn / Owned / Locked) stays on every row: it is what a pad selects to read the row.
+- Parts the grafts find by name are named now (`ReawakenBarBox`, `RealmsBlurb`, `JobsBlurb`, the payout's parts): an
+  unnamed text's auto-name shifted when the payout heading got its name, and Parity compares unnamed texts by auto-name.
+
+**Proof.** Grafts into WBP_HudScreen (the payout lines out, `PayoutPanel` in fresh; Ask, Auto-travel and Auto-pick moved;
+the stage line and summary restyled). New test `UI.Hud.ReawakenLook` (FAILED on the committed asset); `Hud.Realms`,
+`Hud.Catches`, `Hud.Achievements`, `Hud.Jobs`, `UI.Icons` assert the new rules (older assertions of the old look updated:
+the here row locked and green, card rows by index, the box first in the Catches column, the Reawaken button's star).
+Sabotages CAUGHT: reawaken_never_yellow, reawaken_opens_on_the_check_box, realm_here_not_yellow, realm_rows_bare,
+catches_unordered, catches_out_of_reach_open, awards_no_bar, awards_claim_plain, job_worn_plain. `Pawpocalypse.UI` +
+`Pawpocalypse.Input`: 117 PASS. Shots in `build/night5` (`reawaken_a`, `realms_a`, `catches_a`, `awards_a`; the concept's
+`c_*.png`). Not shot: Jobs (it needs a job bought through the spend step).
+
+### Open
+- The card pictures on the Catches rows are still the grammar's (S6: 1.12). The check boxes still draw Godot's square
+  (1.11).
+
+### Next step
+1.7: the boss panel as the concept's scrBoss.
+
+## 2026-11-18 (119) - Night: the HUD's Upgrades tab as the UI concept draws it (restyle 1.1)
+
+**Where the project is.** On (118), uncommitted. The designer: "Add dutch and danish. Restyle then translate. Create an
+overnight plan." The plan: `docs/WORKLIST-NIGHT-2026-11-18.md` (section 1, the restyle's remaining screens, then section 2,
+localisation; Dutch and Danish join: 23 languages, `docs/WORKLIST-LOC-2026-11-18.md`). First the everyday `check_all`
+passed (exit 0), so (118) is proven.
+
+**What happened (1.1, the concept's scrUpgrades).**
+- **The dock:** each page's title heavy, 30 px, on the left (`MakePageTitle`); the buy amount on its own row, "Buy amount"
+  (muted) and a switch of four (x1 / x5 / x10 / Max) on a raised plate, the amount in use yellow (`SetActiveLook`), a press
+  picks it, Q still steps through them, focus follows the pick, left / right along the switch, up to the tab, down to the
+  first row (the switch is one stop of the column: the focused button, else the chosen). The old "Buy x1" button and its
+  string `SHOP_buy_multiplier` are gone. The legend now above the quick bar; the quick bar's four buttons on plates
+  sharing the width.
+- **The status:** the pills' numbers 30 px (R4's 24); ONE panel under them, as wide as the pills: the biome's name (heavy),
+  the next biome's line over its green bar, the wave line (muted) over its blue bar (Godot: two plates). The rainbow and
+  the lean go round the whole panel now. The bars are the concept's (`UI_BAR_TRACK / ZONE / WAVE / XP`, new tokens from
+  the recorded concept colours: `palette.py` UI).
+- **The level:** along the bottom on a plate, "Level n" (heavy) before a purple bar; the next level's number stays at the
+  bar's end (the concept leaves it out; it says where the bar leads).
+- **Pounce:** "Pounce" and its key on a plate beside the clock (shown with the clock), centred on it.
+- **The toast:** the concept's controller icon (`ui_icon_pad`, new: recorded from the concept's IC.pad, `sticker_art`
+  NEW_ICONS) before the words, the words heavy.
+- **Locked shop rows** show the lock (`ui_lock`, now rasterised and imported) instead of the greyed upgrade icon.
+- New words, DRAFTS for the designer: `SHOP_amount_label` "Buy amount", `HUD_level` "Level {level}"
+  (`docs/TEXT-DRAFT-2026-11-19.csv`; REAWAKEN_blurb carried).
+- Not built: the concept's tutorial tip plate (the tutorial is not ported yet: phase 6's, only its setting is stored).
+
+**Proof.**
+- Grafts (the assets own the layout): `PawHudScreen` (remove MultiplierButton, add AmountRow; the six titles' text and
+  slots; DockLegend moved; the quick buttons' props and slots; ZonePlate / WavePlate / XpRow / PouncePrompt removed and
+  FieldPlate / XpPlate / PounceBox added fresh, every part NAMED: an unnamed part's auto-name drifts within one graft run,
+  so restyles of `SizeBox_3` and `SizeBox_5` failed and saved nothing), `PawToast` (wrap Message > Line, add Icon).
+- New tests: `UI.Hud.DockLook`, `UI.Hud.StatusLook`, `UI.Hud.PounceLook`; `Hud.Readouts` and `Hud.Navigation` read the
+  switch; `Input.Device` the toast's icon. Each look test FAILED on the asset as committed (`build/night5/neg_asset.py`:
+  the committed WBP swapped in through safe_mutate, then back). Older tests that pinned the old look updated (Chrome's
+  table, the quick bar bare, the rainbow and the lean on the zone plate).
+- Sabotages (`tools/sabotage_realm.py`), all CAUGHT: amount_press_steps, amount_never_yellow, amount_switch_stuck,
+  page_title_light, biome_name_blank, rainbow_round_the_zone_line, level_number_alone, pounce_plate_always,
+  locked_row_own_icon.
+- `Pawpocalypse.UI` + `Pawpocalypse.Input`: 116 tests PASS. Static gate PASS. Shots: `build/night5/dock_a.png`,
+  `status_a.png`, `upgrades_b.png` (concept: `build/night5/c_upgrades.png`).
+
+### Open
+- The two draft words. The Pounce plate is proven by test; a scripted shot of it needs Pounce bought through the spend
+  tree, whose exit starts the next run (not chased).
+
+### Next step
+1.2 in `docs/WORKLIST-NIGHT-2026-11-18.md`: the Reawaken tab as the concept's scrReawaken.
+
+## 2026-11-18 (118) - The designer's answers: the rest of Missing Art, the shop words, D19, the store signed off, languages
+
+**Where the project is.** On (117), uncommitted. The designer: "The other missing art is ok. Do next steps. What are 3 shop
+words? Ask me questions about the rest", then eight answers (below).
+
+**The answers (2026-11-18).**
+- The shop words `Lv {level}`, `MAX`, `Lv {level}  +{levels}`: approved (TEXT-DRAFT and ST_UI notes say so).
+- E1, Fredoka titles: "We will work on title and logo in detail later. Keep as is for now."
+- Store page: the text approved; length "Leave length off"; the top five tags approved; the AI disclosure "I'll write my
+  own"; languages: "Check all most used steam languages as translate into all of them. Also if we make changes later
+  make sure that we don't have to retranslate everything and just redo things we changed."
+- Q13: "Raise the five prices": D19.
+
+**What happened.**
+- **The six other upgrade icons and Bait are in** (Kitten Power, Kitten Speed, Aura Radius, Overkill, Pounce Power,
+  Pounce Recovery; `ui_icon_bait` over the old drawing): `tools/art/concept_icons.js`, copied from the page, recorded.
+  `Hud.Readouts` asserts every one of the 15 rows draws an icon (6 FAILED before the import).
+- **D19 built:** five late nodes repriced (Curiosity 20,000; Gridlock 20,000; Overflow 70,000; Full Spectrum 250,000;
+  Standing Wave 900,000) as `tools/godot_fixes.py` D19 entries (exact text on Godot's `.tres`, the repo untouched),
+  `Data/` re-exported (only those 5 rows changed), DataTables imported, the tree fixtures regenerated from Godot with the
+  fix. Measured (`tools/econ_review.py`): the game 112.5 -> 113.3 min, 13 Reawakens, the longest stretch with nothing new
+  13.9 -> 14.7 min. PawCore test "D19: ..." (seen to fail on Overflow put back to 520 through safe_mutate). doc 01: D19,
+  Q13 decided.
+- **A store-page error of mine, fixed:** version 2 had changed "Stardust increases damage and Catnip" to "damage" from
+  Godot's code, but D17 E3 makes the Reawaken multiply Catnip from kills in this game. English and all 20 translations
+  say "damage and Catnip" again; the length line is gone from all 21; the draft is version 3 (signed off).
+- **Change tracking for the store translations:** `translated_from.json` (per language and field, a hash of the English
+  it was made from); `--todo` lists what to translate again, `--stamp` records it; the pack refuses to build while a field
+  is stale; self-test: an English edit makes only that field stale in all 20.
+- **Languages** (`docs/WORKLIST-LOC-2026-11-18.md`): Steam's October 2026 survey (figures model-extracted from Valve's
+  page: approximate): the game's 21 languages cover about 98.9 %; every language above 0.25 % is in the set except
+  Dutch (0.27 %); Dutch and Danish would add about 0.5 %. The game itself is still English only: phase 7's order and the
+  game's change tracking (Unreal's archives keep each translation's source) are in that worklist.
+
+**Proof.** PawCore 207 cases pass; D19's negative test caught. UI: Hud + Icons 14 pass after the icons (6 failed before).
+Store pack: 21 languages, every check; self-test 8 of 8. Everyday `check_all`: the first run FAILED two gates, both mine: editing `ST_UI.csv` with Python's `write_text` made it CRLF (L0 ui-rules; the ceremony's two-line payout doubled its break, `UI.Ceremony.Plays`); fixed to LF. A blanket CRLF-to-LF pass then broke two generator checks (data export, tree tables): the generators re-run, the static gate PASSES (KB Unreal/20 notes both). The second run was **stopped by Claude Code for low system memory** after 23 gates, all PASS (L0, L1 PawCore, the art and text gates, the editor build, DataTable parity, L3 Data, Realm, UI, Save); **not run: L3 Input and Audio, the game build, sabotage targets, Godot fixes current, Godot repo untouched.** Rerun in the foreground (the designer: "Restyle then translate. Create an overnight plan"): **every gate passed, exit 0** (`build/check_all_20261118_d19.log`). The night's plan: `docs/WORKLIST-NIGHT-2026-11-18.md`; Dutch and Danish added to the languages (23).
+
+**Open (the designer).** Dutch and Danish (add them?); the AI disclosure text; a native read of each store translation;
+the clips (needs a screen recorder); E1 later with the title and logo.
+
+**Next step.** Phase 7 step 1 (`tools/port_po.py`: Godot's translations into Unreal's localisation, unchanged lines) and
+the dock tabs (S4), in that order unless the designer says otherwise.
+
+---
+
+## 2026-11-18 (117) - Shred and Shield Pierce redrawn and in; settings as the concept draws them
+
+**Where the project is.** On (116), uncommitted. The designer: "Change shread and shield pirce. The lines are too
+straight and dint convey tearing things apart"; on Missing Art v3, "Shred b, shield a. Continue".
+
+**What happened.**
+- **Missing Art v3** (same link): three ways each to show tearing, drawn in the concept's grammar
+  (`build/steam/page/tear_options.js`), previewed locally first (`tear_board.png`: the first slashes were too thin to
+  fill, thickened). v4 marks the choice.
+- **Shred B and Shield Pierce A are in the game:** `tools/art/concept_icons.js` (identical to the chosen options,
+  checked) runs beside the concept in `sticker_record.js`; its icons replace the shop's (`ui_icon_upgrade_shred`) or
+  fill a gap (`ui_icon_upgrade_shield_pierce`).
+- **`UPawButton::IsIconShown` was wrong:** it counted a kept, empty icon place (Hidden) as shown, so a new assert passed
+  for an icon that did not exist. It now means a picture is drawn; the 94 UI tests still pass with it, and the Shield
+  Pierce assert failed until the icon was imported.
+- **Settings** (the concept's scrSettings): SETTINGS a sticker title (`text:Title` grafted); Close on yellow; the
+  controls table's head on a raised band (`wrap:TableHead>TableHeadPlate`), its words muted capitals; every other row
+  on a faint band (rows are built at run time). Kept: the checkboxes, per-row Reset, the binding plates.
+
+**Proof.** Icons: `Pawpocalypse.UI.Hud.Readouts` FAILED before the import (Shield Pierce), PASSED after; `check_all`
+exit 0 (`build/check_all_20261118_icons.log`). Settings: `Settings.Look` FAILED on the old assets (title, head band;
+Parity one border short), Settings + Controls + Widgets + Layout PASS (22) after the grafts. Sabotages `settings_close_plain`, `controls_heads_mixed_case`,
+`controls_rows_unbanded`: all CAUGHT. Everyday `check_all`: **every gate passed, exit 0** (`build/check_all_20261118_settings.log`).
+
+**Open (the designer).** Missing Art's six other upgrade icons and Bait; the three shop words; E1 (Fredoka titles); the
+store page sign-off.
+
+**Next step.** The other dock tabs (Reawaken, Realms, Catches, Achievements, Jobs), the boss panel, the skill tree, the
+Unicorn ceremony.
+
+---
+
+## 2026-11-18 (116) - The approved hats in the field, the job icons, the job picker as the concept draws it
+
+**Where the project is.** On (115), uncommitted. The designer, on Missing Art v2: "The hats are good. The ones that are
+specific. Not the top hats" (the seven drafted hats approved; option B for the job icons, each job's own hat).
+
+**What happened.**
+- **The hats are recorded like the cast.** `tools/art/concept_hats.js` holds the approved page's seven hats (identical
+  to `build/steam/page/make_missing_art.py`'s, checked) and the job -> hat table; `sticker_record.js` runs it beside the
+  UI concept (whose `hatFig` draws the other three) and writes `sticker_cast.JOB_HATS`. The hats' literal colours got
+  names (`hatCap` ... `hatYellow`). `--check` passes.
+- **In the field:** each `hat_<job>` is drawn in one square all ten share (128 px, rimmed like the weapons);
+  `sticker_art` works out the placement from it, the mounted one through riderFig's transform, and `PawFieldLook.h`
+  holds it: standing (-0.189, -0.202) x 0.775, mounted (-0.010, -0.220) x 0.366 (`build/night4/hats_preview.png`: all
+  ten on the Tiny Kitten and on the rider). `Pawpocalypse.Realm.Look.Rules` pins the new numbers.
+- **The job icons** (`job_<job>`) are each job's hat alone, at the icon line (option B).
+- **The job picker is the concept's** (scrJobPick): a card per job, up to five a row, in a box that shrinks the panel to
+  fit; the Tiny Kitten in the job's hat on a photo (`ui_icon_job_cat_<job>`, 256 px; "No job": `_none`, the bare
+  kitten); the job's name on its button; its blurb; the lifted card's button on yellow (last run's job opens focused).
+  Grafted: `wrap:SizeBox_0>Fit; restyle:SizeBox_0`. Kept: every held job at once and the job's name as the button (the
+  concept pages three jobs with LB / RB and a new "Wear" word, which would be new strings).
+
+**Proof.** Look lint PASS; the recorder's check OK. Engine: JobPicker + Widgets + Icons + Chrome + Hud.Jobs + Realm.Look:
+16 pass after the graft (Parity FAILED before it, naming the missing ScaleBox). Sabotages `jobpick_cat_bare`, `jobpick_never_yellow`, `jobpick_photo_plain`, `hat_on_the_old_head`: all CAUGHT. Everyday `check_all`: **every gate passed, exit 0** (`build/check_all_20261118_hats.log`).
+
+**Open (the designer).** Missing Art version 3 (https://claude.ai/artifact/J265sfqjxSbdsSNsXU3VSh), after the designer's "Change
+shread and shield pirce. The lines are too straight and dint convey tearing things apart": Shred A / B / C and Shield
+Pierce A / B / C (drawn in the concept's grammar, `build/steam/page/tear_options.js`; a chosen one goes into
+`tools/art` and is recorded like the hats); the other six upgrade icons and Bait. The three shop words; E1 (Fredoka
+titles); the store page sign-off.
+
+**Next step.** Settings (Controls with keycaps and pad glyphs side by side), the other dock tabs, the boss panel, the
+skill tree, the Unicorn ceremony.
+
+---
+
+## 2026-11-18 (115) - S4: the save slots show each save's cat
+
+**Where the project is.** On (114), uncommitted. The designer: "Go". **The editor may be opened** once the sabotages below
+finish (another project's Unreal runs on this machine at times: wait for it, never close it).
+
+**What happened.**
+- **Each slot card shows the save's cat at its stage** (the UI concept's slotCard) in a photo well at the card's top:
+  - grass for a save (new UI token `photo` #BFE3A3, the concept's; the palette's rules pass);
+  - card stock for an empty slot, the off plate for one that cannot be read; no cat in either.
+  The stage is the game's own rule read from the file: `Pc::PcSlotSummary` now carries `BossesDefeated` and
+  `bFinalBossDefeated`, and `Pc::EvolutionStageFor` is the one rule (`EvolutionStage` calls it). Seven pictures,
+  `ui_icon_slot_cat_1..7` (256 px, `sticker_art.write_slots`: the stage's cat with its weapon).
+- "Slot N" moved inside the card, at its top (the concept's; under the card it was ink on the dark scrim, hard to read);
+  the card is 380 tall. CHOOSE A SLOT is a sticker title.
+- The title's figure lambda was named `Cast`, hiding Unreal's `Cast<>` in the same function; renamed `AddFigure` (its
+  sabotage follows).
+- `build/night4/slots_shot.py`: a slots screenshot with a real save, in a sandboxed folder (`-PawSaveDir` without
+  `-NoSave`: that flag switches saving off, so a run with it can never show a save).
+
+**Proof.** PawCore L1: 206 cases pass; the summary test asserts the stage (one boss: 3; out of order: 1; the end: 7);
+sabotages `slot_summary_forgets_the_ending`, `slot_stage_ignores_the_ladder_order` CAUGHT. Engine: `Pawpocalypse.UI.Title.SlotCats`
+(new) FAILED on the asset before the graft (no cat, no well) and PASSED after; Title + Icons + Widgets + Layout: 22 pass.
+Sabotages `slot_cat_always_kitten`, `slot_well_always_grass`, `slot_cat_on_an_empty_slot`, `slot_number_under_the_card`, `title_cat_missing` (retargeted): all CAUGHT. Everyday `check_all`: **every gate passed, exit 0** (`build/check_all_20261118_slots.log`).
+
+**Open (the designer).** As in (114).
+
+**Next step.** The job picker once the hats are approved; until then settings (Controls with keycaps and pad glyphs side by
+side), the other dock tabs, the boss panel, the skill tree, the Unicorn ceremony.
+
+---
+
+## 2026-11-18 (114) - S4: the card pick and the title as the UI concept draws them
+
+**Where the project is.** On (113), uncommitted. The designer: "Oh continue with development. Whats next? Are all new art
+assets and uis in?" (answered: not all; the list is in the worklist's S4 to S6). **The editor may be opened** (nothing
+running once the sabotages below finish).
+
+**What happened.**
+- **The card pick is the concept's** (its scrPick):
+  - the band holds the flavour alone, spaced out;
+  - the picture sits on a panel tinted with the flavour (55 % to white, the concept's mix), the name under it;
+  - every card says "LEVEL n of max" with a dot per level, filled to the level taking it gives (a new card too);
+  - NEW is the concept's red starburst over the band's end (`ui_icon_card_new`, 128 px, `sticker_art.write_card_pick`;
+    the word is the game's string over it);
+  - the lifted card (pointer or pad) has its Take on the yellow plate;
+  - LEVEL n is a sticker title with "Take 1 card." in ink, on a card-stock panel; Reroll carries the Reawaken arrow.
+  Grafted into `WBP_CardFace` and `WBP_CardPickScreen`. `tools/bake_widgets.py`'s `wrap:` now allows a wrapper that holds
+  more than the wrapped part (each other child after with `add:`). Kept: the data-driven band colours (the concept
+  coloured 3 of 7 flavours, two of them near-identical yellows) and Banish under Take inside the card.
+- **The title is the concept's** (its scrTitle):
+  - the Tiny Kitten and three mice on the garden (`ui_icon_title_cat` 512, `ui_icon_title_mouse` 256,
+    `sticker_art.write_title`);
+  - the logo centred and upright;
+  - the status line in heavy ink.
+  `Pawpocalypse.UI.Layout.Title` caught two clashes on the first try (the concept's lower logo over the menu at 150 % UI;
+  a mouse off the screen at 1280 x 800, 150 %): the logo keeps R4c's height and the right-hand mice sit closer in. The
+  concept's bottom row (labelled links beside the hint) and its status pill do not fit at 1153 units wide: the links stay
+  icon plates at the bottom right, the hint bottom left, the status in the menu panel.
+- The icon test lets the title's two pictures be their own size, as the ceremony's.
+
+**Proof.** Before each graft the new asserts FAILED on the asset (card pick: the starburst, dots, tint, title panel and 7
+missing parts by Parity; title: logo, cast, status, 4 images by Parity), and PASSED after (CardPick + Widgets 16; Title +
+Icons + Layout + Widgets 21). Sabotages: `pick_rank_always_new` (retargeted), `pick_new_badge_never`,
+`pick_dots_never_filled`, `pick_art_panel_untinted`, `pick_take_never_yellow` all CAUGHT; the title's five
+(`title_logo_left` retargeted, `title_logo_tilted`, `title_cat_missing`, `title_mice_not_mirrored`, `title_status_muted`):
+all CAUGHT. Everyday `check_all`: **every gate passed, exit 0** (`build/check_all_20261118_pick_title.log`). Its first run failed L0 ui-rules (the art panel's tint built with `FromSRGBColor` in the screen's code): the concept's `mix()` is now `PawTokens::MixSrgb`, emitted by `tools/gen_paw_tokens.py`.
+
+**Open (the designer).** As in (113) and (112): Missing Art (5 hats, 7 upgrade icons and Bait, job icons A or B), the three
+shop words, E1 (Fredoka titles), the store page sign-off.
+
+**Next step.** The job picker once the hats are approved; until then the save slots (the cat at the save's stage), then
+settings (Controls with keycaps and pad glyphs side by side), the other dock tabs, the boss panel, the skill tree, the
+Unicorn ceremony.
+
+---
+
+## 2026-11-18 (113) - The store set: text version 2 checked against 11 comparable pages and the data, 20 store translations, Drive
+
+**Where the project is.** On (112), uncommitted. The designer: "Are all store assets including store localization up to
+date and in drive? Look at similar games and read their store pages. Take note of the language they use and sizes of their
+gifs. Make sure that all out descriptions are good and rewady". No game code changed; no engine run.
+
+**What happened.**
+- **Drive was out of date.** `Pawpocalypse/Promotional/Steam` held only the 2026-11-03 set (old look, old text, old
+  clips and GIFs). None of the Sticker Box store art, the 2026-11-18 draft or the new screenshots were there, and no store
+  translation existed. Now in a new folder beside the old one (old files kept):
+  https://drive.google.com/drive/folders/15rMpsxaBC7ibx56pM7VpWSKpgNicScKO
+  - the 13 store images and the 9 screenshots (byte sizes match the local files);
+  - the draft, the 21-language text, the Steamworks localization JSON, the research notes, a README.
+- **11 comparable pages read** (`build/steam/research`: `fetch_pages.py` over Steam's public `appdetails`; `NOTES.md`).
+  None serves a GIF: Steam converts them to webm + mp4. Clip widths 1170 / 780 / 616 / 400 px; 1170 px gameplay
+  0.7 to 2.7 MB. 6 of 11 short descriptions open with the genre; the plainest pages name concrete things.
+- **The page text is version 2** (`docs/STEAM-PAGE-DRAFT-2026-11-18.md`, its first section lists every change). Two
+  version 1 claims were wrong, found by checking each against `Data/` and Godot:
+  - "evolves 7 times": the cat has 7 stages and starts at the first, so it evolves 6 times (`get_evolution_stage`);
+  - "each stage has its own weapon": stages 3 and 6 share RAINBOW_MINIGUN.
+  Also: Stardust raises damage only (`combat_resolver.gd`); jobs are unlocked in the tree and one is picked per run;
+  "21 languages" was removed from the features (it contradicted English only). The short description names geese,
+  crocodiles and ghosts ("mice" stays out, VOCAB). `build/steam/text_check.py` (now cut at the next section): 0 flags.
+- **Store localization drafted** (`build/steam/localization`): `store_text.py` holds the page in English and the
+  game's 20 languages, each with the game's own terms (`build/steam/research/glossary.py` reads Godot's `.po` files).
+  `make_store_localization.py` writes `storepage_localization.json` and `readable/` only when every check passes:
+  - short description at most 280 characters;
+  - the same numbers as the English;
+  - the game's Reawaken and stage names, and Catnip and Stardust word stems;
+  - the English is the draft's, word for word.
+  `--self-test` plants 7 faults and catches all 7. On the first run the checks caught de/fr/hu short descriptions over
+  280 and Japanese counters; all fixed.
+- **KB** Steam/05: the measured clip sizes, how to read a webm's size from its header, and how much a short
+  description grows in translation (+19-23% for de/hu/fr).
+
+**Proof.** `py -I build/steam/localization/make_store_localization.py`: 21 languages, every check passed;
+`--self-test`: 7 of 7 caught. `py build/steam/text_check.py`: 0 flagged.
+
+**Open (the designer).** The draft's "Open" list:
+- sign off version 2;
+- the length line;
+- English only until phase 7;
+- the AI disclosure;
+- the top tags;
+- a native read of each translation;
+- clips in the new look (needs ffmpeg, the designer's call).
+The screenshots need a retake once the title, card pick and job picker are restyled. Plus everything open in (112).
+
+**Next step.** As in (112): the card pick as the concept draws it (grafts on `WBP_CardFace`), then the title.
+
+---
+
+## 2026-11-18 (112) - S4: the Reawaken ceremony and the pause menu as the concept draws them; Missing Art v2
+
+**Where the project is.** On (111), uncommitted. The designer: "Go"; then, on Missing Art: "Engineer needs to have yellow
+hard hat. Change daredevil to other color". **The editor may be opened** (nothing running).
+
+**What happened.**
+- **The Reawaken ceremony is the UI concept's** (its scrCeremony):
+  - the flash's picture is the concept's rays (32, #7B5FD8 / #8B6BEF), its halo and eight sparks;
+  - the armoured cat (stage 2 with its sword) sits in the middle;
+  - REAWAKENING is a sticker title (yellow on an ink outline, 96 px), and the payout sits on a card-stock panel below;
+  - the pictures are `ui_icon_ceremony_rays` (1920 x 1080) and `ui_icon_ceremony_cat` (512, rim), from
+    `sticker_art.write_ceremony`;
+  - `raster_svg` honours a root's `data-raster="WxH"` (only these two; a card's `width="256"` stays a 128 raster) and
+    rims a 1:1 Sticker drawing;
+  - the icon test lets these two pictures be their own size;
+  - grafted into `WBP_ReawakenCeremony`: `restyle:Flash; add:Cat; slot:HeadlineBox; text:Headline; slot:PayoutBox;
+    restyle:PayoutBox; text:Payout`.
+  `UPawReawakenCeremony::HasRays` and `IsCatShown` are asserted by `Pawpocalypse.UI.Ceremony.Plays`: seen to FAIL on the
+  asset before the graft, PASS after. Timing, words and behaviour are Godot's, unchanged. Store shot 06 is no longer a white
+  screen.
+- **The pause menu is the concept's**:
+  - PAUSED is a sticker title (`text:Title` grafted; Parity failed before it, naming the old look);
+  - each main button carries its icon (Continue the Reawaken arrow, Save, Settings, Back to Main Menu), set when the layout
+    is ready;
+  - Continue sits on the yellow plate (`SetCallLook`). `Pawpocalypse.UI.Pause.Look` asserts it; the new sabotage
+    `pause_continue_plain` was seen caught.
+- **The victory's OK sits on the yellow plate** (the concept's). `Pawpocalypse.UI.Victory.Ending` asserts it; the new
+  sabotage `victory_ok_plain` was seen caught. `check_all` passed again with it
+  (`build/check_all_20261118_victory.log`).
+- **Missing Art version 2** (https://claude.ai/artifact/J265sfqjxSbdsSNsXU3VSh): the Engineer's hard hat is yellow, the
+  Daredevil's stunt helmet crimson (the designer's notes); option A's job colours follow. The other drafts await an answer.
+
+**Proof.** Everyday `check_all`: **every gate passed, exit 0**, on the ceremony (`build/check_all_20261118_cer.log`) and again with the pause menu (`build/check_all_20261118_pause.log`). The UI tests (93) pass; the ceremony's look asserts and the pause title's parity were seen to fail before their grafts; `pause_continue_plain` was caught.
+
+**Open (the designer).** The rest of Missing Art (5 hats, 7 upgrade icons and Bait, job icons A or B); the three shop words;
+as in (110).
+
+**Next step.** The card pick as the concept draws it
+(the flavour band's colours, the tinted art panel, the red NEW starburst, the level dots, the focused card's Take on yellow:
+grafts on `WBP_CardFace`). The title (Continue on yellow). The job picker after the hats are approved.
+
+---
+
+## 2026-11-18 (111) - The strike as the concept draws it; the dock's upgrade rows (S4); Missing Art for approval
+
+**Where the project is.** On (110), uncommitted. The designer: "Go" (after (110)'s report). **The editor may be opened**
+(nothing running).
+
+**What happened.**
+- **The strike is the UI concept's swipe** (`fx_look.py` -> `PawFxLook.h`):
+  - a white arc on its ink edge, the three claw slashes in ink with no colour inside, at Godot's length;
+  - no paw: D3's clutching paw is kept behind `STRIKE_PAW` (off).
+  - The Vfx look test asserts it. Sabotages:
+    - three new ones (the paw back, the arc in Godot's bone, colour inside the slashes);
+    - the crit sabotage retargeted;
+    - with the two aura ones, all 6 seen caught.
+- **The dock's upgrade rows as the concept draws them** (S4's first screen):
+  - each row is the upgrade's icon, its name, "Lv N" under it, and the price on its own plate at the right: the raised
+    yellow when it can be paid, the off plate when not;
+  - built from `UPawButton` with one new part, `PriceTag`, grafted into `WBP_Button` (`bake_widgets --graft
+    "PawButton=add:PriceTag"`), and `SetIconSlotKept`, so names line up when a row has no icon;
+  - a new chrome plate, the raised yellow `ui_button_primary` (sweet_ui, raster, import, `EPawChrome::ButtonPrimary`,
+    the chrome test);
+  - the concept's 8 upgrade icons, recorded from its shop list as `ui_icon_upgrade_<id>` (186 icons now).
+  - The words: `SHOP_row_level` "Lv {level}", `SHOP_row_max_plate` "MAX" (the approved words, split) and
+    `SHOP_row_level_bulk` "Lv {level}  +{levels}" (a draft), all in `docs/TEXT-DRAFT-2026-11-18.csv`. The old one-line
+    `SHOP_row_bulk` and `SHOP_row_max` were removed (L0: no source named them).
+  - Tests and sabotages: the HUD readouts test asserts the parts; sabotages `hud_row_says_max` (retargeted) and
+    `hud_row_plate_always_yellow` (new), with two older row sabotages, all seen caught.
+- **Missing Art** (https://claude.ai/artifact/J265sfqjxSbdsSNsXU3VSh; source `build/steam/page/missing-art.html`, made
+  by `make_missing_art.py` from the UI concept's own code): the drawings the approved concepts lack, drafted for approval:
+  - the 7 upgrade icons the concept did not draw, and the Bait icon;
+  - the 7 job hats it did not draw, on the cat;
+  - the job icons two ways (the concept's coloured top hats, or each job's own hat).
+
+**Proof.** Everyday `check_all`: **every gate passed, exit 0** (`build/check_all_20261118_dock3.log`). Before it: one run failed L0 (the two keys no source named, removed: `build/check_all_20261118_dock.log`), and one proved everything but the engine gates, which it SKIPPED (`..._dock2.log`): another Claude session was running Unreal for the Cabbage project, and the guard cannot tell whose a bare `UnrealEditor-Cmd -AllowCommandletRendering` is. The third run waited 7 minutes for it to end. The UI tests (93) and the Vfx tests pass, and the 10 sabotages above were seen caught.
+
+**Open (the designer).** Missing Art's three questions (the icons, the hats, the job icons); the three shop words in the text
+draft; as in (110): the add on the Mythic floor, E1, E2, E3, the Steam page sign-off, ffmpeg.
+
+**Next step.** On Missing Art's answer: add the approved drawings to the UI concept file (`tools/art/concept_ui_screens.html`)
+and record them (`sticker_record.js`). Without it: the concept's "Buy amount" row (an x1 / x5 / x10 / Max switch), the
+rest of S4 (title, pause, the boss panel, the card pick), S3's diagonal shadow, then `store_shots`.
+
+---
+
+## 2026-11-18 (110) - S5 landed: every character recorded from the Bestiary, its grounds, the kit's icons and cursors, the aura; Menu Screens
+
+**Where the project is.** On (109), uncommitted (S1, S2's text half, the store tools and art). The designer, after the
+review page: "The app icons and shortcut icons are great. The enemies all seem good. Create an artifact with all menu
+screen and then start rewiring all new graphics to the game." Then "Continue". Nothing committed (not asked).
+**The editor may be opened** (nothing running).
+
+**What happened.**
+- **Menu Screens** (https://claude.ai/artifact/2GuLR3DBNV8soFRfLDrn8K): all 25 screens in Sticker Box, the approved UI
+  concept's 17 plus the 8 layers it had not drawn (the delete and quit confirms, the leaderboard, the credits, pause's
+  main page and its save page, the Audio and Video settings), each in the game's own `ST_UI` words. Built from the
+  concept's code (`build/steam/page/menu-screens.html`).
+- **"The enemies all seem good"** read as approval of the Bestiary as drawn: S5's question answered as option (b). No
+  colour moved. The rules follow the approved cast instead, as tables that only shrink (`docs/WORKLIST-STICKER`, S5).
+- **Every character is RECORDED from the approved concept, not transcribed.** `node tools/art/sticker_record.js` runs
+  `tools/art/concept_bestiary.html` (version 5, now in the repo) with its primitives replaced by recorders and writes
+  `tools/art/sticker_cast.py` and `sticker_colours.json` (read by `palette.STICKER_CREATURES`). Fidelity: IoU
+  0.996-1.000 against the concept's own render, colour under 1/255. New gate `Sticker cast is the concept`, seen to fail
+  on a planted edit (through safe_mutate).
+- **In the game** (`tools/art/sticker_art.py`, called by `make_sweet_art`; the rim made at packing, a disc):
+  - the 12 commons, 12 signatures, the flying mouse, bat and golden mouse, the 12 gristles, the 5 bosses and the add;
+  - the cat's 7 stages, fitted in two shared frames; the weapons, cut out of the concept's figures; the kitten.
+    **The hat and weapon constants in `PawFieldLook.h` are worked out from the new cat**, and the art build stops when
+    they differ. The weapon is drawn facing the cat's way, so `WeaponFlipX` now mirrors with the cat (test and
+    sabotage updated). The ten job hats are still the grammar's, placed on the new head.
+  - **the floors are the Bestiary's grounds** (`palette.STICKER_GROUNDS`), with `PcBackdropTones.h`, `PcGodotLook.h`
+    and the 12 floor textures. Six prop colours moved to clear their new floors.
+  - the rig layers are gone with the old drawings (E3 open). The atlas is 3 pages; `T_Atlas_Field_3` removed. Two rig
+    assertions became "no Sticker drawing carries rig layers" (`PawLookTests`, `PawRealmTests`).
+  - **the UI concept's kit icons over 18 of the game's** (tabs, quick bar, menu links, Catnip, Stardust, tick, close,
+    lock) and **the paw cursors** (open, held with arc toes), recorded from `concept_ui_screens.html`.
+  - **the aura as the concept draws it** (`fx_look.py`): a yellow ring at 85 % over a 16 % fill, no ink edge; crits in
+    Sticker's yellow. The Vfx look test follows.
+- **look_lint's Sticker rules**, with every self-test plant caught:
+  - per-shape ink widths;
+  - the concept's colours and their mix();
+  - eyes measured at the size the game draws each drawing (floor 27 px, the bat's);
+  - "no shade used twice" between enemies of one realm (`UNIQUE_APPROVED`: six approved pairs);
+  - bodies near their floors as approved (`APPROVED`);
+  - the cyber visor's see-through fill allowed.
+  Palette rules 3 and 4 leave the creatures to the drawn check. A lint bug was fixed: an eye whose pupil is drawn a few
+  shapes later (the cat's, the bosses') was not seen.
+- **Store screenshots retaken** with the new field (`py tools/store_shots.py`). The boss scene's cat moved off the
+  Tyrant. The review page is updated (version 3): https://claude.ai/artifact/CAk7aojRbcMP17i32JpdGm
+- `make_sweet_art.check_tokens` no longer checks the biome tokens it does not draw. `pack_atlas` reads a rig only from a
+  layer with `data-rig-of`.
+- Knowledge library: 2D/01 §13 (porting a JS concept into a generator by recording it; die-cut rims; overlays on shared
+  fits); INDEX and the 2D index.
+
+**Proof.** Everyday `check_all`: **every gate passed, exit 0** (`build/check_all_20261118_s5b.log`), the new gate included. The first run (`build/check_all_20261118_s5.log`) failed one gate, L3 Realm: the two rig assertions above, since restated. look_lint and its self-test pass, every plant caught. The new recording gate failed on a planted edit, and `safe_mutate` reports nothing left in place.
+
+**Open (the designer).**
+1. Worth a look in the shots: the add is lilac on the lilac Mythic floor (5 apart), the Litter King close to the
+   Litterbox (7), the standing cat on the Alley (11). Each approved as drawn; any can be moved on a word.
+2. Seven of the ten job hats are not in the concept: draw them there first?
+3. E1 (Fredoka titles), E2 (a disc rim, as now, or the concept's square), E3 (wings and legs that move).
+4. The Steam page sign-off and ffmpeg, as in (109).
+
+**Next step.** Without a decision: S4's screens as grafts, starting with the dock (each upgrade row with its icon and a
+yellow price button, as the concept draws it), then S3's diagonal shadow (the brushes' margins, in the assets), S6's
+card art and skill icons, the strike (the concept's arc with three slashes), the props. Then `store_shots` again.
+
+---
+
+## 2026-11-18 (109) - The night: S1 and the text half of S2 in the game; the Steam page drafted; store screenshots scripted
+
+**Where the project is.** On (108), committed and pushed as `1a10eeb` before the night. Since then the designer said:
+- "All the enemies have tear drops. Remove the tear drops";
+- "Create an execute an overnight plan. We don't need a long nightly run. Our focus is steam page and screenshots so all
+  of those should be priority".
+
+Uncommitted: S1 (the Sticker UI colours), the text half of S2 (Nunito), the store shot tool, the docs. **The editor may be
+opened** (nothing is running; the last build is the editor target with everything below).
+
+**What happened.**
+- **The nightly `-Full` was stopped at 23:31** at the designer's word. 30 gates had passed, none failed. It was inside the
+  PawCore sabotage gate; its planted fault (`PcField.cpp`, `hammerfall_one_extra`) was restored by `safe_mutate.py`.
+- **Desk work before the new plan** (`docs/WORKLIST-NIGHT-2026-11-17.md`):
+  - S1 prepared and pre-flighted (`build/night3/s1/`);
+  - E1 measured: Nunito carries every player language; Fredoka has basic Latin only and proportional digits
+    (`build/night3/fonts/`);
+  - S5 batch 1 drawn: the 12 commons transcribed from the Bestiary, IoU 0.993-0.998 (`build/night3/art/`).
+- **No tear drops.** Removed from:
+  - the Bestiary and UI Screens concepts, both now version 5 (18 drops, plus the robot mouse's oil drip in the same spot);
+  - batch 1's generators, along with the `drop()` helper itself.
+  The look spec and the memory say so.
+- **S1 in the game** (`docs/WORKLIST-NIGHT-2026-11-17-STEAM.md` step 1):
+  - The patch applied; tokens, tree tables, effects, art, atlas and imports regenerated.
+  - The Widget Blueprints recoloured by rule; the inventory again: no retired colour left in 7,549.
+  - Found and fixed:
+    - **(a)** The HUD's XP numbers (XpNow, XpNext) were saved field labels. The recolour made them ink; a `text:` graft
+      restored them (Widgets.Parity).
+    - **(b)** The recolour rewrites the widgets' palette snapshot, so the retired list must be regenerated afterwards
+      (L0). The recipe now says so.
+    - **(c)** That rewrite also dropped plum from the retired list. `tools/art/palette_plum_snapshot.json` keeps it, so
+      `Pawpocalypse.UI.Widgets.Palette` still catches a slip back to plum.
+    - **(d)** The run moved 287 colours where the pre-flight said 412. The other 125 are colours equal to a C++ class
+      default: never saved in the asset, they had already followed the new tokens. The combo box rows came out pressed,
+      as their constructor says.
+- **S2's text half** (E1's measured recommendation; one step to undo):
+  - F_Paw is Nunito 700 / 900, instanced with real names.
+  - Japanese stays on M PLUS ExtraBold; the pseudolocale xa keeps M PLUS for Latin Extended.
+  - Coverage PASS in 22 languages; self-test seen to fail.
+  - F_PawTitle (Fredoka) waits for E1's answer.
+- **The Steam page** (`docs/STEAM-PAGE-DRAFT-2026-11-18.md`; review page https://claude.ai/artifact/CAk7aojRbcMP17i32JpdGm):
+  - **The words:** short description (198 characters), About, features, tags, languages, the AI disclosure. Every number
+    is from `Data/`, and the old draft's 16 enemies, 41 achievements and 6-10 hours are corrected. All of it passes the
+    game's own text rules.
+  - **13 images** at Steam's exact sizes, made by the concepts' own drawing code (`build/steam/art/make_store_art.js`,
+    `render.py`).
+  - The logo reads at 120x45; the hero sits inside the never-covered box; the library capsule is clear of the covered
+    strips.
+- **The store screenshots, scripted** (`tools/store_shots.py`; `paw.Do` added to the shot queue so a cheat runs in order):
+  nine scenes at 1920x1080, saves sandboxed. **All nine are right**, after five runs that each found a cause:
+  - every level up deals a hand that holds the game, so the scenes clear them;
+  - a renamed scene left its old file, so the tool now clears stale shots;
+  - the unlock cheat marks every boss beaten, so the boss scene comes first;
+  - **`paw.Boss` had topped up the wrong Bait counter since D17.** It banked `TierKillCount`, but the Bait is
+    `BaitKillsByBiome`, so it never summoned; fixed in `PawShot.cpp` (development builds only).
+  The shots show the new UI over the old field: progress shots, not the store set. They are on the review page.
+- **S5's pipeline built, not landed** (`build/night3/s5/`): Sticker drawings in `make_sweet_art`, the rim in `pack_atlas`,
+  `look_lint`'s Sticker rules.
+  **Blocked by the designer's "no shade used twice" (2026-11-09):** the approved Bestiary breaks it in 57 pairs, three of
+  them identical colours (`build/night3/s5/unique_in_bestiary.txt`).
+- Knowledge library:
+  - U/09: migrating a folded palette by path rules, and the class-default trap; font instancing names; tabular digits;
+    title fonts with few letters; font sheets;
+  - S/05: Pillow's RGBA draw.
+
+**Proof.**
+- Everyday `check_all`: **every gate passed, exit 0**, on S1 (`build/check_all_20261118_s1b.log`) and again on S1 + S2
+  (`build/check_all_20261118_s2.log`).
+- The first S1 run failed two gates (L0, L3 UI), both fixed above (`build/check_all_20261118_s1.log`).
+- After the `paw.Boss` fix, the final tree once more: **every gate passed, exit 0**
+  (`build/check_all_20261118_final.log`).
+
+**Open (the designer).**
+1. **The field (S5):** move the Bestiary's clashing colours apart, or keep "no shade used twice" only within a realm?
+   Then the rats' and pigeon's eyes, and the hamster on the Vet floor.
+2. E1: Fredoka titles (F_PawTitle)?
+3. E2: a disc or a square rim?
+4. The Steam page: sign off the words; the length line; English only until phase 7; the AI disclosure; the top five tags;
+   the capsule scene.
+5. A screen recorder (ffmpeg) for the About section's clips?
+6. As before: E3-E5, Q13, playing D17, Q11, Q10.
+
+**Next step.** The designer's answer on S5's colour rule. Then:
+1. `py -I build/night3/s5/s5_apply.py .`, plus the colour or rule change;
+2. `build_art`, `pack_atlas`, `import_art --run`;
+3. `check_all`;
+4. `py tools/store_shots.py`, the store set in the new look.
+
+---
+
 ## 2026-11-17 (108) - S1 step 1: the colour inventory of every Widget Blueprint
 
 **Where the project is.** On (107). The designer: "Continue". Nothing committed since (103); (104)-(108) uncommitted. **The

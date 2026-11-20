@@ -123,7 +123,7 @@ bool FPawJuiceHudTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("every upgrade row, job button, travel row and claim button is there"), Expected > 6 + 20);
 	TestEqual(TEXT("each of them pops on hover (UiJuice.hover)"), Wired, Expected);
 	TestFalse(TEXT("not Bait"), J.IsHoverWired(Hud->GetBaitButton()));
-	TestFalse(TEXT("not the multiplier"), J.IsHoverWired(Hud->GetMultiplierButton()));
+	TestFalse(TEXT("not the buy amount's switch"), J.IsHoverWired(Hud->GetAmountButton(0)));
 	TestFalse(TEXT("not the quick bar"), J.IsHoverWired(Hud->GetQuickButton(0)));
 	TestFalse(TEXT("not Claim all"), J.IsHoverWired(Hud->GetClaimAllButton()));
 
@@ -216,7 +216,7 @@ bool FPawJuiceHudTest::RunTest(const FString& Parameters)
 	Hud->RefreshNow();
 	TestTrue(TEXT("the newly open biome's row leans"), J.IsJittering(Next));
 	TestFalse(TEXT("the row it stands beside does not"), J.IsJittering(Hud->GetRealmButton(0)));
-	TestTrue(TEXT("the zone plate leans while it shouts"), J.IsJittering(Hud->GetZonePlate()));
+	TestTrue(TEXT("the status panel leans while it shouts (D18: the zone line's panel)"), J.IsJittering(Hud->GetFieldPlate()));
 	Hud->Pump(0.2);
 	TestTrue(TEXT("the row is leaning"), !Near(Angle(Next), 0.0));
 	TestTrue(TEXT("its size untouched (scale is the hover's)"), Near(ScaleX(Next), 1.0));

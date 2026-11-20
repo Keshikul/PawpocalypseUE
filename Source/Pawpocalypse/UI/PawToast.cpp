@@ -2,9 +2,14 @@
 
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
+#include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
+#include "Components/Image.h"
+#include "Components/PanelWidget.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
 #include "Components/TextBlock.h"
+#include "UI/PawIcons.h"
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
 #include "UI/PawUiKit.h"
@@ -18,6 +23,8 @@ namespace
 	constexpr float PadX = 18.0f;       // content margins left / right
 	constexpr float PadY = 5.0f;        // top / bottom
 	constexpr float TopOffset = 6.0f;   // offset_top: the strip above everything
+	constexpr double IconPx = 28.0;     // D18 (S4): the UI concept's controller icon before the words
+	constexpr float IconGap = 10.0f;
 }
 
 bool UPawToast::Initialize()
@@ -34,8 +41,16 @@ bool UPawToast::Initialize()
 		S->SetHorizontalAlignment(HAlign_Center);
 		S->SetVerticalAlignment(VAlign_Top);
 		S->SetPadding(FMargin(0.0f, TopOffset, 0.0f, 0.0f));
-		Message = PawUi::MakeText(WidgetTree, TextPx, PawTokens::UI_TEXT, false, TEXT("Message"));
-		Plate->SetContent(Message);
+		// D18 (S4, the UI concept's scrUpgrades): the controller icon, then the words, heavy (every toast is the pad's).
+		UHorizontalBox* Line = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("Line"));
+		Plate->SetContent(Line);
+		UImage* Icon = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("Icon"));
+		Icon->SetBrush(PawUi::IconBrush(TEXT("ui_icon_pad"), IconPx));
+		UHorizontalBoxSlot* IS = Line->AddChildToHorizontalBox(Icon);
+		IS->SetVerticalAlignment(VAlign_Center);
+		IS->SetPadding(FMargin(0.0f, 0.0f, IconGap, 0.0f));
+		Message = PawUi::Heavy(PawUi::MakeText(WidgetTree, TextPx, PawTokens::UI_TEXT, false, TEXT("Message")));
+		Line->AddChildToHorizontalBox(Message)->SetVerticalAlignment(VAlign_Center);
 	}
 	const bool bOk = Super::Initialize();
 	if (bOk)
@@ -61,6 +76,20 @@ void UPawToast::ShowConnection(bool bConnected)
 void UPawToast::ShowPadAudio()
 {
 	SetMessage(PawText::Ui(TEXT("INPUT_toast_pad_audio")));
+}
+
+bool UPawToast::ShowsPadIcon() const
+{
+	const UImage* Icon = WidgetTree ? Cast<UImage>(WidgetTree->FindWidget(TEXT("Icon"))) : nullptr;
+	const UObject* Art = Icon ? Icon->GetBrush().GetResourceObject() : nullptr;
+	return Art && Icon->GetVisibility() != ESlateVisibility::Collapsed && Art->GetName() == TEXT("T_ui_icon_pad")
+		&& Message && Icon->GetParent() == Message->GetParent()
+		&& Icon->GetParent()->GetChildIndex(Icon) < Icon->GetParent()->GetChildIndex(Message);
+}
+
+bool UPawToast::IsMessageHeavy() const
+{
+	return Message && Message->GetFont().TypefaceFontName == FName(TEXT("Black"));
 }
 
 FText UPawToast::GetMessage() const

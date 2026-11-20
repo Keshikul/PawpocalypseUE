@@ -102,6 +102,8 @@ namespace Pc
 	PAWCORE_API double BranchFactor(const PcGameData& D, const PcProgress& P, const std::string& Id, const std::string& Channel = std::string());
 	// 1 + one per boss of the ladder beaten in order, + 1 for the final boss, at most 7.
 	PAWCORE_API int64_t EvolutionStage(const PcGameData& D, const PcProgress& P);
+	// The same rule from the parts a save summary carries (D18, S4: the slot card's cat).
+	PAWCORE_API int64_t EvolutionStageFor(const PcGameData& D, const std::set<std::string>& BossesDefeated, bool bFinalBossDefeated);
 	// (1 + stardust_granted_ever / scale) ^ exponent: a power law that keeps paying forever and never explodes.
 	PAWCORE_API double ReawakenMultiplier(const PcReawakenConstants& R, double StardustGrantedEver);
 	// Product of the owned cards' costs of one kind.

@@ -1,34 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
-<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<rect x="29.5" y="8.5" width="69.0" height="80.5" rx="12.5" fill="#FFF9E3" stroke="none"/>
-<rect x="8.5" y="71.6" width="111.1" height="30.8" rx="13.5" fill="#FFF9E3" stroke="none"/>
-<rect x="32.5" y="11.4" width="63.1" height="74.6" rx="9.6" fill="#FFF9E3" stroke="none"/>
-<rect x="11.4" y="74.5" width="105.1" height="24.9" rx="10.5" fill="#FFF9E3" stroke="none"/>
-<rect x="31.5" y="61.1" width="65.0" height="21.0" rx="6.7" fill="#FFF9E3" stroke="none"/>
-<polygon points="58.2,34.0 89.9,27.7 58.2,21.4" fill="#FFF9E3" stroke="none"/>
-<polygon points="56.2,24.1 72.0,52.4 68.2,20.2" fill="#FFF9E3" stroke="none"/>
-<polygon points="65.0,19.2 43.0,42.9 72.4,29.4" fill="#FFF9E3" stroke="none"/>
-<polygon points="72.4,26.0 43.0,12.4 65.0,36.2" fill="#FFF9E3" stroke="none"/>
-<polygon points="68.2,35.2 72.0,3.0 56.2,31.3" fill="#FFF9E3" stroke="none"/>
-<polygon points="62.1,31.8 85.5,27.7 62.1,23.6" fill="#FFF9E3" stroke="none"/>
-<polygon points="59.5,27.1 70.6,48.1 67.3,24.6" fill="#FFF9E3" stroke="none"/>
-<polygon points="63.1,23.2 46.6,40.3 68.0,29.9" fill="#FFF9E3" stroke="none"/>
-<polygon points="68.0,25.5 46.6,15.0 63.1,32.1" fill="#FFF9E3" stroke="none"/>
-<polygon points="67.3,30.8 70.6,7.2 59.5,28.2" fill="#FFF9E3" stroke="none"/>
-<rect x="34.3" y="13.2" width="59.4" height="70.9" rx="7.7" fill="#2A1A33" stroke="none"/>
-<rect x="13.2" y="76.3" width="101.5" height="21.2" rx="8.7" fill="#2A1A33" stroke="none"/>
-<rect x="37.2" y="16.2" width="53.5" height="65.0" rx="4.8" fill="#8596C3" stroke="none"/>
-<rect x="16.2" y="79.3" width="95.6" height="15.3" rx="5.7" fill="#8596C3" stroke="none"/>
-<rect x="36.3" y="65.9" width="55.4" height="11.5" rx="1.9" fill="#F2C65B" stroke="#2A1A33"/>
-<polygon points="64.6,30.7 82.8,27.7 64.6,24.6" fill="#2A1A33" stroke="none"/>
-<polygon points="61.3,29.2 69.8,45.5 67.1,27.3" fill="#2A1A33" stroke="none"/>
-<polygon points="61.7,25.5 48.8,38.7 65.3,30.5" fill="#2A1A33" stroke="none"/>
-<polygon points="65.3,24.9 48.8,16.6 61.7,29.8" fill="#2A1A33" stroke="none"/>
-<polygon points="67.1,28.1 69.8,9.8 61.3,26.2" fill="#2A1A33" stroke="none"/>
-<polygon points="68.7,29.0 78.3,27.7 68.7,26.3" fill="#F2C65B" stroke="none"/>
-<polygon points="64.2,32.6 68.4,41.3 66.7,31.7" fill="#F2C65B" stroke="none"/>
-<polygon points="59.4,29.3 52.4,36.1 61.0,31.5" fill="#F2C65B" stroke="none"/>
-<polygon points="61.0,23.8 52.4,19.3 59.4,26.0" fill="#F2C65B" stroke="none"/>
-<polygon points="66.7,23.6 68.4,14.0 64.2,22.8" fill="#F2C65B" stroke="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="5.288" data-ink="4.427">
+<g stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="69.53" cy="73.84" rx="41.81" ry="8.61" fill="#5E3F8E" stroke="#2A2131" stroke-width="4.43"/>
+<polygon points="41.25,72.61 73.22,11.12 97.82,72.61" fill="#5E3F8E" stroke="#2A2131" stroke-width="4.43"/>
+<polygon points="69.53,41.86 69.82,42.81 70.17,43.68 70.60,44.48 71.11,45.21 71.69,45.86 72.34,46.44 73.06,46.94 73.86,47.37 74.74,47.73 75.68,48.01 74.74,48.29 73.86,48.65 73.06,49.08 72.34,49.59 71.69,50.16 71.11,50.82 70.60,51.54 70.17,52.34 69.82,53.21 69.53,54.16 69.25,53.21 68.89,52.34 68.46,51.54 67.96,50.82 67.38,50.16 66.73,49.59 66.00,49.08 65.21,48.65 64.33,48.29 63.39,48.01 64.33,47.73 65.21,47.37 66.00,46.94 66.73,46.44 67.38,45.86 67.96,45.21 68.46,44.48 68.89,43.68 69.25,42.81" fill="#FFD447" stroke="#2A2131" stroke-width="2.21"/>
+<polygon points="80.60,58.59 80.80,59.23 81.04,59.83 81.33,60.37 81.67,60.86 82.07,61.31 82.51,61.70 83.00,62.04 83.55,62.34 84.14,62.58 84.78,62.77 84.14,62.96 83.55,63.21 83.00,63.50 82.51,63.84 82.07,64.23 81.67,64.68 81.33,65.17 81.04,65.71 80.80,66.31 80.60,66.95 80.41,66.31 80.17,65.71 79.88,65.17 79.53,64.68 79.14,64.23 78.70,63.84 78.20,63.50 77.66,63.21 77.07,62.96 76.42,62.77 77.07,62.58 77.66,62.34 78.20,62.04 78.70,61.70 79.14,61.31 79.53,60.86 79.88,60.37 80.17,59.83 80.41,59.23" fill="#FFD447" stroke="#2A2131" stroke-width="1.97"/>
 </g>
 </svg>

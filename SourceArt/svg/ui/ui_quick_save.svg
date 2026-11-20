@@ -1,9 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<rect x="18.9" y="18.9" width="90.2" height="90.2" rx="11.1" fill="#2A1A33" stroke="none"/>
-<rect x="22.0" y="22.0" width="84.0" height="84.0" rx="8.0" fill="#8596C3" stroke="none"/>
-<rect x="42.0" y="25.0" width="44.0" height="26.0" rx="3.0" fill="#6A7198" stroke="#2A1A33"/>
-<rect x="36.0" y="78.0" width="56.0" height="32.0" rx="3.0" fill="#C0C6D8" stroke="#2A1A33"/>
-<rect x="70.0" y="29.0" width="12.0" height="18.0" rx="2.0" fill="#2A1A33" stroke="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="0.000" data-ink="8.497">
+<g stroke-linejoin="round" stroke-linecap="round">
+<rect x="18.25" y="18.25" width="91.50" height="91.50" rx="13.07" fill="#58B6FF" stroke="#2A2131" stroke-width="8.50"/>
+<rect x="37.86" y="18.25" width="52.29" height="32.68" rx="3.27" fill="#FFF8EB" stroke="#2A2131" stroke-width="8.50"/>
+<rect x="34.59" y="73.80" width="58.82" height="29.41" rx="4.90" fill="#FFF8EB" stroke="#2A2131" stroke-width="8.50"/>
 </g>
 </svg>

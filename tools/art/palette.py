@@ -199,13 +199,48 @@ PLUM = {
 MIN_TEXT_CONTRAST = 4.5      # WCAG 2 AA for body text
 MIN_LARGE_CONTRAST = 3.0     # WCAG 2 AA for 24 px and up, and for a focus ring against its panel
 
+# --- Sticker Box (D18, 2026-11-17) --------------------------------------------
+#
+# The designer replaced plum: "You don't have to follow the current color or palette or ui. Just start fresh", then
+# "Sticker box looks great" (docs/WORKLIST-STICKER-2026-11-17.md; the approved UI Screens concept). Roles: ink = every
+# outline and every letter on card; card = panels and card bodies; raised = rows, secondary buttons, inactive tabs, wells;
+# hover / pressed = a row's hovered and pressed tints; off / off_text = what cannot be done yet; muted = secondary text;
+# yellow = the one thing to press and the selected plate; focus = the keyboard/pad ring (never a fill); danger = threat and
+# Banish; badge = something new; good = a good line; white = text on danger; rim = the die-cut edge of every creature.
+# PLUM above stays for the review sheets of the plum era; nothing the game draws reads it (as_dict leaves it out).
+STICKER = {
+    "ink":      "#2A2131",
+    "card":     "#FFF8EB",
+    "raised":   "#F4E7CF",
+    "hover":    "#FBF0DC",
+    "pressed":  "#E8D7BA",
+    "off":      "#EADFCB",
+    "off_text": "#6A6058",
+    "muted":    "#6E6276",
+    "yellow":   "#FFC83D",
+    "focus":    "#3D7BFF",
+    "danger":   "#C93323",
+    "badge":    "#F2545B",
+    "good":     "#4E9A2E",
+    "white":    "#FFFFFF",
+    "rim":      "#FFFDF6",
+    "photo":    "#BFE3A3",   # a picture's well (the UI concept's slot cards and job picker: the cat on grass)
+}
+
+# --- The creatures in Sticker Box (D18, S5; 2026-11-18) ---------------------------------------------------------------
+# The approved Bestiary's colour table (its L.c), by its own names, as tools/art/sticker_record.js records it with the
+# cast (tools/art/sticker_colours.json; the rainbow as rainbow0..5, and the few hexes the concept writes in its drawing
+# code, by the names the recorder gives them). tools/art/sticker_cast.py draws with these and nothing else, and with mix()
+# of them, which look_lint records as derivations. The grammar's ENEMIES table stays for the drawings still drawn by it.
+STICKER_CREATURES = json.loads(pathlib.Path(__file__).with_name("sticker_colours.json").read_text(encoding="utf-8"))
+
 # The booster-pack family was Stacklands' ink; it follows the ink (nothing draws it today).
 STACKLANDS_BLACK = STACKLANDS["black"]
-FAMILIES["black"] = (PLUM["base"], PLUM["raised"])
+FAMILIES["black"] = (STICKER["ink"], STICKER["raised"])
 
 # --- core ------------------------------------------------------------------
 
-INK = PLUM["base"]
+INK = STICKER["ink"]
 EYE = STACKLANDS["grey"][0]          # eye whites are the corpse card's white
 GOLD = header("yellow")              # Catnip is the coin card's header
 STARDUST = header("blue")            # Stardust is the idea card's header
@@ -335,25 +370,31 @@ def _dark(h, s, v, wet=False):
             "register": "dark"}
 
 
-BACKDROPS = {
-    "tier_1_backyard":   dict(_light(119, 22, 90), field=STACKLANDS["meadow"], detail=STACKLANDS["meadow_detail"]),
-    "tier_2_alley":      _light(215, 10, 87, wet=True),     # wet pavement
-    "tier_3_park":       _light(92, 28, 90),
-    "tier_4_rooftops":   dict(_light(207, 26, 92), field=STACKLANDS["ocean"]),
-    "tier_5_sewers":     _dark(160, 26, 40, wet=True),
-    "tier_6_turf":       _light(18, 26, 94),
-    "tier_7_portal":     _dark(228, 30, 42),
-    "tier_8_mythic":     _dark(276, 30, 40),
-    "tier_9_kitchen":    dict(_light(49, 11, 97), field=STACKLANDS["sand"], detail=STACKLANDS["sand_detail"]),
-    "tier_10_vets":      _light(165, 16, 90, wet=True),     # mopped floor
-    "tier_11_factory":   _dark(28, 30, 38),                 # deeper than the other night floors: the cat is warm grey and this is the warm one
-    "tier_12_litterbox": _dark(258, 34, 32, wet=True),      # the puddle is litter clumping
+# THE GROUNDS IN STICKER BOX (D18, S5; 2026-11-18). The approved Bestiary's BIOMES (designer, 2026-11-18: "The enemies all
+# seem good", on the Bestiary that stands each realm's cast on its ground): one flat ground, a patch a step darker, and a
+# shadow tone. Low contrast and mid-value on purpose: the creatures' ink and white rim carry the contrast, not the floor.
+# field = the ground, patch = the patch; detail (the floor's own marks, sweet_biomes) a fifth of the way to the shadow;
+# a wet floor's puddle a tenth of the way. The register is "sticker": rule 1's light and dark bands are the plum spec's.
+STICKER_GROUNDS = {
+    # tier: (ground, patch, shadow, wet)
+    "tier_1_backyard":   ("#9ACF6C", "#8CC35F", "#3F6B2C", False),
+    "tier_2_alley":      ("#A9B0BA", "#9CA4AF", "#454C5A", True),
+    "tier_3_park":       ("#7CC46A", "#70B75E", "#2F5E28", False),
+    "tier_4_rooftops":   ("#C9B5A7", "#BDA899", "#5E4A40", False),
+    "tier_5_sewers":     ("#6F8F88", "#628179", "#26403B", True),
+    "tier_6_turf":       ("#D8C878", "#CCBB6A", "#6E6230", False),
+    "tier_7_portal":     ("#93A9DC", "#869CD1", "#36437A", False),
+    "tier_8_mythic":     ("#C7A6EE", "#B995E6", "#5E3F8E", False),
+    "tier_9_kitchen":    ("#ECDFC9", "#E0D1B7", "#7A6A52", False),
+    "tier_10_vets":      ("#BDE0D5", "#AFD4C8", "#3F6A5E", True),
+    "tier_11_factory":   ("#B3B7BE", "#A6AAB2", "#454950", False),
+    "tier_12_litterbox": ("#E1D2A6", "#D5C38F", "#7A6A3C", True),
 }
-# The meadow's patch and the sand's patch are re-derived from the reference
-# tones, not from the hsv() approximation the dict started from.
-for _key in ("tier_1_backyard", "tier_4_rooftops", "tier_9_kitchen"):
-    _t = BACKDROPS[_key]
-    _t["patch"] = mix(_t["field"], _t["detail"], 0.55)
+BACKDROPS = {
+    k: {"field": g, "detail": mix(g, sh, 0.20), "patch": pt, "puddle": mix(g, sh, 0.10) if wet else "",
+        "shadow": sh, "register": "sticker"}
+    for k, (g, pt, sh, wet) in STICKER_GROUNDS.items()
+}
 
 BIOME_CREATURES = {
     "tier_1_backyard": ["golden_mouse", "gristle", "moth", "mouse", "vole"],
@@ -383,32 +424,28 @@ BIOME_CREATURES = {
 # scans for; disabled is the grey text the reference uses for a finished quest.
 # Each tab is a card family so the five read apart at a glance.
 
-# PLUM EVERYWHERE (restyle R3, designer 2026-11-07): the panels are Plum, the text Bone, the rows and buttons Plum Raised,
-# the wells and the pressed state Deep Plum. R3's shapes (2026-11-08): the plates' edges and their one solid shadow, straight
-# down, are Deep Plum (spec: docs/WORKLIST-RESTYLE-2026-11-07.md §4; the chrome in sweet_ui.py, the frames the walker's
-# EDGE role). The ink stays the ink of letters, the outline of labels over the field and a card's frame. The tab
-# families, the currencies and the card families keep their colours; a card's body is Bone with ink text on it (WBP_CardFace keeps its ink: bake_widgets.py
-# --recolour, KEEP_INK). Rule 7 checks every pair the plum screens draw.
-PLUM_HOVER = mix(PLUM["raised"], PLUM["lilac"], 0.15)
-
+# STICKER BOX (D18, 2026-11-17): card-stock panels with an ink edge and one hard ink shadow, ink text, raised-cream rows,
+# wells and secondary buttons, yellow for the one thing to press and the selected plate, a blue focus ring. The tab
+# families, the currencies and the card families keep their colours until S3 and S6 redraw the chrome and the icons
+# (docs/WORKLIST-STICKER-2026-11-17.md). Rule 7 checks every pair the Sticker screens draw.
 UI = {
-    "panel":           PLUM["base"],
-    "panel_band":      PLUM_HOVER,                # (shares the hover tone: one old cream, one new plum)
-    "panel_frame":     PLUM["deep"],              # a plate's edge (R3's shapes)
-    "text":            PLUM["bone"],
-    "text_muted":      PLUM["lilac"],
-    "text_disabled":   mix(PLUM["lilac"], PLUM["base"], 0.2),   # R4e: a row it cannot pay is still READ (the board's)
-    "button":          PLUM["raised"],
-    "button_hover":    PLUM_HOVER,
-    "button_pressed":  PLUM["deep"],
-    "button_disabled": mix(PLUM["base"], PLUM["raised"], 0.5),
-    "button_frame":    PLUM["deep"],
-    "slot":            PLUM["deep"],              # a recessed well on a panel
-    "shadow":          PLUM["deep"],              # the plates' one solid shadow, straight down (R3's shapes)
-    "badge":           ALERT,
-    "focus":           PLUM["butter"],            # the keyboard/pad selection ring (R4a)
-    "selected":        PLUM["butter"],            # the selected thing: the open tab, a settings section, a call (R4a)
-    "selected_text":   INK,                       # a label on the selected plate
+    "panel":           STICKER["card"],
+    "panel_band":      STICKER["hover"],
+    "panel_frame":     STICKER["ink"],            # a plate's edge
+    "text":            STICKER["ink"],
+    "text_muted":      STICKER["muted"],
+    "text_disabled":   STICKER["off_text"],       # a row it cannot pay is still READ
+    "button":          STICKER["raised"],
+    "button_hover":    STICKER["hover"],
+    "button_pressed":  STICKER["pressed"],
+    "button_disabled": STICKER["off"],
+    "button_frame":    STICKER["ink"],
+    "slot":            STICKER["raised"],         # a well on a panel: a keycap, a dropdown's rows
+    "shadow":          STICKER["ink"],            # the plates' one hard shadow
+    "badge":           STICKER["badge"],
+    "focus":           STICKER["focus"],          # the keyboard/pad ring, never a fill
+    "selected":        STICKER["yellow"],         # the selected thing: the open tab, a settings section, a call
+    "selected_text":   STICKER["ink"],            # a label on the selected plate
     "catnip":          GOLD,
     "stardust":        STARDUST,
     "tab_upgrades":    header("orange"),
@@ -416,19 +453,33 @@ UI = {
     "tab_realms":      header("green"),
     "tab_catches":     header("yellow"),
     "tab_awards":      header("coral"),
-    "boss_banner":     PLUM["crimson"],
-    "boss_banner_text": PLUM["bone"],
-    "field_label":     PLUM["bone"],              # the fill of a label over the live field (its outline is INK)
-    "danger":          PLUM["crimson"],
-    "good":            header("green"),
-    "card_plate":      PLUM["bone"],
-    "card_ink":        INK,                       # a card's text and frame on its Bone body (WBP_CardFace keeps the ink)
+    "boss_banner":     STICKER["danger"],
+    "boss_banner_text": STICKER["white"],
+    "field_label":     STICKER["rim"],            # the fill of a label over the live field (its outline is INK)
+    "danger":          STICKER["danger"],
+    "good":            STICKER["good"],
+    "card_plate":      STICKER["card"],
+    "card_ink":        INK,                       # a card's text and frame on its card-stock body
     "card_swarm":      header("green"),
     "card_pounce":     header("red"),
     "card_aura":       header("blue"),
     "card_deck":       header("yellow"),
     "card_take":       INK,
-    "card_banish":     STACKLANDS["alert"],
+    "card_banish":     STICKER["danger"],
+    "photo":           STICKER["photo"],          # D18 (S4): the well a save's cat stands in (the concept's slot cards)
+    # D18 (S4): the UI concept's bars (its bar(): a track, an ink edge, a coloured fill): the track, the next biome's green,
+    # the level's purple, and the wave line's blue (a literal in the concept's code: the rainbow's blue).
+    "bar_track":       STICKER_CREATURES["uiTrack"],
+    "bar_zone":        STICKER_CREATURES["uiGreen"],
+    "bar_xp":          STICKER_CREATURES["uiStardust"],
+    "bar_wave":        STICKER_CREATURES["rainbow4"],
+    "stardust_bright": STICKER_CREATURES["uiStardust"],  # D18 (S4): Stardust as a number (the Reawaken tab's "+n")
+    # D18 (S4): the skill tree's nodes and links (the UI concept's scrTree): owned green, the ring of a node to buy now,
+    # a link's core where owned and where not.
+    "tree_owned":      STICKER_CREATURES["uiGreen"],
+    "tree_ready_ring": "#FFD447",
+    "tree_link_on":    STICKER["card"],
+    "tree_link_off":   "#7C86AA",
 }
 
 # Colours Godot authored as literals in scenes and scripts rather than in its
@@ -449,6 +500,17 @@ LITERALS = {
 # (S30-40, V20-35) in violet, with the clouds one step up and the stars the
 # paper cream at low alpha.
 SKY = {
+    # D18 (S4, 2026-11-19): the UI concept's scrTree (approved with the rest of Sticker Box): its night blue (U.sky), its
+    # pale yellow dots, the locked node's slate and edge (literals in its treeNode code). The clouds stay, a breath lighter
+    # than the blue. The plum sky's recipe below is what the designer asked for on 2026-09-14/15, before D18.
+    "base":       STICKER_CREATURES["uiSky"],
+    "cloud":      mix(STICKER_CREATURES["uiSky"], STICKER["card"], 0.04),
+    "cloud_warm": mix(STICKER_CREATURES["uiSky"], STICKER["card"], 0.05),
+    "star":       "#FFF3A0",
+    "plate":      "#4A5478",
+    "plate_edge": "#7C86AA",
+}
+SKY_PLUM = {
     "base":       hsv(262, 44, 20),
     # Toned down 2026-09-15 (designer: "the fog shapes behind the tree can be
     # toned down a bit. They stand out a bit much"): five points of value
@@ -475,6 +537,8 @@ PROPS = {
     "flowers": ("#E8B0C4", "#F0D27C", "#B49AD6"),   # the Park's flowers: pink, yellow, lilac
     "rock": ("#9E93B5", "#B5ABC9"),                 # the Mythic Realm's rock and its light
     "toaster": ("#C25E4E",),                        # the Kitchen toaster's knob
+    # D18 (2026-11-18): the Park's grass is the Bestiary's brighter green, so its foliage is a step darker.
+    "foliage": (mix(header("green"), INK, 0.15),),
 }
 
 # The cat's gear: its weapons, its armour and its mounts' coats (sweet_evolutions.py, make_sweet_art.py), named (R5,
@@ -549,6 +613,8 @@ def check():
     # 1. Grounds sit in a register.
     for biome, tones in BACKDROPS.items():
         _, _, val = to_hsv(tones["field"])
+        if tones["register"] not in ("light", "dark", "sticker"):
+            problems.append("NO REGISTER: %s is %r" % (biome, tones["register"]))
         if tones["register"] == "light" and val < LIGHT_V_MIN:
             problems.append("OUT OF REGISTER: %s field %s is V%.0f, light needs >= %.0f"
                             % (biome, tones["field"], val, LIGHT_V_MIN))
@@ -567,22 +633,19 @@ def check():
                 problems.append("TOO CLOSE TO THE CAT: %s_%s accent %s is %.1f away"
                                 % (group, name, pair[1], d))
 
-    # 3. Every creature clears the ground it ships on, body and accent both.
-    problems += variant_problems([(c, b) for b, cs in BIOME_CREATURES.items() for c in cs])
+    # 3. Every creature clears the ground it ships on, body and accent both. Since D18 (S5, 2026-11-18) the enemies, the
+    # bosses' own drawings, the add, the cat and the kitten that ship are the approved Bestiary's (STICKER_CREATURES):
+    # look_lint's ground rule checks them as DRAWN. The grammar's tokens below (ENEMIES, the cat's) no longer reach the
+    # field; the generic boss is still the grammar's, so its tokens are still checked here.
     for b in BACKDROPS:
-        for boss in ("generic", "add"):
+        for boss in ("generic",):
             for label, colour in zip(("body", "accent"), BOSSES[boss]):
                 d = distance(colour, BACKDROPS[b]["field"])
                 if d < MIN_FROM_GROUND:
                     problems.append("boss_%s %s %s is %.0f from %s (min %.0f)"
                                     % (boss, label, colour, d, b, MIN_FROM_GROUND))
 
-    # 4. The cat clears every ground.
-    for b, tones in BACKDROPS.items():
-        d = distance(CAT_BODY, tones["field"])
-        if d < MIN_FROM_GROUND:
-            problems.append("THE CAT IS LOST: body %s is %.0f from %s %s"
-                            % (CAT_BODY, d, b, tones["field"]))
+    # 4. The cat clears every ground: the approved Bestiary's cat since D18, checked as drawn by look_lint (rule 3's note).
 
     # 5. Text on paper is readable; the five tab families are distinct.
     if distance(UI["text_muted"], UI["panel"]) < 35.0:
@@ -593,13 +656,13 @@ def check():
             if distance(tabs[i], tabs[j]) < 20.0:
                 problems.append("TABS COLLIDE: %s and %s" % (tabs[i], tabs[j]))
 
-    # 6. The plum screens are readable (WCAG 2), focus shows, buy and threat differ in lightness.
-    problems += plum_problems()
+    # 6. The Sticker screens are readable (WCAG 2), focus shows, the thing to press and threat differ in lightness.
+    problems += sticker_problems()
 
     # 8. No shade used twice (designer, 2026-11-09): every character its own body colour, every accent its own.
     problems += unique_problems()
 
-    # 7. The UI on plum (R3): every text on every ground the screens draw it on.
+    # 7. The UI (D18): every text on every ground the screens draw it on.
     for fg, bg, need, why in UI_PAIRS:
         r = contrast(UI[fg], UI[bg])
         if r < need:
@@ -660,22 +723,23 @@ def contrast(a: str, b: str) -> float:
     return (la + 0.05) / (lb + 0.05)
 
 
-# (text, ground, minimum, why): the pairs the plum screens actually draw.
-PLUM_PAIRS = [
-    ("bone", "base", MIN_TEXT_CONTRAST, "text on a panel"),
-    ("bone", "raised", MIN_TEXT_CONTRAST, "text on a row"),
-    ("lilac", "base", MIN_TEXT_CONTRAST, "secondary text on a panel"),
-    ("lilac", "raised", MIN_TEXT_CONTRAST, "secondary text on a row"),
-    ("base", "butter", MIN_TEXT_CONTRAST, "a selected button's label"),
-    ("base", "catnip", MIN_TEXT_CONTRAST, "a buy button's label"),
-    ("base", "stardust", MIN_TEXT_CONTRAST, "a Stardust button's label"),
-    ("bone", "crimson", MIN_TEXT_CONTRAST, "a boss banner's text"),
-    ("butter", "base", MIN_LARGE_CONTRAST, "the focus ring on a panel"),
-    ("butter", "raised", MIN_LARGE_CONTRAST, "the focus ring on a row"),
+# (fg, bg, minimum, why): the Sticker family's own pairs (rule 6).
+STICKER_PAIRS = [
+    ("ink", "card", MIN_TEXT_CONTRAST, "text on a panel"),
+    ("ink", "raised", MIN_TEXT_CONTRAST, "text on a row"),
+    ("ink", "pressed", MIN_TEXT_CONTRAST, "text on a pressed row"),
+    ("muted", "card", MIN_TEXT_CONTRAST, "secondary text on a panel"),
+    ("muted", "raised", MIN_TEXT_CONTRAST, "secondary text on a row"),
+    ("ink", "yellow", MIN_TEXT_CONTRAST, "the label of the button to press"),
+    ("off_text", "off", MIN_TEXT_CONTRAST, "a row it cannot pay, still read"),
+    ("white", "danger", MIN_TEXT_CONTRAST, "a danger tag's text"),
+    ("focus", "card", MIN_LARGE_CONTRAST, "the focus ring on a panel"),
+    ("focus", "raised", MIN_LARGE_CONTRAST, "the focus ring on a row"),
 ]
 
 
-# (text, ground, minimum, why): the UI pairs on plum (rule 7). Disabled text is meant to recede: large-text contrast.
+# (text, ground, minimum, why): the UI pairs (rule 7). Amounts are ink beside their icon in Sticker Box (nothing draws an
+# amount in its currency's colour), so the two "amount" pairs of the plum era are gone.
 UI_PAIRS = [
     ("text", "panel", MIN_TEXT_CONTRAST, "text on a panel"),
     ("text", "button", MIN_TEXT_CONTRAST, "a button's label"),
@@ -684,30 +748,28 @@ UI_PAIRS = [
     ("text", "slot", MIN_TEXT_CONTRAST, "a keycap's label"),
     ("text_muted", "panel", MIN_TEXT_CONTRAST, "secondary text"),
     ("text_muted", "button", MIN_TEXT_CONTRAST, "a row's second line"),
-    ("text_disabled", "button_disabled", MIN_TEXT_CONTRAST, "a locked row: dimmer than a live one, still read (R4e)"),
+    ("text_disabled", "button_disabled", MIN_TEXT_CONTRAST, "a locked row: dimmer than a live one, still read"),
     ("good", "panel", MIN_LARGE_CONTRAST, "a good status line"),
     ("boss_banner_text", "boss_banner", MIN_TEXT_CONTRAST, "the boss banner"),
     ("card_ink", "card_plate", MIN_TEXT_CONTRAST, "a card's ink text on its body"),
     ("selected_text", "selected", MIN_TEXT_CONTRAST, "a label on the selected plate"),
     ("focus", "panel", MIN_LARGE_CONTRAST, "the focus ring on a panel"),
     ("focus", "button", MIN_LARGE_CONTRAST, "the focus ring beside a row"),
-    ("catnip", "panel", MIN_LARGE_CONTRAST, "a Catnip amount"),
-    ("stardust", "panel", MIN_LARGE_CONTRAST, "a Stardust amount"),
 ]
 
 
-def plum_problems() -> list[str]:
+def sticker_problems() -> list[str]:
     bad = []
-    if INK != PLUM["base"]:
-        bad.append("INK %s is not Plum base %s (plum everywhere, D14)" % (INK, PLUM["base"]))
-    for fg, bg, need, why in PLUM_PAIRS:
-        r = contrast(PLUM[fg], PLUM[bg])
+    if INK != STICKER["ink"]:
+        bad.append("INK %s is not the Sticker ink %s (D18)" % (INK, STICKER["ink"]))
+    for fg, bg, need, why in STICKER_PAIRS:
+        r = contrast(STICKER[fg], STICKER[bg])
         if r < need:
-            bad.append("LOW CONTRAST: %s %s on %s %s is %.2f:1, %s needs %.1f" % (fg, PLUM[fg], bg, PLUM[bg], r, why, need))
-    # Buy and threat must differ in lightness, not hue alone (red/green colour blindness).
-    la, lb = sorted((_luminance(PLUM["catnip"]), _luminance(PLUM["crimson"])), reverse=True)
+            bad.append("LOW CONTRAST: %s %s on %s %s is %.2f:1, %s needs %.1f" % (fg, STICKER[fg], bg, STICKER[bg], r, why, need))
+    # The thing to press and the threat differ in lightness, not hue alone (red/green colour blindness).
+    la, lb = sorted((_luminance(STICKER["yellow"]), _luminance(STICKER["danger"])), reverse=True)
     if (la + 0.05) / (lb + 0.05) < 1.5:
-        bad.append("COLOUR-BLIND: catnip and crimson differ by hue only")
+        bad.append("COLOUR-BLIND: yellow and danger differ by hue only")
     return bad
 
 
@@ -721,7 +783,8 @@ def as_dict():
         "bosses": dict((k, {"body": v[0], "accent": v[1]}) for k, v in BOSSES.items()),
         "backdrops": BACKDROPS,
         "ui": UI, "sky": SKY, "materials": MATERIALS, "props": PROPS, "gear": GEAR,
-        "plum": PLUM,
+        "sticker": STICKER,
+        "sticker_creatures": STICKER_CREATURES,
     }
 
 

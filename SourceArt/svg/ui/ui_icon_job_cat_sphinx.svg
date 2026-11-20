@@ -1,0 +1,38 @@
+<svg data-raster="256x256" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256" data-look="sticker" data-rim="4.101" data-ink="3.433">
+<g stroke-linejoin="round" stroke-linecap="round">
+<polyline points="92.79,94.04 98.57,92.82 103.32,90.42 107.06,87.07 109.79,82.96 111.50,78.31 112.22,73.30 111.94,68.17 110.67,63.10 108.42,58.30 105.19,53.99" fill="none" stroke="#2A2131" stroke-width="17.36"/>
+<polyline points="92.79,94.04 98.57,92.82 103.32,90.42 107.06,87.07 109.79,82.96 111.50,78.31 112.22,73.30 111.94,68.17 110.67,63.10 108.42,58.30 105.19,53.99" fill="none" stroke="#9B95A7" stroke-width="10.49"/>
+<ellipse cx="69.90" cy="83.55" rx="32.42" ry="25.75" fill="#9B95A7" stroke="#2A2131" stroke-width="3.43"/>
+<polyline points="88.02,61.62 89.36,62.81 90.52,64.11 91.49,65.49 92.25,66.93 92.79,68.41 93.10,69.92 93.17,71.45 92.99,72.97 92.55,74.46 91.83,75.92" fill="none" stroke="#6C6578" stroke-width="4.77"/>
+<polyline points="98.51,69.25 99.57,70.42 100.46,71.63 101.17,72.88 101.72,74.16 102.09,75.44 102.29,76.73 102.32,78.00 102.17,79.26 101.86,80.47 101.37,81.64" fill="none" stroke="#6C6578" stroke-width="4.77"/>
+<ellipse cx="54.64" cy="91.18" rx="15.26" ry="13.35" fill="#ECE7EF" stroke="none"/>
+<ellipse cx="42.24" cy="105.01" rx="9.06" ry="5.72" fill="#9B95A7" stroke="#2A2131" stroke-width="3.43"/>
+<ellipse cx="61.32" cy="105.48" rx="9.06" ry="5.72" fill="#9B95A7" stroke="#2A2131" stroke-width="3.43"/>
+<polygon points="20.31,49.22 21.26,18.70 40.34,35.87" fill="#9B95A7" stroke="#2A2131" stroke-width="3.43"/>
+<polygon points="51.78,35.87 56.55,26.33 60.36,29.19 64.18,16.79 68.95,44.45" fill="#9B95A7" stroke="#2A2131" stroke-width="3.43"/>
+<polygon points="24.60,42.54 25.08,26.33 34.61,35.87" fill="#F58BA8" stroke="none"/>
+<polygon points="58.46,35.87 63.22,24.42 66.56,41.59" fill="#F58BA8" stroke="none"/>
+<ellipse cx="44.15" cy="53.99" rx="27.66" ry="21.93" fill="#9B95A7" stroke="#2A2131" stroke-width="3.43"/>
+<polyline points="38.43,33.96 38.91,39.68" fill="none" stroke="#6C6578" stroke-width="3.81"/>
+<polyline points="46.06,33.01 46.06,39.20" fill="none" stroke="#6C6578" stroke-width="3.81"/>
+<polyline points="53.69,34.44 53.21,40.16" fill="none" stroke="#6C6578" stroke-width="3.81"/>
+<ellipse cx="37.48" cy="64.48" rx="12.87" ry="8.11" fill="#ECE7EF" stroke="none"/>
+<ellipse cx="28.89" cy="52.08" rx="9.06" ry="9.06" fill="#FFFFFF" stroke="#2A2131" stroke-width="2.86"/>
+<ellipse cx="48.92" cy="51.13" rx="9.54" ry="9.54" fill="#FFFFFF" stroke="#2A2131" stroke-width="2.86"/>
+<ellipse cx="32.23" cy="53.03" rx="2.77" ry="2.77" fill="#2A2131" stroke="none"/>
+<ellipse cx="45.58" cy="52.56" rx="2.77" ry="2.77" fill="#2A2131" stroke="none"/>
+<polyline points="18.40,38.73 33.66,43.97" fill="none" stroke="#2A2131" stroke-width="4.20"/>
+<polyline points="43.20,43.50 59.41,37.77" fill="none" stroke="#2A2131" stroke-width="4.20"/>
+<ellipse cx="44.15" cy="71.15" rx="3.43" ry="4.20" fill="#F58BA8" stroke="#2A2131" stroke-width="1.72"/>
+<polygon points="33.66,59.23 41.29,59.23 37.48,64.00" fill="#F58BA8" stroke="#2A2131" stroke-width="2.00"/>
+<polyline points="26.03,66.38 28.33,67.92 30.65,69.09 32.98,69.90 35.34,70.35 37.71,70.44 40.11,70.16 42.52,69.52 44.95,68.52 47.40,67.16 49.87,65.43" fill="none" stroke="#2A2131" stroke-width="2.57"/>
+<polygon points="31.28,68.96 33.09,73.44 34.81,69.82" fill="#FFFFFF" stroke="#2A2131" stroke-width="1.43"/>
+<polyline points="22.22,61.62 7.91,58.75" fill="none" stroke="#2A2131" stroke-width="1.62"/>
+<polyline points="22.22,64.95 8.87,66.86" fill="none" stroke="#2A2131" stroke-width="1.62"/>
+<polygon points="12.68,46.36 13.21,37.60 17.58,30.79 24.83,25.93 34.01,23.01 44.15,22.04 54.29,23.01 63.47,25.93 70.72,30.79 75.10,37.60 75.62,46.36 79.44,71.15 67.99,67.34 67.99,46.36 65.01,44.81 60.84,43.61 55.77,42.75 50.11,42.24 44.15,42.07 38.19,42.24 32.53,42.75 27.47,43.61 23.29,44.81 20.31,46.36 20.31,67.34 8.87,71.15" fill="#FFD447" stroke="#2A2131" stroke-width="3.43"/>
+<polyline points="18.40,29.19 69.90,29.19" fill="none" stroke="#A88BFF" stroke-width="2.86"/>
+<polyline points="16.49,36.82 71.81,36.82" fill="none" stroke="#A88BFF" stroke-width="2.86"/>
+<polyline points="14.59,55.89 14.59,65.43" fill="none" stroke="#A88BFF" stroke-width="2.86"/>
+<polyline points="73.72,55.89 73.72,65.43" fill="none" stroke="#A88BFF" stroke-width="2.86"/>
+</g>
+</svg>

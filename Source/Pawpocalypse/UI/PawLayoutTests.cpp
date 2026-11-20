@@ -20,6 +20,14 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "PcSettings.h"
+#include "PcCheats.h"
+#include "PcEconomy.h"
+#include "PcData.h"
+#include "PcField.h"
+#include "PcHud.h"
+#include "PcProgress.h"
+#include "PcStats.h"
+#include "Realm/PawRealmSim.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "Save/PawSaveStorage.h"
 #include "Save/PawSaveSubsystem.h"
@@ -269,6 +277,58 @@ bool FPawLayoutDockTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawLayoutBossTest, "Pawpocalypse.UI.Layout.Boss", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawLayoutBossTest::RunTest(const FString& Parameters)
+{
+	// D18 (S4, the UI concept's scrBoss): the boss panel never covers the pills, the status panel or the dock, at every
+	// size and on either side; at 1920 x 1080 it sits BESIDE the status panel (the concept's place).
+	FLayoutWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	const Pc::PcGameData& D = W.Game->Data();
+	Pc::PcProgress& P = W.Game->Progress();
+	const int32 BossIndex = static_cast<int32>(Pc::RealmIndex(D, D.Code.BossRealms.front()));
+	const Pc::PcBoss* Boss = D.FindBoss(D.Tiers[static_cast<size_t>(BossIndex)].BossData);
+	Pc::CheatUnlockAllTiers(D, P);
+	TestTrue(TEXT("travel to the boss biome"), W.Realm->Travel(BossIndex));
+	if (!TestNotNull(TEXT("the boss"), Boss))
+	{
+		W.Close();
+		return false;
+	}
+	P.BaitKillsByBiome[P.CurrentBiomeId] += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
+	P.Catnip = 1e15;
+	TestTrue(TEXT("summoned"), W.Realm->SummonBoss());
+	W.Realm->AdvanceFrame(FPawRealmSim::Step);
+	W.Hud->Pump(1.0);
+	TestTrue(TEXT("the panel shows"), W.Hud->IsBossPanelVisible());
+	for (const bool bLeft : { false, true })
+	{
+		W.Hud->SetDockOnLeft(bLeft);
+		for (const FSize& Size : Sizes)
+		{
+			const FString Where = FString::Printf(TEXT("boss %s, dock %s"), Size.Name, bLeft ? TEXT("left") : TEXT("right"));
+			const TArray<PawLayout::FPart> Parts = Measure(*this, W.Hud, Size, TEXT("boss"));
+			TestEqual(Where + TEXT(": the boss panel covers nothing"), Clashes(*this, Parts, { TEXT("BossPanel") },
+				{ TEXT("CatnipPill"), TEXT("StardustPill"), TEXT("FieldPlate"), TEXT("DockBox") }, Where), 0);
+			const PawLayout::FPart* Panel = PawLayout::Find(Parts, TEXT("BossPanel"));
+			const PawLayout::FPart* Status = PawLayout::Find(Parts, TEXT("FieldPlate"));
+			if (Size.Screen.X == 1920.0 && Size.UiSize == 1.0f && TestNotNull(Where + TEXT(": the panel"), Panel)
+				&& TestNotNull(Where + TEXT(": the status panel"), Status))
+			{
+				TestTrue(Where + TEXT(": beside the status panel (the concept's place)"), Panel->Rect.Top < Status->Rect.Bottom);
+			}
+		}
+	}
+	W.Hud->SetDockOnLeft(false);
+	W.Close();
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawLayoutSettingsTest, "Pawpocalypse.UI.Layout.Settings", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FPawLayoutSettingsTest::RunTest(const FString& Parameters)
@@ -360,6 +420,20 @@ bool FPawLayoutTreeTest::RunTest(const FString& Parameters)
 		const double Grace = 24.0 * Size.Scale();
 		TestTrue(Where + FString::Printf(TEXT(": centred (drawn at %.0f, %.0f; the middle %.0f, %.0f)"), Drawn.X, Drawn.Y, Centre.X, Centre.Y),
 			FMath::Abs(Drawn.X - Centre.X) <= Grace && FMath::Abs(Drawn.Y - Centre.Y) <= Grace);
+		Tree->PressClose();
+	}
+	// The spend step (D18, S4): Continue, big and in the middle, never over the legend (it stood on it at every size).
+	for (const FSize& Size : Sizes)
+	{
+		if (!TestTrue(TEXT("the spend step opens"), W.Hud->OpenSkillTree(true)))
+		{
+			break;
+		}
+		UPawSkillTreeScreen* Tree = W.Hud->GetSkillTree();
+		const FString Where = FString::Printf(TEXT("spend %s"), Size.Name);
+		const TArray<PawLayout::FPart> Parts = Measure(*this, Tree, Size, TEXT("spend"));
+		TestEqual(Where + TEXT(": Continue covers no legend"), Clashes(*this, Parts, { TEXT("CloseButton") }, { TEXT("LegendPlate") }, Where), 0);
+		Tree->PressClose();
 		Tree->PressClose();
 	}
 	W.Close();

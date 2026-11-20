@@ -37,6 +37,9 @@ def main():
     # The guard (tools/unreal_procs.py): any Unreal process of this project, or one naming no project, waited for (two clean
     # looks in a row, up to 30 s for anything seen); another project's run is not ours.
     from unreal_procs import guard_self_test, print_blocking, wait_blocking
+    # A failure's message can hold any language's letters (the translations, 2026-11-20): a console that cannot show one
+    # gets a stand-in, never a crash that hides the verdict.
+    sys.stdout.reconfigure(errors="replace")
     args = sys.argv[1:]
     if "--self-test" in args:
         return guard_self_test()

@@ -30,6 +30,7 @@
 #include "UI/PawTokens.h"
 #include "UI/PawTreeTables.h"
 #include "UI/PawUiConstants.h"
+#include "Render/PawFxCanvas.h"
 #include "UI/PawUiKit.h"
 #include "UI/PawWidgets.h"
 #include "UI/PawTreeSky.h"
@@ -55,7 +56,7 @@ namespace
 	constexpr double ContentTop = 130.0;                // ContentArea offset_top
 	constexpr double HubPlateW = 150.0, HubPlateH = 44.0; // HUB_PLATE_SIZE
 	constexpr double HaloPad = 16.0;                    // HALO_PAD
-	constexpr double HaloRadius = 26.0;                 // HALO_RADIUS
+	constexpr double HaloRadius = NodePx * 0.5 + HaloPad; // D18 (S4): round behind the hexagon (Godot HALO_RADIUS 26: a rounded square)
 	constexpr double HaloAlphaLow = 0.55, HaloAlphaHigh = 1.0; // HALO_ALPHA
 	constexpr double HaloPeriodSec = 1.6;               // HALO_PERIOD_SEC
 	constexpr double HaloGlowAlpha = 0.30;              // glow.bg_color = Color(Palette.GOLD, 0.30)
@@ -68,7 +69,7 @@ namespace
 	constexpr double CloseBrowseW = 60.0, CloseBrowseH = 36.0;   // CLOSE_BROWSE_SIZE
 	constexpr double CloseBrowseMarginX = 20.0, CloseBrowseMarginY = 60.0; // CLOSE_BROWSE_MARGIN
 	constexpr double CloseSpendW = 420.0, CloseSpendH = 92.0;    // CLOSE_SPEND_SIZE
-	constexpr double CloseSpendGapBottom = 40.0;        // CLOSE_SPEND_GAP_BOTTOM
+	constexpr double CloseSpendGapBottom = 96.0;        // D18 (S4): above the legend (bottom-left now; Godot: 40, CLOSE_SPEND_GAP_BOTTOM)
 	constexpr double CloseSpendPx = 34.0;               // the Continue caption's font_size
 	constexpr double ZoomButtonPx = 44.0;               // ZoomIn custom_minimum_size
 	constexpr double ZoomBoxX = 24.0, ZoomBoxY = 150.0; // ZoomControls position
@@ -84,6 +85,7 @@ namespace
 	constexpr double PanPxPerSec = 1400.0;              // PAN_PX_PER_SEC
 	constexpr double ZoomPerSec = 1.2;                  // ZOOM_PER_SEC
 	constexpr double LineWidth = 5.0, LineWidthOwned = 7.0; // LINE_WIDTH, LINE_WIDTH_OWNED
+	constexpr double CloseSpendIconPx = 40.0;           // D18 (S4): the Reawaken swirl on Continue
 	constexpr double RainbowInset = 7.0, RainbowWidth = 5.0, RainbowCorner = 20.0; // RAINBOW_*
 	constexpr int32 RainbowSegments = 10;
 	constexpr double RainbowTurnsPerSec = 0.12;
@@ -142,24 +144,29 @@ namespace
 
 // --- links ------------------------------------------------------------------------------------------------------------
 
-TArray<FVector2D> UPawTreeLinks::RingPath(const FVector2D& C, const FVector2D& Half)
+TArray<FVector2D> UPawTreeLinks::HexPath(const FVector2D& C, double Radius, int32 PerSide)
 {
 	TArray<FVector2D> Pts;
-	const double R = RainbowCorner;
-	const FVector2D Corners[4] = { C + FVector2D(Half.X - R, -Half.Y + R), C + FVector2D(Half.X - R, Half.Y - R),
-		C + FVector2D(-Half.X + R, Half.Y - R), C + FVector2D(-Half.X + R, -Half.Y + R) };
-	const double Start[4] = { -UE_DOUBLE_PI / 2.0, 0.0, UE_DOUBLE_PI / 2.0, UE_DOUBLE_PI };
-	for (int32 K = 0; K < 4; ++K)
+	const int32 Cuts = FMath::Max(1, PerSide);
+	for (int32 K = 0; K < 6; ++K)
 	{
-		for (int32 I = 0; I <= RainbowSegments; ++I)
+		const double A0 = UE_DOUBLE_PI / 180.0 * (60.0 * K - 90.0), A1 = UE_DOUBLE_PI / 180.0 * (60.0 * (K + 1) - 90.0);
+		const FVector2D P0 = C + FVector2D(FMath::Cos(A0), FMath::Sin(A0)) * Radius;
+		const FVector2D P1 = C + FVector2D(FMath::Cos(A1), FMath::Sin(A1)) * Radius;
+		for (int32 I = 0; I < Cuts; ++I)
 		{
-			const double A = Start[K] + (UE_DOUBLE_PI / 2.0) * static_cast<double>(I) / RainbowSegments;
-			Pts.Add(Corners[K] + FVector2D(FMath::Cos(A), FMath::Sin(A)) * R);
+			Pts.Add(P0 + (P1 - P0) * (static_cast<double>(I) / Cuts));
 		}
 	}
-	const FVector2D First = Pts[0]; // a copy: adding an element of the array to itself may reallocate under it (Unreal asserts)
+	const FVector2D First = Pts[0]; // a copy: adding an element of the array to itself may reallocate under it
 	Pts.Add(First);
 	return Pts;
+}
+
+TArray<FVector2D> UPawTreeLinks::RingPath(const FVector2D& C, const FVector2D& Half)
+{
+	// D18 (S4, the UI concept's treeNode): a hexagon round the node's (its corner radius the node's half plus the inset).
+	return HexPath(C, Half.Y, RainbowSegments);
 }
 
 int32 UPawTreeLinks::NativePaint(const FPaintArgs& Args, const FGeometry& G, const FSlateRect& Culling, FSlateWindowElementList& Out,
@@ -182,7 +189,11 @@ int32 UPawTreeLinks::NativePaint(const FPaintArgs& Args, const FGeometry& G, con
 			}
 			else
 			{
-				Lines(Out, Layer, G, Seg, bPassOwned ? L.Colour : PawTree::LinkDim, bPassOwned ? LineWidthOwned : LineWidth);
+				// D18 (S4, the UI concept's scrTree): an ink line with a core, cream where owned, slate where not (Godot:
+				// the trunk's colour, dim when not owned).
+				Lines(Out, Layer, G, Seg, PawTokens::INK, (bPassOwned ? LineWidthOwned : LineWidth) + 4.0);
+				Lines(Out, Layer, G, Seg, bPassOwned ? PawTokens::UI_TREE_LINK_ON : PawTokens::UI_TREE_LINK_OFF,
+					bPassOwned ? LineWidthOwned - 2.0 : LineWidth - 2.0);
 			}
 		}
 	}
@@ -254,6 +265,11 @@ bool UPawTreeNode::Initialize()
 		WidgetTree->RootWidget = Box;
 		UOverlay* Root = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("Root"));
 		Box->SetContent(Root);
+		// D18 (S4): the hexagon first, under everything (the concept's treeNode).
+		Plate = WidgetTree->ConstructWidget<UPawHexPlate>(PawUi::Resolve<UPawHexPlate>(), TEXT("Plate"));
+		UOverlaySlot* PS = Root->AddChildToOverlay(Plate);
+		PS->SetHorizontalAlignment(HAlign_Fill);
+		PS->SetVerticalAlignment(VAlign_Fill);
 		Frame = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Frame"));
 		Frame->SetVisibility(ESlateVisibility::HitTestInvisible);
 		UOverlaySlot* FS = Root->AddChildToOverlay(Frame);
@@ -308,24 +324,23 @@ void UPawTreeNode::OnNodeReady()
 
 void UPawTreeNode::FrameColours(PcTreeNodeState S, const FLinearColor& Trunk, FLinearColor& OutFill, FLinearColor& OutEdge)
 {
-	// The plate one step above the sky, and owned FROM the plate toward the trunk's colour (never dimmed toward black,
-	// which could land darker than LOCKED and invert the ladder).
-	const FLinearColor DarkBody = WithAlpha(PawTokens::SKY_PLATE, 0.94);
-	const FLinearColor OwnedBody = WithAlpha(LerpSrgb(PawTokens::SKY_PLATE, Trunk, 0.42), 0.95);
-	const FLinearColor DimBorder = WithAlpha(Trunk, 0.45);
+	// D18 (S4, the UI concept's scrTree): owned green on an ink edge; a node to buy now raised with the gold ring; the
+	// rest slate on a slate edge (Godot: the trunk's colour, lerped from a plate one step above the plum sky). The ladder
+	// reads by value too: green, cream, slate.
+	(void)Trunk;
 	switch (S)
 	{
 	case PcTreeNodeState::Owned:
-		OutFill = OwnedBody;
-		OutEdge = Trunk;
+		OutFill = PawTokens::UI_TREE_OWNED;
+		OutEdge = PawTokens::INK;
 		break;
 	case PcTreeNodeState::Ready:
-		OutFill = LerpSrgb(DarkBody, OwnedBody, ReadyLerp);
-		OutEdge = LerpSrgb(DimBorder, Trunk, ReadyLerp);
+		OutFill = PawTokens::UI_BUTTON;
+		OutEdge = PawTokens::UI_TREE_READY_RING;
 		break;
 	default:
-		OutFill = DarkBody;
-		OutEdge = DimBorder;
+		OutFill = PawTokens::SKY_PLATE;
+		OutEdge = PawTokens::SKY_PLATE_EDGE;
 		break;
 	}
 }
@@ -337,10 +352,21 @@ void UPawTreeNode::SetLook(PcTreeNodeState InState, const FLinearColor& Trunk, b
 	FrameColours(InState, Trunk, Fill, Edge);
 	// Unlocks keep their heavier border, a rounded square (the board's jobs); a skill is ROUND (restyle R4f, the board
 	// "Skill tree (plum)"; Godot drew both as squares, the unlocks rounder).
-	Frame->SetBrush(Rounded(Fill, Edge, bUnlock ? 5.0f : 3.0f, bUnlock ? 14.0f : static_cast<float>(NodePx * 0.5)));
+	// D18 (S4): the ring of a node to buy now is the concept's heavy gold (5); the icon of a slate node faded (its 0.55).
+	// The node paints a hexagon in these (NativePaint); the old frame stays clear (R4f: a round skill, a rounded unlock).
+	const bool bHeavy = bUnlock || InState == PcTreeNodeState::Ready;
+	if (Plate)
+	{
+		Plate->SetLook(Fill, Edge, bHeavy ? 5.0f : 3.0f);
+	}
+	Frame->SetBrush(NoBrush());
+	if (Icon)
+	{
+		Icon->SetRenderOpacity(InState == PcTreeNodeState::Locked ? 0.55f : 1.0f);
+	}
 	CounterText->SetText(Counter);
-	const double CounterAlpha = InState == PcTreeNodeState::Owned ? 0.95 : InState == PcTreeNodeState::Ready ? 0.72 : 0.45;
-	SetTextColour(CounterText, WithAlpha(FLinearColor::White, CounterAlpha));
+	// Ink on the green and cream plates, pale on the slate one.
+	SetTextColour(CounterText, InState == PcTreeNodeState::Locked ? WithAlpha(PawTokens::SKY_STAR, 0.8) : PawTokens::INK);
 	if (bShine != bInShine)
 	{
 		bShine = bInShine;
@@ -373,9 +399,59 @@ void UPawTreeNode::NativeOnAddedToFocusPath(const FFocusEvent& InFocusEvent)
 }
 
 FText UPawTreeNode::GetCounter() const { return CounterText ? CounterText->GetText() : FText::GetEmpty(); }
-FLinearColor UPawTreeNode::GetFrameFill() const { return Frame ? Frame->Background.TintColor.GetSpecifiedColor() : FLinearColor::Transparent; }
-FLinearColor UPawTreeNode::GetFrameEdge() const { return Frame ? Frame->Background.OutlineSettings.Color.GetSpecifiedColor() : FLinearColor::Transparent; }
-float UPawTreeNode::GetFrameRadius() const { return Frame ? static_cast<float>(Frame->Background.OutlineSettings.CornerRadii.X) : 0.0f; }
+FLinearColor UPawTreeNode::GetFrameFill() const { return Plate ? Plate->GetFill() : FLinearColor::Transparent; }
+FLinearColor UPawTreeNode::GetFrameEdge() const { return Plate ? Plate->GetEdge() : FLinearColor::Transparent; }
+float UPawTreeNode::GetFrameEdgeWidth() const { return Plate ? Plate->GetEdgeWidth() : 0.0f; }
+int32 UPawTreeNode::GetHexPaints() const { return Plate ? Plate->GetPaints() : 0; }
+bool UPawTreeNode::IsFrameClear() const { return !Frame || Frame->Background.DrawAs == ESlateBrushDrawType::NoDrawType; }
+
+bool UPawHexPlate::Initialize()
+{
+	// Nothing of its own to lay out: it paints its box.
+	const bool bOk = Super::Initialize();
+	SetVisibility(ESlateVisibility::HitTestInvisible);
+	return bOk;
+}
+
+void UPawHexPlate::SetLook(const FLinearColor& InFill, const FLinearColor& InEdge, float InEdgeWidth)
+{
+	if (Fill == InFill && Edge == InEdge && EdgeWidth == InEdgeWidth)
+	{
+		return;
+	}
+	Fill = InFill;
+	Edge = InEdge;
+	EdgeWidth = InEdgeWidth;
+	Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+int32 UPawHexPlate::NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling, FSlateWindowElementList& Out,
+	int32 LayerId, const FWidgetStyle& InStyle, bool bParentEnabled) const
+{
+	const int32 Layer = Super::NativePaint(Args, Geometry, Culling, Out, LayerId, InStyle, bParentEnabled) + 1;
+	const FVector2D Size(Geometry.GetLocalSize());
+	if (Size.X <= 0.0 || Size.Y <= 0.0 || (Fill.A <= 0.0f && Edge.A <= 0.0f))
+	{
+		return Layer;
+	}
+	// FPawFxCanvas takes sRGB floats (straight alpha); the tokens are linear. The widget tint (a node's shine) multiplies in.
+	auto Canvas = [&InStyle](const FLinearColor& Linear)
+	{
+		const FLinearColor T = Linear * InStyle.GetColorAndOpacityTint();
+		const FColor S = T.ToFColorSRGB();
+		return FLinearColor(S.R / 255.0f, S.G / 255.0f, S.B / 255.0f, T.A);
+	};
+	const double R = FMath::Min(Size.X, Size.Y) * 0.5 - EdgeWidth * 0.5;
+	TArray<FVector2D> Pts = UPawTreeLinks::HexPath(Size * 0.5, R, 1);
+	FPawFxCanvas Paint;
+	Paint.Polygon(TConstArrayView<FVector2D>(Pts.GetData(), 6), Canvas(Fill));
+	const FVector2D Second = Pts[1]; // a copy: adding an element of the array to itself asserts (KB Unreal/24)
+	Pts.Add(Second);                 // one past the start: the last corner mitred like the others
+	Paint.Polyline(Pts, Canvas(Edge), EdgeWidth);
+	PawUi::PaintCanvas(Paint, Out, Layer, Geometry.GetAccumulatedRenderTransform());
+	++Paints;
+	return Layer;
+}
 
 // --- the screen -----------------------------------------------------------------------------------------------------------
 
@@ -484,7 +560,8 @@ void UPawSkillTreeScreen::BuildChrome(UOverlay* Root)
 	StardustPill->SetBrush(Chrome(EPawChrome::PlateSmall));
 	StardustPill->SetPadding(PlatePadding(FMargin(static_cast<float>(R4PillPadX), static_cast<float>(R4PillPadY)), EPawChrome::PlateSmall));
 	StardustPill->SetVisibility(ESlateVisibility::HitTestInvisible);
-	StardustText = Heavy(MakeText(T, LabelPx, PawTokens::SKY_STAR, false, TEXT("StardustText")));
+	// D18 (S4): ink on the cream plate (the plum era's cream text read 1:1 on it: nothing showed).
+	StardustText = Heavy(MakeText(T, LabelPx, PawTokens::UI_TEXT, false, TEXT("StardustText")));
 	StardustPill->SetContent(StardustText);
 	UOverlaySlot* SS = Root->AddChildToOverlay(StardustPill);
 	SS->SetHorizontalAlignment(HAlign_Right);
@@ -509,7 +586,7 @@ void UPawSkillTreeScreen::BuildChrome(UOverlay* Root)
 	LegendPrompts = T->ConstructWidget<UPawPromptText>(PawUi::Resolve<UPawPromptText>(), TEXT("LegendPrompts"));
 	LegendPrompts->IconPx = static_cast<int32>(TreePromptPx);
 	LegendPrompts->TextPx = static_cast<float>(LabelPx);
-	LegendPrompts->TextColour = PawTokens::SKY_STAR;
+	LegendPrompts->TextColour = PawTokens::UI_TEXT; // D18 (S4): ink on the cream plate (was the plum era's cream: unreadable)
 	// R4f: on a plum pill (the board's legend bar).
 	UBorder* LegendPlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("LegendPlate"));
 	LegendPlate->SetBrush(Chrome(EPawChrome::PlateSmall));
@@ -517,9 +594,10 @@ void UPawSkillTreeScreen::BuildChrome(UOverlay* Root)
 	LegendPlate->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	LegendPlate->SetContent(LegendPrompts);
 	UOverlaySlot* LS = Root->AddChildToOverlay(LegendPlate);
-	LS->SetHorizontalAlignment(HAlign_Center);
+	// D18 (S4, the UI concept's scrTree): the bottom-left corner (Godot: the bottom centre, where Continue now stands over it).
+	LS->SetHorizontalAlignment(HAlign_Left);
 	LS->SetVerticalAlignment(VAlign_Bottom);
-	LS->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 12.0f));
+	LS->SetPadding(FMargin(24.0f, 0.0f, 0.0f, 24.0f));
 
 	// The unspent warning, in the middle (playtest 2026-10-01 #32: the caption change at the bottom went unseen on a pad).
 	WarningPlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("WarningPlate"));
@@ -804,6 +882,10 @@ void UPawSkillTreeScreen::StyleClose()
 		const UPawGameSubsystem* G = Game();
 		const bool bUnspent = G && G->IsDataReady() && Pc::HasAffordableBranch(G->Data(), G->Progress());
 		CloseButton->SetLabel(PawText::Ui(!bConfirmLeaving ? TEXT("TREE_continue") : bUnspent ? TEXT("TREE_leave_unspent") : TEXT("TREE_start_next")));
+		// D18 (S4, the UI concept's scrTree): yellow, with the Reawaken swirl (it starts the next run). It stays big and in
+		// the middle (the designer, 2026-08-23); the concept draws it in the corner.
+		CloseButton->SetCallLook(true);
+		CloseButton->SetIcon(PawUi::TabIconName(TEXT("reawaken")), CloseSpendIconPx);
 	}
 	else
 	{
@@ -813,6 +895,8 @@ void UPawSkillTreeScreen::StyleClose()
 		CloseButton->SetMinDimensions(static_cast<int32>(CloseBrowseW), static_cast<int32>(CloseBrowseH));
 		CloseButton->SetLabelSize(ButtonPx);
 		CloseButton->SetLabel(PawText::Ui(TEXT("TREE_close")));
+		CloseButton->SetCallLook(false);
+		CloseButton->SetIcon(FString(), CloseSpendIconPx);
 	}
 }
 

@@ -14,7 +14,13 @@
 // passed since the list opened (the second ask restarts it), and for the keys and the pad only a press that BEGAN after it
 // opened. The guard sits on the buttons (ClickRow), not on Pick(), the programmatic way in.
 //
-// Pad and keys (controller plan 7): one column of rows, wired by PawUi::WireRows (wrapping); opens on last run's job.
+// Pad and keys (controller plan 7): the cards in rows of up to five, wired by PawUi::WireRows (wrapping); opens on last
+// run's job.
+//
+// D18 (S4, the UI concept's scrJobPick): each job is a card: the Tiny Kitten wearing the job's hat on a photo (the approved
+// hats; "No job": the bare kitten), the job's name on its button, its blurb; the card the pointer or the pad is on has its
+// button on the yellow plate. The concept pages three jobs with LB / RB and a "Wear" button: here every held job shows at
+// once (the panel shrinks to fit), and the button is the job's name, as before (no new words).
 //
 // THE LOOK IS GODOT'S DEFAULT THEME (F21, measured: Tests/Data/victory_look_godot.txt jp.*): its own CanvasLayer under the
 // HUD, outside the themed Root, so a translucent dark panel, stock grey buttons, a white note; the title keeps its INK (dark
@@ -26,6 +32,8 @@
 #include "PawJobPicker.generated.h"
 
 class UBorder;
+class UHorizontalBox;
+class UImage;
 class UPawButton;
 class UPawRealmSubsystem;
 class UTextBlock;
@@ -67,6 +75,13 @@ public:
 	UPawButton* GetRowButton(int32 Row) const;
 	FText GetRowLabel(int32 Row) const;
 	FText GetRowBlurb(int32 Row) const;
+	// D18 (S4): the picture on a row's card (its texture's name) and its photo's fill; whether its button is the call.
+	FString GetRowCatName(int32 Row) const;
+	FLinearColor GetRowPhotoColour(int32 Row) const;
+	// The tests' pointer: a row lifted as if hovered (IsHovered needs a real cursor over a window); INDEX_NONE lets go.
+	void HoldRowForTest(int32 Row) { HeldRow = Row; }
+	// One frame of the cards' look (NativeTick; the tests drive it): the lifted card's button on the yellow plate.
+	void StepLook();
 	// Rows drawn (pooled ones beyond the list are collapsed).
 	int32 GetShownRowCount() const;
 	FText GetTitleText() const;
@@ -103,6 +118,15 @@ private:
 	TArray<TObjectPtr<UPawButton>> Buttons; // pooled with their blurbs: an open reuses them and hides the rest
 	UPROPERTY()
 	TArray<TObjectPtr<UTextBlock>> Blurbs;
+	UPROPERTY()
+	TArray<TObjectPtr<UBorder>> Cards;
+	UPROPERTY()
+	TArray<TObjectPtr<UBorder>> Photos;
+	UPROPERTY()
+	TArray<TObjectPtr<UImage>> Cats;
+	UPROPERTY()
+	TArray<TObjectPtr<UHorizontalBox>> CardRows;
+	int32 HeldRow = INDEX_NONE;
 
 	TArray<FString> RowIds;
 	TArray<UWidget*> Wired;

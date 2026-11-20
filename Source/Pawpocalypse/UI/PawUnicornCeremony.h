@@ -38,6 +38,11 @@ public:
 	// What the last paint drew (tests): the shapes (arcs, confetti, stars and rims) and the cat.
 	int32 GetPaintedShapes() const { return PaintedShapes; }
 	bool WasCatPainted() const { return bCatPainted; }
+	// D18 (S4, the UI concept's scrUnicorn): the last paint drew its rays, its title, its line (tests).
+	bool WereRaysPainted() const { return bRaysPainted; }
+	FText GetTitleText() const;
+	FText GetLineText() const;
+	bool WasTitlePainted() const { return bTitlePainted; }
 
 	TFunction<void()> OnFinished;
 
@@ -54,10 +59,14 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<const UPawSpriteAtlas> Atlas;
 	FSlateBrush PageBrush;
+	FSlateBrush RaysBrush;  // D18 (S4): ui_icon_unicorn_rays
+	FSlateBrush LinePlate;  // the line's plate
 	int32 Cell = INDEX_NONE;
 	Pc::PcUnicornCeremony State;
 	bool bPlaying = false;
 	uint64 Plays = 0;
 	mutable int32 PaintedShapes = 0;
 	mutable bool bCatPainted = false;
+	mutable bool bRaysPainted = false;
+	mutable bool bTitlePainted = false;
 };

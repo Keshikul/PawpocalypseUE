@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
 <g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<polygon points="64.0,41.4 75.5,64.1 100.8,68.1 82.7,86.1 86.7,111.3 64.0,99.7 41.3,111.3 45.3,86.1 27.2,68.1 52.5,64.1" fill="#2A1A33" stroke="none"/>
+<polygon points="64.0,41.4 75.5,64.1 100.8,68.1 82.7,86.1 86.7,111.3 64.0,99.7 41.3,111.3 45.3,86.1 27.2,68.1 52.5,64.1" fill="#2A2131" stroke="none"/>
 <polygon points="64.0,46.0 72.8,67.9 96.3,69.5 78.3,84.6 84.0,107.5 64.0,95.0 44.0,107.5 49.7,84.6 31.7,69.5 55.2,67.9" fill="#F2C65B" stroke="none"/>
-<polyline points="64.0,80.0 64.0,46.0" fill="none" stroke="#2A1A33" stroke-width="1.6"/>
-<polyline points="64.0,80.0 96.3,69.5" fill="none" stroke="#2A1A33" stroke-width="1.6"/>
-<polyline points="64.0,80.0 84.0,107.5" fill="none" stroke="#2A1A33" stroke-width="1.6"/>
-<polyline points="64.0,80.0 44.0,107.5" fill="none" stroke="#2A1A33" stroke-width="1.6"/>
-<polyline points="64.0,80.0 31.7,69.5" fill="none" stroke="#2A1A33" stroke-width="1.6"/>
+<polyline points="64.0,80.0 64.0,46.0" fill="none" stroke="#2A2131" stroke-width="1.6"/>
+<polyline points="64.0,80.0 96.3,69.5" fill="none" stroke="#2A2131" stroke-width="1.6"/>
+<polyline points="64.0,80.0 84.0,107.5" fill="none" stroke="#2A2131" stroke-width="1.6"/>
+<polyline points="64.0,80.0 44.0,107.5" fill="none" stroke="#2A2131" stroke-width="1.6"/>
+<polyline points="64.0,80.0 31.7,69.5" fill="none" stroke="#2A2131" stroke-width="1.6"/>
 <polygon points="64.0,80.0 64.0,46.0 72.8,67.9" fill="#F6DA95" stroke="none"/>
 <polygon points="64.0,80.0 31.7,69.5 55.2,67.9" fill="#F4D27F" stroke="none"/>
-<polygon points="64.0,80.0 84.0,107.5 64.0,95.0 44.0,107.5" fill="#D4AC55" stroke="none"/>
+<polygon points="64.0,80.0 84.0,107.5 64.0,95.0 44.0,107.5" fill="#D4AD55" stroke="none"/>
 <polyline points="94.0,50.0 106.0,50.0" fill="none" stroke="#F4D078" stroke-width="2.0"/>
 <polyline points="100.0,44.0 100.0,56.0" fill="none" stroke="#F4D078" stroke-width="2.0"/>
 <polyline points="24.0,56.0 32.0,56.0" fill="none" stroke="#F4D078" stroke-width="2.0"/>

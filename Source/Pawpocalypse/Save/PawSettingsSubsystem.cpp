@@ -8,11 +8,15 @@
 #include "HAL/IConsoleManager.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "HAL/PlatformMisc.h"
+#include "PcLocales.h"
 #include "Save/PawSaveStorage.h"
+#include "UI/PawText.h"
 #include "UnrealEngine.h"
 #include "Widgets/SWindow.h"
 
 #include <string>
+#include <vector>
 
 const TCHAR* const UPawSettingsSubsystem::EntryName = TEXT("settings");
 
@@ -66,6 +70,8 @@ void UPawSettingsSubsystem::Reload()
 			Settings = Pc::PcSettings();
 		}
 	}
+	// apply_all()'s language: before anything listening rebuilds its text.
+	ApplyLanguage();
 	// Whoever already listens acts on what was read (at startup nobody does yet: the device subsystem reads them itself).
 	OnChanged.Broadcast();
 }
@@ -193,6 +199,50 @@ void UPawSettingsSubsystem::ApplyVideo()
 		const Pc::PcIntSize At = Pc::CentredPosition({ Work.Left, Work.Top }, Usable, Size);
 		Window->MoveWindowTo(FVector2D(static_cast<double>(At.X), static_cast<double>(At.Y)));
 	}
+}
+
+void UPawSettingsSubsystem::ApplyLanguage()
+{
+	// apply_language(): the setting when available, else the system's (Pc::LocaleResolve). A -culture= on the command line
+	// stands in for the setting (the tour, the store shots, a developer); a culture with no translations is English.
+	std::vector<std::string> Available;
+	for (const FString& Code : PawText::Languages())
+	{
+		Available.push_back(Utf8(Code));
+	}
+	std::string Setting = Settings.Language;
+	FString Wanted;
+	if (FParse::Value(FCommandLine::Get(), TEXT("culture="), Wanted))
+	{
+		const Pc::PcLanguage* Asked = Pc::LanguageByCulture(Utf8(Wanted));
+		Setting = Asked ? Asked->Code : Pc::LocaleEnglish;
+	}
+	// Steam's language for the game joins here once the game talks to Steam (settings_manager.gd's hook; none in either build).
+	const std::string Code = Pc::LocaleResolve(Setting, Available, Utf8(FPlatformMisc::GetDefaultLocale()), std::string());
+	const Pc::PcLanguage* Shown = Pc::LanguageByCode(Code);
+	Language.Code = UTF8_TO_TCHAR(Code.c_str());
+	Language.Culture = Shown ? UTF8_TO_TCHAR(Shown->Culture) : TEXT("en");
+	++Language.Count;
+	// Never in the editor: the designer's own editor keeps its language (the tests show a culture through PawText).
+	Language.bToEngine = !GIsEditor;
+	if (Language.bToEngine)
+	{
+		PawText::ShowCulture(Language.Culture);
+		UE_LOG(LogPaw, Log, TEXT("Settings: language %s (%s)"), *Language.Code, *Language.Culture);
+	}
+}
+
+void UPawSettingsSubsystem::SetLanguage(const FString& Code)
+{
+	const std::string S = Utf8(Code);
+	if (Settings.Language == S)
+	{
+		return;
+	}
+	Settings.Language = S;
+	Save();
+	ApplyLanguage();
+	OnChanged.Broadcast();
 }
 
 // --- the setters ---------------------------------------------------------------------------------------------------------

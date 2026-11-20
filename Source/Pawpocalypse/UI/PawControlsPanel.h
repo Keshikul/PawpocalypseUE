@@ -142,6 +142,14 @@ private:
 	UPROPERTY()
 	TArray<TObjectPtr<UTextBlock>> RowLabels;
 	UPROPERTY()
+	TArray<TObjectPtr<class UBorder>> RowBands; // D18 (S4): each row's band (every other one drawn)
+public:
+	// D18 (S4), read from what is drawn: the column heads on their raised band, in capitals; how many rows wear a band.
+	bool IsHeadOnBand() const;
+	bool AreHeadsCapitals() const;
+	int32 GetBandedRowCount() const;
+private:
+	UPROPERTY()
 	TArray<TObjectPtr<UPawButton>> Cells;
 	UPROPERTY()
 	TArray<TObjectPtr<UPawPromptIcon>> CellPrompts;

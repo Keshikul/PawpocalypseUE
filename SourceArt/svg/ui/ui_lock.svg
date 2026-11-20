@@ -1,24 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<ellipse cx="44.3" cy="54.4" rx="8.5" ry="8.5" fill="#2A1A33" stroke="none"/>
-<ellipse cx="45.8" cy="46.9" rx="8.5" ry="8.5" fill="#2A1A33" stroke="none"/>
-<ellipse cx="50.1" cy="40.5" rx="8.5" ry="8.5" fill="#2A1A33" stroke="none"/>
-<ellipse cx="56.5" cy="36.2" rx="8.5" ry="8.5" fill="#2A1A33" stroke="none"/>
-<ellipse cx="64.0" cy="34.7" rx="8.5" ry="8.5" fill="#2A1A33" stroke="none"/>
-<ellipse cx="71.5" cy="36.2" rx="8.5" ry="8.5" fill="#2A1A33" stroke="none"/>
-<ellipse cx="77.9" cy="40.5" rx="8.5" ry="8.5" fill="#2A1A33" stroke="none"/>
-<ellipse cx="82.2" cy="46.9" rx="8.5" ry="8.5" fill="#2A1A33" stroke="none"/>
-<ellipse cx="83.7" cy="54.4" rx="8.5" ry="8.5" fill="#2A1A33" stroke="none"/>
-<ellipse cx="44.3" cy="54.4" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
-<ellipse cx="45.8" cy="46.9" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
-<ellipse cx="50.1" cy="40.5" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
-<ellipse cx="56.5" cy="36.2" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
-<ellipse cx="64.0" cy="34.7" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
-<ellipse cx="71.5" cy="36.2" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
-<ellipse cx="77.9" cy="40.5" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
-<ellipse cx="82.2" cy="46.9" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
-<ellipse cx="83.7" cy="54.4" rx="5.4" ry="5.4" fill="#34223E" stroke="none"/>
-<rect x="35.4" y="54.7" width="57.2" height="47.0" rx="7.1" fill="#2A1A33" stroke="none"/>
-<rect x="38.5" y="57.8" width="51.0" height="40.8" rx="4.0" fill="#34223E" stroke="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="0.000" data-ink="8.387">
+<g stroke-linejoin="round" stroke-linecap="round">
+<polyline points="44.65,58.19 44.65,38.84 45.73,31.87 48.67,26.45 53.01,22.58 58.27,20.26 64.00,19.48 69.73,20.26 74.99,22.58 79.33,26.45 82.27,31.87 83.35,38.84 83.35,58.19" fill="none" stroke="#2A2131" stroke-width="10.97"/>
+<rect x="28.52" y="54.97" width="70.97" height="54.84" rx="12.90" fill="#B4C6D6" stroke="#2A2131" stroke-width="8.39"/>
+<ellipse cx="64.00" cy="80.77" rx="7.74" ry="7.74" fill="#2A2131" stroke="none"/>
 </g>
 </svg>

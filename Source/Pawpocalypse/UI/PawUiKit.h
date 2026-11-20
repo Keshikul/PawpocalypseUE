@@ -48,6 +48,7 @@ namespace PawUi
 		Separator,                                                // HSeparator
 		PlateSmall,                                               // R3: the small plate (the toast, the zone plate)
 		ButtonSelected,                                           // R4a: the held toggle (the open tab), Butter, sunk
+		ButtonPrimary,                                            // D18 (S4): the raised yellow, the thing to press (a price)
 		Count
 	};
 	struct FPawChromeSpec

@@ -1,29 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-<!-- "Report a bug": a ladybird. Title-screen cluster icon (designer, 2026-09-21).
-     Ink underlay, flat fills, same rules as every sprite. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="0.000" data-ink="7.514">
 <g stroke-linejoin="round" stroke-linecap="round">
-<polyline points="48,30 36,14" fill="none" stroke="#2A1A33" stroke-width="5"/>
-<polyline points="80,30 92,14" fill="none" stroke="#2A1A33" stroke-width="5"/>
-<circle cx="34" cy="12" r="5" fill="#2A1A33"/>
-<circle cx="94" cy="12" r="5" fill="#2A1A33"/>
-<polyline points="30,62 10,52" fill="none" stroke="#2A1A33" stroke-width="6"/>
-<polyline points="30,78 8,80" fill="none" stroke="#2A1A33" stroke-width="6"/>
-<polyline points="34,94 14,108" fill="none" stroke="#2A1A33" stroke-width="6"/>
-<polyline points="98,62 118,52" fill="none" stroke="#2A1A33" stroke-width="6"/>
-<polyline points="98,78 120,80" fill="none" stroke="#2A1A33" stroke-width="6"/>
-<polyline points="94,94 114,108" fill="none" stroke="#2A1A33" stroke-width="6"/>
-<circle cx="64" cy="38" r="20" fill="#2A1A33"/>
-<circle cx="64" cy="38" r="16" fill="#3A3A3A"/>
-<ellipse cx="64" cy="80" rx="38" ry="40" fill="#2A1A33"/>
-<ellipse cx="64" cy="80" rx="34" ry="36" fill="#D86061"/>
-<polyline points="64,46 64,116" fill="none" stroke="#2A1A33" stroke-width="4"/>
-<circle cx="48" cy="68" r="6" fill="#2A1A33"/>
-<circle cx="80" cy="68" r="6" fill="#2A1A33"/>
-<circle cx="44" cy="92" r="5" fill="#2A1A33"/>
-<circle cx="84" cy="92" r="5" fill="#2A1A33"/>
-<circle cx="57" cy="34" r="4" fill="#F6F6F6"/>
-<circle cx="71" cy="34" r="4" fill="#F6F6F6"/>
-<circle cx="58" cy="35" r="2" fill="#2A1A33"/>
-<circle cx="72" cy="35" r="2" fill="#2A1A33"/>
+<polyline points="29.32,49.55 52.44,61.11" fill="none" stroke="#2A2131" stroke-width="6.94"/>
+<polyline points="98.68,49.55 75.56,61.11" fill="none" stroke="#2A2131" stroke-width="6.94"/>
+<polyline points="26.43,84.23 52.44,78.45" fill="none" stroke="#2A2131" stroke-width="6.94"/>
+<polyline points="101.57,84.23 75.56,78.45" fill="none" stroke="#2A2131" stroke-width="6.94"/>
+<ellipse cx="64.00" cy="75.56" rx="26.01" ry="34.68" fill="#FF6B6B" stroke="#2A2131" stroke-width="7.51"/>
+<ellipse cx="64.00" cy="35.10" rx="17.34" ry="17.34" fill="#3B3546" stroke="#2A2131" stroke-width="7.51"/>
+<polyline points="64.00,43.77 64.00,107.35" fill="none" stroke="#2A2131" stroke-width="4.62"/>
 </g>
 </svg>

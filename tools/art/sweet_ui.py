@@ -129,6 +129,8 @@ def CHROME():
             256, 64, 9, f, BUTTON_SHADOW, BUTTON_EDGE, sink)))(fill, name == "pressed"))
     # R4a: the selected toggle (the open tab): the pressed plate's shape in Butter.
     c["ui_button_selected"] = ((256, 64), lambda: plate(256, 64, 9, SELECTED, BUTTON_SHADOW, BUTTON_EDGE, True))
+    # D18 (S4): the raised yellow, "the button to press" of the UI concept (a price that can be paid), not sunk.
+    c["ui_button_primary"] = ((256, 64), lambda: plate(256, 64, 9, SELECTED, BUTTON_SHADOW, BUTTON_EDGE, False))
 
     # Panel: margins 16 / 16 / 16 / 24 (the shortest wearer, a 42 px popup list, still fits), radius 12, the 8 px shadow.
     # Window: margins 24 / 24 / 24 / 32, radius 16. The small plate (the toast, the zone plate): margins 12 / 12 / 12 / 16,

@@ -4,7 +4,10 @@
 //
 // Pawpocalypse.UI.Settings.MatchesGodot  300 fixture rows: the settings.cfg GODOT wrote, read from the storage; every change
 //                                        made on the widget; every setting, volume line, slider, box, list and page as Godot's.
-// Pawpocalypse.UI.Settings.Look          every part wired; Godot's words; the pages' selection rows; Language disabled.
+// Pawpocalypse.UI.Settings.Look          every part wired; Godot's words; the pages' selection rows.
+// Pawpocalypse.UI.Settings.Language      the language list (phase 7): System, English, every language in its own name with
+//                                        its own "(draft)"; a pick saved and applied (never to the editor's engine), selected
+//                                        on open; a click's pick a tick later; a stored language not available shows System.
 // Pawpocalypse.UI.Settings.FromPause     the pause menu steps aside for it and comes back (the field held throughout).
 // Pawpocalypse.UI.Settings.FromTitle     over the title; closing brings the selection home to Settings.
 // Pawpocalypse.UI.Settings.Persists      a change writes the file; a new game instance reads it back; an unreadable file is the
@@ -24,6 +27,12 @@
 #include "Engine/World.h"
 #include "GenericPlatform/GenericApplication.h"
 #include "Misc/AutomationTest.h"
+#include "Misc/ScopeExit.h"
+#include "Components/TextBlock.h"
+#include "PcControls.h"
+#include "UI/PawControlsPanel.h"
+#include "UI/PawTokens.h"
+#include "UI/PawUiKit.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "PcProgress.h"
@@ -41,6 +50,8 @@
 #include "UI/PawWidgets.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "UI/PawTextTesting.h"
+#include "UI/PawText.h"
+#include "Containers/Ticker.h"
 
 #include <cstdlib>
 #include <string>
@@ -479,8 +490,9 @@ bool FPawSettingsLookTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("the prompts"), Options(D->GetOption(TEXT("PromptsOption"))),
 		FString(TEXT("Auto|Keyboard and mouse|Xbox|PlayStation|Steam Deck")));
 	TestEqual(TEXT("the sides"), Options(D->GetOption(TEXT("DockSideOption"))), FString(TEXT("Left|Right")));
-	TestEqual(TEXT("the language: System, until the languages (phase 7)"), Options(D->GetOption(TEXT("LanguageOption"))), FString(TEXT("System")));
-	TestFalse(TEXT("and disabled"), D->GetOption(TEXT("LanguageOption"))->GetIsEnabled());
+	// The language list (phase 7): System, then the languages (Pawpocalypse.UI.Settings.Language has them).
+	TestTrue(TEXT("the language: System first"), Options(D->GetOption(TEXT("LanguageOption"))).StartsWith(TEXT("System|English")));
+	TestTrue(TEXT("and open"), D->GetOption(TEXT("LanguageOption"))->GetIsEnabled());
 	TestTrue(TEXT("V-Sync on by default"), Ticked(D->GetCheck(TEXT("VsyncCheck"))));
 	TestTrue(TEXT("effects on by default"), Ticked(D->GetCheck(TEXT("EffectsCheck"))));
 	// The selection: the section bar, the page's controls one per row, Close.
@@ -489,8 +501,8 @@ bool FPawSettingsLookTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("opens on the master slider"), D->GetDesiredFocusTarget() == D->GetPart(TEXT("VolumeSlider")));
 	D->StepSection(1);
 	TestTrue(TEXT("RB: Video"), D->IsPageShown(Pc::PcSettingsSection::Video));
-	TestEqual(TEXT("Video without the disabled language: 3 + 6 + Close"), D->GetWired().Num(), 10);
-	TestTrue(TEXT("opens on Resolution"), D->GetDesiredFocusTarget() == D->GetPart(TEXT("ResolutionOption")));
+	TestEqual(TEXT("Video: 3 + the language + 6 + Close"), D->GetWired().Num(), 11);
+	TestTrue(TEXT("opens on Language (Godot: the page's first control)"), D->GetDesiredFocusTarget() == D->GetPart(TEXT("LanguageOption")));
 	D->StepSection(1);
 	// The Controls panel's rows (controls_panel.gd focus_rows): 2 boxes, 10 rows x [keyboard, controller, Reset], Reset all,
 	// 4 boxes, 2 sliders.
@@ -504,6 +516,19 @@ bool FPawSettingsLookTest::RunTest(const FString& Parameters)
 	// R4a: the open section is "the selected thing", on the Butter plate; the others are not.
 	TestTrue(TEXT("the open section wears the call look"), D->GetCheck(TEXT("SectionVideo"))->HasCallLook()
 		&& !D->GetCheck(TEXT("SectionAudio"))->HasCallLook() && !D->GetCheck(TEXT("SectionControls"))->HasCallLook());
+	// D18 (S4, the UI concept's scrSettings): SETTINGS a sticker title; Close on the yellow plate; the controls table's
+	// head on its raised band, in capitals; every other row on a faint band.
+	const UTextBlock* TitleText = Cast<UTextBlock>(D->GetPart(TEXT("Title")));
+	TestTrue(TEXT("the sticker title: yellow on its ink outline"), TitleText
+		&& TitleText->GetColorAndOpacity().GetSpecifiedColor().Equals(PawTokens::UI_SELECTED)
+		&& TitleText->GetFont().OutlineSettings.OutlineSize == PawUi::ButterTitleOutline);
+	TestTrue(TEXT("Close on the yellow plate"), D->GetCheck(TEXT("CloseButton"))->HasCallLook());
+	if (const UPawControlsPanel* Panel = Cast<UPawControlsPanel>(D->GetPart(TEXT("ControlsPanel"))); TestNotNull(TEXT("the controls panel"), Panel))
+	{
+		TestTrue(TEXT("the table's head on its band"), Panel->IsHeadOnBand());
+		TestTrue(TEXT("in capitals"), Panel->AreHeadsCapitals());
+		TestEqual(TEXT("every other row banded"), Panel->GetBandedRowCount(), Pc::BindingRowCount / 2);
+	}
 	D->PressClose();
 	TestFalse(TEXT("Close closes"), D->IsActivated());
 	W.Close();
@@ -561,6 +586,100 @@ bool FPawSettingsOutputTest::RunTest(const FString& Parameters)
 	D->PickOutput(0);
 	TestEqual(TEXT("Follow the system: stored as Default"), FString(UTF8_TO_TCHAR(W.Settings->Get().OutputDevice.c_str())), FString(TEXT("Default")));
 	TestEqual(TEXT("already following it: nothing more told"), W.Swaps, (TArray<FString>{ Speakers, TEXT("Default") }));
+	D->PressClose();
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSettingsLanguageTest, "Pawpocalypse.UI.Settings.Language", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawSettingsLanguageTest::RunTest(const FString& Parameters)
+{
+	// Settings > Video > Language (phase 7; settings_dialog.gd _fill_language_option, settings_manager.gd set_language,
+	// Locales): "System", then every language with translations in use in its own name with its own "(draft)"; a pick is
+	// saved and applied, never to the editor's engine; the stored value selected on open, "System" when it is not available.
+	// Only complete languages are offered; this test asks for the unfinished ones too (-PawDraftLanguages), as a review does.
+	FSettingsWorld W;
+	if (!W.Open(*this, false))
+	{
+		W.Close();
+		return false;
+	}
+	UPawSettingsDialog* D = W.OpenDialog(*this);
+	if (!D)
+	{
+		W.Close();
+		return false;
+	}
+	UComboBoxString* List = D->GetOption(TEXT("LanguageOption"));
+	TestEqual(TEXT("only complete languages: System, English, then each complete one"), List->GetOptionCount(), PawText::Languages(false).Num() + 1);
+	D->PressClose();
+	PawText::SetShowUnfinishedLanguagesForTest(true);
+	ON_SCOPE_EXIT { PawText::SetShowUnfinishedLanguagesForTest(false); };
+	D = W.OpenDialog(*this);
+	if (!D)
+	{
+		W.Close();
+		return false;
+	}
+	List = D->GetOption(TEXT("LanguageOption"));
+	const TArray<FString> Codes = PawText::Languages();
+	TestTrue(TEXT("English and Godot's 20 languages"), Codes.Num() == 21 && Codes[0] == TEXT("en"));
+	TestTrue(TEXT("open"), List->GetIsEnabled());
+	TestEqual(TEXT("System, then one row per language"), List->GetOptionCount(), Codes.Num() + 1);
+	TestEqual(TEXT("System first"), List->GetOptionAtIndex(0), FString(TEXT("System")));
+	TestEqual(TEXT("English, never a draft"), List->GetOptionAtIndex(1), FString(TEXT("English")));
+	const int32 De = Codes.IndexOfByKey(TEXT("de")) + 1;
+	TestEqual(TEXT("German in its own words"), List->GetOptionAtIndex(De), FString(TEXT("Deutsch (Entwurf)")));
+	TestEqual(TEXT("System by default"), List->GetSelectedIndex(), 0);
+	TestEqual(TEXT("the default resolves to a language the list has"), Codes.Contains(W.Settings->GetLanguageApplied().Code), true);
+
+	// A pick: saved, applied, shown chosen, the list filled again with the same rows.
+	const int32 Count = W.Settings->GetLanguageApplied().Count;
+	D->PickLanguage(De);
+	Pc::PcSettings File;
+	TestTrue(TEXT("written: de"), W.ReadFile(File) && File.Language == "de");
+	TestTrue(TEXT("applied: German"), W.Settings->GetLanguageApplied().Code == TEXT("de") && W.Settings->GetLanguageApplied().Culture == TEXT("de")
+		&& W.Settings->GetLanguageApplied().Count == Count + 1);
+	TestFalse(TEXT("never to the editor's engine"), W.Settings->GetLanguageApplied().bToEngine);
+	TestEqual(TEXT("shown chosen"), List->GetSelectedIndex(), De);
+	TestEqual(TEXT("the same rows"), List->GetOptionCount(), Codes.Num() + 1);
+	const int32 Writes = W.Settings->GetWrites();
+	D->PickLanguage(De);
+	TestEqual(TEXT("the same language again: nothing written (Godot returns early)"), W.Settings->GetWrites(), Writes);
+
+	// Latin American Spanish: Godot's code stored, Unreal's culture applied.
+	D->PickLanguage(Codes.IndexOfByKey(TEXT("es_MX")) + 1);
+	TestTrue(TEXT("es_MX stored, es-419 applied"), W.ReadFile(File) && File.Language == "es_MX"
+		&& W.Settings->GetLanguageApplied().Culture == TEXT("es-419"));
+
+	// A click picks a tick later (the list is refilled from outside its own selection callback).
+	const int32 Ja = Codes.IndexOfByKey(TEXT("ja")) + 1;
+	List->SetSelectedIndex(Ja);
+	TestTrue(TEXT("a direct selection is not the player's"), W.ReadFile(File) && File.Language == "es_MX");
+	List->OnSelectionChanged.Broadcast(List->GetOptionAtIndex(Ja), ESelectInfo::OnMouseClick);
+	TestTrue(TEXT("the click: nothing yet"), W.ReadFile(File) && File.Language == "es_MX");
+	FTSTicker::GetCoreTicker().Tick(0.0f);
+	TestTrue(TEXT("a tick later: ja"), W.ReadFile(File) && File.Language == "ja");
+	TestEqual(TEXT("and shown chosen"), List->GetSelectedIndex(), Ja);
+
+	// Back to System.
+	D->PickLanguage(0);
+	TestTrue(TEXT("system stored"), W.ReadFile(File) && File.Language == "system");
+	D->PressClose();
+
+	// A stored language that is not available (a hand edit, a language withdrawn): System on the list, resolved as System.
+	W.PutFile("[game]\nlanguage=\"xx\"\n");
+	W.Settings->Reload();
+	TestEqual(TEXT("an unknown language resolves as System does"), Codes.Contains(W.Settings->GetLanguageApplied().Code), true);
+	D = W.OpenDialog(*this);
+	if (!D)
+	{
+		W.Close();
+		return false;
+	}
+	TestEqual(TEXT("shown as System"), D->GetOption(TEXT("LanguageOption"))->GetSelectedIndex(), 0);
+	TestEqual(TEXT("and kept as written"), FString(UTF8_TO_TCHAR(W.Settings->Get().Language.c_str())), FString(TEXT("xx")));
 	D->PressClose();
 	W.Close();
 	return true;

@@ -438,6 +438,8 @@ namespace Pc
 		Out.FinalBossSeconds = S.FinalBossSeconds;
 		Out.Bosses = static_cast<int64_t>(S.BossesDefeated.size());
 		Out.LastPlayedUnix = S.LastPlayedUnix;
+		Out.BossesDefeated = S.BossesDefeated;
+		Out.bFinalBossDefeated = S.bFinalBossDefeated;
 		return Out;
 	}
 

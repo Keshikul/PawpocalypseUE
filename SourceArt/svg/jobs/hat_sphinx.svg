@@ -1,24 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
-<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<ellipse cx="64.0" cy="50.0" rx="46.1" ry="38.1" fill="#FFF9E3" stroke="none"/>
-<polygon points="24.9,33.9 12.5,116.9 53.1,104.1" fill="#FFF9E3" stroke="none"/>
-<polygon points="103.1,33.9 115.5,116.9 74.9,104.1" fill="#FFF9E3" stroke="none"/>
-<ellipse cx="64.0" cy="50.0" rx="43.0" ry="35.0" fill="#FFF9E3" stroke="none"/>
-<polygon points="25.3,38.5 14.7,112.7 49.5,101.0" fill="#FFF9E3" stroke="none"/>
-<polygon points="102.7,38.5 113.3,112.7 78.5,101.0" fill="#FFF9E3" stroke="none"/>
-<rect x="26.0" y="20.5" width="76.0" height="19.0" rx="7.0" fill="#FFF9E3" stroke="none"/>
-<rect x="28.0" y="34.5" width="72.0" height="19.0" rx="7.0" fill="#FFF9E3" stroke="none"/>
-<polyline points="30.0,64.0 36.0,98.0" fill="none" stroke="#FFF9E3" stroke-width="15.0"/>
-<polyline points="98.0,64.0 92.0,98.0" fill="none" stroke="#FFF9E3" stroke-width="15.0"/>
-<ellipse cx="64.0" cy="50.0" rx="41.1" ry="33.1" fill="#2A1A33" stroke="none"/>
-<polygon points="25.6,41.4 16.0,110.2 47.4,99.1" fill="#2A1A33" stroke="none"/>
-<polygon points="102.4,41.4 112.0,110.2 80.6,99.1" fill="#2A1A33" stroke="none"/>
-<ellipse cx="64.0" cy="50.0" rx="38.0" ry="30.0" fill="#F2C65B" stroke="none"/>
-<polygon points="26.0,46.0 18.0,106.0 44.0,96.0" fill="#F2C65B" stroke="none"/>
-<polygon points="102.0,46.0 110.0,106.0 84.0,96.0" fill="#F2C65B" stroke="none"/>
-<rect x="31.0" y="25.5" width="66.0" height="9.0" rx="2.0" fill="#3F72C4" stroke="none"/>
-<rect x="33.0" y="39.5" width="62.0" height="9.0" rx="2.0" fill="#3F72C4" stroke="none"/>
-<polyline points="30.0,64.0 36.0,98.0" fill="none" stroke="#3F72C4" stroke-width="5.0"/>
-<polyline points="98.0,64.0 92.0,98.0" fill="none" stroke="#3F72C4" stroke-width="5.0"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="5.288" data-ink="4.427">
+<g stroke-linejoin="round" stroke-linecap="round">
+<polygon points="28.95,84.91 29.63,73.62 35.27,64.84 44.62,58.56 56.46,54.80 69.53,53.55 82.61,54.80 94.45,58.56 103.80,64.84 109.44,73.62 110.12,84.91 115.04,116.88 100.28,111.96 100.28,84.91 96.43,82.91 91.05,81.37 84.52,80.26 77.22,79.59 69.53,79.37 61.85,79.59 54.55,80.26 48.02,81.37 42.64,82.91 38.79,84.91 38.79,111.96 24.03,116.88" fill="#FFD447" stroke="#2A2131" stroke-width="4.43"/>
+<polyline points="36.33,62.77 102.74,62.77" fill="none" stroke="#A88BFF" stroke-width="3.69"/>
+<polyline points="33.87,72.61 105.20,72.61" fill="none" stroke="#A88BFF" stroke-width="3.69"/>
+<polyline points="31.41,97.21 31.41,109.50" fill="none" stroke="#A88BFF" stroke-width="3.69"/>
+<polyline points="107.66,97.21 107.66,109.50" fill="none" stroke="#A88BFF" stroke-width="3.69"/>
 </g>
 </svg>

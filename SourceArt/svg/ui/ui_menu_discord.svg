@@ -1,16 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-<!-- "Discord": a chat bubble with a face, in Discord's blurple so the colour
-     says which chat. Not their logo (that is theirs); a bubble is ours.
-     Title-screen cluster icon (designer, 2026-09-21). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="0.000" data-ink="7.303">
 <g stroke-linejoin="round" stroke-linecap="round">
-<path d="M22 20 h84 a12 12 0 0 1 12 12 v52 a12 12 0 0 1 -12 12 h-46 l-22 20 v-20 h-16 a12 12 0 0 1 -12 -12 v-52 a12 12 0 0 1 12 -12 z" fill="#2A1A33"/>
-<path d="M24 25 h80 a8 8 0 0 1 8 8 v50 a8 8 0 0 1 -8 8 h-46 l-15 14 v-14 h-19 a8 8 0 0 1 -8 -8 v-50 a8 8 0 0 1 8 -8 z" fill="#5865F2"/>
-<ellipse cx="48" cy="56" rx="9" ry="11" fill="#2A1A33"/>
-<ellipse cx="80" cy="56" rx="9" ry="11" fill="#2A1A33"/>
-<ellipse cx="48" cy="56" rx="6" ry="8" fill="#F6F6F6"/>
-<ellipse cx="80" cy="56" rx="6" ry="8" fill="#F6F6F6"/>
-<circle cx="50" cy="58" r="3" fill="#2A1A33"/>
-<circle cx="82" cy="58" r="3" fill="#2A1A33"/>
-<polyline points="54,76 58,80 64,82 70,80 74,76" fill="none" stroke="#2A1A33" stroke-width="4"/>
+<polygon points="21.87,31.70 22.11,28.57 22.83,25.92 23.99,23.71 25.55,21.90 27.48,20.46 29.75,19.36 32.33,18.56 35.17,18.03 38.25,17.74 41.53,17.65 86.47,17.65 89.75,17.74 92.83,18.03 95.67,18.56 98.25,19.36 100.52,20.46 102.45,21.90 104.01,23.71 105.17,25.92 105.89,28.57 106.13,31.70 106.13,76.64 105.89,79.76 105.17,82.42 104.01,84.63 102.45,86.44 100.52,87.88 98.25,88.98 95.67,89.78 92.83,90.30 89.75,90.60 86.47,90.69 58.38,90.69 38.72,110.35 41.53,90.69 38.25,90.60 35.17,90.30 32.33,89.78 29.75,88.98 27.48,87.88 25.55,86.44 23.99,84.63 22.83,82.42 22.11,79.76 21.87,76.64" fill="#A88BFF" stroke="#2A2131" stroke-width="7.30"/>
+<ellipse cx="47.15" cy="54.17" rx="6.18" ry="6.18" fill="#2A2131" stroke="none"/>
+<ellipse cx="64.00" cy="54.17" rx="6.18" ry="6.18" fill="#2A2131" stroke="none"/>
+<ellipse cx="80.85" cy="54.17" rx="6.18" ry="6.18" fill="#2A2131" stroke="none"/>
 </g>
 </svg>

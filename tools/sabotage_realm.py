@@ -239,21 +239,22 @@ SABOTAGES = [
      "Over.Circle(C.Cat, AuraRadius, PawFxLook::AuraLift);",
      "Over.Circle(C.Cat, AuraRadius, WithAlpha(PawFxLook::AuraLift, 0.0));",
      "Pawpocalypse.Realm.Vfx.Look"),
-    ("vfx_strike_no_paw", VFX,
-     "if (Alpha <= 0.0 || Up.IsNearlyZero())",
-     "if (Alpha <= 1.0 || Up.IsNearlyZero())",
+    # D18 (2026-11-18): the concept's strike (a white arc, ink slashes, no paw) replaced D3's paw and its three sabotages.
+    ("vfx_strike_paw_back", VFX,
+     "if (PawFxLook::StrikePaw)",
+     "if (true)",
      "Pawpocalypse.Realm.Vfx.Look"),
-    ("vfx_paw_backwards", VFX,
-     "const double Sn = Up.X, Cs = -Up.Y;",
-     "const double Sn = -Up.X, Cs = Up.Y;",
+    ("vfx_strike_arc_bone", VFX,
+     "const FColorG Stroke = E.bA ? PawFxLook::Crit : PawFxLook::StrikeArc;",
+     "const FColorG Stroke = E.bA ? PawFxLook::Crit : SwipeColor;",
      "Pawpocalypse.Realm.Vfx.Look"),
-    ("vfx_paw_at_the_cat", VFX,
-     "DrawStrikePaw(Out, World(FVector2D(FMath::Cos(Lead), FMath::Sin(Lead)) * E.Radius),",
-     "DrawStrikePaw(Out, E.At + 0.0 * World(FVector2D(FMath::Cos(Lead), FMath::Sin(Lead)) * E.Radius),",
+    ("vfx_slash_white_inside", VFX,
+     "if (PawFxLook::StrikeSlashInk) // D18: the concept's slashes, ink with no colour inside",
+     "if (false)",
      "Pawpocalypse.Realm.Vfx.Look"),
     ("vfx_crit_pink", VFX,
-     "const FColorG Stroke = E.bA ? PawFxLook::Crit : SwipeColor;",
-     "const FColorG Stroke = E.bB ? FColorG(1.0f, 0.62f, 0.86f, 1.0f) : E.bA ? PawFxLook::Crit : SwipeColor;",
+     "const FColorG Stroke = E.bA ? PawFxLook::Crit : PawFxLook::StrikeArc;",
+     "const FColorG Stroke = E.bB ? FColorG(1.0f, 0.62f, 0.86f, 1.0f) : E.bA ? PawFxLook::Crit : PawFxLook::StrikeArc;",
      "Pawpocalypse.Realm.Vfx.Look"),
     ("vfx_top_band_clipped", RENDER_H,
      "static constexpr double TopFxZ = 300.0;",
@@ -444,9 +445,13 @@ SABOTAGES = [
      "PawText::RegisterTables();",
      "(void)0;",
      "Pawpocalypse.UI.Strings"),
-    ("hud_row_says_max", HUD,
-     "Row->SetLabel(PawText::Ui(TEXT(\"SHOP_row_price\"), Args));",
-     "Row->SetLabel(PawText::Ui(TEXT(\"SHOP_row_max\"), Args));",
+    ("hud_row_says_max", HUD,  # D18 (S4): the price on its own plate
+     "Row->SetPriceTag(true, PawText::Amount(S.Price), S.bEnabled, true); // the price, on its plate",
+     "Row->SetPriceTag(true, PawText::Ui(TEXT(\"SHOP_row_max_plate\")), S.bEnabled, true);",
+     "Pawpocalypse.UI.Hud.Readouts"),
+    ("hud_row_plate_always_yellow", HUD,  # D18 (S4): the plate yellow only when it can be paid
+     "Row->SetPriceTag(true, PawText::Amount(S.Price), S.bEnabled, true); // the price, on its plate",
+     "Row->SetPriceTag(true, PawText::Amount(S.Price), true, true);",
      "Pawpocalypse.UI.Hud.Readouts"),
     ("hud_row_never_locked", HUD,
      "Row->SetLocked(!S.bEnabled); // a row it cannot pay stays selectable: the player reads it",
@@ -699,9 +704,25 @@ SABOTAGES = [
      'Banish->SetVisibility(Look.bBanish ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);',
      'Banish->SetVisibility(ESlateVisibility::Visible);',
      'Pawpocalypse.UI.CardPick.Opens'),
-    ('pick_rank_always_new', PICK,
-     'if (C.bNew)',
-     'if (true)',
+    ('pick_rank_always_new', PICK,  # D18 (S4): NEW is the starburst now (retargeted from the rank line)
+     'Look.bNew = C.bNew;',
+     'Look.bNew = true;',
+     'Pawpocalypse.UI.CardPick.Look'),
+    ('pick_new_badge_never', PICK,  # D18 (S4): the concept's NEW starburst
+     'NewBadge->SetVisibility(Look.bNew ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);',
+     'NewBadge->SetVisibility(ESlateVisibility::Collapsed);',
+     'Pawpocalypse.UI.CardPick.Look'),
+    ('pick_dots_never_filled', PICK,  # D18 (S4): the level's dots
+     'Dot->SetBrush(Rounded(I < Level ? PawTokens::UI_SELECTED : PawTokens::UI_PANEL, PawTokens::INK,',
+     'Dot->SetBrush(Rounded(PawTokens::UI_PANEL, PawTokens::INK,',
+     'Pawpocalypse.UI.CardPick.Look'),
+    ('pick_art_panel_untinted', PICK,  # D18 (S4): the picture's panel, the band's colour toward white
+     'ArtPanel->SetBrush(Rounded(ArtTint(Look.Band), PawTokens::INK,',
+     'ArtPanel->SetBrush(Rounded(Look.Band, PawTokens::INK,',
+     'Pawpocalypse.UI.CardPick.Look'),
+    ('pick_take_never_yellow', PICK,  # D18 (S4): the lifted card's Take on the yellow plate
+     'Take->SetCallLook(bLifted);',
+     'Take->SetCallLook(false);',
      'Pawpocalypse.UI.CardPick.Look'),
     ('pick_body_unfilled', PICK,
      'Values.Add(TEXT("v"), PawText::CardNumber(C.Value));',
@@ -864,13 +885,13 @@ SABOTAGES = [
      'LinksLayer->JobRings.Add(C);',
      '(void)C;',
      'Pawpocalypse.UI.Tree.Paint'),
-    ('tree_ready_edge_is_locked', TREE,
-     'OutEdge = LerpSrgb(DimBorder, Trunk, ReadyLerp);',
-     'OutEdge = DimBorder;',
+    ('tree_ready_edge_is_locked', TREE,  # D18 (S4): a node to buy now in the gold ring
+     'OutEdge = PawTokens::UI_TREE_READY_RING;',
+     'OutEdge = PawTokens::SKY_PLATE_EDGE;',
      'Pawpocalypse.UI.Tree.Paint'),
-    ('tree_owned_edge_dim', TREE,
-     'OutEdge = Trunk;',
-     'OutEdge = DimBorder;',
+    ('tree_owned_edge_dim', TREE,  # D18 (S4): an owned node on its ink edge
+     'OutEdge = PawTokens::INK;',
+     'OutEdge = PawTokens::SKY_PLATE_EDGE;',
      'Pawpocalypse.UI.Tree.Paint'),
     ('tree_counter_on_unlock', TREE,
      'if (!B->bIsUnlock)',
@@ -1029,6 +1050,10 @@ SABOTAGES = [
     ('victory_flag_never_set', FIELD,
      '| (RaisesVictory(D, Tier.Id, Mark) ? FieldFlag::Victory : 0)',
      '| 0',
+     'Pawpocalypse.UI.Victory.Ending'),
+    ('victory_ok_plain', VICTORY,  # D18 (S4): OK on the yellow plate
+     'Ok->SetCallLook(true); // D18 (S4): the concept\'s OK, the thing to press, on the yellow plate',
+     'Ok->SetCallLook(false);',
      'Pawpocalypse.UI.Victory.Ending'),
     ('victory_field_not_held', VICTORY,
      'R->SetPauseHold(PauseHolder, true);',
@@ -1353,9 +1378,9 @@ SABOTAGES = [
      'Bait.Kind == Pc::PcBaitKind::CatnipShort ? TEXT("catnip") : TEXT("bait")',
      'Bait.Kind == Pc::PcBaitKind::CatnipShort ? TEXT("catnip") : TEXT("stardust")',
      'Pawpocalypse.UI.Icons'),
-    ('icons_realm_rows_all_priced', HUD,
-     'Row->SetIcon(S.Kind == Pc::PcRealmRowKind::NeedsCatnip ?',
-     'Row->SetIcon(true ?',
+    ('icons_realm_rows_all_priced', HUD,  # Catnip's icon only where Catnip is missing (D18: the others theirs)
+     'const FString Icon = S.Kind == Pc::PcRealmRowKind::NeedsCatnip ? PawUi::CurrencyIconName(TEXT("catnip"))',
+     'const FString Icon = true ? PawUi::CurrencyIconName(TEXT("catnip"))',
      'Pawpocalypse.UI.Icons'),
     ('icons_achievement_by_wrong_name', HUD,
      'PawUi::IconBrush(PawUi::AchievementIconName(',
@@ -1366,8 +1391,8 @@ SABOTAGES = [
      "\"\"), JobIconPx)",
      'Pawpocalypse.UI.Icons'),
     ('icons_claim_all_no_unit', HUD,
-     'for (UPawButton* B : { ReawakenButton.Get(), ClaimAllButton.Get() })',
-     'for (UPawButton* B : { ReawakenButton.Get() })',
+     '\t\tClaimAllButton->SetIcon(PawUi::CurrencyIconName(TEXT("stardust")), ButtonIconPx);',
+     '\t\tClaimAllButton->SetIcon(FString(), ButtonIconPx);',
      'Pawpocalypse.UI.Icons'),
     ('icons_path_not_stemmed', ICONS,
      '? FPaths::GetBaseFilename(StemOrPath) : StemOrPath;',
@@ -1463,8 +1488,8 @@ SABOTAGES = [
      'Q.Button->SetIsFocusable(true);',
      'Pawpocalypse.UI.Icons'),
     ('quick_without_icons', HUD,
-     'Q.Button->SetIcon(Q.Icon, QuickIconPx);',
-     'Q.Button->SetIcon(FString(), QuickIconPx);',
+     'Q.Button->SetIcon(Q.Icon, PawUi::QuickPlateIconPx);',
+     'Q.Button->SetIcon(FString(), PawUi::QuickPlateIconPx);',
      'Pawpocalypse.UI.Icons'),
     ('icons_title_plates_bare', TITLE,
      'ClusterButtons[I]->SetIcon(ClusterIcons[I], ClusterButtonSize - 2.0 * ClusterPad);',
@@ -1503,9 +1528,9 @@ SABOTAGES = [
      'Tab->SetColorAndOpacity(PawUi::FromHsv(Hue, PawUi::ReawakenGlowSaturation, 1.0));',
      '(void)Hue;',
      'Pawpocalypse.UI.Juice.Hud'),
-    ('juice_zone_plate_still', HUD,
-     'Zone.Kind != Pc::PcZonePlateKind::Hidden && Zone.bRainbow, FPawJuice::EffectsOn(this)',
-     'false, FPawJuice::EffectsOn(this)',
+    ('juice_zone_plate_still', HUD,  # D18 (S4): the status panel leans while it shouts
+     'ZonePlate.Get(), Zone.Kind != Pc::PcZonePlateKind::Hidden && Zone.bRainbow,',
+     'ZonePlate.Get(), false,',
      'Pawpocalypse.UI.Juice.Hud'),
     ('juice_new_realm_still', HUD,
      'Juice.Jitter(Row, S.bNew, FPawJuice::EffectsOn(this));',
@@ -1556,6 +1581,10 @@ SABOTAGES = [
      '(void)I;',
      'Pawpocalypse.UI.Juice.Title'),
     # --- the pause menu (docs/05 §6.3; PawPauseTests.cpp) ---
+    ('pause_continue_plain', PAUSE,  # D18 (S4): Continue on the yellow plate
+     'ContinueButton->SetCallLook(true);',
+     'ContinueButton->SetCallLook(false);',
+     'Pawpocalypse.UI.Pause.Look'),
     ('pause_current_slot_unmarked', PAUSE,
      'B->SetLabel(PawText::Ui(L.bCurrent ? TEXT("PAUSE_slot_summary_current") : TEXT("PAUSE_slot_summary"), Args));',
      'B->SetLabel(PawText::Ui(TEXT("PAUSE_slot_summary"), Args));',
@@ -2006,7 +2035,7 @@ SABOTAGES = [
      'const double Kept = FMath::Clamp(Value, 0.0, 1.0) + 0.0 * Step;',
      'Pawpocalypse.UI.Rainbow.Bar'),
     ('rainbow_frame_unfollowed', HUD,
-     'ZoneReady->SetFollow(ZonePlate);',
+     'ZoneReady->SetFollow(FieldPlate ? FieldPlate.Get() : ZonePlate.Get());',
      'ZoneReady->SetFollow(nullptr);',
      'Pawpocalypse.UI.Rainbow.Frame'),
     ('rainbow_frame_never_on', HUD,
@@ -2137,18 +2166,79 @@ SABOTAGES = [
      '\tconstexpr double SmallPx = 15.0;',
      'Pawpocalypse.UI.Widgets.TextFloor'),
     # Restyle R4c (2026-11-08): the plum title.
-    ('title_logo_centred', 'UI/PawMainMenu.cpp',
-     '\t\tNameBox->SetHorizontalAlignment(HAlign_Left);\n',
+    ('title_logo_left', 'UI/PawMainMenu.cpp',  # D18 (S4): centred now (retargeted from R4c's left-hand logo)
      '\t\tNameBox->SetHorizontalAlignment(HAlign_Center);\n',
+     '\t\tNameBox->SetHorizontalAlignment(HAlign_Left);\n',
+     'Pawpocalypse.UI.Title.Plum'),
+    # D18 (S4, 2026-11-18): the title as the UI concept draws it.
+    ('settings_close_plain', 'UI/PawSettingsDialog.cpp',  # D18 (S4): Close on the yellow plate
+     'CloseButton->SetCallLook(true);',
+     'CloseButton->SetCallLook(false);',
+     'Pawpocalypse.UI.Settings.Look'),
+    ('controls_heads_mixed_case', 'UI/PawControlsPanel.cpp',  # the column heads in capitals
+     'HeadText->SetTextTransformPolicy(ETextTransformPolicy::ToUpper);',
+     'HeadText->SetTextTransformPolicy(ETextTransformPolicy::None);',
+     'Pawpocalypse.UI.Settings.Look'),
+    ('controls_rows_unbanded', 'UI/PawControlsPanel.cpp',  # every other row on a faint band
+     'Band->SetBrush(Row % 2 == 1 ? Rounded(',
+     'Band->SetBrush(false ? Rounded(',
+     'Pawpocalypse.UI.Settings.Look'),
+    ('jobpick_cat_bare', 'UI/PawJobPicker.cpp',  # D18 (S4): each card shows the cat in its job's hat
+     'Cats[I]->SetBrush(PawUi::IconBrush(JobCatIcon(RowIds[I]), JobCatPx));',
+     'Cats[I]->SetBrush(PawUi::IconBrush(JobCatIcon(FString()), JobCatPx));',
+     'Pawpocalypse.UI.JobPicker.Asks'),
+    ('jobpick_never_yellow', 'UI/PawJobPicker.cpp',  # the lifted card's button on the yellow plate
+     'B->SetCallLook(bLifted);',
+     'B->SetCallLook(false);',
+     'Pawpocalypse.UI.JobPicker.Asks'),
+    ('jobpick_photo_plain', 'UI/PawJobPicker.cpp',  # the cat on its photo
+     'Photo->SetBrush(Rounded(PawTokens::UI_PHOTO, PawTokens::INK, static_cast<float>(SlotPhotoEdgePx), static_cast<float>(JobPhotoRadius)));',
+     'Photo->SetBrush(Rounded(PawTokens::UI_PANEL, PawTokens::INK, static_cast<float>(SlotPhotoEdgePx), static_cast<float>(JobPhotoRadius)));',
+     'Pawpocalypse.UI.JobPicker.Asks'),
+    ('hat_on_the_old_head', 'Realm/PawFieldLook.h',  # the approved hats (2026-11-18), placed from their own square
+     'HatOffsetY = -0.202',
+     'HatOffsetY = -0.510',
+     'Pawpocalypse.Realm.Look.Rules'),
+    ('slot_cat_always_kitten', 'UI/PawMainMenu.cpp',  # the save card's cat at the save's stage
+     '? Pc::EvolutionStageFor(G->Data(), Summary.BossesDefeated, Summary.bFinalBossDefeated) : 0;',
+     '? 1 : 0;',
+     'Pawpocalypse.UI.Title.SlotCats'),
+    ('slot_well_always_grass', 'UI/PawMainMenu.cpp',
+     'Photo->SetBrush(Rounded(bRead ? PawTokens::UI_PHOTO : bEmpty ? PawTokens::UI_PANEL_BAND : PawTokens::UI_BUTTON_DISABLED,',
+     'Photo->SetBrush(Rounded(PawTokens::UI_PHOTO,',
+     'Pawpocalypse.UI.Title.SlotCats'),
+    ('slot_number_under_the_card', 'UI/PawMainMenu.cpp',  # D18 (S4): inside the card, at its top
+     'UVerticalBoxSlot* NumberSlot = Stack->InsertChildAt(0, Number) ?',
+     'UVerticalBoxSlot* NumberSlot = ColumnBox->InsertChildAt(1, Number) ?',
+     'Pawpocalypse.UI.Title.Plum'),
+    ('slot_cat_on_an_empty_slot', 'UI/PawMainMenu.cpp',
+     'Cat->SetVisibility(Stage > 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);',
+     'Cat->SetVisibility(ESlateVisibility::HitTestInvisible);',
+     'Pawpocalypse.UI.Title.SlotCats'),
+    ('title_logo_tilted', 'UI/PawMainMenu.cpp',
+     'NameBox->SetRenderTransformAngle(static_cast<float>(TitleLogoAngle));',
+     'NameBox->SetRenderTransformAngle(static_cast<float>(R4NameAngle));',
+     'Pawpocalypse.UI.Title.Plum'),
+    ('title_cat_missing', 'UI/PawMainMenu.cpp',
+     'AddFigure(TEXT("TitleCat"), TitleCatIcon,',
+     'AddFigure(TEXT("TitleCat"), TEXT("ui_icon_none"),',
+     'Pawpocalypse.UI.Title.Plum'),
+    ('title_mice_not_mirrored', 'UI/PawMainMenu.cpp',
+     'Figure->SetRenderScale(FVector2D(bFlip ? -1.0 : 1.0, 1.0));',
+     'Figure->SetRenderScale(FVector2D(1.0, 1.0));',
+     'Pawpocalypse.UI.Title.Plum'),
+    ('title_status_muted', 'UI/PawMainMenu.cpp',
+     'StatusText = Heavy(MakeText(T, LabelPx, PawTokens::UI_TEXT, false, TEXT("StatusText")));',
+     'StatusText = Heavy(MakeText(T, LabelPx, PawTokens::UI_TEXT_MUTED, false, TEXT("StatusText")));',
      'Pawpocalypse.UI.Title.Plum'),
     ('continue_not_called', 'UI/PawMainMenu.cpp',
      '\t\tContinue->SetCallLook(M.bContinue);',
      '\t\tContinue->SetCallLook(false);',
      'Pawpocalypse.UI.Title.Plum'),
     # Restyle R4d (2026-11-08): the HUD's plates.
-    ('wave_plate_flat', 'UI/PawHudScreen.cpp',
-     '\tWavePlate->SetBrush(PawUi::Chrome(PawUi::EPawChrome::PlateSmall));\n',
-     '\tWavePlate->SetBrush(PawUi::NoBrush());\n',
+    ('field_plate_flat', 'UI/PawHudScreen.cpp',  # D18 (S4): the status panel on the small plate (the wave line in it, bare)
+     '\tFieldPlate->SetBrush(PawUi::Chrome(PawUi::EPawChrome::PlateSmall));\n',
+     '\tFieldPlate->SetBrush(PawUi::NoBrush());\n',
      'Pawpocalypse.UI.Chrome'),
     ('wave_plate_left_behind', 'UI/PawHudScreen.cpp',
      '\treturn Parent && Parent->GetFName() == TEXT("WavePlate") ? static_cast<UWidget*>(Parent) : static_cast<UWidget*>(WaveBox.Get());\n',
@@ -2160,9 +2250,9 @@ SABOTAGES = [
      '\t\tRow->SetLabelSize(PawUi::R4RowPx);\n',
      'Pawpocalypse.UI.Hud.Readouts'),
     # Restyle R4f (2026-11-08): the tree's round nodes, a prompt line's plate.
-    ('tree_nodes_square', 'UI/PawSkillTreeScreen.cpp',
-     'bUnlock ? 14.0f : static_cast<float>(NodePx * 0.5)));',
-     'bUnlock ? 14.0f : 4.0f));',
+    ('tree_hex_on_its_side', 'UI/PawSkillTreeScreen.cpp',  # D18 (S4): the hexagons point up (R4f's round skills retired)
+     'const double A0 = UE_DOUBLE_PI / 180.0 * (60.0 * K - 90.0), A1 = UE_DOUBLE_PI / 180.0 * (60.0 * (K + 1) - 90.0);',
+     'const double A0 = UE_DOUBLE_PI / 180.0 * (60.0 * K - 60.0), A1 = UE_DOUBLE_PI / 180.0 * (60.0 * (K + 1) - 60.0);',
      'Pawpocalypse.UI.Tree'),
     ('prompt_plate_left_behind', 'UI/PawPrompts.cpp',
      '\t\tif (UBorder* Plate = Cast<UBorder>(GetParent()))\n',
@@ -2322,9 +2412,9 @@ SABOTAGES = [
      '\tinline bool HatFlipX(bool bFlip) { return bFlip; }\n',
      '\tinline bool HatFlipX(bool bFlip) { return false; }\n',
      'Pawpocalypse.Realm.Look.Rules'),
-    ('weapon_always_mirrored_f38', LOOK_H,  # F38 (D16)
-     '\tinline bool WeaponFlipX(bool bFlip) { return !bFlip; }\n',
-     '\tinline bool WeaponFlipX(bool bFlip) { return true; }\n',
+    ('weapon_never_mirrored_f38', LOOK_H,  # F38 (D16); drawn facing the cat's way since D18
+     '\tinline bool WeaponFlipX(bool bFlip) { return bFlip; }\n',
+     '\tinline bool WeaponFlipX(bool bFlip) { return false; }\n',
      'Pawpocalypse.Realm.Look.Rules'),
     # Batch B (2026-11-11): review CR2 with F47 (every load outcome reaches the title; nothing plays over a slot this build
     # cannot read), CR15 ("Saved" only for a write that happened) and F36 (a save during a fight gives its summon back).
@@ -2425,6 +2515,185 @@ SABOTAGES = [
      '\tSetText(CatnipMultiplierText, PawText::Ui(TEXT("REAWAKEN_catnip_multiplier"), CatnipMult));\n',
      '',
      'Pawpocalypse.UI.Hud.Reawaken'),
+    # D18 (S4, 1.1a, 2026-11-18 night): the dock as the UI concept draws it; the buy amount's switch.
+    ('amount_press_steps', HUD,  # a press on an amount picks THAT amount, not the next one
+     '\tBuyMultiplierRef() = Multiplier;\n',
+     '\tBuyMultiplierRef() = Pc::NextBuyMultiplier(BuyMultiplierRef());\n',
+     'Pawpocalypse.UI.Hud.Readouts'),
+    ('amount_never_yellow', HUD,  # the amount in use on the yellow plate
+     '\t\t\t\tB->SetActiveLook(B == Chosen);\n',
+     '\t\t\t\tB->SetActiveLook(false);\n',
+     'Pawpocalypse.UI.Hud.Readouts'),
+    ('amount_switch_stuck', HUD,  # left and right along the switch
+     '\t\t\tif (I + 1 < AmountButtons.Num()) { B->SetNavigationRuleExplicit(EUINavigation::Right, AmountButtons[I + 1]); }\n',
+     '\t\t\tif (false) { B->SetNavigationRuleExplicit(EUINavigation::Right, AmountButtons[I + 1]); }\n',
+     'Pawpocalypse.UI.Hud.Navigation'),
+    ('page_title_light', HUD,  # each page's title heavy (the code layout; Parity holds the asset to it)
+     '\t\tUTextBlock* Title = PawUi::Heavy(PawUi::MakeText(T, PawUi::DockTitlePx, PawTokens::UI_TEXT, false,\n',
+     '\t\tUTextBlock* Title = (PawUi::MakeText(T, PawUi::DockTitlePx, PawTokens::UI_TEXT, false,\n',
+     'Pawpocalypse.UI.Widgets.Parity'),
+    # D18 (S4, 1.1b): the status panel and the level's plate.
+    ('biome_name_blank', HUD,  # the status panel's first line: the biome the cat is in
+     '\t\tSetText(BiomeName, PawText::Data(TEXT("TIER"), D.Tiers[static_cast<size_t>(F.TierIndex)].Id));\n',
+     '',
+     'Pawpocalypse.UI.Hud.StatusLook'),
+    ('rainbow_round_the_zone_line', HUD,  # the rainbow goes round the whole status panel
+     '\t\tZoneReady->SetFollow(FieldPlate ? FieldPlate.Get() : ZonePlate.Get());',
+     '\t\tZoneReady->SetFollow(ZonePlate.Get());',
+     'Pawpocalypse.UI.Rainbow.Frame'),
+    ('level_number_alone', HUD,  # "Level n" before the bar
+     '\t\tSetText(XpNow, PawText::Ui(TEXT("HUD_level"), LevelArgs));',
+     '\t\tSetText(XpNow, PawText::Count(Xp.Level));',
+     'Pawpocalypse.UI.Hud.Readouts'),
+    # D18 (S4, 1.1c): the Pounce plate and the lock.
+    ('pounce_plate_always', HUD,  # the plate shows with the clock, not before the skill
+     '\tSetShown(GetPouncePlate(), Clock.bVisible, ESlateVisibility::HitTestInvisible);',
+     '\tSetShown(GetPouncePlate(), true, ESlateVisibility::HitTestInvisible);',
+     'Pawpocalypse.UI.Hud.PounceLook'),
+    ('locked_row_own_icon', HUD,  # a row that cannot be bought yet shows the lock
+     '\t\t\tShowRowIcon(Row, TEXT("ui_lock"));',
+     '\t\t\tShowRowIcon(Row, UpgradeIcon(Id));',
+     'Pawpocalypse.UI.Hud.PounceLook'),
+    # D18 (S4, 1.2): the Reawaken tab as the UI concept draws it.
+    ('reawaken_never_yellow', HUD,  # the button yellow when it can be pressed
+     '\tReawakenButton->SetCallLook(Page.bReady);',
+     '\tReawakenButton->SetCallLook(false);',
+     'Pawpocalypse.UI.Hud.ReawakenLook'),
+    ('reawaken_opens_on_the_check_box', HUD,  # the tab opens on the button, not the check box above it
+     '\t\tif (ActiveTabRef() == PcDockTab::Reawaken && ReawakenButton && Column.Contains(ReawakenButton.Get()))',
+     '\t\tif (false)',
+     'Pawpocalypse.UI.Hud.ReawakenLook'),
+    # D18 (S4, 1.3): the Realms tab as the UI concept draws it.
+    ('realm_here_not_yellow', HUD,  # the cat's biome on the yellow plate
+     '\t\tRow->SetActiveLook(bHere);',
+     '\t\tRow->SetActiveLook(false);',
+     'Pawpocalypse.UI.Hud.Realms'),
+    ('realm_rows_bare', HUD,  # every row an icon (flag, paw, lock, Catnip)
+     '\t\t\t: FString(TEXT("ui_lock"));\n\t\tif (Row->GetIconName() != Icon)',
+     '\t\t\t: FString(TEXT("ui_lock"));\n\t\tif (false)',
+     'Pawpocalypse.UI.Icons'),
+    # D18 (S4, 1.4): The Catches as the UI concept draws it.
+    ('catches_unordered', HUD,  # the run's cards first, the out-of-reach ones last
+     '\tOrder.StableSort([&](int32 A, int32 B) { return Rank(Page.Rows[static_cast<size_t>(A)]) < Rank(Page.Rows[static_cast<size_t>(B)]); });\n',
+     '',
+     'Pawpocalypse.UI.Hud.Catches'),
+    ('catches_out_of_reach_open', HUD,  # a card that cannot be had this run is locked
+     '\t\tRow->SetLocked(Rank(S) == 2);',
+     '\t\tRow->SetLocked(false);',
+     'Pawpocalypse.UI.Hud.Catches'),
+    # D18 (S4, 1.5): Achievements as the UI concept draws them.
+    ('awards_no_bar', HUD,  # a row still going: its bar before the numbers
+     '\t\t\tSetShown(AchievementBars[I]->GetParent(), bGoing, ESlateVisibility::HitTestInvisible);',
+     '\t\t\tSetShown(AchievementBars[I]->GetParent(), false, ESlateVisibility::HitTestInvisible);',
+     'Pawpocalypse.UI.Hud.Achievements'),
+    ('awards_claim_plain', HUD,  # a reward waiting: Claim yellow
+     '\t\t\tClaim->SetCallLook(true);',
+     '\t\t\tClaim->SetCallLook(false);',
+     'Pawpocalypse.UI.Hud.Achievements'),
+    # D18 (S4, 1.6): Jobs as the UI concept draws them.
+    ('job_worn_plain', HUD,  # the worn job on the yellow plate
+     '\t\t\tJobPlates[I]->SetBrush(PawUi::Rounded(bWorn ? PawTokens::UI_SELECTED : bShut ? PawTokens::UI_BUTTON_DISABLED : PawTokens::UI_BUTTON,',
+     '\t\t\tJobPlates[I]->SetBrush(PawUi::Rounded(bShut ? PawTokens::UI_BUTTON_DISABLED : PawTokens::UI_BUTTON,',
+     'Pawpocalypse.UI.Hud.Jobs'),
+    # D18 (S4, 1.7): the boss panel as the UI concept draws it.
+    ('boss_centred_on_the_field', HUD,  # Godot's place: Slate centres with (pre - post), over the pills
+     '\tconst FMargin Want(Left + (Right - Left - Width) * 0.5f, Top, 0.0f, 0.0f);',
+     '\tconst FMargin Want(bLeft ? Dock : 0.0f, static_cast<float>(PawUi::BossBannerTop), bLeft ? 0.0f : Dock, 0.0f);',
+     'Pawpocalypse.UI.Layout.Boss'),
+    ('boss_shield_tag_hidden', HUD,  # SHIELDED on its own tag
+     '\tSetShown(WidgetTree->FindWidget(TEXT("BossShield")), Panel.bShielded, ESlateVisibility::HitTestInvisible);',
+     '\tSetShown(WidgetTree->FindWidget(TEXT("BossShield")), false, ESlateVisibility::HitTestInvisible);',
+     'Pawpocalypse.UI.Hud.Boss'),
+    # D18 (S4, 1.8a): the skill tree in the UI concept's colours.
+    ('tree_owned_not_green', 'UI/PawSkillTreeScreen.cpp',  # an owned node green on ink
+     '\t\tOutFill = PawTokens::UI_TREE_OWNED;\n',
+     '\t\tOutFill = PawTokens::UI_BUTTON;\n',
+     'Pawpocalypse.UI.Tree.Paint'),
+    ('tree_text_cream_on_cream', 'UI/PawSkillTreeScreen.cpp',  # the Stardust pill's words readable on the cream plate
+     '\tStardustText = Heavy(MakeText(T, LabelPx, PawTokens::UI_TEXT, false, TEXT("StardustText")));',
+     '\tStardustText = Heavy(MakeText(T, LabelPx, PawTokens::SKY_STAR, false, TEXT("StardustText")));',
+     'Pawpocalypse.UI.Widgets.Parity'),
+    # D18 (S4, 1.9): the Unicorn ceremony as the UI concept draws it.
+    ('unicorn_dim_not_rays', 'UI/PawUnicornCeremony.cpp',  # the concept's rays behind the rainbow
+     '\tif (RaysBrush.GetResourceObject())\n',
+     '\tif (false)\n',
+     'Pawpocalypse.UI.Unicorn.Plays'),
+    ('unicorn_no_title', 'UI/PawUnicornCeremony.cpp',  # UNICORN and the line over the show
+     '\tif (Show > 0.01)\n',
+     '\tif (false)\n',
+     'Pawpocalypse.UI.Unicorn.Plays'),
+    # D18 (S4, 1.10): the victory screen as the UI concept draws it.
+    ('victory_dark_dim', 'UI/PawVictoryScreen.cpp',  # the realm stays bright under the panel
+     '\t\tDim->SetBrush(NoBrush());\n',
+     '\t\tDim->SetBrush(Rounded(PawTokens::VICTORY_DIM, PawTokens::VICTORY_DIM, 0.0f, 0.0f));\n',
+     'Pawpocalypse.UI.Victory.Ending'),
+    # D18 (S4, 1.11): the check box as the UI concept's toggle().
+    ('check_ticked_ink', 'UI/PawButton.cpp',  # yellow when ticked (R3: an ink fill)
+     'PawUi::Rounded(bTicked ? PawTokens::UI_SELECTED : PawTokens::UI_PANEL, PawTokens::INK, CheckEdge, CheckRadius)',
+     'PawUi::Rounded(bTicked ? PawTokens::UI_TEXT : PawTokens::UI_PANEL, PawTokens::INK, CheckEdge, CheckRadius)',
+     'Pawpocalypse.UI.Hud.ReawakenLook'),
+    ('check_tick_never_shown', 'UI/PawButton.cpp',  # the tick shows when ticked
+     '\t\tCheckTick->SetVisibility(bTicked ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);',
+     '\t\tCheckTick->SetVisibility(ESlateVisibility::Hidden);',
+     'Pawpocalypse.UI.Hud.ReawakenLook'),
+    # D18 (S4, 1.8b; the designer 2026-11-19: "do hexagon"): every tree node a hexagon.
+    ('tree_node_no_hexagon', TREE,  # the node's plate paints its hexagon
+     '\tif (Size.X <= 0.0 || Size.Y <= 0.0 || (Fill.A <= 0.0f && Edge.A <= 0.0f))\n',
+     '\tif (true)\n',
+     'Pawpocalypse.UI.Tree.Paint'),
+    # Phase 7 (2026-11-20): the translations at run time and the Language list.
+    ('language_stale_line_used', TEXTS,  # a line whose English changed is not shown
+     "!Loaded->GetSourceString(Key, English) || English != Source || ",
+     "!Loaded->GetSourceString(Key, English) || ",
+     'Pawpocalypse.UI.Language.Translations'),
+    ('language_not_registered_again', TEXTS,  # the translations write their display strings for the culture shown
+     "\t\tFTextLocalizationManager::Get().WaitForAsyncTasks();\n\t\tFTextLocalizationManager::Get().RegisterPolyglotTextData(Held().Polyglot);\n\t\treturn bSet;\n",
+     "\t\tFTextLocalizationManager::Get().WaitForAsyncTasks();\n\t\treturn bSet;\n",
+     'Pawpocalypse.UI.Language.Translations'),
+    ('language_marker_in_the_shown_language', TEXTS,  # the "(draft)" in the language's own words
+     "\t\tFString Marker = L ? TranslationIn(TableUi, TEXT(\"SETTINGS_language_draft\"), UTF8_TO_TCHAR(L->Culture)) : FString();\n",
+     "\t\tFString Marker;\n",
+     'Pawpocalypse.UI.Language.Labels'),
+    ('language_pick_not_saved', SETDLG,  # a pick goes through the settings (saved, applied)
+     "\t\tS->SetLanguage(LanguageCodes[Index]);\n",
+     "\t\t(void)S;\n",
+     'Pawpocalypse.UI.Settings.Language'),
+    ('language_click_not_deferred', SETDLG,  # a click's pick waits one tick
+     "\tconst int32 Index = LanguageOption->GetSelectedIndex();\n\tFTSTicker::GetCoreTicker()",
+     "\tconst int32 Index = LanguageOption->GetSelectedIndex();\n\tPickLanguage(Index);\n\tFTSTicker::GetCoreTicker()",
+     'Pawpocalypse.UI.Settings.Language'),
+    ('language_stored_not_selected', SETDLG,  # the stored language selected on open
+     "\tFill(LanguageOption, Items, FMath::Max(LanguageCodes.IndexOfByKey(FString(UTF8_TO_TCHAR(P.Language.c_str()))), 0));\n",
+     "\tFill(LanguageOption, Items, 0);\n",
+     'Pawpocalypse.UI.Settings.Language'),
+    ('language_applied_in_the_editor', SETSUB,  # never the designer's editor's language
+     "\tLanguage.bToEngine = !GIsEditor;\n",
+     "\tLanguage.bToEngine = true;\n",
+     'Pawpocalypse.UI.Settings.Language'),
+    ('language_unfinished_offered', TEXTS,  # only a complete language is offered (Godot: no unfinished one by accident)
+     "\t\t\tif (L && (bUnfinishedToo || TranslationCount(Culture).Missing == 0))\n",
+     "\t\t\tif (L)\n",
+     'Pawpocalypse.UI.Language.Loader'),
+    ('language_placeholders_not_checked', TEXTS,  # a row whose {placeholders} differ is left out
+     " || English != Source || Placeholders(Text) != Placeholders(English))",
+     " || English != Source)",
+     'Pawpocalypse.UI.Language.Loader'),
+    ('language_marks_need_words', TEXTS,  # x5 is a mark, not a word (loc_status.py needs())
+     "\t\t\tif (Bare[I] == TEXT('x') && bWordStart && I + 1 < Bare.Len() && FChar::IsDigit(Bare[I + 1]))\n",
+     "\t\t\tif (false && bWordStart)\n",
+     'Pawpocalypse.UI.Language.Loader'),
+    ('language_missing_not_counted', TEXTS,  # a line with no translation in use is missing
+     "\t\t\t\t\t\tCount.Value.Missing += Lines && Lines->Contains(Id) ? 0 : 1;\n",
+     "\t\t\t\t\t\tCount.Value.Missing += Lines && Lines->Contains(Id) ? 0 : 0;\n",
+     'Pawpocalypse.UI.Language.Loader'),
+    ('language_escaped_english_not_read', TEXTS,  # Source read as the table reads its English (escapes unescaped)
+     "\t\t\t\tconst FString Source = FString(Cells[SourceAt]).ReplaceEscapedCharWithChar();\n",
+     "\t\t\t\tconst FString Source = FString(Cells[SourceAt]);\n",
+     'Pawpocalypse.UI.Language.Loader'),
+    ('language_setting_ignored', SETSUB,  # the setting resolved, not the system's alone
+     "\tstd::string Setting = Settings.Language;\n",
+     "\tstd::string Setting = Pc::LocaleSystem;\n",
+     'Pawpocalypse.UI.Settings.Language'),
 ]
 
 

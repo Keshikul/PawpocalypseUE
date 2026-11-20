@@ -70,4 +70,45 @@ namespace PawText
 
 	// True when both tables are registered and Key exists in ST_UI (the tests ask; a missing key shows as the key itself).
 	PAWPOCALYPSE_API bool HasUi(const TCHAR* Key);
+
+	// --- The translations (phase 7; docs/WORKLIST-LOC-2026-11-18.md §2a; KB U/20 §3) -----------------------------------
+	// Content/Pawpocalypse/Localization/Translations/<culture>/<table>.csv ("Key","Text","Source"; tools/port_po.py),
+	// registered as polyglot text: no .locres, every string-table FText follows the culture live. A line is registered only
+	// when its Source (the English it was translated from) is the table's English today: a line whose English changed shows
+	// the English until it is translated again (tools/loc_status.py lists it as stale); so does a line whose {placeholders}
+	// are not the English's. Read once at startup (after the tables) and again by a test; nothing loads per frame. Root: the
+	// folder of culture folders (empty: the game's; a test's own files otherwise).
+	PAWPOCALYPSE_API void RegisterTranslations(const FString& Root = FString());
+	// What the last RegisterTranslations() found, per culture: the rows in use; the rows left out (the English changed, the
+	// placeholders differ, no text, no such line); the lines that need words with no translation in use (0: complete).
+	struct FTranslationCount
+	{
+		int32 Lines = 0;
+		int32 Left = 0;
+		int32 Missing = 0;
+	};
+	// The cultures with at least one line in use (Unreal's names, e.g. "es-419").
+	PAWPOCALYPSE_API const TSet<FString>& LoadedCultures();
+	PAWPOCALYPSE_API FTranslationCount TranslationCount(const FString& Culture);
+	// Whether an English line needs words in another language (tools/loc_status.py needs()): letters once its {placeholders}
+	// and multipliers (x5, x10) are gone ("x5", "{value} / {threshold}", "+" do not). And how many lines of the three tables do.
+	PAWPOCALYPSE_API bool NeedsWords(const FString& English);
+	PAWPOCALYPSE_API int32 LinesNeedingWords();
+	// A line's translation in one culture, whatever the game shows now ("" when it has none in use): the language picker's
+	// "(draft)" in each language's own words.
+	PAWPOCALYPSE_API FString TranslationIn(const FName Table, const FString& Key, const FString& Culture);
+	// The game's text in Culture ("en", the source, or a loaded culture): the engine's culture, and the translations
+	// registered again (they write their display strings for the culture current when registered). In the editor (the
+	// tests; never the designer's editor, which UPawSettingsSubsystem leaves alone) game text stays English unless
+	// Localization.ForceLoadGameLocalizationInEditor is on: on for a culture, off again for English.
+	PAWPOCALYPSE_API bool ShowCulture(const FString& Culture);
+	// Locales.available(): English and every COMPLETE language (no line missing: Godot lists only loaded .po files, "so an
+	// unfinished language cannot be chosen by accident", and its files were complete), in the picker's order (Godot's codes:
+	// "en", "zh_Hans", "es_MX"; Pc::Languages()). bUnfinishedToo: every language with a line in use.
+	PAWPOCALYPSE_API bool ShowUnfinishedLanguages(); // -PawDraftLanguages on the command line (the designer's review, tours)
+	PAWPOCALYPSE_API void SetShowUnfinishedLanguagesForTest(bool bShow);
+	PAWPOCALYPSE_API TArray<FString> Languages(bool bUnfinishedToo = ShowUnfinishedLanguages());
+	// Locales.picker_label(): the language in its own name (never translated), then "(draft)" in that language's own words
+	// while nobody has reviewed it ("Deutsch (Entwurf)"); without that line, in the language shown now.
+	PAWPOCALYPSE_API FText LanguageLabel(const FString& Code);
 }

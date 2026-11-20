@@ -1,0 +1,606 @@
+<title>Pawpocalypse UI Screens</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@500;700;800;900&display=swap">
+<style>
+/* Layout: one centred column (max 1240) in the Sticker Box world: grass page, cream card-stock panels, one ink, hard shadows.
+   Each screen is a 16:9 mockup in its own card with short notes. Single-look page on purpose: colours are explicit. */
+:root{--grass:#D3E7BE;--paper:#FFF8EB;--paper2:#F4E7CF;--ink:#2A2131;--muted:#665A6E;--yellow:#FFC83D;--focus:#3D7BFF;
+  --f-display:"Fredoka","Nunito",system-ui,sans-serif;--f-body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{background:var(--grass);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.08;margin:0;text-wrap:balance}
+p{margin:0}
+.card{background:var(--paper);border:3.5px solid var(--ink);border-radius:18px;box-shadow:5px 6px 0 var(--ink)}
+main{display:grid;gap:30px;padding-block:34px 70px}
+.head{padding:26px 28px 24px;display:grid;gap:14px}
+.head h1{font-size:clamp(40px,7vw,68px)}
+.head .lede{font-size:clamp(17px,2.1vw,19px);max-width:70ch}
+.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 26px;margin-top:4px}
+.rules p{font-size:14.5px;color:var(--muted)}
+.rules b{color:var(--ink);font-weight:800}
+@media (max-width:860px){.rules{grid-template-columns:minmax(0,1fr)}}
+.index{display:flex;flex-wrap:wrap;gap:8px}
+.index a{font-weight:800;font-size:14px;color:var(--ink);text-decoration:none;background:var(--paper2);border:2.5px solid var(--ink);border-radius:999px;padding:3px 12px}
+.index a:hover{background:var(--yellow)}
+.index a:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
+.group{display:grid;gap:22px}
+.group > h2{font-size:clamp(28px,4vw,38px)}
+.group > p{color:#3D4A33;font-size:15px;max-width:76ch;margin-top:-12px}
+.screen{padding:16px 18px 18px;display:grid;gap:12px;min-width:0;scroll-margin-top:16px}
+.shead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.shead h3{font-size:26px}
+.shead span{font-size:14px;color:var(--muted);font-weight:700}
+.mock{overflow-x:auto;border-radius:12px;border:2.5px solid var(--ink)}
+.mock svg{display:block;width:100%;min-width:760px;height:auto}
+.notes{margin:0;padding-left:20px;display:grid;gap:5px;font-size:14.5px;max-width:96ch}
+.notes b{font-weight:800}
+.kit svg{display:block;width:100%;min-width:760px;height:auto}
+.end{padding:22px 26px;display:grid;gap:10px}
+.end h2{font-size:28px}
+.end ul{margin:0;padding-left:20px;display:grid;gap:6px;max-width:90ch}
+.bob{transform-box:fill-box;transform-origin:50% 100%;animation:bob 1.7s ease-in-out infinite alternate}
+.jit{transform-box:fill-box;transform-origin:50% 100%;animation:jit .8s ease-in-out infinite alternate}
+@keyframes bob{from{transform:scale(1.035,.965)}to{transform:translateY(-1.5px) scale(.975,1.025)}}
+@keyframes jit{from{transform:rotate(-3deg) scale(1.02,.98)}to{transform:rotate(3deg) scale(.98,1.02)}}
+@media (prefers-reduced-motion: reduce){.bob,.jit{animation:none}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="rim" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="4.3" result="d"/><feFlood flood-color="#FFFDF6"/>
+      <feComposite in2="d" operator="in" result="r"/><feMerge><feMergeNode in="r"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="8"/></filter>
+    <linearGradient id="rainbow" x1="0" x2="1"><stop offset="0" stop-color="#FF6B6B"/><stop offset=".2" stop-color="#FFAE42"/><stop offset=".4" stop-color="#FFE15C"/><stop offset=".6" stop-color="#6BD48C"/><stop offset=".8" stop-color="#58B6FF"/><stop offset="1" stop-color="#A88BFF"/></linearGradient>
+  </defs>
+</svg>
+
+<main class="wrap">
+  <section class="card head">
+    <h1>UI Screens</h1>
+    <p class="lede">Every screen in Pawpocalypse, redrawn in Sticker Box. The words are the game's approved UI text (ST_UI), the keys are the real bindings (Data/InputMap.csv), and the layout follows the handoff: the field fills the window, the menu dock sits on the right, the status reads top left.</p>
+    <div class="rules">
+      <p><b>Card stock and one ink.</b> Every panel is cream card with a 3.5 px ink edge and a hard shadow. Rows inside are a darker cream with a thinner edge.</p>
+      <p><b>The brightest thing is what you can do.</b> A yellow button means you can do it now. A dimmed one with a faded icon means you cannot yet.</p>
+      <p><b>Focus is a blue ring.</b> Never a fill, so it reads from the couch and for colour-blind players. Every screen shows where focus starts.</p>
+    </div>
+    <nav class="index" aria-label="Screens" id="index"></nav>
+  </section>
+
+  <section class="card screen" id="kit-section" aria-labelledby="kitTitle">
+    <div class="shead"><h3 id="kitTitle">The kit</h3><span>Every piece the screens are built from</span></div>
+    <div class="mock kit" id="kit"></div>
+  </section>
+
+  <div id="groups"></div>
+
+  <section class="card end">
+    <h2>Open questions for you</h2>
+    <ul>
+      <li><b>Locked Realms rows.</b> The approved text says only "City Rooftops — locked". The handoff wants a locked row to name what opens it. Suggest "City Rooftops — defeat The Park Tyrant" (needs one new string).</li>
+      <li><b>Job descriptions</b> on the job picker are my short drafts from the job data, not approved text.</li>
+      <li><b>The tutorial line</b> on the Upgrades screen is a draft, like all tutorial lines.</li>
+      <li><b>Boba's photo</b> goes in the polaroid on the title screen; the frame is drawn, the photo is not.</li>
+      <li>Skill tree node effects and the numbers in every mockup are examples, not data.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const r2=v=>Math.round(v*100)/100;
+let LW=0,SC=1;
+function hex2rgb(h){h=h.replace('#','');return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16));}
+function rgb2hex(a){return '#'+a.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');}
+function mix(a,b,t){const A=hex2rgb(a),B=hex2rgb(b);return rgb2hex(A.map((v,i)=>v+(B[i]-v)*t));}
+
+/* ---------- Sticker Box tokens ---------- */
+const U={ink:'#2A2131',paper:'#FFF8EB',paper2:'#F4E7CF',muted:'#6E6276',yellow:'#FFC83D',off:'#EADFCB',offText:'#7E7369',focus:'#3D7BFF',
+  green:'#6CC04A',catnip:'#5DB33D',stardust:'#8B6BEF',red:'#C93323',redSoft:'#F2545B',track:'#E8DABF',white:'#FFFFFF',sky:'#2D3A63'};
+const FD='Fredoka, Nunito, sans-serif',FB='Nunito, sans-serif';
+const L={ink:'#2A2131',lineW:3.6,eyeLW:3,shadowOp:.32,
+ c:{eye:'#FFFFFF',pink:'#F58BA8',catFur:'#9B95A7',catBelly:'#ECE7EF',catStripe:'#6C6578',kitten:'#F2A65A',kittenBelly:'#FCE3C4',kittenStripe:'#D9803A',
+  mouseFur:'#C99A70',mouseBelly:'#F3DEC6',gold:'#FFC83D',goldBelly:'#FFF0A6',mothBody:'#F5E9CC',mothWing:'#B7A3E8',mothWing2:'#8C76CF',gooseBeak:'#FF9B3D',
+  metal:'#B4C6D6',metalDark:'#71889B',plume:'#F2545B',visor:'#56E0E8',grip:'#8A5A3A',uniWhite:'#FFFDF9',uniSnout:'#FFD1DE',horn:'#FFD447',hoof:'#8F86A8',
+  rainbow:['#FF6B6B','#FFAE42','#FFE15C','#6BD48C','#58B6FF','#A88BFF'],voidBody:'#3E2F72',voidMane:'#7DF0FF',voidStar:'#FFF3A0',lastBody:'#FFE6A0',halo:'#FFD447',crown:'#FFC83D',
+  rat:'#8E8494',ratBelly:'#DAD3DD',ratTail:'#E9A3B1',tyrant:'#4F9F49',kingBody:'#D8C67F',clump:'#CDBE92',robe:'#E0505A',add:'#B7A3E8',plusRed:'#F2545B',hat:'#5B4A72',leafy:'#5EA64A'}};
+
+/* ---------- drawing core (same as the bestiary) ---------- */
+function at(o){let r='';for(const k in o){if(o[k]!==undefined&&o[k]!==null)r+=` ${k}="${o[k]}"`;}return r;}
+function lwOf(f){const base=(f.lw!==undefined)?f.lw:(f.noLine?0:LW);return base/SC;}
+function S(tag,a,fill,f={}){const ink=fill==='INK',col=ink?L.ink:fill,lw=ink?0:lwOf(f);return `<${tag}${at(a)} fill="${col}"${lw?` stroke="${L.ink}" stroke-width="${r2(lw)}" stroke-linejoin="round"`:''}/>`;}
+function T(d,w,fill,f={}){const ink=fill==='INK',col=ink?L.ink:fill,lw=ink?0:lwOf(f),b=` d="${d}" fill="none" stroke-linecap="round" stroke-linejoin="round"`;return (lw?`<path${b} stroke="${L.ink}" stroke-width="${r2(w+2*lw)}"/>`:'')+`<path${b} stroke="${col}" stroke-width="${w}"/>`;}
+function RING(cx,cy,rx,ry,w,col){const lw=lwOf({}),e=(sw,c)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${c}" stroke-width="${r2(sw)}"/>`;return (lw?e(w+2*lw,L.ink):'')+e(w,col);}
+function G(tx,ty,s,rot,fn,flip){const p=SC;SC=p*s;const r=fn();SC=p;return `<g transform="translate(${tx} ${ty})${rot?` rotate(${rot})`:''}${(s!==1||flip)?` scale(${flip?-s:s} ${s})`:''}">${r}</g>`;}
+const E=(cx,cy,rx,ry,f,o)=>S('ellipse',{cx,cy,rx,ry},f,o);
+const E2=(cx,cy,rx,ry,rot,f,o)=>S('ellipse',{cx,cy,rx,ry,transform:`rotate(${rot} ${cx} ${cy})`},f,o);
+const C=(cx,cy,r,f,o)=>S('circle',{cx,cy,r},f,o);
+const P=(d,f,o)=>S('path',{d},f,o);
+const R=(x,y,w,h,rx,f,o)=>S('rect',{x,y,width:w,height:h,rx},f,o);
+function star4(x,y,r){const k=r*0.2;return `M${x} ${y-r} Q${r2(x+k)} ${r2(y-k)} ${x+r} ${y} Q${r2(x+k)} ${r2(y+k)} ${x} ${y+r} Q${r2(x-k)} ${r2(y+k)} ${x-r} ${y} Q${r2(x-k)} ${r2(y-k)} ${x} ${y-r} Z`;}
+function starN(n,Ro,Ri,cx=0,cy=0){let d='';for(let i=0;i<2*n;i++){const a=-Math.PI/2+i*Math.PI/n,rr=i%2?Ri:Ro;d+=(i?'L':'M')+r2(cx+rr*Math.cos(a))+' '+r2(cy+rr*Math.sin(a))+' ';}return d+'Z';}
+function scallop(cx,cy,r,n,b){let d='';for(let i=0;i<=n;i++){const a=i/n*Math.PI*2,x=r2(cx+r*Math.cos(a)),y=r2(cy+r*Math.sin(a));d+=i?`A${b} ${b} 0 0 1 ${x} ${y} `:`M${x} ${y} `;}return d+'Z';}
+function eye(x,y,r,px=0,py=0){return C(x,y,r,L.c.eye,{lw:L.eyeLW})+C(r2(x+px*r*0.42),r2(y+py*r*0.42),r2(r*0.34),'INK');}
+function spark(x,y,r,col){return P(star4(x,y,r),col,{lw:L.eyeLW*0.7});}
+function bossEyes(x1,y1,x2,y2,r){return C(x1,y1,r,L.c.eye,{lw:L.eyeLW})+C(x2,y2,r,L.c.eye,{lw:L.eyeLW})+C(r2(x1-r*.3),r2(y1+r*.12),r2(r*.38),'INK')+C(r2(x2-r*.3),r2(y2+r*.12),r2(r*.38),'INK')+T(`M${r2(x1-r*1.15)} ${r2(y1-r*1.2)} L${r2(x1+r*.75)} ${r2(y1-r*.5)}`,3.8,'INK')+T(`M${r2(x2-r*.75)} ${r2(y2-r*.5)} L${r2(x2+r*1.15)} ${r2(y2-r*1.2)}`,3.8,'INK');}
+
+/* ---------- the cast used on these screens ---------- */
+function hatFig(kind){const c=L.c;
+  if(kind==='cap')return P('M-46 -74 C -46 -98, 8 -98, 8 -74 Z','#8A5A3A')+E(-50,-75,15,5,'#6E4529')+T('M-20 -96 L-18 -90',3,'#6E4529',{noLine:true});
+  if(kind==='beanie')return P('M-46 -72 C -46 -102, 12 -102, 12 -72 Z','#F2545B')+R(-48,-78,62,10,5,'#C93323')+C(-17,-104,7,'#FFFFFF');
+  if(kind==='tophat')return E(-17,-76,32,6.5,'#3B3546')+R(-36,-118,38,42,4,'#3B3546')+R(-36,-88,38,8,0,'#C93323');
+  return '';}
+function catFig(o={}){
+  const c=L.c,fur=o.fur||c.catFur,belly=o.belly||c.catBelly,stripe=o.stripe||c.catStripe,helmet=o.stage===2,cyber=o.stage===3;
+  const ears=()=>P('M-42 -63 L-41 -95 L-21 -77 Z',fur)+P('M-9 -77 L-4 -87 L0 -84 L4 -97 L9 -68 Z',fur)+P('M-37.5 -70 L-37 -87 L-27 -77 Z',c.pink,{noLine:true})+P('M-2 -77 L3 -89 L6.5 -71 Z',c.pink,{noLine:true});
+  let s=T('M34 -16 C 56 -18, 60 -44, 47 -58',11,fur)+E(10,-27,34,27,fur)+T('M29 -50 C 34 -46, 36 -40, 33 -35',5,stripe,{noLine:true})+T('M40 -42 C 44 -38, 45 -33, 43 -29',5,stripe,{noLine:true})+E(-6,-19,16,14,belly,{noLine:true})+E(-19,-4.5,9.5,6,fur)+E(1,-4,9.5,6,fur);
+  if(helmet)s+=P('M-40 -80 L-45 -101 L-29 -90 Z',c.metal)+P('M-3 -90 L6 -104 L10 -84 Z',c.metal);else s+=ears();
+  s+=E(-17,-58,29,23,fur);
+  if(!helmet)s+=T('M-23 -79 L-22.5 -73',4,stripe,{noLine:true})+T('M-15 -80 L-15 -73.5',4,stripe,{noLine:true})+T('M-7 -78.5 L-7.5 -72.5',4,stripe,{noLine:true});
+  s+=E(-24,-47,13.5,8.5,belly,{noLine:true});
+  if(helmet)s+=T('M-17 -92 C -14 -104, -3 -109, 6 -105',7,c.plume)+P('M-49 -60 C -52 -100, 16 -100, 14 -62 C 4 -70, -6 -72, -17 -72 C -30 -72, -40 -68, -49 -60 Z',c.metal)+C(-40,-67,1.9,'INK')+C(6,-68,1.9,'INK')+C(-17,-75,1.9,'INK');
+  if(o.hat)s+=hatFig(o.hat);
+  s+=C(-33,-60,9.5,c.eye,{lw:L.eyeLW})+C(-12,-61,10,c.eye,{lw:L.eyeLW})+C(-29.5,-59,2.9,'INK')+C(-15.5,-59.5,2.9,'INK');
+  if(cyber)s+=S('rect',{x:-47,y:-70,width:50,height:18,rx:9,'fill-opacity':0.55},c.visor)+T('M-13 -80 L-7 -98',2.6,'INK')+C(-6.5,-100,4.6,c.visor);
+  s+=T('M-44 -74 L-28 -68.5',4.4,'INK')+T('M-18 -69 L-1 -75',4.4,'INK')+E(-17,-40,3.6,4.4,c.pink,{lw:L.eyeLW*0.6})+P('M-28 -52.5 L-20 -52.5 L-24 -47.5 Z',c.pink,{lw:L.eyeLW*0.7})+T('M-36 -45 Q -24 -36 -11 -46',2.7,'INK')+P('M-30.5 -42.3 L-28.6 -37.6 L-26.8 -41.4 Z',c.eye,{lw:L.eyeLW*0.5})+T('M-40 -50 L-55 -53',1.7,'INK')+T('M-40 -46.5 L-54 -44.5',1.7,'INK');
+  if(!o.noWeapon&&helmet)s+=G(37,-24,1,32,()=>P('M-5 -5 L-5 -40 L0 -48 L5 -40 L5 -5 Z',c.metal)+R(-3,0,6,15,3,c.grip)+R(-12,-6,24,6,3,c.horn));
+  return s;
+}
+function riderFig(stage){
+  const c=L.c,v=stage===4?'cavalry':stage===5?'alicorn':stage===6?'void':'last',body=v==='void'?c.voidBody:v==='last'?c.lastBody:c.uniWhite;
+  const far=mix(body,L.ink,.14),snout=v==='void'?mix(c.voidBody,'#FFFFFF',.32):c.uniSnout;
+  const mane=v==='void'?[c.voidMane,c.rainbow[5],c.voidMane,c.rainbow[5]]:v==='last'?[c.halo,c.rainbow[0],c.halo,c.rainbow[0]]:[c.rainbow[0],c.rainbow[1],c.rainbow[2],c.rainbow[4]];
+  const tail=v==='void'?[c.voidMane,c.rainbow[5],c.voidStar]:v==='last'?[c.halo,c.rainbow[0],c.uniWhite]:[c.rainbow[0],c.rainbow[2],c.rainbow[4]];
+  let s=T('M48 -54 C 68 -54, 74 -32, 64 -14',9,tail[0])+T('M50 -48 C 64 -46, 66 -30, 58 -18',6.5,tail[1])+T('M50 -43 C 58 -40, 58 -30, 53 -24',4.5,tail[2])+R(-10,-34,12,34,6,far)+R(26,-34,12,34,6,far)+E(14,-45,40,23,body);
+  s+=R(-22,-30,13,30,6.5,body)+R(32,-30,13,30,6.5,body)+R(-22,-7,13,7,3,c.hoof)+R(32,-7,13,7,3,c.hoof);
+  if(v!=='cavalry')s+=P('M10 -62 C 14 -100, 50 -126, 86 -116 C 80 -110, 84 -103, 75 -100 C 79 -93, 72 -88, 64 -88 C 64 -80, 54 -72, 40 -68 Z',v==='void'?mix(c.voidBody,'#FFFFFF',.24):c.uniWhite);
+  s+=G(22,-63,0.6,0,()=>catFig({stage:1,noWeapon:true}))+G(30,-70,1,30,()=>T('M0 6 L0 -66',5,c.grip)+P('M0 -58 L22 -52 L0 -46 Z',c.rainbow[0])+P('M-4.5 -64 L0 -80 L4.5 -64 Z',c.metal));
+  s+=P('M-30 -102 L-24 -119 L-19 -99 Z',body)+P('M-30 -52 C -40 -68, -42 -84, -32 -92 L -12 -88 C -14 -74, -10 -62, 0 -55 Z',body)+E(-38,-91,19,15,body);
+  s+=C(-21,-97,8,mane[0])+C(-14,-85,8,mane[1])+C(-9,-72,7.5,mane[2])+C(-6,-61,6.5,mane[3])+E(-52,-83,12.5,10,snout)+C(-59,-86,1.9,'INK');
+  s+=P('M-43 -104 L-51 -131 L-33 -106 Z',c.horn)+T('M-46 -112 L-38 -114',1.6,'INK')+T('M-48 -120 L-42 -121.5',1.6,'INK')+eye(-41,-94,7,-0.3,-0.9)+E(-49,-74,3.2,5,c.pink,{lw:L.eyeLW*0.6});
+  if(v==='last')s+=RING(-38,-122,15,4.5,3.6,c.halo);
+  return s;
+}
+function kittenFig(){const c=L.c;return catFig({fur:c.kitten,belly:c.kittenBelly,stripe:c.kittenStripe,noWeapon:true});}
+function mouseFig(o={}){const c=L.c,gold=!!o.gold,fur=gold?c.gold:c.mouseFur,belly=gold?c.goldBelly:c.mouseBelly;
+  let s=T('M26 -12 C 46 -8, 54 -28, 42 -38',3.8,c.pink)+C(-12,-50,11.5,fur)+C(7,-47,10.5,fur)+C(-12,-50,6.4,c.pink,{noLine:true})+C(7,-47,5.8,c.pink,{noLine:true});
+  s+=E(6,-21,26,21,fur)+E(-14,-31,19,17,fur)+E(-2,-13,13,8,belly,{noLine:true})+E(-31,-27,9,7,fur)+C(-39.5,-28.5,3.8,c.pink)+eye(-22,-36,7.5,-0.7,-0.6)+eye(-8,-38,7,0.75,0.45)+E(-26,-21.5,2.6,3.4,'INK')+E(-12,-2.5,7,4.5,fur)+E(14,-2.5,7,4.5,fur);
+  if(gold)s+=spark(-40,-56,6,c.gold)+spark(30,-64,4.6,c.gold)+spark(46,-24,5,c.gold);
+  return s;}
+function ratFig(){const c=L.c,f=c.rat;
+  return T('M30 -10 C 52 -6, 62 -20, 58 -36',6,c.ratTail)+E(20,-3,9,4.5,f)+C(-10,-44,6.5,f)+C(-10,-44,3.6,c.pink,{noLine:true})+P('M-14 -10 C -20 -30, -2 -50, 18 -44 C 36 -38, 38 -14, 30 -6 C 22 0, -6 0, -14 -10 Z',f)+E(4,-12,14,8,c.ratBelly,{noLine:true})
+   +P('M-6 -42 C -18 -48, -36 -38, -50 -28 C -44 -20, -26 -18, -8 -22 Z',f)+C(-50,-28,3.6,c.pink)+R(-45,-25,5,6,1.2,c.eye,{lw:1.3})+eye(-26,-35,6,-0.7,-0.5)+eye(-15,-38,5.6,0.7,0.5)+E(-12,-3,7,4,f);}
+function mothFig(){const c=L.c;
+  return T('M-5 -54 C -8 -66, -14 -72, -21 -72',2.4,'INK')+T('M5 -54 C 8 -66, 14 -72, 21 -72',2.4,'INK')+C(-22,-72,3.8,c.mothWing2)+C(22,-72,3.8,c.mothWing2)+E2(-19,-48,21,14,-32,c.mothWing)+E2(19,-48,21,14,32,c.mothWing)+E2(-16,-22,14,10,24,c.mothWing2)+E2(16,-22,14,10,-24,c.mothWing2)
+   +C(-24,-52,5,c.mothWing2,{noLine:true})+C(24,-52,5,c.mothWing2,{noLine:true})+E(-6,-3,5.5,3.5,c.mothBody)+E(6,-3,5.5,3.5,c.mothBody)+E(0,-30,15,24,c.mothBody)+eye(-6,-36,6.5,-0.6,0.5)+eye(6.5,-37,6,0.6,-0.6)+E(0,-23,2.3,3.2,'INK');}
+function tyrantFig(){const c=L.c,f=c.tyrant,wk=mix(f,L.ink,.18),bk=c.gooseBeak,WG='M14 -62 C 4 -108, 50 -132, 86 -104 C 76 -100, 80 -92, 70 -88 C 76 -80, 68 -74, 60 -74 C 62 -66, 50 -60, 40 -60 Z';
+  return G(-26,6,0.85,-14,()=>P(WG,mix(wk,L.ink,.1)))+P(WG,wk)+T('M30 -76 L62 -98',2,mix(wk,L.ink,.4),{noLine:true})+T('M34 -68 L66 -84',2,mix(wk,L.ink,.4),{noLine:true})+T('M-6 -22 L-14 -4',5,bk)+T('M30 -22 L40 -4',5,bk)+P('M-28 -1 L-14 -8 L-4 -1 Z',bk)+P('M30 -1 L40 -8 L52 -1 Z',bk)
+   +E(14,-42,42,28,f)+E(22,-44,24,14,wk)+T('M-18 -50 C -36 -56, -52 -46, -64 -42',18,f)+E(-72,-44,17,14,f)+P('M-84 -52 L-114 -48 L-86 -42 Z',bk)+P('M-84 -38 L-108 -30 L-82 -31 Z',bk)+E(-96,-38.5,8,3,c.pink,{noLine:true})+bossEyes(-80,-51,-67,-52,6);}
+function addFig(){const c=L.c,f=c.add;return E(-8,-3,6,4,f)+E(8,-3,6,4,f)+E(0,-20,19,17,f)+E(0,-14,11,8,mix(f,'#FFFFFF',.5),{noLine:true})+P('M12 -46 L17 -46 L17 -41 L22 -41 L22 -36 L17 -36 L17 -31 L12 -31 L12 -36 L7 -36 L7 -41 L12 -41 Z',c.plusRed,{lw:1.6})+eye(-6,-24,5,-0.6,-0.6)+eye(5,-25,5.4,0.6,0.5)+E(0,-15,2,2.8,'INK');}
+function kingDownFig(){const c=L.c,b=c.kingBody;
+  return E(0,-14,46,16,b)+E(-4,-12,30,9,mix(b,'#FFFFFF',.45),{noLine:true})+E(-44,-22,24,19,b)+T('M-56 -26 L-48 -18',3,'INK')+T('M-48 -26 L-56 -18',3,'INK')+T('M-38 -28 L-30 -20',3,'INK')+T('M-30 -28 L-38 -20',3,'INK')+spark(-50,-48,6,c.voidStar)+spark(-28,-52,5,c.voidStar);}
+function crownFig(){const c=L.c;return P('M-22 0 L-26 -26 L-12 -10 L0 -30 L12 -10 L26 -26 L22 0 Z',c.crown)+C(0,-14,3.6,c.rainbow[0]);}
+
+/* props and icons */
+const PR={
+  bush:B=>C(-24,-17,19,B.bush)+C(22,-16,18,B.bush)+C(0,-30,24,B.bush)+C(-9,-36,3.6,B.flower,{noLine:true})+C(11,-24,3.2,B.flower,{noLine:true})+C(-22,-20,3,B.flower,{noLine:true}),
+  rock:B=>P('M-28 0 C -32 -18, -14 -31, 3 -29 C 21 -28, 31 -15, 27 0 Z',B.rock)+E(-6,-20,7,3.5,mix(B.rock,'#FFFFFF',.4),{noLine:true}),
+  tuft:B=>T('M0 0 L-9 -20',5,B.tuft)+T('M0 0 L1 -25',5,B.tuft)+T('M0 0 L10 -19',5,B.tuft),
+  flowers:B=>T('M-10 0 L-12 -18',2.6,B.tuft)+T('M4 0 L6 -24',2.6,B.tuft)+C(-12,-22,6,B.flower)+C(6,-28,6,'#FFE15C')+C(-12,-22,2.2,'#FFFFFF',{noLine:true})+C(6,-28,2.2,'#FFFFFF',{noLine:true}),
+  clump:B=>P(scallop(0,-12,17,9,6.4),B.clump),
+  post:B=>R(-7,-58,14,58,3,'#C79A6A')+P('M-7 -58 L0 -66 L7 -58 Z','#C79A6A')
+};
+const IC={
+  paw:()=>E(0,7,10.5,8.5,L.c.catFur)+C(-11.5,-4,4.8,L.c.catFur)+C(-4.5,-11,4.8,L.c.catFur)+C(4.5,-11,4.8,L.c.catFur)+C(11.5,-4,4.8,L.c.catFur)+E(0,8,5.5,4,L.c.pink,{noLine:true}),
+  bolt:()=>P('M5 -19 L-11 3 L-1 3 L-6 19 L11 -5 L1 -5 Z',L.c.gold),
+  burst:()=>P(starN(8,18,9),L.c.rainbow[0]),
+  claw:()=>T('M-12 -14 L-5 14',4.5,L.c.eye)+T('M-2 -16 L5 12',4.5,L.c.eye)+T('M8 -14 L14 8',4.5,L.c.eye),
+  cleaver:()=>R(6,-4,14,7,3.5,L.c.grip)+P('M-16 -12 L8 -12 L8 8 L-10 8 C -14 8, -16 5, -16 1 Z',L.c.metal)+C(-9,-5,2.2,'INK'),
+  leaf:()=>P('M-15 13 C -17 -6, -3 -17, 15 -15 C 15 3, 3 15, -15 13 Z',U.catnip)+T('M-12 10 L9 -9',2,'INK'),
+  mouse:()=>C(-9,-7,6.5,L.c.mouseFur)+C(9,-7,6.5,L.c.mouseFur)+E(0,5,12,10,L.c.mouseFur)+C(-4,3,2,'INK')+C(4,3,2,'INK')+C(0,9,2.2,L.c.pink,{noLine:true}),
+  kitten:()=>P('M-13 -2 L-12 -18 L-3 -9 Z',L.c.kitten)+P('M13 -2 L12 -18 L3 -9 Z',L.c.kitten)+E(0,3,14,11,L.c.kitten)+C(-5,2,3.2,L.c.eye,{noLine:true})+C(5,2,3.2,L.c.eye,{noLine:true})+C(-5,2,1.6,'INK')+C(5,2,1.6,'INK'),
+  star:()=>P(star4(0,1,18),U.stardust)+P(star4(13,-12,5),L.c.gold),
+  reawaken:()=>T('M11 -11 C 4 -18, -12 -15, -14 -2 C -15 10, -4 17, 8 13',4.5,U.stardust)+P('M6 -21 L17 -11 L4 -6 Z',U.stardust)+P(star4(3,0,6),L.c.gold),
+  flag:()=>T('M-10 17 L-10 -17',3.6,'INK')+P('M-9 -17 L15 -10 L-9 -1 Z',L.c.rainbow[0]),
+  cards:()=>G(-5,2,1,-12,()=>R(-9,-13,18,24,3,L.c.eye))+G(5,0,1,10,()=>R(-9,-13,18,24,3,L.c.rainbow[4])),
+  trophy:()=>T('M-11 -10 C -19 -10, -18 2, -8 1',3,L.c.gold)+T('M11 -10 C 19 -10, 18 2, 8 1',3,L.c.gold)+P('M-11 -15 L11 -15 C 11 -1, 6 5, 0 5 C -6 5, -11 -1, -11 -15 Z',L.c.gold)+R(-3,4,6,7,1.5,L.c.gold)+R(-9,10,18,6,2.5,L.c.gold),
+  hat:()=>E(0,9,17,5,L.c.hat)+R(-10,-16,20,25,4,L.c.hat)+R(-10,-1,20,5,0,L.c.plume,{noLine:true}),
+  tree:()=>R(-3,2,6,15,2.5,L.c.grip)+C(-7,-4,8,L.c.leafy)+C(7,-4,8,L.c.leafy)+C(0,-11,9,L.c.leafy),
+  lock:()=>T('M-6 -2 L-6 -8 C -6 -16, 6 -16, 6 -8 L6 -2',3.4,'INK')+R(-11,-3,22,17,4,L.c.metal)+C(0,5,2.4,'INK'),
+  horn:()=>P('M-7 16 L0 -19 L7 16 Z',L.c.horn)+T('M-4 7 L4 5',1.8,'INK')+T('M-2.5 -2 L2.5 -3.5',1.8,'INK'),
+  pause:()=>R(-10,-13,7,26,3,U.ink,{noLine:true})+R(3,-13,7,26,3,U.ink,{noLine:true}),
+  gear:()=>P(starN(8,17,12.5),L.c.metal)+C(0,0,6,U.paper),
+  save:()=>R(-14,-14,28,28,4,L.c.rainbow[4])+R(-8,-14,16,10,1,U.paper)+R(-9,3,18,9,1.5,U.paper),
+  quit:()=>R(-14,-14,18,28,3,U.paper2)+T('M-2 0 L14 0',4,L.c.rainbow[0])+P('M10 -7 L18 0 L10 7 Z',L.c.rainbow[0]),
+  bug:()=>T('M-12 -6 L-4 -2',2.4,'INK')+T('M12 -6 L4 -2',2.4,'INK')+T('M-13 6 L-4 4',2.4,'INK')+T('M13 6 L4 4',2.4,'INK')+E(0,3,9,12,L.c.rainbow[0])+C(0,-11,6,'#3B3546')+T('M0 -8 L0 14',1.6,'INK'),
+  chat:()=>P('M-15 -12 C -15 -16, -12 -17, -8 -17 L8 -17 C 12 -17, 15 -16, 15 -12 L15 4 C 15 8, 12 9, 8 9 L-2 9 L-9 16 L-8 9 C -12 9, -15 8, -15 4 Z',L.c.rainbow[5])+C(-6,-4,2.2,'INK')+C(0,-4,2.2,'INK')+C(6,-4,2.2,'INK'),
+  globe:()=>C(0,0,16,L.c.rainbow[4])+P('M-6 -14 C -2 -8, -10 -4, -4 2 C 0 6, -4 10, -2 15 C -12 12, -16 4, -15 -2 C -12 -10, -10 -12, -6 -14 Z',L.c.leafy,{noLine:true})+P('M8 -12 C 12 -6, 6 -2, 10 4 C 14 2, 16 -4, 14 -8 Z',L.c.leafy,{noLine:true}),
+  pad:()=>P('M-18 -6 C -18 -12, -12 -13, -6 -13 L6 -13 C 12 -13, 18 -12, 18 -6 L20 8 C 20 14, 14 15, 10 10 L6 6 L-6 6 L-10 10 C -14 15, -20 14, -20 8 Z','#5B4A72')+T('M-11 -5 L-11 1',2.6,U.paper)+T('M-14 -2 L-8 -2',2.6,U.paper)+C(9,-6,2.4,L.c.rainbow[3],{noLine:true})+C(13,-2,2.4,L.c.rainbow[0],{noLine:true}),
+  check:()=>T('M-10 0 L-3 8 L11 -9',5,'INK'),
+  close:()=>T('M-9 -9 L9 9',4.5,'INK')+T('M9 -9 L-9 9',4.5,'INK'),
+  speaker:()=>P('M-14 -6 L-6 -6 L4 -14 L4 14 L-6 6 L-14 6 Z',L.c.metal)+T('M9 -7 C 13 -3, 13 3, 9 7',2.6,'INK')+T('M13 -11 C 19 -5, 19 5, 13 11',2.6,'INK'),
+  screen:()=>R(-16,-12,32,22,3,L.c.rainbow[4])+R(-4,10,8,5,1,L.c.metal)+R(-9,15,18,3,1.5,L.c.metal)
+};
+function fig(fn,x,y,s,o={}){
+  const pLW=LW,pSC=SC;LW=(o.lw!==undefined)?o.lw:L.lineW;SC=1;
+  let inner=fn();if(o.rim)inner=`<g filter="url(#rim)">${inner}</g>`;
+  LW=pLW;SC=pSC;
+  let body=`<g transform="scale(${r2((o.flip?-1:1)*s)} ${r2(s)})">${inner}</g>`;
+  if(o.anim)body=`<g class="${o.anim}" style="animation-delay:${r2(o.delay||0)}s">${body}</g>`;
+  return `<g transform="translate(${r2(x)} ${r2(y)})">${body}</g>`;
+}
+const cre=(fn,x,y,s,o={})=>fig(fn,x,y,s,Object.assign({rim:true},o));
+const icon=(n,x,y,s=1,o={})=>`<g${o.op?` opacity="${o.op}"`:''}>${fig(IC[n],x,y,s,{lw:2.6})}</g>`;
+const shadow=(cx,cy,rx,col,op=.32)=>`<ellipse cx="${r2(cx)}" cy="${r2(cy)}" rx="${r2(rx)}" ry="${r2(rx*0.26)}" fill="${col}" opacity="${op}"/>`;
+
+/* ---------- UI primitives ---------- */
+const tw=(str,size,bold=true)=>String(str).length*size*(bold?.56:.52);
+function txt(x,y,s,str,o={}){return `<text x="${r2(x)}" y="${r2(y)}" font-family="${o.d?FD:FB}" font-weight="${o.w||(o.d?700:800)}" font-size="${s}" fill="${o.fill||U.ink}" text-anchor="${o.a||'start'}"${o.ls?` letter-spacing="${o.ls}"`:''} style="font-variant-numeric:tabular-nums">${esc(str)}</text>`;}
+function wrapLines(str,max){const out=[];let cur='';for(const w of String(str).split(' ')){if((cur+' '+w).trim().length>max&&cur){out.push(cur.trim());cur=w;}else cur+=' '+w;}if(cur.trim())out.push(cur.trim());return out;}
+function para(x,y,str,max,o={}){const lh=o.lh||Math.round((o.s||15)*1.4);return wrapLines(str,max).map((l,i)=>txt(x,y+i*lh,o.s||15,l,o)).join('');}
+function sticker(x,y,size,str,fill=U.yellow,o={}){const a=o.a||'middle';const base=`x="${x}" y="${y}" font-family="${FD}" font-weight="700" font-size="${size}" text-anchor="${a}" stroke-linejoin="round"`;
+  return `<text ${base} fill="#FFFDF6" stroke="#FFFDF6" stroke-width="${r2(size*.42)}">${esc(str)}</text><text ${base} fill="${U.ink}" stroke="${U.ink}" stroke-width="${r2(size*.2)}">${esc(str)}</text><text ${base} fill="${fill}">${esc(str)}</text>`;}
+function panel(x,y,w,h,o={}){const r=o.r??16;return `<rect x="${x+5}" y="${y+6}" width="${w}" height="${h}" rx="${r}" fill="${U.ink}"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${o.fill||U.paper}" stroke="${U.ink}" stroke-width="3.5"/>`;}
+function inset(x,y,w,h,o={}){return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${o.r??10}" fill="${o.fill||U.paper2}" stroke="${o.stroke||U.ink}" stroke-width="${o.sw??2.5}"${o.dash?` stroke-dasharray="${o.dash}"`:''}/>`;}
+function ring(x,y,w,h,r=12){return `<rect x="${x-6}" y="${y-6}" width="${w+12}" height="${h+12}" rx="${r+6}" fill="none" stroke="${U.focus}" stroke-width="4"/>`;}
+function btn(x,y,w,h,label,o={}){
+  const k=o.kind||'primary',r=o.r??(h/2>14?12:h/2);let s='';
+  const fill=k==='primary'?U.yellow:k==='danger'?U.paper:k==='off'?U.off:U.paper2, col=k==='off'?U.offText:k==='danger'?U.red:U.ink;
+  if(k==='primary'||k==='secondary')s+=`<rect x="${x}" y="${y+4}" width="${w}" height="${h}" rx="${r}" fill="${U.ink}"/>`;
+  s+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${k==='off'?U.offText:k==='danger'?U.red:U.ink}" stroke-width="${k==='primary'?3:2.5}"/>`;
+  const size=o.size||(h>=50?20:17),hasIc=!!o.icon,lw=tw(label,size)*(o.d===false?1:1.02),tot=lw+(hasIc?30:0)+(o.key?o.key.w+10:0);
+  let cx=o.align==='left'?x+16:x+w/2-tot/2;
+  if(o.key){s+=o.key.at(cx,y+h/2-13);cx+=o.key.w+10;}
+  if(hasIc){s+=icon(o.icon,cx+12,y+h/2,o.iconS||.62,{op:k==='off'?.5:1});cx+=30;}
+  s+=txt(cx,y+h/2+size*.36,size,label,{d:o.d!==false,fill:col,w:o.d===false?800:700});
+  if(o.price!==undefined){s+=icon('leaf',x+w-tw(o.price,18)-36,y+h/2,.55,{op:k==='off'?.5:1})+txt(x+w-14,y+h/2+6.5,18,o.price,{d:true,a:'end',fill:col});}
+  if(o.focus)s+=ring(x,y,w,h,r);
+  return s;}
+function keycap(label){const w=Math.max(28,tw(label,13)+16);return {w,at:(x,y)=>`<rect x="${x}" y="${y+3}" width="${w}" height="26" rx="6" fill="${U.ink}"/><rect x="${x}" y="${y}" width="${w}" height="26" rx="6" fill="${U.paper}" stroke="${U.ink}" stroke-width="2"/>`+txt(x+w/2,y+18,13,label,{a:'middle'})};}
+function padkey(label){const face={A:'#6CC04A',B:'#F2545B',X:'#58B6FF',Y:'#FFC83D'}[label];
+  if(face)return {w:28,at:(x,y)=>`<circle cx="${x+14}" cy="${y+16}" r="13" fill="${U.ink}"/><circle cx="${x+14}" cy="${y+13}" r="13" fill="${face}" stroke="${U.ink}" stroke-width="2"/>`+txt(x+14,y+18,13,label,{a:'middle'})};
+  const w=Math.max(32,tw(label,12)+16);return {w,at:(x,y)=>`<rect x="${x}" y="${y+3}" width="${w}" height="26" rx="13" fill="${U.ink}"/><rect x="${x}" y="${y}" width="${w}" height="26" rx="13" fill="#3B3546" stroke="${U.ink}" stroke-width="2"/>`+txt(x+w/2,y+17.5,12,label,{a:'middle',fill:U.white})};}
+function legend(x,y,items,o={}){let s='',cx=x;for(const [k,t] of items){const kc=(o.pad?padkey:keycap)(k);s+=kc.at(cx,y);cx+=kc.w+6;s+=txt(cx,y+18,o.s||14,t,{fill:o.fill||U.ink});cx+=tw(t,o.s||14)+16;}return s;}
+function bar(x,y,w,h,t,fill=U.green){t=Math.max(0,Math.min(1,t));return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h/2}" fill="${U.track}" stroke="${U.ink}" stroke-width="2"/><rect x="${x}" y="${y}" width="${r2(Math.max(h,w*t))}" height="${h}" rx="${h/2}" fill="${fill}" stroke="${U.ink}" stroke-width="2"/>`;}
+function toggle(x,y,on,label,o={}){return `<rect x="${x}" y="${y}" width="26" height="26" rx="7" fill="${on?U.yellow:U.paper}" stroke="${U.ink}" stroke-width="2.5"/>`+(on?icon('check',x+13,y+13,.62):'')+txt(x+36,y+19,o.s||15,label)+(o.focus?ring(x,y,32+tw(label,o.s||15)+8,26,8):'');}
+function seg(x,y,items,sel,o={}){const w=o.w||44,h=o.h||32;let s=`<rect x="${x}" y="${y+3}" width="${w*items.length}" height="${h}" rx="10" fill="${U.ink}"/><rect x="${x}" y="${y}" width="${w*items.length}" height="${h}" rx="10" fill="${U.paper2}" stroke="${U.ink}" stroke-width="2.5"/>`;
+  items.forEach((t,i)=>{if(i===sel)s+=`<rect x="${x+i*w+3}" y="${y+3}" width="${w-6}" height="${h-6}" rx="7" fill="${U.yellow}" stroke="${U.ink}" stroke-width="2"/>`;s+=txt(x+i*w+w/2,y+h/2+5,o.s||14,t,{a:'middle'});});return s;}
+function scrim(op=.5){return `<rect width="1600" height="900" fill="${U.ink}" opacity="${op}"/>`;}
+function rainbowFrame(x,y,w,h,r=14){return `<rect x="${x-5}" y="${y-5}" width="${w+10}" height="${h+10}" rx="${r+5}" fill="none" stroke="url(#rainbow)" stroke-width="7"/>`;}
+
+/* ---------- the field ---------- */
+const GROUND={backyard:{ground:'#9ACF6C',patch:'#8CC35F',shadow:'#3F6B2C',bush:'#5EA64A',rock:'#B8B3C3',tuft:'#6AAE4C',flower:'#FF8FB1',clump:'#B9A56F'},
+  park:{ground:'#7CC46A',patch:'#70B75E',shadow:'#2F5E28',bush:'#4E9A42',rock:'#B8B3C3',tuft:'#5DA24C',flower:'#FFE15C',clump:'#B9A56F'},
+  litter:{ground:'#E1D2A6',patch:'#D5C38F',shadow:'#7A6A3C',bush:'#B9A56F',rock:'#CDBB86',tuft:'#C9B47D',flower:'#FFE15C',clump:'#C4B282'}};
+const PATCHES=['M-40 260 C 80 200, 260 230, 300 320 C 340 420, 200 480, 80 470 C -40 460, -90 330, -40 260 Z','M640 120 C 780 60, 980 90, 1010 190 C 1040 300, 880 340, 760 320 C 640 300, 520 190, 640 120 Z','M520 600 C 660 540, 900 560, 960 660 C 1020 770, 860 850, 700 840 C 540 830, 400 680, 520 600 Z','M980 420 C 1080 380, 1240 400, 1260 480 C 1280 560, 1160 600, 1060 580 C 960 560, 900 460, 980 420 Z'];
+const PROPS_STD=[['bush',60,70,1.4],['bush',520,48,1.2],['bush',1040,64,1.3],['rock',1000,330,1],['rock',150,760,.9],['tuft',470,360,1],['tuft',720,410,.9],['tuft',300,540,1],['tuft',880,580,1],['tuft',1120,760,1],['tuft',560,720,.9],['tuft',780,140,1]];
+function field(g,cast,o={}){
+  const B=GROUND[g];let s=`<rect width="1600" height="900" fill="${B.ground}"/>`+PATCHES.map(d=>`<path d="${d}" fill="${B.patch}"/>`).join('');
+  for(const [k,x,y,z] of (o.props||PROPS_STD))s+=fig(()=>PR[k](B),x,y,z,{lw:2.4});
+  if(o.aura)s+=`<circle cx="${o.aura[0]}" cy="${o.aura[1]}" r="172" fill="#FFD447" fill-opacity=".16" stroke="#FFD447" stroke-opacity=".85" stroke-width="5"/>`;
+  for(const c of cast)s+=shadow(c.x,c.y,c.w*c.s*.3,B.shadow,c.fly?.12:.32);
+  [...cast].sort((a,b)=>a.y-b.y).forEach((c,i)=>{
+    if(c.glow)s+=`<ellipse cx="${c.x}" cy="${c.y-c.h*c.s*.45}" rx="${c.w*c.s*.6}" ry="${c.h*c.s*.6}" fill="#FFFFFF" opacity=".72" filter="url(#softglow)"/><ellipse cx="${c.x}" cy="${c.y-c.h*c.s*.45}" rx="${c.w*c.s*.58}" ry="${c.h*c.s*.58}" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-dasharray="12 9"/>`;
+    s+=cre(c.fn,c.x,c.y,c.s,{flip:c.flip,anim:c.anim||'jit',delay:-(i*.17)%1.4});});
+  return s;}
+const M=(x,y,flip,s=.84)=>({fn:()=>mouseFig(),x,y,s,flip,w:106,h:71});
+function stdCast(o={}){
+  const list=[M(560,262,1),M(330,700,0),M(790,250,1),M(965,640,0),M(1105,430,1),M(170,560,0),M(700,770,0),M(880,775,1),M(250,330,0),M(1150,250,1),M(505,600,0)];
+  list.push({fn:()=>mouseFig({gold:true}),x:1030,y:165,s:.8,flip:1,w:106,h:76});
+  list.push({fn:mothFig,x:860,y:480,s:.95,w:92,h:87,glow:true});
+  list.push({fn:kittenFig,x:395,y:665,s:.44,flip:1,w:134,h:117,anim:'bob'},{fn:kittenFig,x:930,y:705,s:.44,w:134,h:117,anim:'bob'});
+  list.push({fn:()=>catFig({stage:o.stage||1}),x:610,y:578,s:1.25,w:134,h:117,anim:'bob'});
+  return list;}
+const SWIPE=fig(()=>T('M-46 -60 C -26 -96, 18 -100, 40 -54',8,'#FFFFFF')+T('M-16 -52 L-4 -26',3.4,'INK')+T('M-6 -55 L6 -29',3.4,'INK')+T('M4 -52 L15 -28',3.4,'INK'),505,600,1,{lw:3});
+
+/* ---------- the HUD: status top left, Pounce bottom left, the dock on the right ---------- */
+const TABS=[['paw','UPGRADES'],['reawaken','REAWAKEN'],['flag','REALMS'],['cards','THE CATCHES'],['trophy','ACHIEVEMENTS'],['hat','JOBS']];
+const X=1232,Y=16,W=352,H=868,IX=1248,IW=320;
+function status(o={}){
+  let s=panel(20,18,232,62)+icon('leaf',54,49,.86)+txt(82,61,32,o.catnip||'180',{d:true});
+  s+=panel(264,18,178,62)+icon('star',296,49,.86)+txt(324,61,32,o.stardust||'0',{d:true});
+  if(o.bait){s+=rainbowFrame(20,92,422,110,16)+panel(20,92,422,110);s+=txt(40,126,22,o.biome,{d:true})+txt(40,154,15,'Bait ready · summon '+o.boss)+txt(40,184,14,'40 / 40  ·  wave 7',{w:700,fill:U.muted});return s;}
+  s+=panel(20,92,422,110)+txt(40,126,22,o.biome||'Backyard',{d:true});
+  s+=txt(40,152,14,'Next biome  ·  '+(o.gate||'412 / 900'),{w:800})+bar(40,160,386,10,o.gt??.46);
+  s+=txt(40,186,13.5,o.wave||'Wave 3  ·  18 / 40 to the next',{w:700,fill:U.muted})+bar(270,177,156,8,o.wt??.45,'#58B6FF');
+  return s;}
+function bottomLeft(o={}){
+  return `<circle cx="74" cy="832" r="44" fill="${U.ink}" transform="translate(4 5)"/><circle cx="74" cy="832" r="44" fill="${U.paper}" stroke="${U.ink}" stroke-width="3.5"/>`
+   +`<path d="M74 832 L74 796 A36 36 0 1 1 ${r2(74+36*Math.sin(2*Math.PI*.68))} ${r2(832-36*Math.cos(2*Math.PI*.68))} Z" fill="${U.yellow}" opacity=".9"/>`+icon('paw',74,832,.9)
+   +panel(128,804,140,56)+txt(144,840,20,'Pounce',{d:true})+padkey('RT').at(226,819)
+   +panel(284,812,924,48)+txt(302,844,19,'Level '+(o.level||4),{d:true})+bar(402,829,786,14,o.xp??.62,U.stardust);}
+function dock(tab,title,content,o={}){
+  let s=panel(X,Y,W,H,{r:20});
+  TABS.forEach(([ic],i)=>{const tx=IX+i*54,ty=Y+16,on=i===tab;
+    if(on)s+=`<rect x="${tx}" y="${ty+4}" width="48" height="48" rx="12" fill="${U.ink}"/>`;
+    s+=`<rect x="${tx}" y="${ty}" width="48" height="48" rx="12" fill="${on?U.yellow:U.paper2}" stroke="${U.ink}" stroke-width="${on?3:2.5}"/>`+icon(ic,tx+24,ty+24,.8);
+    if((o.badges||[]).includes(i))s+=`<circle cx="${tx+45}" cy="${ty+3}" r="8" fill="${U.redSoft}" stroke="${U.paper}" stroke-width="3"/>`;});
+  s+=txt(IX+4,Y+112,26,title,{d:true});
+  s+=content;
+  const lg=o.legend||[['Space','Buy'],['Q','Amount'],['T','Skills'],['Esc','Pause']];
+  s+=`<line x1="${IX}" y1="${Y+H-134}" x2="${IX+IW}" y2="${Y+H-134}" stroke="${U.ink}" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>`+legend(IX,Y+H-126,lg.slice(0,2),{s:13.5})+legend(IX,Y+H-98,lg.slice(2),{s:13.5});
+  [['gear','Settings'],['tree','Skill tree'],['save','Save'],['quit','Quit to menu']].forEach(([ic],i)=>{s+=inset(IX+i*82,Y+H-68,74,50,{r:12})+icon(ic,IX+i*82+37,Y+H-43,.82);});
+  return s;}
+function hud(tab,title,content,o={}){
+  let s=field(o.ground||'backyard',o.cast||stdCast(o),{aura:o.aura===false?null:[610,504]})+(o.swipe===false?'':SWIPE);
+  s+=(o.extraField||'')+status(o.status||{})+bottomLeft(o.bl||{})+dock(tab,title,content,o)+(o.overlay||'');
+  return s;}
+const svg=(inner,label)=>`<svg viewBox="0 0 1600 900" role="img" aria-label="${esc(label)}">${inner}</svg>`;
+
+/* ---------- dock pages ---------- */
+const SHOP=[['paw','Paw Damage',1,'21',1],['bolt','Attack Speed',1,'22',1],['burst','Crit Chance',0,'120',1],['claw','Shred',0,'200',0],['cleaver','Execute',0,'350',0],['leaf','Currency Find',0,'90',1],['mouse','Spawn Rate',1,'68',1],['kitten','Kitten Count',1,'203',0]];
+function pageUpgrades(){
+  let s=txt(IX+2,Y+150,14,'Buy amount',{fill:U.muted,w:800})+seg(IX+IW-176,Y+128,['x1','x5','x10','Max'],0,{w:44});
+  SHOP.forEach(([ic,name,lv,price,can],i)=>{const y=Y+174+i*60;
+    s+=inset(IX,y,IW,52)+icon(ic,IX+26,y+26,.72)+txt(IX+50,y+23,16,name)+txt(IX+50,y+42,13,'Lv '+lv+(ic==='kitten'?' · 2 kittens':''),{w:700,fill:U.muted});
+    s+=btn(IX+IW-104,y+8,94,36,'',{kind:can?'primary':'off',price,focus:i===0,r:10});});
+  const y=Y+174+8*60;
+  s+=inset(IX,y,IW,52,{fill:U.off,stroke:U.offText,dash:'5 4'})+icon('lock',IX+26,y+26,.7,{op:.75})+txt(IX+50,y+22,13,'Kitten Power — buy Kitten Count first',{fill:U.offText})+txt(IX+50,y+41,12.5,'Increases kitten damage',{w:700,fill:U.offText});
+  return s;}
+function pageReawaken(){
+  let s=para(IX+2,Y+142,'Resets Catnip and upgrades. Bosses stay beaten and Bait is kept. Stardust increases damage and Catnip permanently. Spend it in the skill tree after you Reawaken.',40,{s:14,w:700,lh:19});
+  s+=para(IX+2,Y+252,'1.30M / 1.30M suggested. You can Reawaken now.',40,{s:14.5,lh:19})+bar(IX,Y+284,IW,12,1,U.stardust);
+  s+=inset(IX,Y+314,IW,196,{fill:U.paper})+txt(IX+18,Y+344,12.5,'IF YOU REAWAKEN NOW',{fill:U.muted,ls:1.2});
+  s+=icon('star',IX+40,Y+392,1.25)+txt(IX+72,Y+410,54,'+38',{d:true,fill:U.stardust})+txt(IX+IW-18,Y+406,16,'Total: 450',{a:'end',fill:U.muted,w:700});
+  s+=txt(IX+18,Y+454,14.5,'Damage multiplier x12.88  →  x13.45')+txt(IX+18,Y+482,14.5,'Catnip multiplier x3.59  →  x3.67');
+  s+=toggle(IX+2,Y+530,true,'Ask before Reawakening');
+  s+=btn(IX,Y+582,IW,58,'Reawaken (Reawaken 5)',{icon:'reawaken',focus:true,size:19});
+  return s;}
+function pageRealms(){
+  let s=para(IX+2,Y+142,'Evolution Stage 1 · next: defeat The Park Tyrant',38,{s:14.5,lh:19});
+  s+=rainbowFrame(IX,Y+182,IW,98,14)+inset(IX,Y+182,IW,98,{fill:U.paper,r:14})+txt(IX+16,Y+208,14,'40 / 40 Bait  ·  The Park Tyrant is here',{w:800});
+  s+=btn(IX+14,Y+222,IW-28,46,'Buy Bait · summon The Park Tyrant',{focus:true,size:15.5,r:12});
+  const rows=[['flag','Travel: Backyard  (x1 Catnip)',0],['flag','Travel: Alley  (x1.4 Catnip)',0],['paw','Neighborhood Park — you are here',2],['lock','City Rooftops — locked',1],['lock','Sewers — locked',1],['lock','Rival Cat Turf — locked',1],['lock','Portal Zone — locked',1]];
+  rows.forEach(([ic,t,st],i)=>{const y=Y+300+i*52;s+=inset(IX,y,IW,44,st===1?{fill:U.off,stroke:U.offText,dash:'5 4'}:st===2?{fill:U.yellow}:{})+icon(ic,IX+24,y+22,.62,{op:st===1?.7:1})+txt(IX+46,y+28,13.5,t,{fill:st===1?U.offText:U.ink});});
+  s+=toggle(IX+2,Y+672,false,'Auto-travel when unlocked',{s:14.5});
+  return s;}
+function cardChip(x,y,col,ic){return `<rect x="${x}" y="${y}" width="34" height="40" rx="6" fill="${col}" stroke="${U.ink}" stroke-width="2.2"/>`+icon(ic,x+17,y+20,.55);}
+function pageCatches(){
+  let s=txt(IX+2,Y+144,20,'LEVEL 5',{d:true})+bar(IX+110,Y+130,IW-110,14,.62,U.stardust);
+  s+=txt(IX+2,Y+176,14.5,'3 cards taken this run.',{w:700});
+  const held=[['#FFD447','burst','Thunderclap  (Lv 2/4)','AURA'],['#58B6FF','claw','Rigor  (Lv 1/3)','AURA'],['#A88BFF','cards','Spite  (Lv 1/3)','CARDS']];
+  held.forEach(([col,ic,t,fl],i)=>{const y=Y+194+i*58;s+=inset(IX,y,IW,50)+cardChip(IX+10,y+5,col,ic)+txt(IX+56,y+23,15,t)+txt(IX+56,y+41,12,fl,{fill:U.muted,ls:1});});
+  s+=inset(IX,Y+194+3*58,IW,50,{fill:U.paper,dash:'6 5'})+txt(IX+IW/2,Y+194+3*58+31,14,'Not taken yet.',{a:'middle',fill:U.muted,w:700});
+  s+=txt(IX+2,Y+452,12.5,'NOT AVAILABLE THIS RUN',{fill:U.muted,ls:1.2});
+  [['Chain Pounce','Needs the Pounce skill.'],['Lingering Rainbow','Needs the Rainbow Poop skill.'],['Lone Hunter','Needs more kittens.']].forEach(([n,h],i)=>{const y=Y+464+i*58;s+=inset(IX,y,IW,50,{fill:U.off,stroke:U.offText,dash:'5 4'})+icon('lock',IX+24,y+25,.6,{op:.7})+txt(IX+46,y+22,14.5,n,{fill:U.offText})+txt(IX+46,y+40,12.5,h,{fill:U.offText,w:700});});
+  s+=toggle(IX+2,Y+650,false,'Auto-pick cards',{s:14.5});
+  return s;}
+function pageAwards(){
+  let s=icon('star',IX+14,Y+140,.7)+txt(IX+32,Y+146,14.5,'12 / 39 earned —',{w:800})+txt(IX+32,Y+166,14,'2 rewards waiting, 9',{w:700,fill:U.muted});
+  s+=btn(IX,Y+180,IW,46,'Claim all   9',{icon:'star',focus:true,size:17});
+  const rows=[['First Catch','Kill 1 enemy',1,1,'Claim 1'],['Pest Control','Kill 100 enemies',1,1,'Claim 8'],['Catnip Hoarder','4,120 / 10,000',.41,0],['Sharpened Instinct','2 / 5',.4,0],['Park Tyrant Slain','0 / 1',0,0],['???','',0,-1],['Rainbow Ascendant','0 / 1',0,0]];
+  rows.forEach(([n,p,t,st,lab],i)=>{const y=Y+244+i*64;
+    if(st<0){s+=inset(IX,y,IW,56,{fill:U.off,stroke:U.offText,dash:'5 4'})+txt(IX+IW/2,y+35,18,'???',{a:'middle',fill:U.offText,d:true});return;}
+    s+=inset(IX,y,IW,56,st?{fill:U.paper}:{})+icon('trophy',IX+26,y+28,.72,{op:st?1:.55})+txt(IX+50,y+24,15,n);
+    if(st)s+=txt(IX+50,y+43,12.5,p,{fill:U.muted,w:700})+btn(IX+IW-96,y+11,84,34,lab,{size:15,r:10});
+    else s+=bar(IX+50,y+34,150,9,t,U.yellow)+txt(IX+IW-14,y+43,12.5,p,{a:'end',fill:U.muted,w:700});});
+  return s;}
+function hatIcon(col){return ()=>E(0,9,17,5,col)+R(-10,-16,20,25,4,col)+R(-10,-1,20,5,0,mix(col,'#FFFFFF',.6),{noLine:true});}
+function pageJobs(){
+  let s=para(IX+2,Y+142,'Wear 1 job at a time. Most jobs have a downside.',40,{s:14.5,lh:19});
+  const rows=[['Ratcatcher','#8A5A3A','Worn',2],['Town Crier','#58B6FF','Owned',1],['Unemployed','#F2545B','Owned',1],['Tax Collector','#3B3546','Ready — buy it in the skill tree for 40 Stardust.',0],['Blacksmith','#71889B','Locked — defeat the boss in Rival Cat Turf first.',-1],['Daredevil','#FFAE42','Locked — defeat the boss in Mythic Realm first.',-1],['Engineer','#6BD48C','Locked — Reawaken 3 times, then buy it in the skill tree.',-1],['Sphinx','#A88BFF','Locked — no skill unlocks this yet.',-1]];
+  rows.forEach(([n,col,st,k],i)=>{const y=Y+186+i*62;const dim=k<0;
+    s+=inset(IX,y,IW,54,dim?{fill:U.off,stroke:U.offText,dash:'5 4'}:k===2?{fill:U.yellow}:{})+`<g${dim?' opacity=".55"':''}>${fig(hatIcon(col),IX+26,y+27,.72,{lw:2.6})}</g>`+txt(IX+50,y+22,15,n,{fill:dim?U.offText:U.ink});
+    if(k>=1)s+=`<rect x="${IX+IW-80}" y="${y+14}" width="68" height="26" rx="13" fill="${k===2?U.paper:U.paper2}" stroke="${U.ink}" stroke-width="2"/>`+txt(IX+IW-46,y+32,13,st,{a:'middle'})+txt(IX+50,y+41,12.5,k===2?'This run':'Wear it next run',{fill:U.muted,w:700});
+    else s+=wrapLines(st,40).slice(0,2).map((l,j)=>txt(IX+50,y+38+j*13,11.5,l,{fill:dim?U.offText:U.muted,w:700})).join('');});
+  return s;}
+
+/* ---------- screens ---------- */
+function scrUpgrades(){
+  const toast=panel(640,24,330,54,{r:27})+icon('pad',676,51,.78)+txt(702,58,17,'Controller connected',{d:true});
+  const cue=panel(1010,104,214,74,{r:14})+txt(1026,134,16,'Buy an upgrade.',{d:true})+txt(1026,158,12.5,'Tutorial tip · draft line',{fill:U.muted,w:700})
+    +`<path d="M1206 160 L1226 182 L1196 176 Z" fill="${U.paper}" stroke="${U.ink}" stroke-width="3" stroke-linejoin="round"/>`+fig(()=>IC.paw(),1468,200,1.1,{lw:2.8,rim:true});
+  return svg(hud(0,'UPGRADES',pageUpgrades(),{overlay:toast+cue}),'The HUD with the Upgrades tab open');}
+const scrReawaken=()=>svg(hud(1,'REAWAKEN',pageReawaken(),{status:{catnip:'1.30M',stardust:'412',biome:'City Rooftops',gate:'ready',gt:1,wave:'Wave 11  ·  31 / 52 to the next',wt:.6},legend:[['Space','Select'],['T','Skills'],['Esc','Pause']],badges:[1],stage:2,bl:{level:13,xp:.3}}),'The HUD with the Reawaken tab open');
+function scrRealms(){const cast=[M(560,262,1),M(330,700,0),M(965,640,0),M(170,560,0),M(700,770,0),M(250,330,0),M(1105,430,1)].map(m=>Object.assign(m,{fn:ratFig}));
+  cast.push({fn:()=>mouseFig({gold:true}),x:1030,y:165,s:.8,flip:1,w:106,h:76},{fn:kittenFig,x:395,y:665,s:.44,flip:1,w:134,h:117,anim:'bob'},{fn:()=>catFig({stage:1}),x:610,y:578,s:1.25,w:134,h:117,anim:'bob'});
+  return svg(hud(2,'REALMS',pageRealms(),{ground:'park',cast,swipe:false,status:{bait:true,biome:'Neighborhood Park',boss:'The Park Tyrant',catnip:'5,210',stardust:'12'},legend:[['Space','Select'],['T','Skills'],['Esc','Pause']]}),'The HUD with the Realms tab open and Bait ready');}
+const scrCatches=()=>svg(hud(3,'THE CATCHES',pageCatches(),{legend:[['Space','Select'],['T','Skills'],['Esc','Pause']],bl:{level:5,xp:.62}}),'The HUD with the Catches tab open');
+const scrAwards=()=>svg(hud(4,'ACHIEVEMENTS',pageAwards(),{legend:[['Space','Select'],['T','Skills'],['Esc','Pause']],badges:[4]}),'The HUD with the Achievements tab open');
+const scrJobs=()=>svg(hud(5,'JOBS',pageJobs(),{legend:[['Space','Select'],['T','Skills'],['Esc','Pause']]}),'The HUD with the Jobs tab open');
+function scrBoss(){
+  const cast=[M(330,700,0),M(965,640,0),M(170,560,0),M(250,330,0)].map(m=>Object.assign(m,{fn:ratFig}));
+  cast.push({fn:addFig,x:900,y:560,s:.8,w:46,h:52},{fn:addFig,x:560,y:430,s:.8,flip:1,w:46,h:52},{fn:kittenFig,x:480,y:700,s:.44,flip:1,w:134,h:117,anim:'bob'},{fn:()=>catFig({stage:1}),x:520,y:610,s:1.2,w:134,h:117,anim:'bob'});
+  const boss=`<ellipse cx="770" cy="520" rx="150" ry="88" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-dasharray="14 10"/>`+shadow(780,590,120,GROUND.park.shadow)+cre(tyrantFig,800,590,1.15,{anim:'jit'});
+  const top=panel(470,18,738,92)+txt(492,52,22,'The Park Tyrant  ·  Phase 2  ·  64%',{d:true})+`<rect x="938" y="30" width="250" height="30" rx="15" fill="${U.red}" stroke="${U.ink}" stroke-width="2.5"/>`+txt(1063,51,14,'SHIELDED: damage blocked',{a:'middle',fill:U.white})
+    +bar(492,68,560,20,.64,'#FF6B6B')+`<line x1="772" y1="64" x2="772" y2="92" stroke="${U.ink}" stroke-width="3"/>`+txt(1188,86,17,'3:12 remaining',{a:'end',d:true});
+  return svg(hud(0,'UPGRADES',pageUpgrades(),{ground:'park',cast,swipe:false,aura:false,extraField:boss,overlay:top,status:{catnip:'2,880',stardust:'12',biome:'Neighborhood Park',gate:'ready',gt:1,wave:'Wave 7  ·  boss fight',wt:1}}),'A boss fight');}
+function pickCard(x,y,c,focus){
+  let s=panel(x,y,300,440,{r:20})+`<path d="M${x+1.75} ${y+44} L${x+1.75} ${y+18} Q${x+1.75} ${y+1.75} ${x+18} ${y+1.75} L${x+282} ${y+1.75} Q${x+298.25} ${y+1.75} ${x+298.25} ${y+18} L${x+298.25} ${y+44} Z" fill="${c.col}" stroke="${U.ink}" stroke-width="3"/>`+txt(x+20,y+31,15,c.flav,{ls:1.6});
+  s+=`<rect x="${x+16}" y="${y+58}" width="268" height="150" rx="12" fill="${mix(c.col,'#FFFFFF',.55)}" stroke="${U.ink}" stroke-width="2.5"/>`+c.art(x+150,y+194);
+  s+=txt(x+20,y+250,30,c.name,{d:true})+para(x+20,y+284,c.text,25,{s:16.5,w:700,lh:23});
+  s+=txt(x+20,y+412,13,c.level,{fill:U.muted,ls:1})+[0,1,2,3].map(i=>`<circle cx="${x+218+i*18}" cy="${y+407}" r="6" fill="${i<c.lv?U.yellow:U.paper}" stroke="${U.ink}" stroke-width="2"/>`).join('');
+  if(c.isNew)s+=`<path d="${starN(12,34,26,x+272,y+28)}" fill="${U.redSoft}" stroke="${U.ink}" stroke-width="3" stroke-linejoin="round"/>`+txt(x+272,y+34,15,'NEW',{a:'middle',fill:U.white,d:true});
+  if(focus)s+=ring(x,y,300,440,20);
+  return s;}
+function scrPick(){
+  const cards=[
+    {flav:'AURA',col:'#FFD447',name:'Thunderclap',text:'Every 6s, the aura deals 1.5s of its damage at once.',level:'LEVEL 1 of 4',lv:1,isNew:true,art:(cx,by)=>`<circle cx="${cx}" cy="${by-60}" r="56" fill="none" stroke="#C99A2E" stroke-width="5" opacity=".7"/><circle cx="${cx}" cy="${by-60}" r="36" fill="none" stroke="#C99A2E" stroke-width="5"/>`+cre(()=>catFig({stage:1}),cx+8,by-6,.62)},
+    {flav:'KITTENS',col:'#F2A65A',name:'Giblets',text:'Enemies killed by kittens explode for x0.8 their max health.',level:'LEVEL 2 of 4',lv:2,art:(cx,by)=>fig(()=>P(starN(9,30,15),L.c.rainbow[0]),cx+56,by-80,1,{lw:2.6})+cre(kittenFig,cx-30,by-8,.66,{flip:1})},
+    {flav:'SWARM',col:'#FFE15C',name:'Gold Rush',text:'Golden enemies spawn x2 as often.',level:'LEVEL 1 of 4',lv:1,isNew:true,art:(cx,by)=>cre(()=>mouseFig({gold:true}),cx-40,by-8,.8,{flip:1})+cre(()=>mouseFig({gold:true}),cx+60,by-14,.6,{flip:1})}];
+  let s=field('backyard',stdCast())+status()+bottomLeft()+dock(0,'UPGRADES',pageUpgrades())+scrim(.55);
+  s+=panel(560,24,480,108,{r:22})+sticker(800,92,58,'LEVEL 5',U.yellow)+txt(800,122,18,'Take 1 card.',{a:'middle',w:800});
+  cards.forEach((c,i)=>{const x=290+i*360;s+=pickCard(x,158,c,i===1)+btn(x+12,622,180,52,'Take',{focus:false,kind:i===1?'primary':'secondary'})+btn(x+204,622,84,52,'Banish',{kind:'secondary',size:15});});
+  s+=btn(660,712,280,56,'Reroll  (2 left)',{kind:'secondary',icon:'reawaken'});
+  s+=panel(600,800,400,52,{r:26})+legend(624,813,[['A','Take'],['X','Reroll'],['Y','Banish']],{pad:true,s:15});
+  return svg(s,'Level up: take 1 card');}
+function scrJobPick(){
+  const jobs=[['Ratcatcher','cap','Twice as many enemies. Each one has x1.5 health.','(last run)'],['Unemployed','beanie','+10% to everything. No downside.',''],['Tax Collector','tophat','x2.5 Catnip. Kittens deal much less damage.',''],['No job','','No effect.','']];
+  let s=field('backyard',stdCast())+scrim(.55)+panel(470,24,660,124,{r:22})+sticker(800,92,52,'CHOOSE YOUR JOB',U.yellow)+txt(800,128,17,'Fixed for this run. Change it at your next Reawaken.',{a:'middle',w:700});
+  jobs.forEach(([n,hat,d,tag],i)=>{const x=110+i*350,y=196;
+    s+=panel(x,y,320,470,{r:20})+`<rect x="${x+16}" y="${y+16}" width="288" height="230" rx="14" fill="#BFE3A3" stroke="${U.ink}" stroke-width="2.5"/>`+shadow(x+160,y+228,46,'#3F6B2C')+cre(()=>catFig({stage:1,hat:hat||undefined}),x+168,y+228,1.25,{anim:'bob'});
+    s+=txt(x+22,y+294,30,n,{d:true});if(tag)s+=txt(x+22,y+320,14,tag,{fill:U.muted,w:700});
+    s+=para(x+22,y+(tag?354:330),d,26,{s:17,w:700,lh:24});
+    s+=btn(x+22,y+396,276,52,i===0?'Wear again':'Wear',{kind:i===0?'primary':'secondary',focus:i===0});});
+  s+=panel(620,712,360,52,{r:26})+legend(650,725,[['A','Wear'],['LB','Back'],['RB','Next']],{pad:true,s:15});
+  return svg(s,'Choose your job');}
+function treeNode(x,y,st,ic){const hex=r=>{let d='';for(let j=0;j<6;j++){const a=Math.PI/180*(60*j-90);d+=(j?'L':'M')+r2(x+r*Math.cos(a))+' '+r2(y+r*Math.sin(a));}return d+'Z';};
+  let s='';
+  if(st==='buy')s+=`<path d="${hex(40)}" fill="#FFD447" opacity=".5" filter="url(#softglow)"/><path d="${hex(35)}" fill="none" stroke="#FFD447" stroke-width="5" stroke-linejoin="round"/>`;
+  if(st==='verb')for(let j=0;j<6;j++){const a1=Math.PI/180*(60*j-90),a2=Math.PI/180*(60*(j+1)-90),rr=35;s+=`<path d="M${r2(x+rr*Math.cos(a1))} ${r2(y+rr*Math.sin(a1))} L${r2(x+rr*Math.cos(a2))} ${r2(y+rr*Math.sin(a2))}" stroke="${L.c.rainbow[j]}" stroke-width="6" stroke-linecap="round"/>`;}
+  if(st==='job')s+=`<path d="${hex(34)}" fill="none" stroke="#FFD447" stroke-width="4" stroke-linejoin="round"/>`;
+  s+=`<path d="${hex(27)}" fill="${st==='owned'?U.green:st==='locked'?'#4A5478':U.paper2}" stroke="${st==='locked'?'#7C86AA':U.ink}" stroke-width="3" stroke-linejoin="round"/>`;
+  s+=st==='locked'?icon('lock',x,y,.62,{op:.55}):icon(ic,x,y,.7);
+  return s;}
+function scrTree(){
+  const cx=780,cy=470,D=78;let links='',nodes='',labels='';
+  const limbs=[['Claws',-90,'claw'],['Aura',-30,'burst'],['Fortune',30,'leaf'],['Unicorn',90,'horn'],['Snare',150,'mouse'],['Instinct',210,'kitten']];
+  const ownedN=[3,2,2,0,1,2];
+  limbs.forEach(([name,deg,ic],li)=>{const a=deg*Math.PI/180;let px=cx,py=cy;
+    for(let k=1;k<=4;k++){const x=cx+Math.cos(a)*D*k,y=cy+Math.sin(a)*D*k;
+      const st=li===3&&k===1?'verb':k<=ownedN[li]?'owned':k===ownedN[li]+1?'buy':'locked';
+      links+=`<line x1="${r2(px)}" y1="${r2(py)}" x2="${r2(x)}" y2="${r2(y)}" stroke="${U.ink}" stroke-width="9" stroke-linecap="round"/><line x1="${r2(px)}" y1="${r2(py)}" x2="${r2(x)}" y2="${r2(y)}" stroke="${k<=ownedN[li]?U.paper:'#7C86AA'}" stroke-width="4" stroke-linecap="round"/>`;
+      nodes+=treeNode(x,y,st,ic);
+      if(k===2||k===3){const b=a+(k===2?1:-1)*Math.PI/3,bx=x+Math.cos(b)*D,by=y+Math.sin(b)*D,bst=li===0&&k===2?'job':k<ownedN[li]?'owned':'locked';
+        links+=`<line x1="${r2(x)}" y1="${r2(y)}" x2="${r2(bx)}" y2="${r2(by)}" stroke="${U.ink}" stroke-width="9" stroke-linecap="round"/><line x1="${r2(x)}" y1="${r2(y)}" x2="${r2(bx)}" y2="${r2(by)}" stroke="${bst==='owned'?U.paper:'#7C86AA'}" stroke-width="4" stroke-linecap="round"/>`;
+        nodes+=treeNode(bx,by,bst,bst==='job'?'hat':ic);}
+      px=x;py=y;}
+    const lx=cx+Math.cos(a)*D*4.75,ly=cy+Math.sin(a)*D*4.75;labels+=`<rect x="${r2(lx-tw(name,15)/2-12)}" y="${r2(ly-14)}" width="${r2(tw(name,15)+24)}" height="28" rx="14" fill="${U.paper}" stroke="${U.ink}" stroke-width="2.5"/>`+txt(lx,ly+5,15,name,{a:'middle'});});
+  let sky=`<rect width="1600" height="900" fill="${U.sky}"/>`;for(let i=0;i<70;i++){const x=(i*397)%1600,y=(i*233)%900,r=1.5+(i%4)*.7;sky+=`<circle cx="${x}" cy="${y}" r="${r}" fill="#FFF3A0" opacity="${.35+(i%3)*.2}"/>`;}
+  let s=sky+links+`<circle cx="${cx}" cy="${cy}" r="34" fill="${U.yellow}" stroke="${U.ink}" stroke-width="3.5"/>`+icon('star',cx,cy,.9)+nodes+labels;
+  const sel=[cx,cy-D*4];s+=ring(sel[0]-30,sel[1]-30,60,60,24);
+  s+=panel(24,24,300,104,{r:18})+txt(46,68,30,'Skill Tree',{d:true})+icon('star',58,100,.62)+txt(80,107,19,'Stardust: 412',{d:true});
+  s+=panel(1176,150,396,300,{r:18})+icon('claw',1210,192,.9)+txt(1240,202,26,'Claws  4/6',{d:true})+txt(1198,246,16,'Now:  +60% paw and aura damage',{w:700})+txt(1198,276,16,'Next: +80% paw and aura damage',{w:700})
+    +`<line x1="1198" y1="300" x2="1550" y2="300" stroke="${U.ink}" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>`+txt(1198,330,17,'Cost: 14 Stardust')+txt(1198,356,15,'You have 412.',{fill:U.muted,w:700})
+    +btn(1198,378,352,52,'Buy',{key:keycap('Space'),focus:false});
+  s+=panel(24,812,520,58,{r:29})+legend(48,828,[['Q','Next affordable'],['-',''],['+','Zoom'],['Esc','Close']],{s:15});
+  s+=btn(1336,806,236,60,'Continue',{icon:'reawaken'});
+  return svg(s,'The skill tree');}
+function rays(cx,cy,n,c1,c2){let s=`<rect width="1600" height="900" fill="${c1}"/>`;for(let i=0;i<n;i+=2){const a1=i/n*Math.PI*2,a2=(i+1)/n*Math.PI*2,R=1400;s+=`<path d="M${cx} ${cy} L${r2(cx+R*Math.cos(a1))} ${r2(cy+R*Math.sin(a1))} L${r2(cx+R*Math.cos(a2))} ${r2(cy+R*Math.sin(a2))} Z" fill="${c2}"/>`;}return s;}
+function scrCeremony(){
+  let s=rays(800,470,32,'#7B5FD8','#8B6BEF')+`<circle cx="800" cy="470" r="230" fill="#B7A3E8" opacity=".55"/>`;
+  [[520,240,16],[1080,260,22],[460,640,14],[1150,620,18],[690,180,10],[930,170,12],[600,760,10],[1020,770,12]].forEach(([x,y,r])=>{s+=fig(()=>spark(0,0,r,'#FFF3A0'),x,y,1,{lw:2.6});});
+  s+=shadow(800,600,70,'#3E2F72',.4)+cre(()=>catFig({stage:2}),800,600,1.9,{anim:'bob'});
+  s+=sticker(800,150,92,'REAWAKENING',U.yellow);
+  s+=panel(560,668,480,150,{r:22})+txt(800,716,26,'Reawaken 5',{a:'middle',d:true})+icon('star',716,770,1.1)+txt(746,792,58,'+38',{d:true,fill:U.stardust})+txt(880,786,26,'Stardust',{d:true});
+  return svg(s,'The Reawaken ceremony');}
+function scrUnicorn(){
+  let s=rays(800,500,36,'#FF8F8F','#FFC27A');
+  const bands=['#FF6B6B','#FFAE42','#FFE15C','#6BD48C','#58B6FF','#A88BFF'];bands.forEach((c,i)=>{s+=`<path d="M60 ${900-i*0} A740 600 0 0 1 1540 900" fill="none" stroke="${c}" stroke-width="34" transform="translate(0 ${i*34})" opacity=".9"/>`;});
+  s+=shadow(800,640,90,'#7A3A2A',.35)+cre(()=>riderFig(4),800,640,1.9,{anim:'bob'});
+  [[480,300,18],[1120,320,22],[560,560,12],[1060,560,14]].forEach(([x,y,r])=>{s+=fig(()=>spark(0,0,r,'#FFFFFF'),x,y,1,{lw:2.6});});
+  s+=sticker(800,140,84,'UNICORN',U.yellow)+panel(470,720,660,86,{r:24})+txt(800,775,26,'Unicorn unlocked: Rainbow Poop active',{a:'middle',d:true});
+  return svg(s,'The Unicorn ceremony');}
+function scrPause(){
+  let s=field('backyard',stdCast())+status()+bottomLeft()+dock(0,'UPGRADES',pageUpgrades())+scrim(.55);
+  s+=panel(590,150,420,600,{r:24})+sticker(800,232,58,'PAUSED',U.yellow);
+  [['Continue','primary','reawaken'],['Save','secondary','save'],['Settings','secondary','gear'],['Save and quit to menu','secondary','quit'],['Quit WITHOUT saving','danger','close']].forEach(([t,k,ic],i)=>{s+=btn(630,282+i*84,340,60,t,{kind:k,icon:ic,focus:i===0,size:19});});
+  return svg(s,'The pause menu');}
+function scrSettings(){
+  let s=field('backyard',stdCast())+status()+bottomLeft()+dock(0,'UPGRADES',pageUpgrades())+scrim(.6);
+  s+=panel(300,40,1000,824,{r:24})+sticker(340,104,48,'SETTINGS',U.yellow,{a:'start'})+btn(1222,64,52,52,'',{kind:'secondary',icon:'close'});
+  s+=seg(690,72,['Audio','Video','Controls'],2,{w:150,h:44,s:17});
+  s+=toggle(340,150,true,'Show button prompts')+toggle(640,150,true,'Tutorial tips');
+  s+=txt(340,214,15,'Button prompts')+`<rect x="340" y="226" width="250" height="40" rx="10" fill="${U.paper2}" stroke="${U.ink}" stroke-width="2.5"/>`+txt(356,252,15,'Auto',{w:800})+`<path d="M566 240 L576 252 L586 240" fill="none" stroke="${U.ink}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`+txt(340,290,13,'Auto shows the buttons of the device you used last.',{fill:U.muted,w:700});
+  s+=txt(760,214,15,'Menu side')+seg(760,226,['Left','Right'],1,{w:100,h:40,s:15})+txt(760,290,13,'Put the menu on the side of your free hand.',{fill:U.muted,w:700});
+  s+=`<rect x="340" y="314" width="920" height="40" rx="10" fill="${U.paper2}" stroke="${U.ink}" stroke-width="2.5"/>`+txt(360,340,14,'ACTION',{ls:1.2,fill:U.muted})+txt(620,340,14,'KEYBOARD AND MOUSE',{ls:1.2,fill:U.muted})+txt(950,340,14,'CONTROLLER',{ls:1.2,fill:U.muted});
+  const rows=[['Pounce',['LMB'],['RT']],['Previous tab',['A','←'],['LB','D-pad ←']],['Next tab',['D','→'],['RB','D-pad →']],['Up',['W','↑'],['D-pad ↑','L stick']],['Down',['S','↓'],['D-pad ↓','L stick']],['Press',['Space','Enter'],['A','LT']],['Buy amount',['Q'],['X']],['Skill tree',null,['Y']],['Re-centre',[],['R3']],['Pause',['Esc'],['Start']]];
+  rows.forEach(([a,k,p],i)=>{const y=362+i*39;if(i%2)s+=`<rect x="340" y="${y}" width="920" height="39" fill="${U.paper2}" opacity=".55"/>`;s+=txt(360,y+26,15,a);
+    let kx=620;if(k===null){s+=`<rect x="620" y="${y+6}" width="96" height="27" rx="7" fill="${U.yellow}" stroke="${U.ink}" stroke-width="2"/>`+txt(668,y+25,13,'Press…',{a:'middle'})+ring(620,y+6,96,27,7);}
+    else if(!k.length)s+=txt(620,y+26,15,'—',{fill:U.muted});else k.forEach(t=>{const kc=keycap(t);s+=kc.at(kx,y+6);kx+=kc.w+8;});
+    let px=950;p.forEach(t=>{const kc=padkey(t);s+=kc.at(px,y+6);px+=kc.w+8;});});
+  s+=`<rect x="340" y="760" width="920" height="40" rx="10" fill="${U.yellow}" stroke="${U.ink}" stroke-width="2.5"/>`+txt(360,786,15,'Press a key or button for Skill tree. Esc or B cancels.');
+  s+=btn(340,812,250,40,'Reset all controls',{kind:'secondary',size:15})+btn(1110,812,150,40,'Close',{kind:'primary',size:16});
+  return svg(s,'Settings, controls');}
+function scrVictory(){
+  let s=field('litter',[],{props:[['clump',160,250,1.2],['clump',1010,260,1],['clump',860,760,1.3],['clump',250,700,1],['clump',1250,520,1.1]]});
+  for(let i=0;i<60;i++){const x=(i*277)%1600,y=(i*151)%560,c=L.c.rainbow[i%6];s+=`<rect x="${x}" y="${y}" width="12" height="20" rx="3" fill="${c}" stroke="${U.ink}" stroke-width="2" transform="rotate(${(i*47)%180} ${x+6} ${y+10})"/>`;}
+  s+=shadow(1180,700,90,'#7A6A3C')+cre(kingDownFig,1180,700,1.6)+cre(crownFig,1000,720,1.2)+shadow(420,720,90,'#7A6A3C')+cre(()=>riderFig(7),430,720,1.8,{anim:'bob'});
+  s+=panel(560,170,480,400,{r:26})+sticker(800,268,84,'VICTORY',U.yellow)+txt(800,330,22,'You defeated the final boss.',{a:'middle'})+txt(800,400,32,'Cleared in 1h 52m 08s',{a:'middle',d:true})+btn(680,460,240,62,'OK',{focus:true,size:24});
+  return svg(s,'Victory');}
+function garden(){
+  const B=GROUND.backyard;let s=`<rect width="1600" height="900" fill="${B.ground}"/>`+PATCHES.map(d=>`<path d="${d}" fill="${B.patch}"/>`).join('');
+  for(let x=20;x<1600;x+=74)s+=fig(()=>PR.post(B),x,120,1,{lw:2.6});
+  s+=`<rect x="0" y="84" width="1600" height="12" fill="#B78756" stroke="${U.ink}" stroke-width="2.5"/>`;
+  [['bush',100,170,1.5],['bush',1480,180,1.4],['flowers',300,820,1.2],['flowers',1180,840,1.1],['flowers',760,860,1],['tuft',520,560,1],['tuft',1020,600,1],['rock',220,520,1]].forEach(([k,x,y,z])=>{s+=fig(()=>PR[k](B),x,y,z,{lw:2.4});});
+  return s;}
+function scrTitle(){
+  let s=garden();
+  s+=sticker(800,212,112,'PAWPOCALYPSE',U.yellow);
+  [[1120,520,1],[1260,460,1],[980,600,0]].forEach(([x,y,f])=>{s+=shadow(x,y,30,'#3F6B2C')+cre(()=>mouseFig(),x,y,.8,{flip:f,anim:'jit'});});
+  s+=shadow(820,560,60,'#3F6B2C')+cre(()=>catFig({stage:1}),820,560,1.7,{anim:'bob'});
+  s+=panel(70,280,380,520,{r:24});
+  ['Continue','New Game','Load','Leaderboard','Settings','Credits','Exit'].forEach((t,i)=>{s+=btn(98,304+i*66,324,54,t,{kind:i===0?'primary':'secondary',focus:i===0,size:20});});
+  s+=panel(470,734,560,46,{r:23})+txt(750,763,15,'Save found — 4 Reawakens, 182K enemies killed.',{a:'middle',w:800});
+  s+=`<g transform="rotate(4 1380 640)">${panel(1240,500,280,300,{r:6,fill:'#FFFFFF'})}<rect x="1262" y="522" width="236" height="200" fill="#D9D2C6" stroke="${U.ink}" stroke-width="2"/>${txt(1380,630,16,"Boba's photo",{a:'middle',fill:U.muted})}${txt(1380,760,26,'Boba',{a:'middle',d:true})}${txt(1380,784,14,'CEO & General Manager',{a:'middle',w:700,fill:U.muted})}</g>`;
+  s+=`<rect x="1336" y="488" width="90" height="26" fill="#EFE3BC" opacity=".9" transform="rotate(-6 1381 501)"/>`;
+  [['bug','Report a bug'],['chat','Discord'],['globe','Language']].forEach(([ic,t],i)=>{s+=btn(70+i*200,820,186,48,t,{kind:'secondary',icon:ic,size:15});});
+  s+=panel(1000,830,580,48,{r:24})+txt(1020,860,14,'In game:',{w:800})+keycap('A').at(1090,840)+keycap('D').at(1124,840)+txt(1160,860,14,'menu tabs',{w:700})+keycap('T').at(1250,840)+txt(1286,860,14,'skill tree',{w:700})+keycap('Esc').at(1370,840)+txt(1420,860,14,'pause',{w:700});
+  return svg(s,'The title screen');}
+function slotCard(x,y,o){let s=panel(x,y,250,430,{r:20,fill:o.kind==='bad'?U.off:U.paper})+txt(x+20,y+44,24,o.title,{d:true});
+  if(o.kind==='save'){s+=`<rect x="${x+16}" y="${y+62}" width="218" height="130" rx="12" fill="#BFE3A3" stroke="${U.ink}" stroke-width="2.5"/>`+shadow(x+125,y+180,32,'#3F6B2C')+cre(()=>o.stage>3?riderFig(o.stage):catFig({stage:o.stage}),x+125,y+180,o.stage>3?.72:.95);
+    s+=txt(x+20,y+228,18,o.reawaken,{d:true})+txt(x+20,y+256,15,o.time,{w:700})+txt(x+20,y+280,15,o.kills,{w:700})+txt(x+20,y+318,12.5,'LAST SAVED',{fill:U.muted,ls:1.2})+txt(x+20,y+340,15,o.when,{w:700});
+    s+=btn(x+20,y+366,210,44,'Delete',{kind:'danger',size:15});}
+  else if(o.kind==='empty')s+=`<rect x="${x+16}" y="${y+62}" width="218" height="130" rx="12" fill="${U.paper2}" stroke="${U.ink}" stroke-width="2.5" stroke-dasharray="8 6"/>`+txt(x+125,y+136,22,'Empty',{a:'middle',d:true,fill:U.muted})+para(x+20,y+238,'Start a new game here.',22,{s:16,w:700});
+  else s+=`<rect x="${x+16}" y="${y+62}" width="218" height="130" rx="12" fill="${U.off}" stroke="${U.offText}" stroke-width="2.5" stroke-dasharray="8 6"/>`+icon('lock',x+125,y+128,1.1,{op:.6})+txt(x+20,y+238,20,'Cannot be read',{d:true,fill:U.offText})+para(x+20,y+268,'Start a new game here.',22,{s:16,w:700,fill:U.offText});
+  if(o.focus)s+=ring(x,y,250,430,20);
+  return s;}
+function scrSlots(){
+  let s=garden()+scrim(.35)+panel(500,30,600,92,{r:22})+sticker(800,96,56,'CHOOSE A SLOT',U.yellow);
+  const slots=[{kind:'save',title:'Slot 1',stage:2,reawaken:'Reawaken 4',time:'2h 13m played',kills:'182K kills',when:'3 days ago',focus:true},{kind:'empty',title:'Slot 2'},{kind:'save',title:'Slot 3',stage:5,reawaken:'Reawaken 11',time:'7h 41m played',kills:'1.2M kills',when:'just now'},{kind:'empty',title:'Slot 4'},{kind:'bad',title:'Slot 5'}];
+  slots.forEach((o,i)=>{s+=slotCard(60+i*300,170,o);});
+  s+=btn(60,664,180,56,'Back',{kind:'secondary',icon:'quit',size:18})+panel(820,668,720,50,{r:25})+legend(846,680,[['A','Play'],['Y','Delete'],['B','Back']],{pad:true,s:15});
+  return svg(s,'Choose a slot');}
+function kitSVG(){
+  let s=`<rect width="1600" height="520" fill="#9ACF6C"/>`+panel(24,24,1552,472,{r:22});
+  s+=txt(56,76,16,'BUTTONS',{fill:U.muted,ls:1.4});
+  [['Normal',{}],['Hover',{lift:true}],['Focus',{focus:true}],['Pressed',{press:true}],["Can't afford",{kind:'off'}]].forEach(([n,o],i)=>{const x=56+i*170,y=96+(o.lift?-3:o.press?3:0);
+    if(o.press)s+=`<rect x="${x}" y="${y}" width="130" height="46" rx="12" fill="${mix(U.yellow,U.ink,.12)}" stroke="${U.ink}" stroke-width="3"/>`+icon('leaf',x+24,y+23,.55)+txt(x+112,y+30,18,'120',{a:'end',d:true});
+    else s+=btn(x,y,130,46,'',{kind:o.kind||'primary',price:o.kind?'350':'120',focus:o.focus});
+    s+=txt(x+65,170,14,n,{a:'middle',fill:U.muted,w:700});});
+  s+=btn(56,196,250,52,'Secondary',{kind:'secondary',icon:'gear'})+btn(330,196,250,52,'Danger',{kind:'danger',icon:'close'});
+  s+=txt(56,290,16,'TABS, BADGE AND TOGGLES',{fill:U.muted,ls:1.4});
+  TABS.forEach(([ic],i)=>{const tx=56+i*58,on=i===0;if(on)s+=`<rect x="${tx}" y="${314}" width="48" height="48" rx="12" fill="${U.ink}"/>`;s+=`<rect x="${tx}" y="310" width="48" height="48" rx="12" fill="${on?U.yellow:U.paper2}" stroke="${U.ink}" stroke-width="${on?3:2.5}"/>`+icon(ic,tx+24,334,.8);});
+  s+=`<circle cx="${56+2*58+45}" cy="313" r="8" fill="${U.redSoft}" stroke="${U.paper}" stroke-width="3"/>`;
+  s+=seg(420,316,['x1','x5','x10','Max'],1)+toggle(640,320,true,'On')+toggle(740,320,false,'Off');
+  s+=txt(56,410,16,'BARS',{fill:U.muted,ls:1.4})+bar(56,424,260,14,.6)+bar(336,424,200,14,.4,U.stardust)+bar(556,424,200,14,.7,'#FF6B6B')+rainbowFrame(56,456,300,20,10)+`<rect x="56" y="456" width="300" height="20" rx="10" fill="${U.paper}" stroke="${U.ink}" stroke-width="2"/>`+txt(206,471,12,'Bait ready',{a:'middle'});
+  s+=txt(900,76,16,'PROMPTS: KEYBOARD AND CONTROLLER',{fill:U.muted,ls:1.4})+legend(900,96,[['Space','Buy'],['Q','Amount'],['T','Skills'],['Esc','Pause']],{s:15})+legend(900,140,[['A','Buy'],['X','Amount'],['Y','Skills'],['Start','Pause']],{pad:true,s:15});
+  s+=txt(900,212,16,'CURSOR',{fill:U.muted,ls:1.4})+txt(900,236,14,'On the field the cat is the cursor. Over menus it is a paw: open, then closed when held.',{w:700,fill:U.ink});
+  const closedPaw=()=>[[-11.5,-4],[-4.5,-11],[4.5,-11],[11.5,-4]].map(([x,y])=>T(`M${x-3.8} ${y+3} C ${x-4.2} ${y-5}, ${x+4.2} ${y-5}, ${x+3.8} ${y+3}`,3,'INK')).join('')
+    +E(0,7,10.5,8.5,L.c.catFur)+E(0,8,5.5,4,L.c.pink,{noLine:true});
+  s+=fig(()=>IC.paw(),940,292,1.5,{lw:2.8,rim:true})+fig(closedPaw,1030,296,1.5,{lw:2.8,rim:true})+txt(940,336,13,'Open',{a:'middle',fill:U.muted,w:700})+txt(1030,336,13,'Held',{a:'middle',fill:U.muted,w:700});
+  s+=txt(900,360,16,'TYPE',{fill:U.muted,ls:1.4})+sticker(900,428,48,'Sticker title',U.yellow,{a:'start'})+txt(1230,410,26,'Fredoka for titles, 1,485',{d:true})+txt(1230,440,16,'Nunito for everything you read.',{w:700});
+  s+=txt(900,482,13,'Text never sits on the field without a panel under it.',{fill:U.muted,w:700});
+  return `<svg viewBox="0 0 1600 520" role="img" aria-label="The UI kit">${s}</svg>`;}
+
+/* ---------- the page ---------- */
+const GROUPS=[
+ ['Menus','Before and around a run: the title, the save slots, pause, settings and the end.',[
+  ['title','Title screen','Main menu',scrTitle,['<b>Continue</b> has focus when a save exists; the status line under the menu says what was found.','Boba sits in a taped polaroid, in menus only. Report a bug, Discord and Language are the only links out.','The bottom-right hint teaches the three keys that matter in game.']],
+  ['slots','Choose a slot','Five save slots',scrSlots,['Each slot shows the cat at that save\'s stage, so slots are told apart at a glance.','Empty, newer-version and unreadable slots each say what pressing them does.','Delete is red and asks first (TITLE_delete_prompt).']],
+  ['pause','Pause','Esc or Start',scrPause,['The game stays visible under a dark scrim, so you know where you left it.','Quit WITHOUT saving is the one red button; Continue has focus.']],
+  ['settings','Settings','Audio, Video, Controls',scrSettings,['A popup over the game, three tabs. Shown: Controls, with a row listening for a new key.','Each action shows its keyboard and controller bindings side by side, from Data/InputMap.csv.','Esc, Start and B always go back (CONTROLS_line_system).']],
+  ['victory','Victory','After the Litter King',scrVictory,['The Last Unicorn over the Litter King, his crown on the floor, confetti in the rainbow.','The first-clear time is the headline number; OK has focus.']]]],
+ ['In a run','The field fills the window. The status reads top left, Pounce sits bottom left, opposite the dock. Every menu is a tab in the dock.',[
+  ['upgrades','HUD: Upgrades','Tab 1 · with a toast and a tutorial tip',scrUpgrades,['Can-buy prices are yellow buttons; can\'t-afford ones are dimmed with a faded leaf.','The locked Kitten Power row says what to buy first.','Toasts sit top centre; a tutorial tip points at one control with the paw and one line (the line is a draft).']],
+  ['reawaken','HUD: Reawaken','Tab 2',scrReawaken,['The payout comes before the button: the Stardust you get, the total, both multipliers before and after.','The tab badge means a Reawaken is suggested now.']],
+  ['realms','HUD: Realms','Tab 3 · Bait ready',scrRealms,['With a boss summon in hand, the zone plate and the Bait box get the rainbow frame.','Rows say where you are, what you can travel to and what is still locked. See the open question about locked rows.']],
+  ['catches','HUD: The Catches','Tab 4',scrCatches,['The four card slots of this run, then the cards you cannot get yet and why.','Auto-pick is a toggle here once its skill is bought.']],
+  ['awards','HUD: Achievements','Tab 5',scrAwards,['Earned rewards wait for a claim; Claim all takes them in one press.','Progress bars for the rest, and ??? for the secret ones.']],
+  ['jobs','HUD: Jobs','Tab 6',scrJobs,['The worn job is yellow. Locked jobs say exactly what opens them.']],
+  ['boss','Boss fight','The Park Tyrant',scrBoss,['The boss panel takes the top centre: name, phase, health with the phase mark, the timer.','SHIELDED shows in red while damage is blocked; the dashed white ring on the boss says the same on the field.','The adds wear a plus: they heal the boss.']]]],
+ ['Between runs','Level-ups, the job choice, the Reawaken, the tree and the Unicorn.',[
+  ['pick','Level up','Take 1 card',scrPick,['Three cards, one in focus. Each says its flavour, its effect in numbers and its level.','NEW marks a card you have not taken this run.','Reroll and Banish counts come from the deck cards that grant them.']],
+  ['jobpick','Choose your job','Start of a run',scrJobPick,['Each card shows the cat wearing the job\'s hat. Last run\'s job is first and has focus.','The job lines are drafts.']],
+  ['ceremony','Reawaken ceremony','Then the skill tree',scrCeremony,['One big moment: the cat, the rays, the Stardust it earned. It hands over to the skill tree.']],
+  ['tree','Skill tree','Full screen',scrTree,['Six limbs from the Stardust hub. Owned nodes are green, buyable ones glow gold, locked ones sit in the dark.','Rainbow ring: a new verb (Unicorn). Gold ring: a job.','The panel on the right says what the focused node does now and next, its cost, and what you have.']],
+  ['unicorn','Unicorn ceremony','When Unicorn is bought',scrUnicorn,['The cat climbs on. The line says what changed: Rainbow Poop is active.']]]]];
+function build(){
+  $('#kit').innerHTML=kitSVG();
+  let idx='<a href="#kit-section">The kit</a>',html='';
+  GROUPS.forEach(([g,intro,screens])=>{
+    html+=`<section class="group" aria-label="${esc(g)}"><h2>${esc(g)}</h2><p>${esc(intro)}</p>`;
+    screens.forEach(([id,name,sub,fn,notes])=>{idx+=`<a href="#${id}">${esc(name)}</a>`;
+      html+=`<article class="card screen" id="${id}"><div class="shead"><h3>${esc(name)}</h3><span>${esc(sub)}</span></div><div class="mock">${fn()}</div><ul class="notes">${notes.map(n=>`<li>${n}</li>`).join('')}</ul></article>`;});
+    html+='</section>';});
+  $('#index').innerHTML=idx;$('#groups').innerHTML=html;
+}
+build();
+</script>

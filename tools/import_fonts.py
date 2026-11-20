@@ -16,7 +16,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 EDITOR_CMD = r"C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
-FACES = ("FF_MPlusRounded1c_ExtraBold", "FF_MPlusRounded1c_Black", "FF_NotoSansCJK_Medium", "FF_NotoSansThai_Medium")
+FACES = ("FF_Nunito_Bold", "FF_Nunito_Black", "FF_MPlusRounded1c_ExtraBold", "FF_MPlusRounded1c_Black",
+         "FF_NotoSansCJK_Medium", "FF_NotoSansThai_Medium")
 
 
 def inside_editor():

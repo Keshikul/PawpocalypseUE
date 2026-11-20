@@ -227,16 +227,16 @@
 | spectrum | Spectrum | refraction |  | PRISM_STATUS | 30;90;260;760;2100;5800;15000;38000;92000;220000 | 1.15;1.3;1.45;1.6;1.75;1.9;2.05;2.2;2.35;2.5 |  |  |  |
 | body_count | Body Count | reputation |  | BODY_COUNT | 70;220;700;2200;6800;21000;64000;195000;590000;1750000 | 0.01;0.02;0.03;0.04;0.05;0.06;0.07;0.08;0.09;0.1 |  |  |  |
 | grudge_ledger | Grudge Ledger | reputation |  | GRUDGE_PER_CARD | 70;220;700;2200;6800;21000;64000;195000;590000;1750000 | 0.01;0.02;0.03;0.04;0.05;0.06;0.07;0.08;0.09;0.1 |  |  |  |
-| curiosity | Curiosity | second_opinion | true | CURIOSITY | 6400 | 1.0 |  |  |  |
-| unlock_full_spectrum | Full Spectrum | spectrum | true | PRISM_SWEEP | 9000 | 1 |  |  |  |
+| curiosity | Curiosity | second_opinion | true | CURIOSITY | 20000 | 1.0 |  |  |  |
+| unlock_full_spectrum | Full Spectrum | spectrum | true | PRISM_SWEEP | 250000 | 1 |  |  |  |
 | last_stand | Last Stand | swarm_logic |  | LAST_STAND_DAMAGE | 70;220;700;2200;6800;21000;64000;195000;590000;1750000 | 1.2;1.4;1.6;1.8;2;2.2;2.4;2.6;2.8;3 |  |  |  |
 | aura_damage | Aura Power | unlock_aura |  | AURA_DAMAGE_MULTIPLICATIVE | 15;60;195;600;1800;4650;12300;33000;82500;210000 | 1.18;1.36;1.54;1.72;1.9;2.1;2.32;2.55;2.78;3 |  |  |  |
 | aura_reach | Aura Reach | unlock_aura |  | AURA_RADIUS_MULTIPLICATIVE | 20;60;190;580;1600;4500;12000;30000;75000;180000 | 1.08;1.17;1.26;1.36;1.46;1.56;1.67;1.78;1.89;2 |  |  |  |
 | job_magician | Magician | unlock_aura | true | GRANTS_JOB | 70 | 1.0 | magician |  |  |
 | job_town_crier | Town Crier | unlock_aura | true | GRANTS_JOB | 50 | 1.0 | town_crier | tier_3 |  |
-| standing_wave | Standing Wave | unlock_aura | true | AURA_BEAT | 450 | 1.0 |  |  |  |
+| standing_wave | Standing Wave | unlock_aura | true | AURA_BEAT | 900000 | 1.0 |  |  |  |
 | critical_mass | Critical Mass | unlock_full_spectrum |  | PRISM_SHARDS | 30;90;260;760;2100;5800;15000;38000;92000;220000 | 0.5;0.8;1.1;1.4;1.7;2;2.3;2.6;2.9;3.2 |  |  |  |
-| overflow | Overflow | unlock_overkill | true | OVERKILL_BOMB | 520 | 10 |  |  |  |
+| overflow | Overflow | unlock_overkill | true | OVERKILL_BOMB | 70000 | 10 |  |  |  |
 | overkill | Overkill Splash | unlock_overkill |  | OVERKILL_ADDITIVE | 190;510;1300;3100;7200;16000;38000;82000;180000;400000 | 0.045;0.07;0.1;0.13;0.16;0.19;0.22;0.25;0.265;0.28 |  |  |  |
 | unicorn | Rainbow Gut | unlock_poop |  | POOP_DAMAGE_MULTIPLICATIVE | 80;240;650;1700;4200;10000;25000;60000;150000;360000 | 1.3;1.6;1.9;2.2;2.5;2.8;3.1;3.4;3.7;4 |  |  |  |
 | pounce | Pounce Power | unlock_pounce |  | POUNCE_DAMAGE_MULTIPLICATIVE | 70;220;600;1600;4100;10000;26000;65000;160000;400000 | 1.18;1.36;1.54;1.72;1.9;2.1;2.3;2.5;2.7;2.9 |  |  |  |
@@ -244,7 +244,7 @@
 | refraction | Refraction | unlock_prism |  | PRISM_CHAIN | 30;90;260;760;2100;5800;15000;38000;92000;220000 | 1;1.444;1.889;2.333;2.778;3.222;3.667;4.111;4.556;5 |  |  |  |
 | deadweight | Deadweight | unlock_snare |  | AMBUSH_SNARE | 25;75;230;700;1900;5200;14000;34000;85000;200000 | 0.44;0.48;0.52;0.56;0.6;0.64;0.68;0.72;0.76;0.8 |  |  |  |
 | funnel | Funnel | unlock_snare |  | AMBUSH_FUNNEL | 25;75;230;700;1900;5200;14000;34000;85000;200000 | 1;1.25;1.5;1.75;2;2.25;2.5;2.75;2.9;3 |  |  |  |
-| gridlock | Gridlock | unlock_snare | true | SNARE_CONTAGION | 600 | 0.6 |  |  |  |
+| gridlock | Gridlock | unlock_snare | true | SNARE_CONTAGION | 20000 | 0.6 |  |  |  |
 | job_engineer | Engineer | unlock_snare | true | GRANTS_JOB | 80 | 1.0 | engineer |  |  |
 | job_ratcatcher | Ratcatcher | unlock_snare | true | GRANTS_JOB | 90 | 1.0 | ratcatcher |  |  |
 | play_with_food | Play With Food | unlock_snare |  | AMBUSH_PLAY_WITH_FOOD | 25;75;230;700;1900;5200;14000;34000;85000;200000 | 1.1;1.2;1.3;1.4;1.5;1.6;1.7;1.8;1.9;2 |  |  |  |

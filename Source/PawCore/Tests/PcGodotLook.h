@@ -15,9 +15,55 @@ namespace Pc
 		uint8_t From[3];
 		uint8_t To[3];
 	};
-	inline constexpr int PcGodotLookCount = 1;
+	inline constexpr int PcGodotLookCount = 47;
 	inline constexpr PcGodotLookPair PcGodotLook[PcGodotLookCount > 0 ? PcGodotLookCount : 1] = {
-		{ { 26, 26, 26 }, { 42, 26, 51 } }, // #1A1A1A -> #2A1A33: ink
+		{ { 26, 26, 26 }, { 42, 33, 49 } }, // #1A1A1A -> #2A2131: ink
+		{ { 37, 29, 51 }, { 45, 58, 99 } }, // #251D33 -> #2D3A63: sky.base
+		{ { 44, 37, 61 }, { 204, 189, 145 } }, // #2C253D -> #CCBD91: backdrops.tier_12_litterbox.detail
+		{ { 49, 37, 64 }, { 53, 66, 104 } }, // #312540 -> #354268: sky.cloud
+		{ { 49, 42, 67 }, { 213, 195, 143 } }, // #312A43 -> #D5C38F: backdrops.tier_12_litterbox.patch
+		{ { 54, 40, 66 }, { 56, 68, 106 } }, // #362842 -> #38446A: sky.cloud_warm
+		{ { 55, 62, 87 }, { 128, 149, 200 } }, // #373E57 -> #8095C8: backdrops.tier_7_portal.detail
+		{ { 55, 82, 73 }, { 96, 127, 121 } }, // #375249 -> #607F79: backdrops.tier_5_sewers.detail
+		{ { 56, 48, 69 }, { 74, 84, 120 } }, // #383045 -> #4A5478: sky.plate
+		{ { 61, 68, 93 }, { 134, 156, 209 } }, // #3D445D -> #869CD1: backdrops.tier_7_portal.patch
+		{ { 61, 88, 79 }, { 98, 129, 121 } }, // #3D584F -> #628179: backdrops.tier_5_sewers.patch
+		{ { 62, 54, 82 }, { 225, 210, 166 } }, // #3E3652 -> #E1D2A6: backdrops.tier_12_litterbox.field
+		{ { 70, 52, 82 }, { 178, 145, 219 } }, // #463452 -> #B291DB: backdrops.tier_8_mythic.detail
+		{ { 75, 81, 107 }, { 147, 169, 220 } }, // #4B516B -> #93A9DC: backdrops.tier_7_portal.field
+		{ { 75, 102, 93 }, { 111, 143, 136 } }, // #4B665D -> #6F8F88: backdrops.tier_5_sewers.field
+		{ { 76, 58, 88 }, { 185, 149, 230 } }, // #4C3A58 -> #B995E6: backdrops.tier_8_mythic.patch
+		{ { 76, 62, 49 }, { 157, 161, 168 } }, // #4C3E31 -> #9DA1A8: backdrops.tier_11_factory.detail
+		{ { 81, 71, 102 }, { 215, 200, 155 } }, // #514766 -> #D7C89B: backdrops.tier_12_litterbox.puddle
+		{ { 82, 68, 55 }, { 166, 170, 178 } }, // #524437 -> #A6AAB2: backdrops.tier_11_factory.patch
+		{ { 90, 71, 102 }, { 199, 166, 238 } }, // #5A4766 -> #C7A6EE: backdrops.tier_8_mythic.field
+		{ { 91, 81, 107 }, { 124, 134, 170 } }, // #5B516B -> #7C86AA: sky.plate_edge
+		{ { 95, 122, 113 }, { 104, 135, 128 } }, // #5F7A71 -> #688780: backdrops.tier_5_sewers.puddle
+		{ { 97, 81, 68 }, { 179, 183, 190 } }, // #615144 -> #B3B7BE: backdrops.tier_11_factory.field
+		{ { 123, 165, 199 }, { 180, 160, 146 } }, // #7BA5C7 -> #B4A092: backdrops.tier_4_rooftops.detail
+		{ { 140, 194, 180 }, { 164, 200, 189 } }, // #8CC2B4 -> #A4C8BD: backdrops.tier_10_vets.detail
+		{ { 145, 162, 186 }, { 149, 156, 167 } }, // #91A2BA -> #959CA7: backdrops.tier_2_alley.detail
+		{ { 146, 185, 216 }, { 189, 168, 153 } }, // #92B9D8 -> #BDA899: backdrops.tier_4_rooftops.patch
+		{ { 152, 190, 152 }, { 136, 187, 95 } }, // #98BE98 -> #88BB5F: backdrops.tier_1_backyard.detail
+		{ { 152, 194, 116 }, { 109, 176, 93 } }, // #98C274 -> #6DB05D: backdrops.tier_3_park.detail
+		{ { 164, 208, 164 }, { 140, 195, 95 } }, // #A4D0A4 -> #8CC35F: backdrops.tier_1_backyard.patch
+		{ { 164, 210, 198 }, { 175, 212, 200 } }, // #A4D2C6 -> #AFD4C8: backdrops.tier_10_vets.patch
+		{ { 167, 214, 202 }, { 176, 212, 201 } }, // #A7D6CA -> #B0D4C9: backdrops.tier_10_vets.puddle
+		{ { 170, 183, 202 }, { 156, 164, 175 } }, // #AAB7CA -> #9CA4AF: backdrops.tier_2_alley.patch
+		{ { 171, 210, 138 }, { 112, 183, 94 } }, // #ABD28A -> #70B75E: backdrops.tier_3_park.patch
+		{ { 174, 187, 207 }, { 159, 166, 176 } }, // #AEBBCF -> #9FA6B0: backdrops.tier_2_alley.puddle
+		{ { 175, 209, 236 }, { 201, 181, 167 } }, // #AFD1EC -> #C9B5A7: backdrops.tier_4_rooftops.field
+		{ { 179, 229, 178 }, { 154, 207, 108 } }, // #B3E5B2 -> #9ACF6C: backdrops.tier_1_backyard.field
+		{ { 193, 230, 220 }, { 189, 224, 213 } }, // #C1E6DC -> #BDE0D5: backdrops.tier_10_vets.field
+		{ { 195, 230, 165 }, { 124, 196, 106 } }, // #C3E6A5 -> #7CC46A: backdrops.tier_3_park.field
+		{ { 200, 209, 222 }, { 169, 176, 186 } }, // #C8D1DE -> #A9B0BA: backdrops.tier_2_alley.field
+		{ { 204, 150, 126 }, { 195, 180, 106 } }, // #CC967E -> #C3B46A: backdrops.tier_6_turf.detail
+		{ { 220, 171, 149 }, { 204, 187, 106 } }, // #DCAB95 -> #CCBB6A: backdrops.tier_6_turf.patch
+		{ { 229, 212, 183 }, { 213, 200, 177 } }, // #E5D4B7 -> #D5C8B1: backdrops.tier_9_kitchen.detail
+		{ { 237, 226, 200 }, { 224, 209, 183 } }, // #EDE2C8 -> #E0D1B7: backdrops.tier_9_kitchen.patch
+		{ { 240, 196, 177 }, { 216, 200, 120 } }, // #F0C4B1 -> #D8C878: backdrops.tier_6_turf.field
+		{ { 247, 242, 220 }, { 236, 223, 201 } }, // #F7F2DC -> #ECDFC9: backdrops.tier_9_kitchen.field
+		{ { 255, 249, 227 }, { 255, 243, 160 } }, // #FFF9E3 -> #FFF3A0: sky.star
 	};
 
 	// One channel set (0-1 sRGB floats, as the fixtures write them): if it is a Godot palette colour that changed, write

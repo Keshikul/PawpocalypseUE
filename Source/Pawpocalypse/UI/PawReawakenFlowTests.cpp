@@ -246,6 +246,9 @@ bool FPawCeremonyPlaysTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the ceremony plays"), C->IsPlaying());
 	TestEqual(TEXT("over the field, never taking a click"), C->GetVisibility(), ESlateVisibility::HitTestInvisible);
 	TestEqual(TEXT("the headline"), S(C->GetHeadlineText()), FString(TEXT("REAWAKENING")));
+	// Sticker Box (D18, S4): the UI concept's ceremony, its rays behind and its cat in the middle.
+	TestTrue(TEXT("the rays behind (the concept's)"), C->HasRays());
+	TestTrue(TEXT("and the cat"), C->IsCatShown());
 	FFormatNamedArguments Args;
 	Args.Add(TEXT("n"), PawText::Count(1));
 	Args.Add(TEXT("stardust"), PawText::Count(static_cast<int64>(FMath::FloorToDouble(Payout))));
@@ -404,6 +407,24 @@ bool FPawJobPickerAsksTest::RunTest(const FString& Parameters)
 		TestTrue(TEXT("the theme's button"), Picker->GetRowButton(I) && Picker->GetRowButton(I)->HasThemeLook());
 	}
 	TestTrue(TEXT("the note in ink"), Picker->GetNote()->GetColorAndOpacity().GetSpecifiedColor().Equals(PawTokens::UI_TEXT));
+	// D18 (S4, the UI concept's scrJobPick): every card shows the cat in its job's hat on a photo; "No job", the bare kitten.
+	for (int32 I = 0; I < Picker->GetRowCount(); ++I)
+	{
+		const FString Id = Picker->GetRowJobId(I);
+		TestEqual(TEXT("the cat in the job's hat"), Picker->GetRowCatName(I),
+			TEXT("T_ui_icon_job_cat_") + (Id.IsEmpty() ? FString(TEXT("none")) : Id));
+		TestEqual(TEXT("on its photo"), Picker->GetRowPhotoColour(I), PawTokens::UI_PHOTO);
+	}
+	// The card the pointer or the pad is on: its button on the yellow plate; the others plain.
+	Picker->StepLook();
+	TestFalse(TEXT("nothing lifted: no button on yellow"), Picker->GetRowButton(0)->HasCallLook() || Picker->GetRowButton(1)->HasCallLook());
+	Picker->HoldRowForTest(2);
+	Picker->StepLook();
+	TestTrue(TEXT("the lifted card's button is on yellow"), Picker->GetRowButton(2)->HasCallLook());
+	TestFalse(TEXT("another card's is not"), Picker->GetRowButton(1)->HasCallLook());
+	Picker->HoldRowForTest(INDEX_NONE);
+	Picker->StepLook();
+	TestFalse(TEXT("let go: plain again"), Picker->GetRowButton(2)->HasCallLook());
 	{
 		// The theme's WindowPanel: ui_window.svg's nine-patch (phase 6 slice 5a; Pawpocalypse.UI.Chrome checks every brush).
 		const FSlateBrush& Plate = Picker->GetPanel()->Background;

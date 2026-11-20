@@ -2,6 +2,7 @@
 
 #include "ThirdParty/doctest/doctest.h"
 #include "PcBackdrop.h"
+#include "PcBackdropTones.h"
 #include "PcCsv.h"
 #include "PcRainbow.h"
 #include "PcGodotLook.h"
@@ -319,7 +320,7 @@ TEST_CASE("Skill tree sky: the real skill_tree_sky.gd at 4 sizes x 4 budgets, la
 	REQUIRE(Layouts.size() == 16);
 	REQUIRE(Frames.size() == 160);
 	CHECK(std::to_string(Pc::GodotHashString("skill_tree_sky")) == Layouts[0].at("seed"));
-	Worst Pos, Col;
+	Worst Pos, Col, Tint; // Tint: the port's own sky colours (D18)
 	int Wraps = 0, Polys = 0, StarsDrawn = 0;
 	size_t F = 0;
 	for (const auto& L : Layouts)
@@ -388,24 +389,27 @@ TEST_CASE("Skill tree sky: the real skill_tree_sky.gd at 4 sizes x 4 budgets, la
 			CHECK(Base[1] == 0.0);
 			CHECK(Base[2] == static_cast<double>(Sky.Width));
 			CHECK(Base[3] == static_cast<double>(Sky.Height));
-			CHECK(B.R == Base[4]);
-			CHECK(B.G == Base[5]);
-			CHECK(B.B == Base[6]);
+			// In the sky's own type (PcSkyColour's): a palette colour remapped by PcFromGodot is n / 255 in double (the D18 night sky).
+			CHECK(B.R == static_cast<decltype(B.R)>(Base[4]));
+			CHECK(B.G == static_cast<decltype(B.G)>(Base[5]));
+			CHECK(B.B == static_cast<decltype(B.B)>(Base[6]));
 			CHECK(B.A == Base[7]);
 			const std::vector<std::string> GStars = Split(R.at("stars"), ';');
 			REQUIRE(GStars.size() == Sky.Stars.size());
 			for (size_t I = 0; I < GStars.size(); ++I)
 			{
 				std::vector<double> G = Numbers(GStars[I], ',');
-				Pc::PcFromGodot(G[3], G[4], G[5]);
 				const Pc::PcSkyStar& S = Sky.Stars[I];
 				const Pc::PcSkyColour C = Sky.StarColour(S);
 				Pos.See(S.AtX, G[0]);
 				Pos.See(S.AtY, G[1]);
 				Pos.See(S.Radius, G[2]);
-				Col.See(C.R, G[3]);
-				Col.See(C.G, G[4]);
-				Col.See(C.B, G[5]);
+				// D18 (2026-11-19): the sky's colours are the port's own (the UI concept's night sky; Godot's star was its
+				// paper colour, which stays paper everywhere else, so no palette remap can stand for it). The fixture proves
+				// where, how big and how bright (alpha); the colour is the palette's star.
+				Tint.See(C.R, Pc::SkyStar.R / 255.0);
+				Tint.See(C.G, Pc::SkyStar.G / 255.0);
+				Tint.See(C.B, Pc::SkyStar.B / 255.0);
 				Col.See(C.A, G[6]);
 			}
 			StarsDrawn += static_cast<int>(GStars.size());
@@ -414,11 +418,16 @@ TEST_CASE("Skill tree sky: the real skill_tree_sky.gd at 4 sizes x 4 budgets, la
 			for (size_t I = 0; I < GClouds.size(); ++I)
 			{
 				std::vector<double> G = Numbers(GClouds[I], ':');
-				Pc::PcFromGodot(G[0], G[1], G[2]);
 				const Pc::PcSkyColour C = Sky.CloudColour(Sky.Clouds[I]);
-				Col.See(C.R, G[0]);
-				Col.See(C.G, G[1]);
-				Col.See(C.B, G[2]);
+				// D18: the colour breathes between the palette's two clouds (the fixture's are Godot's violets); alpha is Godot's.
+				auto Between = [&Tint](auto V, uint8_t A, uint8_t B)
+				{
+					const double Lo = std::min(A, B) / 255.0, Hi = std::max(A, B) / 255.0;
+					Tint.See(V < Lo ? Lo : V > Hi ? Hi : V, V);
+				};
+				Between(C.R, Pc::SkyCloud.R, Pc::SkyCloudWarm.R);
+				Between(C.G, Pc::SkyCloud.G, Pc::SkyCloudWarm.G);
+				Between(C.B, Pc::SkyCloud.B, Pc::SkyCloudWarm.B);
 				Col.See(C.A, G[3]);
 				Sky.CloudOutline(Sky.Clouds[I], Xs, Ys);
 				REQUIRE(G.size() == 4 + 2 * Xs.size());
@@ -435,6 +444,7 @@ TEST_CASE("Skill tree sky: the real skill_tree_sky.gd at 4 sizes x 4 budgets, la
 		<< " stars drawn, " << Wraps << " wraps");
 	CHECK(Wraps > 5);
 	CHECK(Pos.Value == 0.0);
+	CHECK(Tint.Value < 1e-6); // the palette's star, and clouds between its two
 	CHECK(Col.Value == 0.0);
 }
 

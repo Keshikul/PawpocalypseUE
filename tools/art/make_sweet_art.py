@@ -172,6 +172,8 @@ def check_no_background_fills(items):
 
 
 def check_tokens():
+    if not BIOME_TOKENS:
+        return []          # the tokens are not drawn (BIOME_TOKENS): no floor to clear (found 2026-11-18, D18's grounds)
     bad = []
     for name, (colour, biome) in TOKEN_COLOURS.items():
         d = PAL.distance(colour, PAL.BACKDROPS[biome]["field"])
@@ -2587,12 +2589,17 @@ def main():
     args = ap.parse_args()
 
     if args.all and args.write:
+        written = {}
         for name, fn in BATCHES.items():
             items = fitted(fn())
             bad = check_tokens() + check_no_background_fills(items)
             if bad:
                 sys.exit("batch %r: %s" % (name, "; ".join(bad)))
             write_batch(items, args.new)
+            written.update({pathlib.Path(rel).stem: (ROOT / rel, px) for rel, px, _fn in items})
+        # D18 (S5): the approved Bestiary's cast in Sticker Box, over the grammar's drawing of the same file at its size.
+        import sticker_art
+        sticker_art.write_into(ROOT / ART, written)
         return 0
 
     if args.list or not args.batch:

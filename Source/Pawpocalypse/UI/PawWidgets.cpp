@@ -158,7 +158,7 @@ namespace PawUi
 			UPawButtonStyle::StaticClass(), UPawLockedButtonStyle::StaticClass(), UPawFlatButtonStyle::StaticClass(), UPawBareButtonStyle::StaticClass(),
 			UPawPlateButtonStyle::StaticClass(), UPawCardFaceStyle::StaticClass(), UPawTreeNodeStyle::StaticClass(),
 			// the pieces (a piece used inside another before it: the button first)
-			UPawButton::StaticClass(), UPawCardFace::StaticClass(), UPawTreeNode::StaticClass(), UPawTreeLinks::StaticClass(),
+			UPawButton::StaticClass(), UPawCardFace::StaticClass(), UPawHexPlate::StaticClass(), UPawTreeNode::StaticClass(), UPawTreeLinks::StaticClass(),
 			UPawPounceClock::StaticClass(), UPawReawakenCeremony::StaticClass(), UPawPromptIcon::StaticClass(), UPawPromptText::StaticClass(), UPawIconText::StaticClass(),
 			UPawControlsPanel::StaticClass(), UPawGarden::StaticClass(), UPawRainbowBar::StaticClass(), UPawRainbowFrame::StaticClass(),
 			UPawTreeSky::StaticClass(), UPawUnicornCeremony::StaticClass(),

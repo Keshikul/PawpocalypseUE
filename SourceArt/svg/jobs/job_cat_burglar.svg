@@ -1,13 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
-<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<ellipse cx="64.0" cy="82.8" rx="47.3" ry="42.2" fill="#2A1A33" stroke="none"/>
-<ellipse cx="64.0" cy="44.6" rx="23.1" ry="20.5" fill="#2A1A33" stroke="none"/>
-<polygon points="41.0,42.4 64.0,3.0 87.0,42.4" fill="#2A1A33" stroke="none"/>
-<ellipse cx="64.0" cy="82.8" rx="43.3" ry="38.2" fill="#4A4E5C" stroke="none"/>
-<ellipse cx="64.0" cy="44.6" rx="19.1" ry="16.6" fill="#4A4E5C" stroke="none"/>
-<polygon points="46.2,39.5 64.0,8.9 81.8,39.5" fill="#4A4E5C" stroke="none"/>
-<polyline points="41.1,54.8 86.9,54.8" fill="none" stroke="#2E313B" stroke-width="6.4"/>
-<ellipse cx="64.0" cy="87.9" rx="19.1" ry="16.6" fill="#F2C65B" stroke="#2A1A33"/>
-<ellipse cx="64.0" cy="87.9" rx="8.9" ry="8.9" fill="#B6924F" stroke="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="0.000" data-ink="3.904">
+<g stroke-linejoin="round" stroke-linecap="round">
+<polygon points="18.95,81.87 21.48,69.30 28.32,59.53 38.41,52.54 50.67,48.35 64.00,46.96 77.33,48.35 89.59,52.54 99.68,59.53 106.52,69.30 109.05,81.87" fill="#3B3546" stroke="#2A2131" stroke-width="3.90"/>
+<rect x="15.95" y="69.86" width="96.10" height="15.02" rx="7.51" fill="#4A4458" stroke="#2A2131" stroke-width="3.90"/>
+<polyline points="29.47,60.85 50.49,45.83" fill="none" stroke="#6A6478" stroke-width="3.30"/>
+<polyline points="44.48,63.85 68.50,42.83" fill="none" stroke="#6A6478" stroke-width="3.30"/>
+<polyline points="62.50,63.85 86.52,44.33" fill="none" stroke="#6A6478" stroke-width="3.30"/>
 </g>
 </svg>

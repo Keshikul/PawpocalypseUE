@@ -39,10 +39,15 @@ namespace PawLook
 	constexpr double HopLandShare = 0.12;
 	constexpr int32 MountedFromStage = 4;     // MOUNTED_FROM_STAGE
 	// In sprite sizes from the cat's centre (x left of centre is forward: the art faces left), and as a share of its width.
-	constexpr double HatOffsetX = -0.10, HatOffsetY = -0.31, HatWidth = 0.62;
-	constexpr double HatOffsetMountedX = 0.045, HatOffsetMountedY = -0.29, HatWidthMounted = 0.36;
-	constexpr double WeaponOffsetX = -0.38, WeaponOffsetY = 0.14, WeaponWidth = 0.405;
-	constexpr double WeaponOffsetMountedX = -0.14, WeaponOffsetMountedY = -0.26, WeaponWidthMounted = 0.352;
+	// Sticker Box (D18, 2026-11-18): worked out from the approved Bestiary's cat by tools/art/sticker_art.py (--overlays),
+	// which stops the art build when these differ: the weapon where the concept holds it (behind the standing cat; the
+	// lance over the rider's shoulder); the approved job hats (2026-11-18) where the concept puts them on the Tiny Kitten's
+	// head, all ten in one square, and on the rider's through riderFig's transform. Godot's were (-0.10, -0.31) 0.62 and
+	// (0.045, -0.29) 0.36 for the hat, (-0.38, 0.14) 0.405 and (-0.14, -0.26) 0.352 for the weapon.
+	constexpr double HatOffsetX = -0.189, HatOffsetY = -0.202, HatWidth = 0.775;
+	constexpr double HatOffsetMountedX = -0.010, HatOffsetMountedY = -0.220, HatWidthMounted = 0.366;
+	constexpr double WeaponOffsetX = 0.323, WeaponOffsetY = 0.135, WeaponWidth = 0.517;
+	constexpr double WeaponOffsetMountedX = 0.223, WeaponOffsetMountedY = -0.144, WeaponWidthMounted = 0.559;
 
 	// kitten.gd
 	constexpr double KittenPx = 96.0;
@@ -208,7 +213,8 @@ namespace PawLook
 		M.X = bFlip ? -O.X : O.X;
 		return M;
 	}
-	// The weapon is drawn leaning right: mirrored while the cat faces left. The hat mirrors as the cat does.
-	inline bool WeaponFlipX(bool bFlip) { return !bFlip; }
+	// The weapon is drawn in the cat's own frame, facing its way (Sticker Box, D18: cut out of the concept's cat), so it
+	// mirrors as the cat does; so does the hat. (Godot's weapons leaned right and were mirrored while the cat faced left.)
+	inline bool WeaponFlipX(bool bFlip) { return bFlip; }
 	inline bool HatFlipX(bool bFlip) { return bFlip; }
 }

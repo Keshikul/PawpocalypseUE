@@ -199,10 +199,14 @@ bool FPawUnicornPlaysTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the rainbow grows"), C->GetState().Grow > 0.0);
 	const TArray<int32> Batches = PaintOffScreen(Tree, FVector2f(1920.0f, 1080.0f));
 	TestTrue(TEXT("the cat painted"), C->WasCatPainted());
-	// The dim 2; six arcs of 63 segments, stroked and feathered (6 each); 180 confetti quads (2); 26 stars fanned (10); their
-	// rims, 10 segments (6 each).
-	TestTrue(TEXT("the dim, the rainbow and the fiesta reached Slate as one batch"),
-		Batches.Contains(2 + 6 * 63 * 6 + 180 * 2 + 26 * 10 + 26 * 10 * 6));
+	// D18 (S4, the UI concept's scrUnicorn): its rays (a picture, drawn on its own) instead of Godot's dim; six arcs of 63
+	// segments, stroked and feathered (6 each); 180 confetti quads (2); 26 stars fanned (10); their rims, 10 segments (6 each).
+	TestTrue(TEXT("the rainbow and the fiesta reached Slate as one batch"),
+		Batches.Contains(6 * 63 * 6 + 180 * 2 + 26 * 10 + 26 * 10 * 6));
+	TestTrue(TEXT("the concept's rays behind them"), C->WereRaysPainted());
+	TestTrue(TEXT("the title painted"), C->WasTitlePainted());
+	TestEqual(TEXT("the title says UNICORN"), C->GetTitleText().ToString(), FString(TEXT("UNICORN")));
+	TestEqual(TEXT("the line says what changed"), C->GetLineText().ToString(), FString(TEXT("Unicorn unlocked: Rainbow Poop active")));
 	TestEqual(TEXT("six arcs, 180 confetti, 26 stars and their rims"), C->GetPaintedShapes(), 6 + 180 + 26 * 2);
 
 	// A press after 0.6 s skips to the fade; the tree comes back when it ends.

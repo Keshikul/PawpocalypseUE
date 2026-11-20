@@ -291,19 +291,22 @@ INK = S.INK
 # so the pair reads as the material and clears its own floor. The alley's bin
 # and the rooftops' vent are the slate FACE rather than the header because the
 # header is the colour of a pale cool floor - measured 17 and 20 from them.
+# D18 (S5, 2026-11-18): the floors are the approved Bestiary's grounds, and six of these moved to the nearest shade that
+# clears its new floor (min 22): the Park's foliage a step darker, the Rooftops' clay, the Sewers' pipe light grey, the
+# Portal's shard and the Factory's machine dark slate, the Litterbox's litter white.
 PROP_COLOURS = {
     "tier_1":  (PAL.header("green"), PAL.header("slate")),   # leaf, stone
     "tier_2":  (PAL.face("red"), PAL.face("slate")),         # brick, metal
-    "tier_3":  (PAL.header("green"), PAL.face("orange")),    # foliage, bark
-    "tier_4":  (PAL.face("slate"), PAL.face("coral")),       # steel, clay
-    "tier_5":  (PAL.header("slate"), PAL.header("green")),   # pipe, water
+    "tier_3":  (PAL.PROPS["foliage"][0], PAL.face("orange")),  # foliage, bark
+    "tier_4":  (PAL.face("slate"), PAL.header("coral")),     # steel, clay
+    "tier_5":  (PAL.header("grey"), PAL.header("green")),    # pipe, water
     "tier_6":  (PAL.face("orange"), PAL.face("red")),        # timber, bowl
-    "tier_7":  (PAL.header("blue"), PAL.header("yellow")),   # shard, gold
+    "tier_7":  (PAL.face("slate"), PAL.header("yellow")),    # shard, gold
     "tier_8":  (PAL.header("yellow"), PAL.header("blue")),   # gold, crystal
     "tier_9":  (PAL.face("orange"), PAL.header("slate")),    # crust, appliance
     "tier_10": (PAL.header("slate"), PAL.header("blue")),    # steel, cloth
-    "tier_11": (PAL.header("slate"), PAL.header("orange")),  # machine, kibble
-    "tier_12": (PAL.header("cream"), PAL.header("green")),   # litter, clump
+    "tier_11": (PAL.face("slate"), PAL.header("orange")),    # machine, kibble
+    "tier_12": (PAL.face("grey"), PAL.header("green")),      # litter, clump
 }
 
 

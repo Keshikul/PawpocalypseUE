@@ -61,7 +61,7 @@ bool UPawPauseMenu::Initialize()
 
 		// The scrim: the sky tone; it eats every click (the field behind is held).
 		Scrim = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Scrim"));
-		Scrim->SetBrush(Rounded(PawTokens::SKY_BASE.CopyWithNewOpacity(static_cast<float>(PauseScrimAlpha)), PawTokens::INK, 0.0f, 0.0f));
+		Scrim->SetBrush(Rounded(PawTokens::INK.CopyWithNewOpacity(static_cast<float>(PauseScrimAlpha)), PawTokens::INK, 0.0f, 0.0f));
 		Scrim->SetVisibility(ESlateVisibility::Visible);
 		UOverlaySlot* ScrimSlot = Root->AddChildToOverlay(Scrim);
 		ScrimSlot->SetHorizontalAlignment(HAlign_Fill);
@@ -82,7 +82,8 @@ bool UPawPauseMenu::Initialize()
 		UVerticalBox* Body = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("Body"));
 		Window->SetContent(Body);
 
-		Title = Heavy(MakeText(T, LabelPx, PawTokens::UI_TEXT, false, TEXT("Title")));
+		// D18 (S4): PAUSED as the concept's sticker title (yellow on an ink outline).
+		Title = ButterTitle(MakeText(T, PauseTitlePx, PawTokens::UI_SELECTED, false, TEXT("Title")), ButterTitleOutline);
 		Title->SetJustification(ETextJustify::Center);
 		Title->SetText(PawText::Ui(TEXT("PAUSE_title")));
 		Body->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Center);
@@ -105,7 +106,8 @@ bool UPawPauseMenu::Initialize()
 		// Built beside the button it qualifies, shown only mid-decision.
 		DiscardButton = PageButton(T, MainPage, TEXT("DiscardButton"), TEXT("PAUSE_discard"), 0.0, false, Gap);
 		DiscardButton->SetVisibility(ESlateVisibility::Collapsed);
-		StatusText = MakeText(T, LabelPx, PawTokens::UI_GOOD, false, TEXT("StatusText"));
+		// D18 (S4): ink (green read 3.3:1 on the cream window, and was green for "not saved" and "overwrite?" too).
+		StatusText = MakeText(T, LabelPx, PawTokens::UI_TEXT, false, TEXT("StatusText"));
 		StatusText->SetJustification(ETextJustify::Center);
 		StatusText->SetAutoWrapText(false);
 		StatusText->SetWrapTextAt(static_cast<float>(PauseWindowWidth - 2.0 * PausePadX));
@@ -161,6 +163,22 @@ void UPawPauseMenu::OnLayoutReady()
 		Click(GetSlotButton(I), [this, I]() { PressSlot(I); });
 	}
 	Click(SettingsButton, [this]() { PressSettings(); });
+	// D18 (S4): the concept's pause buttons, each with its icon; Continue, the thing to press, on the yellow plate.
+	auto Dress = [](UPawButton* B, const TCHAR* Icon)
+	{
+		if (B)
+		{
+			B->SetIcon(Icon, PawUi::PauseIconPx);
+		}
+	};
+	Dress(ContinueButton, TEXT("ui_tab_reawaken"));
+	Dress(SaveButton, TEXT("ui_quick_save"));
+	Dress(SettingsButton, TEXT("ui_quick_settings"));
+	Dress(MainMenuButton, TEXT("ui_quick_quit"));
+	if (ContinueButton)
+	{
+		ContinueButton->SetCallLook(true);
+	}
 	if (!OnLeave)
 	{
 		OnLeave = [this]() { UGameplayStatics::OpenLevel(this, FName(TitleMap)); };

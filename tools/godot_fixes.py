@@ -167,6 +167,31 @@ FIXES = [
     ("E6", "data/boss_void_god.tres", "total_hp = 3.49125e+10\n", "total_hp = 5.51618e+11\n"),  # x15.8: 171 s
     ("E6", "data/boss_factory_foreman.tres", "total_hp = 2.07098e+12\n", "total_hp = 6.42004e+13\n"),  # x31: 171 s
     ("E6", "data/boss_litter_king.tres", "total_hp = 8.0768e+12\n", "total_hp = 1.12268e+15\n"),  # x139: 169 s
+    # D19 (Q13, the designer 2026-11-18: "Raise the five prices"): something new on every late Reawaken. Five rule-changing
+    # nodes priced at about 40 % of the Stardust the Reawaken they are meant for brings (docs/ECONOMY-REVIEW-2026-11-12.md
+    # section 9): prices, not gates, so a player who Reawakens less often still reaches every node.
+    ("D19", "data/skill_tree/curiosity.tres", "level_costs = Array[float]([6400])\n", "level_costs = Array[float]([20000])\n"),
+    ("D19", "data/skill_tree/gridlock.tres", "level_costs = Array[float]([600])\n", "level_costs = Array[float]([20000])\n"),
+    ("D19", "data/skill_tree/overflow.tres", "level_costs = Array[float]([520])\n", "level_costs = Array[float]([70000])\n"),
+    ("D19", "data/skill_tree/unlock_full_spectrum.tres", "level_costs = Array[float]([9000])\n",
+     "level_costs = Array[float]([250000])\n"),
+    ("D19", "data/skill_tree/standing_wave.tres", "level_costs = Array[float]([450])\n", "level_costs = Array[float]([900000])\n"),
+    # F52: from_system() picked the wrong variant for a region it does not name. A Portugal system got Brazilian Portuguese
+    # (pt_BR comes first in ORDER and begins with "pt_"), Spanish systems outside Spain and Mexico got Spain's Spanish though
+    # the game has Latin American Spanish, Macau got Simplified Chinese. The language itself before a variant of it;
+    # Spanish with any region but Spain is es_MX (Steam's "latam"); Macau is Traditional.
+    ("F52", "scripts/systems/locales.gd",
+     "\t\tvar script := \"zh_Hant\" if wanted.contains(\"TW\") or wanted.contains(\"HK\") or wanted.contains(\"Hant\") else \"zh_Hans\"\n",
+     "\t\tvar script := \"zh_Hant\" if wanted.contains(\"TW\") or wanted.contains(\"HK\") or wanted.contains(\"MO\") "
+     "or wanted.contains(\"Hant\") else \"zh_Hans\"  # PORT FIX F52: Macau\n"),
+    ("F52", "scripts/systems/locales.gd",
+     "\tfor code in have:\n\t\tif code == lang or code.begins_with(lang + \"_\"):\n\t\t\treturn code\n\treturn \"en\"\n",
+     "\t# PORT FIX F52: Spanish from anywhere but Spain is the Latin American translation; the language itself before a\n"
+     "\t# variant of it (Portugal got pt_BR).\n"
+     "\tvar region := wanted.get_slice(\"_\", wanted.get_slice_count(\"_\") - 1) if wanted.contains(\"_\") else \"\"\n"
+     "\tif lang == \"es\" and region != \"\" and region != \"ES\" and have.has(\"es_MX\"):\n\t\treturn \"es_MX\"\n"
+     "\tfor code in have:\n\t\tif code == lang:\n\t\t\treturn code\n"
+     "\tfor code in have:\n\t\tif code.begins_with(lang + \"_\"):\n\t\t\treturn code\n\treturn \"en\"\n"),
 ]
 
 

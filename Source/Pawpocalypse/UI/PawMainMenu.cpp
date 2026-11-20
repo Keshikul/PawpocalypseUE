@@ -11,6 +11,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
+#include "Components/Image.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
 #include "Components/ScaleBox.h"
@@ -33,6 +34,7 @@
 #include "PcTitle.h"
 #include "Save/PawSaveSubsystem.h"
 #include "UI/PawButton.h"
+#include "UI/PawIcons.h"
 #include "UI/PawPrompts.h"
 #include "UI/PawHudScreen.h"
 #include "UI/PawText.h"
@@ -58,6 +60,12 @@ namespace
 		// HasAnyUserFocus is false for a Common button whose inner SCommonButton holds focus (KB U/08 §3.3).
 		return W && W->GetVisibility() != ESlateVisibility::Collapsed && (W->HasAnyUserFocus() || W->HasFocusedDescendants());
 	}
+
+	// D18 (S4): the title's cast, the UI concept's (tools/art/sticker_art.py write_title).
+	const TCHAR* const TitleCatIcon = TEXT("ui_icon_title_cat");
+	const TCHAR* const TitleMouseIcon = TEXT("ui_icon_title_mouse");
+	// D18 (S4): a save card's cat, one picture per stage (tools/art/sticker_art.py write_slots).
+	FString SlotCatIcon(int64 Stage) { return FString::Printf(TEXT("ui_icon_slot_cat_%lld"), static_cast<long long>(Stage)); }
 
 	bool Shown(const UWidget* W)
 	{
@@ -163,7 +171,7 @@ UBorder* UPawMainMenu::MakeWindowLayer(UCanvasPanel* Root, FName Name, double Wi
 	UWidgetTree* T = WidgetTree;
 	// The Scrim: the sky tone, full screen; it eats every click (a modal layer).
 	UBorder* Layer = T->ConstructWidget<UBorder>(UBorder::StaticClass(), Name);
-	Layer->SetBrush(Rounded(PawTokens::SKY_BASE.CopyWithNewOpacity(static_cast<float>(ScrimAlpha)), PawTokens::INK, 0.0f, 0.0f));
+	Layer->SetBrush(Rounded(PawTokens::INK.CopyWithNewOpacity(static_cast<float>(ScrimAlpha)), PawTokens::INK, 0.0f, 0.0f));
 	Layer->SetPadding(FMargin(0.0f));
 	Layer->SetHorizontalAlignment(HAlign_Center);
 	Layer->SetVerticalAlignment(VAlign_Center);
@@ -201,13 +209,30 @@ bool UPawMainMenu::Initialize()
 		UPawGarden* Garden = T->ConstructWidget<UPawGarden>(PawUi::Resolve<UPawGarden>(), TEXT("Garden"));
 		Fill(Canvas, Garden);
 
+		// D18 (S4): the concept's cast on the garden, under everything else: the Tiny Kitten and three mice, each on its
+		// rim (tools/art/sticker_art.py write_title), placed by its feet around the screen's middle. Pictures, never a click.
+		auto AddFigure = [&](FName Name, const TCHAR* Stem, double Px, double X, double Y, bool bFlip)
+		{
+			UImage* Figure = T->ConstructWidget<UImage>(UImage::StaticClass(), Name);
+			Figure->SetBrush(PawUi::IconBrush(Stem, Px));
+			Figure->SetVisibility(ESlateVisibility::HitTestInvisible);
+			Figure->SetRenderTransformPivot(FVector2D(0.5, 0.5));
+			Figure->SetRenderScale(FVector2D(bFlip ? -1.0 : 1.0, 1.0));
+			Place(Canvas, Figure, 0.5f, 0.5f, X - 0.5 * Px, Y - Px, X + 0.5 * Px, Y);
+		};
+		AddFigure(TEXT("TitleCat"), TitleCatIcon, TitleCatPx, TitleCatX, TitleCatY, false);
+		for (int32 I = 0; I < 3; ++I)
+		{
+			AddFigure(PawUi::Numbered(TEXT("TitleMouse"), I), TitleMouseIcon, TitleMousePx, TitleMouseX[I], TitleMouseY[I], TitleMouseFlip[I]);
+		}
+
 		// The name, anchored top centre (main_menu.tscn Title: 1000 x 100 from 90 down, centred both ways; never translated).
 		UBorder* NameBox = T->ConstructWidget<UBorder>();
 		NameBox->SetBrush(NoBrush());
 		NameBox->SetHorizontalAlignment(HAlign_Center);
 		NameBox->SetVerticalAlignment(VAlign_Center);
 		NameBox->SetVisibility(ESlateVisibility::HitTestInvisible);
-		// R4c: Butter, an ink outline and a solid shadow, top left and tilted (the board "Main menu (plum)").
+		// R4c: Butter, an ink outline and a solid shadow. D18 (S4): centred at the top and upright, the concept's sticker.
 		NameText = Heavy(MakeText(T, R4NamePx, PawTokens::UI_SELECTED, true, TEXT("NameText")));
 		{
 			FSlateFontInfo Font = NameText->GetFont();
@@ -216,20 +241,18 @@ bool UPawMainMenu::Initialize()
 			NameText->SetShadowOffset(FVector2D(0.0, R4NameShadow));
 			SetTextColour(NameText, PawTokens::UI_SELECTED); // over the field, yet Butter (MakeText gives labels there Bone)
 		}
-		NameText->SetJustification(ETextJustify::Left);
+		NameText->SetJustification(ETextJustify::Center);
 		NameText->SetText(PawText::Ui(TEXT("TITLE_name")));
-		NameBox->SetHorizontalAlignment(HAlign_Left);
 		NameBox->SetContent(NameText);
-		NameBox->SetRenderTransformPivot(FVector2D(0.0, 0.5));
-		NameBox->SetRenderTransformAngle(static_cast<float>(R4NameAngle));
-		// R4h: the logo and the menu share one column, in one room from the logo's top to above the hint: at 1080p exactly
-		// where R4c put them; at 150 % UI both shrink together (a menu shrunk alone came out smaller than at 100 %).
+		NameBox->SetRenderTransformPivot(FVector2D(0.5, 0.5));
+		NameBox->SetRenderTransformAngle(static_cast<float>(TitleLogoAngle));
+		// D18 (S4): the logo on its own at the top centre; the menu keeps R4h's room on the left (at 150 % UI it shrinks).
 		UVerticalBox* LeftColumn = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("LeftColumn"));
 		USizeBox* LogoSize = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("LogoSize"));
 		LogoSize->SetWidthOverride(static_cast<float>(R4NameWidth));
 		LogoSize->SetHeightOverride(static_cast<float>(R4NameHeight));
 		LogoSize->SetContent(NameBox);
-		LeftColumn->AddChildToVerticalBox(LogoSize)->SetHorizontalAlignment(HAlign_Left);
+		Place(Canvas, LogoSize, 0.5f, 0.0f, -0.5 * R4NameWidth, TitleLogoTop, 0.5 * R4NameWidth, TitleLogoTop + R4NameHeight);
 		Room(T, Canvas, TEXT("LeftFit"), 0.0f, R4TitleMargin, R4NameWidth, R4NameTop, R4MenuBottom, HAlign_Left, VAlign_Top, LeftColumn);
 
 		// The version, bottom right.
@@ -249,7 +272,7 @@ bool UPawMainMenu::Initialize()
 		// (the middle less 290), in a room down to the hint: at 150 % UI it shrinks to fit there.
 		UVerticalBoxSlot* MenuSlot = LeftColumn->AddChildToVerticalBox(PanelSize);
 		MenuSlot->SetHorizontalAlignment(HAlign_Left);
-		MenuSlot->SetPadding(FMargin(0.0f, static_cast<float>(540.0 + R4PanelTop - R4NameTop - R4NameHeight), 0.0f, 0.0f));
+		MenuSlot->SetPadding(FMargin(0.0f, static_cast<float>(540.0 + R4PanelTop - R4NameTop), 0.0f, 0.0f)); // D18: no logo above it
 		UBorder* Panel = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("MenuPanel"));
 		Panel->SetBrush(TitlePanelBrush());
 		Panel->SetPadding(TitlePanelPadding());
@@ -268,7 +291,7 @@ bool UPawMainMenu::Initialize()
 				I == 0 ? R4ContinuePx : R4MenuButtonPx, I == 0));
 			MenuButtons.Last()->SetAlignLeft(true);
 		}
-		StatusText = MakeText(T, LabelPx, PawTokens::UI_TEXT_MUTED, false, TEXT("StatusText"));
+		StatusText = Heavy(MakeText(T, LabelPx, PawTokens::UI_TEXT, false, TEXT("StatusText"))); // D18 (S4): ink, heavy (the concept's)
 		StatusText->SetJustification(ETextJustify::Left);
 		StatusText->SetAutoWrapText(false);
 		StatusText->SetWrapTextAt(static_cast<float>(R4PanelWidth - 2.0 * TitlePanelPadX));
@@ -320,11 +343,11 @@ bool UPawMainMenu::Initialize()
 		Photo->SetContent(Well);
 		for (const TCHAR* Key : { TEXT("TITLE_boba_name"), TEXT("TITLE_boba_role") })
 		{
-			// R4c: the name a Butter title, the role lilac.
+			// The name heavy ink, the role muted: on the card, with no outline (D18; R4c's Butter on plum).
 			const bool bName = FCString::Strcmp(Key, TEXT("TITLE_boba_name")) == 0;
 			// Unnamed on purpose: the asset holds them as TextBlock_0 / _1, and naming them renumbers every later unnamed text
 			// of the code layout (.Widgets.Parity compares texts by name).
-			UTextBlock* Line = MakeText(T, bName ? R4BobaNamePx : BobaCaptionPx, bName ? PawTokens::UI_SELECTED : PawTokens::UI_TEXT_MUTED);
+			UTextBlock* Line = MakeText(T, bName ? R4BobaNamePx : BobaCaptionPx, bName ? PawTokens::UI_TEXT : PawTokens::UI_TEXT_MUTED);
 			if (bName)
 			{
 				Heavy(Line);
@@ -397,7 +420,7 @@ bool UPawMainMenu::Initialize()
 
 		// The slot screen: a darker scrim, the title, five cards, Back.
 		SlotsLayer = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("SlotsLayer"));
-		SlotsLayer->SetBrush(Rounded(PawTokens::SKY_BASE.CopyWithNewOpacity(static_cast<float>(TitleSlotScrimAlpha)), PawTokens::INK, 0.0f, 0.0f));
+		SlotsLayer->SetBrush(Rounded(PawTokens::INK.CopyWithNewOpacity(static_cast<float>(TitleSlotScrimAlpha)), PawTokens::INK, 0.0f, 0.0f));
 		SlotsLayer->SetPadding(FMargin(0.0f));
 		SlotsLayer->SetHorizontalAlignment(HAlign_Center);
 		SlotsLayer->SetVerticalAlignment(VAlign_Center);
@@ -409,7 +432,8 @@ bool UPawMainMenu::Initialize()
 		SlotsLayer->SetContent(SlotBodySize);
 		UVerticalBox* SlotBody = T->ConstructWidget<UVerticalBox>();
 		SlotBodySize->SetContent(SlotBody);
-		UTextBlock* SlotTitle = MakeText(T, TitleSlotTitlePx, PawTokens::UI_TEXT);
+		// D18 (S4): CHOOSE A SLOT as the concept's sticker title, yellow on its ink outline.
+		UTextBlock* SlotTitle = ButterTitle(MakeText(T, TitleSlotTitlePx, PawTokens::UI_SELECTED), ButterTitleOutline);
 		SlotTitle->SetJustification(ETextJustify::Center);
 		SlotTitle->SetText(PawText::Ui(TEXT("TITLE_slots_title")));
 		SlotBody->AddChildToVerticalBox(SlotTitle)->SetHorizontalAlignment(HAlign_Center);
@@ -438,16 +462,29 @@ bool UPawMainMenu::Initialize()
 			FaceSlot->SetHorizontalAlignment(HAlign_Fill);
 			FaceSlot->SetVerticalAlignment(VAlign_Fill);
 			// The summary INSIDE the card, above the Delete strip; nothing decorative may eat the click that picks it.
+			// D18 (S4, the concept's slotCard): under a photo well at the card's top, where the save's cat stands.
+			const float M = static_cast<float>(SlotTextMargin);
+			UVerticalBox* Stack = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), PawUi::Numbered(TEXT("SlotStack"), I));
+			Stack->SetVisibility(ESlateVisibility::HitTestInvisible);
+			UOverlaySlot* StackSlot = Card->AddChildToOverlay(Stack);
+			StackSlot->SetHorizontalAlignment(HAlign_Fill);
+			StackSlot->SetVerticalAlignment(VAlign_Top);
+			StackSlot->SetPadding(FMargin(M, M, M, static_cast<float>(SlotDeleteHeight) + M));
+			UBorder* SlotWell = T->ConstructWidget<UBorder>(UBorder::StaticClass(), PawUi::Numbered(TEXT("SlotPhoto"), I));
+			SlotWell->SetBrush(Rounded(PawTokens::UI_PHOTO, PawTokens::INK, static_cast<float>(SlotPhotoEdgePx), static_cast<float>(SlotPhotoRadius)));
+			SlotWell->SetPadding(FMargin(0.0f, static_cast<float>(SlotPhotoPadY)));
+			SlotWell->SetHorizontalAlignment(HAlign_Center);
+			SlotWell->SetVerticalAlignment(VAlign_Center);
+			Stack->AddChildToVerticalBox(SlotWell)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, static_cast<float>(SlotPhotoGap)));
+			UImage* Cat = T->ConstructWidget<UImage>(UImage::StaticClass(), PawUi::Numbered(TEXT("SlotCat"), I));
+			Cat->SetBrush(PawUi::IconBrush(SlotCatIcon(1), SlotCatPx));
+			SlotWell->SetContent(Cat);
 			UTextBlock* Info = MakeText(T, LabelPx, PawTokens::UI_TEXT, false, PawUi::Numbered(TEXT("SlotText"), I));
 			Info->SetJustification(ETextJustify::Center);
 			Info->SetAutoWrapText(false);
 			Info->SetWrapTextAt(static_cast<float>(SlotCardWidth - 2.0 * SlotTextMargin));
 			Info->SetVisibility(ESlateVisibility::HitTestInvisible);
-			UOverlaySlot* InfoSlot = Card->AddChildToOverlay(Info);
-			InfoSlot->SetHorizontalAlignment(HAlign_Center);
-			InfoSlot->SetVerticalAlignment(VAlign_Center);
-			const float M = static_cast<float>(SlotTextMargin);
-			InfoSlot->SetPadding(FMargin(M, M, M, static_cast<float>(SlotDeleteHeight) + M));
+			Stack->AddChildToVerticalBox(Info)->SetHorizontalAlignment(HAlign_Center);
 			// Delete sits ON the card, at the bottom, and only once there is something to delete.
 			UPawButton* Delete = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), PawUi::Numbered(TEXT("SlotDelete"), I));
 			Delete->SetLabel(PawText::Ui(TEXT("TITLE_delete")));
@@ -457,13 +494,20 @@ bool UPawMainMenu::Initialize()
 			DeleteSlot->SetHorizontalAlignment(HAlign_Fill);
 			DeleteSlot->SetVerticalAlignment(VAlign_Bottom);
 			DeleteSlot->SetPadding(FMargin(M, 0.0f, M, static_cast<float>(SlotDeleteHeight - SlotDeleteButtonHeight)));
-			// The slot NUMBER underneath, large.
+			// The slot NUMBER: D18 (S4), inside the card at its top, as the concept draws it (Godot: underneath, large; on
+			// the scrim the ink did not read).
 			UTextBlock* Number = Heavy(MakeText(T, SlotNumberPx, PawTokens::UI_TEXT, false, PawUi::Numbered(TEXT("SlotNumber"), I)));
 			Number->SetJustification(ETextJustify::Center);
+			Number->SetVisibility(ESlateVisibility::HitTestInvisible);
 			FFormatNamedArguments Args;
 			Args.Add(TEXT("n"), PawText::Count(I + 1));
 			Number->SetText(PawText::Ui(TEXT("TITLE_slot_number"), Args));
-			ColumnBox->AddChildToVerticalBox(Number)->SetPadding(FMargin(0.0f, static_cast<float>(SlotColumnSeparation), 0.0f, 0.0f));
+			UVerticalBoxSlot* NumberSlot = Stack->InsertChildAt(0, Number) ? Cast<UVerticalBoxSlot>(Number->Slot) : nullptr;
+			if (NumberSlot)
+			{
+				NumberSlot->SetHorizontalAlignment(HAlign_Center);
+				NumberSlot->SetPadding(FMargin(0.0f, 0.0f, 0.0f, static_cast<float>(SlotNumberGap)));
+			}
 			SlotColumns.Add(Column);
 			SlotSizes.Add(CardSize);
 			SlotCards.Add(Face);
@@ -530,6 +574,8 @@ void UPawMainMenu::OnLayoutReady()
 	PawUi::CollectNamed(WidgetTree, TEXT("SlotCard"), SlotCount, SlotCards);
 	PawUi::CollectNamed(WidgetTree, TEXT("SlotDelete"), SlotCount, SlotDeletes);
 	PawUi::CollectNamed(WidgetTree, TEXT("SlotText"), SlotCount, SlotTexts);
+	PawUi::CollectNamed(WidgetTree, TEXT("SlotPhoto"), SlotCount, SlotPhotos);
+	PawUi::CollectNamed(WidgetTree, TEXT("SlotCat"), SlotCount, SlotCats);
 	PawUi::CollectNamed(WidgetTree, TEXT("SlotNumber"), SlotCount, SlotNumbers);
 	PawUi::CollectNamed(WidgetTree, TEXT("SlotSize"), SlotCount, SlotSizes);
 	PawUi::CollectNamed(WidgetTree, TEXT("SlotColumn"), SlotCount, SlotColumns);
@@ -690,6 +736,23 @@ void UPawMainMenu::RefreshSlotCards()
 		if (UPawButton* Delete = GetSlotDelete(I))
 		{
 			Delete->SetVisibility(bRead ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+		}
+		// D18 (S4): a save's cat at its stage on grass; an empty slot's well in card stock; one that cannot be read, off.
+		const bool bEmpty = State == Pc::PcSlotState::Empty;
+		if (UBorder* Photo = SlotPhotos.IsValidIndex(I) ? SlotPhotos[I].Get() : nullptr)
+		{
+			Photo->SetBrush(Rounded(bRead ? PawTokens::UI_PHOTO : bEmpty ? PawTokens::UI_PANEL_BAND : PawTokens::UI_BUTTON_DISABLED,
+				bRead || bEmpty ? PawTokens::INK : PawTokens::UI_TEXT_DISABLED, static_cast<float>(SlotPhotoEdgePx),
+				static_cast<float>(SlotPhotoRadius)));
+		}
+		if (UImage* Cat = SlotCats.IsValidIndex(I) ? SlotCats[I].Get() : nullptr)
+		{
+			const UPawGameSubsystem* G = Game();
+			const int64 Stage = bRead && G && G->IsDataReady()
+				? Pc::EvolutionStageFor(G->Data(), Summary.BossesDefeated, Summary.bFinalBossDefeated) : 0;
+			// The well keeps its size empty: the picture is hidden, not collapsed.
+			Cat->SetBrush(PawUi::IconBrush(SlotCatIcon(FMath::Max<int64>(Stage, 1)), SlotCatPx));
+			Cat->SetVisibility(Stage > 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
 		}
 		if (!Text)
 		{
@@ -1158,6 +1221,19 @@ UPawButton* UPawMainMenu::GetCloseButton(ELayer Layer) const
 
 FText UPawMainMenu::GetStatusText() const { return StatusText ? StatusText->GetText() : FText::GetEmpty(); }
 FText UPawMainMenu::GetSlotText(int32 SlotIndex) const { return SlotTexts.IsValidIndex(SlotIndex) ? SlotTexts[SlotIndex]->GetText() : FText::GetEmpty(); }
+
+FString UPawMainMenu::GetSlotCatName(int32 SlotIndex) const
+{
+	const UImage* Cat = SlotCats.IsValidIndex(SlotIndex) ? SlotCats[SlotIndex].Get() : nullptr;
+	const UObject* Tex = Cat && Cat->GetVisibility() == ESlateVisibility::HitTestInvisible ? Cat->GetBrush().GetResourceObject() : nullptr;
+	return Tex ? Tex->GetName() : FString();
+}
+
+FLinearColor UPawMainMenu::GetSlotPhotoColour(int32 SlotIndex) const
+{
+	const UBorder* Photo = SlotPhotos.IsValidIndex(SlotIndex) ? SlotPhotos[SlotIndex].Get() : nullptr;
+	return Photo ? Photo->Background.TintColor.GetSpecifiedColor() : FLinearColor::Transparent;
+}
 FText UPawMainMenu::GetSlotNumberText(int32 SlotIndex) const { return SlotNumbers.IsValidIndex(SlotIndex) ? SlotNumbers[SlotIndex]->GetText() : FText::GetEmpty(); }
 FText UPawMainMenu::GetLeaderboardText() const { return LeaderboardText ? LeaderboardText->GetText() : FText::GetEmpty(); }
 FText UPawMainMenu::GetConfirmText() const { return ConfirmText ? ConfirmText->GetText() : FText::GetEmpty(); }

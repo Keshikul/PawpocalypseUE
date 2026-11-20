@@ -441,6 +441,11 @@ bool FPawPauseLookTest::RunTest(const FString& Parameters)
 		TestNotNull(TEXT("a slot button is wired"), M->GetSlotButton(I));
 	}
 	TestEqual(TEXT("the title"), S(M->GetTitleText()), FString(TEXT("PAUSED")));
+	// D18 (S4): the concept's pause, each main button with its icon, Continue on the yellow plate.
+	TestEqual(TEXT("Continue's icon"), M->GetButton(TEXT("ContinueButton"))->GetIconName(), FString(TEXT("ui_tab_reawaken")));
+	TestTrue(TEXT("drawn"), M->GetButton(TEXT("ContinueButton"))->IsIconShown());
+	TestEqual(TEXT("Back to Main Menu's"), M->GetButton(TEXT("MainMenuButton"))->GetIconName(), FString(TEXT("ui_quick_quit")));
+	TestTrue(TEXT("Continue on the yellow plate"), M->GetButton(TEXT("ContinueButton"))->HasCallLook());
 	TestTrue(TEXT("the main page"), M->IsPageShown(false) && !M->IsPageShown(true));
 	TestTrue(TEXT("Settings opens the settings dialog"), M->GetButton(TEXT("SettingsButton"))->GetIsEnabled());
 	TestFalse(TEXT("the discard hides until the quit is armed"), Shows(M->GetButton(TEXT("DiscardButton"))));

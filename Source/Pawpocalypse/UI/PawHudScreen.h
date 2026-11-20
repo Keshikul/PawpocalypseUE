@@ -61,6 +61,8 @@ public:
 	void Pump(double DeltaSeconds);
 	// The dock's rect for a HUD of this size (UI units), reported to the realm in field units when it changed.
 	void ReportDockForSize(const FVector2D& Size);
+	// D18 (S4, the UI concept's scrBoss): the boss panel beside the status panel where it fits, under it where not.
+	void PlaceBossPanel();
 	void SelectTab(Pc::PcDockTab Tab);
 	Pc::PcDockTab GetActiveTab() const;
 	// Whether tab I is shown (a hidden tab cannot be selected by its number key).
@@ -134,7 +136,12 @@ public:
 	// What the tests read (and only read).
 	UPawButton* GetRowButton(int32 Row) const { return Rows.IsValidIndex(Row) ? Rows[Row].Get() : nullptr; }
 	UPawButton* GetTabButton(Pc::PcDockTab Tab) const;
-	UPawButton* GetMultiplierButton() const { return MultiplierButton; }
+	// D18 (S4): the buy amount's switch, one button per amount (x1, x5, x10, Max: Pc::BuyMultipliers' order).
+	UPawButton* GetAmountButton(int32 Index) const { return AmountButtons.IsValidIndex(Index) ? AmountButtons[Index].Get() : nullptr; }
+	// The switch's button for the amount in use.
+	UPawButton* GetChosenAmountButton() const;
+	// Picks an amount (a press on its button).
+	void PickMultiplier(int64 Multiplier);
 	UPawButton* GetRealmButton(int32 Index) const { return RealmRows.IsValidIndex(Index) ? RealmRows[Index].Get() : nullptr; }
 	UPawButton* GetBaitButton() const { return BaitButton; }
 	UPawButton* GetAutoTravelButton() const { return AutoTravelButton; }
@@ -142,6 +149,8 @@ public:
 	UPawButton* GetCancelReawakenButton() const { return CancelButton; }
 	UPawButton* GetAskReawakenButton() const { return AskButton; }
 	UPawButton* GetCardRow(int32 Index) const { return CardRows.IsValidIndex(Index) ? CardRows[Index].Get() : nullptr; }
+	// D18 (S4): the card a Catches row shows (the rows are ordered: held, then open, then out of reach).
+	FString GetCardRowId(int32 Index) const { return CardRowIds.IsValidIndex(Index) ? CardRowIds[Index] : FString(); }
 	UPawButton* GetAutoPickButton() const { return AutoPickButton; }
 	UPawButton* GetClaimButton(int32 Index) const { return ClaimButtons.IsValidIndex(Index) ? ClaimButtons[Index].Get() : nullptr; }
 	UPawButton* GetClaimAllButton() const { return ClaimAllButton; }
@@ -153,6 +162,11 @@ public:
 	// An achievement row's two lines, and its mark's colour (★ ◆ ☆ in Godot: drawn as a disc until phase 6's art).
 	FText GetAchievementText(int32 Index, bool bDetail) const;
 	FLinearColor GetAchievementMark(int32 Index) const;
+	// D18 (S4): a row's progress bar (shown while it is still going) and its plate.
+	const UProgressBar* GetAchievementBar(int32 Index) const { return AchievementBars.IsValidIndex(Index) ? AchievementBars[Index].Get() : nullptr; }
+	const UBorder* GetAchievementPlate(int32 Index) const { return AchievementPlates.IsValidIndex(Index) ? AchievementPlates[Index].Get() : nullptr; }
+	// D18 (S4): a job's plate (yellow while worn).
+	const UBorder* GetJobPlate(int32 Index) const { return JobPlates.IsValidIndex(Index) ? JobPlates[Index].Get() : nullptr; }
 	FText GetJobText(int32 Index, bool bDetail) const;
 	FText GetStageText() const;
 	FText GetReawakenProgressText() const;
@@ -161,6 +175,8 @@ public:
 	FText GetMultiplierText() const;
 	FText GetCatnipMultiplierText() const;
 	UPawPounceClock* GetPounceClock() const { return PounceClock; }
+	// D18 (S4): "Pounce" and its key, on the plate beside the clock.
+	UWidget* GetPouncePlate() const;
 	UWidget* GetStatusRow() const;
 	UWidget* GetDock() const;
 	UWidget* GetBossPanel() const;
@@ -168,6 +184,10 @@ public:
 	FText GetStardustText() const;
 	FText GetZoneText() const;
 	FText GetWaveText() const;
+	FText GetBiomeNameText() const;
+	UWidget* GetFieldPlate() const;
+	// D18 (S4): the SHIELDED tag beside the boss's line.
+	bool IsBossShieldTagShown() const;
 	// The quick bar (phase 6 slice 5b): the presses, and what a test needs to see.
 	void PressQuickSettings();
 	void PressQuickSkills();
@@ -275,8 +295,8 @@ private:
 	TArray<TObjectPtr<UPawButton>> Tabs;
 	UPROPERTY()
 	TArray<TObjectPtr<UPawButton>> Rows;
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<UPawButton> MultiplierButton;
+	UPROPERTY()
+	TArray<TObjectPtr<UPawButton>> AmountButtons; // D18 (S4): Amount0..3
 	UPROPERTY()
 	TArray<TObjectPtr<UTextBlock>> PageTitles;
 	// Realms
@@ -288,6 +308,7 @@ private:
 	TObjectPtr<UPawButton> AutoTravelButton;
 	UPROPERTY()
 	TArray<TObjectPtr<UPawButton>> RealmRows;
+	TArray<FString> CardRowIds; // D18 (S4): which card each Catches row shows
 	// Reawaken
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawIconText> ReawakenProgressLine;
@@ -350,6 +371,12 @@ private:
 	UPROPERTY()
 	TArray<TObjectPtr<UImage>> AchievementIcons;
 	UPROPERTY()
+	TArray<TObjectPtr<UProgressBar>> AchievementBars; // D18 (S4)
+	UPROPERTY()
+	TArray<TObjectPtr<UBorder>> AchievementPlates; // D18 (S4)
+	UPROPERTY()
+	TArray<TObjectPtr<UBorder>> JobPlates; // D18 (S4)
+	UPROPERTY()
 	TArray<TObjectPtr<UBorder>> AchievementMarks;
 	UPROPERTY()
 	TArray<TObjectPtr<UPawButton>> ClaimButtons;
@@ -387,6 +414,13 @@ private:
 	TObjectPtr<UProgressBar> WaveBar;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> ZonePlate;
+	// D18 (S4): the status panel (the biome's name, the next biome's line, the wave line) and the level's plate.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UBorder> FieldPlate;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> BiomeName;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UBorder> XpPlate;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawRainbowFrame> ZoneReady; // the plate's rainbow outline (hud.gd zone_rainbow, "ZoneReady")
 	UPROPERTY(meta = (BindWidgetOptional))

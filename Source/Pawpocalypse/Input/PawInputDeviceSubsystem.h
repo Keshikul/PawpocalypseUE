@@ -125,6 +125,7 @@ public:
 
 	// The toast on screen, if any (the tests read it).
 	FText GetToastText() const;
+	UPawToast* GetToastWidget() const { return Toast; }
 	bool IsToastShown() const;
 
 	// _watch_for_pad_audio(): a pad connected after the boot window starts a watch: the output devices now, and again

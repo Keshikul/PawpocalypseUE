@@ -332,7 +332,7 @@ namespace
 			UPawHudScreen* H = Hud();
 			for (int32 I = 0; H && I < 20; ++I)
 			{
-				if (Focused(H->GetRowButton(I)) || Focused(H->GetMultiplierButton()))
+				if (Focused(H->GetRowButton(I)) || Focused(H->GetAmountButton(I % 4)))
 				{
 					return true;
 				}

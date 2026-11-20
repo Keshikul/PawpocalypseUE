@@ -146,6 +146,9 @@ namespace Pc
 		double FinalBossSeconds = 0.0;
 		int64_t Bosses = 0;               // bosses_defeated.size()
 		double LastPlayedUnix = 0.0;
+		// D18 (S4): what decides the save's evolution stage (EvolutionStageFor), so its card can show that cat.
+		std::set<std::string> BossesDefeated;
+		bool bFinalBossDefeated = false;
 	};
 	PAWCORE_API PcSlotSummary SlotSummary(const PcSaveState& S);
 

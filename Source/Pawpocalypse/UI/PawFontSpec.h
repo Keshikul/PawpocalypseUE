@@ -17,6 +17,8 @@ namespace PawFontSpec
 	inline const TCHAR* Font = TEXT("/Game/Pawpocalypse/Fonts/F_Paw.F_Paw");
 
 	inline const TArray<FFace> Faces = {
+		{ TEXT("FF_Nunito_Bold"), TEXT("Nunito-Bold.ttf"), TEXT("LazyLoad") },
+		{ TEXT("FF_Nunito_Black"), TEXT("Nunito-Black.ttf"), TEXT("LazyLoad") },
 		{ TEXT("FF_MPlusRounded1c_ExtraBold"), TEXT("MPLUSRounded1c-ExtraBold.ttf"), TEXT("LazyLoad") },
 		{ TEXT("FF_MPlusRounded1c_Black"), TEXT("MPLUSRounded1c-Black.ttf"), TEXT("LazyLoad") },
 		{ TEXT("FF_NotoSansCJK_Medium"), TEXT("NotoSansCJK-Medium.ttc"), TEXT("LazyLoad") },
@@ -24,13 +26,14 @@ namespace PawFontSpec
 	};
 
 	inline const TArray<FTypeface> Default = {
-		{ TEXT("Regular"), TEXT("/Game/Pawpocalypse/Fonts/FF_MPlusRounded1c_ExtraBold.FF_MPlusRounded1c_ExtraBold"), 0 },
-		{ TEXT("Bold"), TEXT("/Game/Pawpocalypse/Fonts/FF_MPlusRounded1c_ExtraBold.FF_MPlusRounded1c_ExtraBold"), 0 },
-		{ TEXT("Black"), TEXT("/Game/Pawpocalypse/Fonts/FF_MPlusRounded1c_Black.FF_MPlusRounded1c_Black"), 0 },
+		{ TEXT("Regular"), TEXT("/Game/Pawpocalypse/Fonts/FF_Nunito_Bold.FF_Nunito_Bold"), 0 },
+		{ TEXT("Bold"), TEXT("/Game/Pawpocalypse/Fonts/FF_Nunito_Bold.FF_Nunito_Bold"), 0 },
+		{ TEXT("Black"), TEXT("/Game/Pawpocalypse/Fonts/FF_Nunito_Black.FF_Nunito_Black"), 0 },
 	};
 
 	inline const TArray<FSubFont> SubFonts = {
-		{ TEXT("Japanese"), TEXT("ja"), TEXT(""), -1, { { 0x2E80, 0x2FDF }, { 0x3000, 0x303F }, { 0x3400, 0x4DBF }, { 0x4E00, 0x9FFF }, { 0xF900, 0xFAFF }, { 0xFF00, 0xFFEF }, { 0x20000, 0x2FA1F }, { 0x3040, 0x30FF }, { 0x31F0, 0x31FF } } },
+		{ TEXT("Japanese"), TEXT("ja"), TEXT("/Game/Pawpocalypse/Fonts/FF_MPlusRounded1c_ExtraBold.FF_MPlusRounded1c_ExtraBold"), 0, { { 0x2E80, 0x2FDF }, { 0x3000, 0x303F }, { 0x3400, 0x4DBF }, { 0x4E00, 0x9FFF }, { 0xF900, 0xFAFF }, { 0xFF00, 0xFFEF }, { 0x20000, 0x2FA1F }, { 0x3040, 0x30FF }, { 0x31F0, 0x31FF } } },
+		{ TEXT("Pseudo"), TEXT("xa"), TEXT("/Game/Pawpocalypse/Fonts/FF_MPlusRounded1c_ExtraBold.FF_MPlusRounded1c_ExtraBold"), 0, { { 0x0180, 0x024F }, { 0x1E00, 0x1EFF } } },
 		{ TEXT("Korean"), TEXT("ko"), TEXT("/Game/Pawpocalypse/Fonts/FF_NotoSansCJK_Medium.FF_NotoSansCJK_Medium"), 1, { { 0x1100, 0x11FF }, { 0x3130, 0x318F }, { 0xA960, 0xA97F }, { 0xAC00, 0xD7AF }, { 0xD7B0, 0xD7FF }, { 0x2E80, 0x2FDF }, { 0x3000, 0x303F }, { 0x3400, 0x4DBF }, { 0x4E00, 0x9FFF }, { 0xF900, 0xFAFF }, { 0xFF00, 0xFFEF }, { 0x20000, 0x2FA1F } } },
 		{ TEXT("ChineseSimplified"), TEXT("zh-Hans;zh-CN;zh-SG"), TEXT("/Game/Pawpocalypse/Fonts/FF_NotoSansCJK_Medium.FF_NotoSansCJK_Medium"), 2, { { 0x2E80, 0x2FDF }, { 0x3000, 0x303F }, { 0x3400, 0x4DBF }, { 0x4E00, 0x9FFF }, { 0xF900, 0xFAFF }, { 0xFF00, 0xFFEF }, { 0x20000, 0x2FA1F } } },
 		{ TEXT("ChineseTraditional"), TEXT("zh-Hant;zh-TW;zh-HK"), TEXT("/Game/Pawpocalypse/Fonts/FF_NotoSansCJK_Medium.FF_NotoSansCJK_Medium"), 3, { { 0x2E80, 0x2FDF }, { 0x3000, 0x303F }, { 0x3400, 0x4DBF }, { 0x4E00, 0x9FFF }, { 0xF900, 0xFAFF }, { 0xFF00, 0xFFEF }, { 0x20000, 0x2FA1F } } },

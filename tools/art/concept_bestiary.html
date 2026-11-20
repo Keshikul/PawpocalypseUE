@@ -1,0 +1,514 @@
+<title>Pawpocalypse Bestiary</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: one centred column (max 1180) in the Sticker Box world itself: grass page, cream card-stock panels, one ink, hard shadows.
+   A deliberate single-look page (it is the game's own look), so colours are set explicitly and do not follow the viewer's theme. */
+:root{
+  --grass:#D3E7BE; --paper:#FFF8EB; --paper2:#F4E7CF; --ink:#2A2131; --muted:#665A6E; --yellow:#FFC83D;
+  --f-display:"Fredoka","Nunito",system-ui,sans-serif; --f-body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--grass);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.08;margin:0;text-wrap:balance}
+p{margin:0}
+.card{background:var(--paper);border:3.5px solid var(--ink);border-radius:18px;box-shadow:5px 6px 0 var(--ink)}
+main{display:grid;gap:30px;padding-block:34px 70px}
+.head{padding:26px 28px 24px;display:grid;gap:12px}
+.head h1{font-size:clamp(40px,7vw,70px)}
+.head .lede{font-size:clamp(17px,2.1vw,19px);max-width:66ch}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-weight:800;font-size:14px;background:var(--paper2);border:2.5px solid var(--ink);border-radius:999px;padding:3px 12px;font-variant-numeric:tabular-nums}
+.pill.y{background:var(--yellow)}
+.faces{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:6px}
+.face{background:var(--paper2);border:2.5px solid var(--ink);border-radius:14px;padding:8px 12px 12px;display:grid;grid-template-columns:96px minmax(0,1fr);gap:4px 12px;align-items:center}
+.face svg{width:96px;height:auto;display:block}
+.face b{font-family:var(--f-display);font-size:18px;display:block}
+.face span{font-size:14px;color:var(--muted)}
+@media (max-width:860px){.faces{grid-template-columns:minmax(0,1fr)}}
+.sec-title{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.sec-title h2{font-size:clamp(28px,4vw,38px)}
+.sec-title p{color:#3D4A33;font-size:15px;max-width:70ch}
+.biomes{display:grid;gap:22px}
+.biome{padding:16px 18px 14px;display:grid;gap:10px;min-width:0}
+.bhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.num{font-family:var(--f-display);font-size:20px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--yellow);border:3px solid var(--ink);flex:none;font-variant-numeric:tabular-nums}
+.bhead h3{font-size:26px}
+.bmeta{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+.tag{font-size:13px;font-weight:800;border:2px solid var(--ink);border-radius:999px;padding:1px 10px;background:var(--paper2);white-space:nowrap}
+.tag.boss{background:#C93323;color:#FFFFFF}
+.strip{overflow-x:auto;border-radius:12px;border:2.5px solid var(--ink)}
+.strip svg{display:block;width:100%;min-width:680px;height:auto}
+.bnote{font-size:14px;color:var(--muted);max-width:90ch}
+.bosses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+@media (max-width:980px){.bosses{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.bosses{grid-template-columns:minmax(0,1fr)}}
+.boss{overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.boss .art{border-bottom:3.5px solid var(--ink)}
+.boss .art svg{display:block;width:100%;height:auto}
+.boss .txt{padding:12px 16px 16px;display:grid;gap:4px}
+.boss h3{font-size:23px}
+.boss .where{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.boss p{font-size:15px}
+.gristle{padding:16px 18px 16px;display:grid;gap:10px}
+.end{padding:22px 26px;display:grid;gap:10px}
+.end h2{font-size:28px}
+.end ul{margin:0;padding-left:20px;display:grid;gap:6px;max-width:80ch}
+.bob{transform-box:fill-box;transform-origin:50% 100%;animation:bob 1.7s ease-in-out infinite alternate}
+.jit{transform-box:fill-box;transform-origin:50% 100%;animation:jit .8s ease-in-out infinite alternate}
+@keyframes bob{from{transform:scale(1.035,.965)}to{transform:translateY(-1.5px) scale(.975,1.025)}}
+@keyframes jit{from{transform:rotate(-3deg) scale(1.02,.98)}to{transform:rotate(3deg) scale(.98,1.02)}}
+@media (prefers-reduced-motion: reduce){.bob,.jit{animation:none}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="rim" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="4.3" result="d"/>
+      <feFlood flood-color="#FFFDF6"/>
+      <feComposite in2="d" operator="in" result="r"/>
+      <feMerge><feMergeNode in="r"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7"/></filter>
+  </defs>
+</svg>
+
+<main class="wrap">
+  <section class="card head">
+    <h1>Bestiary</h1>
+    <p class="lede">Every enemy and boss in Pawpocalypse, redrawn in Sticker Box: one ink line, a white die-cut rim, two flat fills, toy-box colours. Each biome is shown on its own ground at game proportions, with the cat at that biome's stage for scale.</p>
+    <div class="pills"><span class="pill y">12 biomes</span><span class="pill">12 commons</span><span class="pill">12 signatures</span><span class="pill">12 gristles</span><span class="pill">2 fliers</span><span class="pill">1 golden mouse</span><span class="pill">5 bosses and the add</span></div>
+    <div class="faces" id="faces"></div>
+  </section>
+
+  <section class="biomes" aria-label="The twelve biomes">
+    <div class="sec-title"><h2>Biome by biome</h2><p>Each enemy fills a square of its sprite_target_px from Data/EnemyData.csv, so sizes match the game. The cat is drawn at an approximate size.</p></div>
+    <div class="biomes" id="biomes"></div>
+  </section>
+
+  <section class="biomes" aria-label="The gristle">
+    <div class="sec-title"><h2>The gristle, tier by tier</h2><p>One brute in every biome. It walks on its knuckles and heads for the cat. The spikes, lumps and scars grow with the biome, so a deep gristle looks it.</p></div>
+    <div class="card gristle"><div id="gristles" style="display:grid;gap:12px"></div></div>
+  </section>
+
+  <section class="biomes" aria-label="Bosses">
+    <div class="sec-title"><h2>Bosses</h2><p>Bosses are drawn at 230 px, three to four times an enemy, so they carry more detail. They are the only enemies that are not scared: brows down, sure of themselves. Each one is shown with an enemy from its biome for scale.</p></div>
+    <div class="bosses" id="bosses"></div>
+  </section>
+
+  <section class="card end">
+    <h2>What changed, and what is next</h2>
+    <ul>
+      <li>All 39 enemy drawings and 6 boss drawings are new, in one style. Each keeps the species cue the current art has: the vole has no ears, the pigeon has no neck, the seagull's wings are out, the ant has three segments, the hamster's cheeks are stuffed.</li>
+      <li>New jokes that read at 64 px: the factory rat has goggles, the add wears a plus because it heals the boss.</li>
+      <li>Fliers, golden mice and gristles keep one shared drawing each, as in the data. The bat replaces the flying mouse from City Rooftops on.</li>
+      <li>Next: every UI screen in this style, as concepts, before anything changes in Unreal.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const r2=v=>Math.round(v*100)/100;
+let LW=0,SC=1,UIDN=0;
+const uid=p=>p+'_'+(++UIDN);
+function hex2rgb(h){h=h.replace('#','');return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16));}
+function rgb2hex(a){return '#'+a.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');}
+function mix(a,b,t){const A=hex2rgb(a),B=hex2rgb(b);return rgb2hex(A.map((v,i)=>v+(B[i]-v)*t));}
+
+/* ---------- the Sticker Box look ---------- */
+const L={ink:'#2A2131',lineW:3.6,eyeLW:3,shadowOp:.32,
+ c:{eye:'#FFFFFF',pink:'#F58BA8',catFur:'#9B95A7',catBelly:'#ECE7EF',catStripe:'#6C6578',
+  mouseFur:'#C99A70',mouseBelly:'#F3DEC6',gold:'#FFC83D',goldBelly:'#FFF0A6',flierFur:'#9C8BCB',flierWing:'#6F5DA8',
+  mothBody:'#F5E9CC',mothWing:'#B7A3E8',mothWing2:'#8C76CF',gooseBody:'#FFFFFF',gooseWing:'#E4E1EC',gooseBeak:'#FF9B3D',
+  dogFur:'#E7A95C',dogSpot:'#94603F',roachShell:'#8E4B2E',roachBelly:'#C98053',dustFur:'#BAB3C4',dustDark:'#8B8399',
+  sludge:'#A9D24B',sludgeDark:'#719C2B',metal:'#B4C6D6',metalDark:'#71889B',plume:'#F2545B',visor:'#56E0E8',grip:'#8A5A3A',
+  uniWhite:'#FFFDF9',uniSnout:'#FFD1DE',horn:'#FFD447',hoof:'#8F86A8',rainbow:['#FF6B6B','#FFAE42','#FFE15C','#6BD48C','#58B6FF','#A88BFF'],
+  voidBody:'#3E2F72',voidMane:'#7DF0FF',voidStar:'#FFF3A0',lastBody:'#FFE6A0',halo:'#FFD447',crown:'#FFC83D',
+  vole:'#A88466',voleBelly:'#E8D3BC',rat:'#8E8494',ratBelly:'#DAD3DD',ratTail:'#E9A3B1',sewerRat:'#7F8C73',sewerBelly:'#CDD3BF',
+  slime:'#9ACD5E',slimeBelly:'#D6EEB4',facRat:'#9C948A',facBelly:'#DCD7CF',goggle:'#56E0E8',plaster:'#F5D9B0',
+  pigeon:'#A6AABB',pigeonWing:'#8B90A4',neckGreen:'#7FD0AE',neckPurple:'#B48BD6',footP:'#F28C9C',
+  seagull:'#FFFFFF',gullWing:'#B7BCCB',gullTip:'#3E3A4A',beakY:'#FFC83D',footO:'#FF9B3D',
+  croc:'#6FA85A',crocBelly:'#DCE7A8',toad:'#8E9C4C',toadWart:'#6E7B35',toadBelly:'#ECE3A8',
+  ghost:'#F1EEFC',ghostInner:'#C9BFF0',hound:'#8E80DA',houndSpot:'#5ED6E3',imp:'#E2617F',impBelly:'#F9C6D2',impWing:'#8E4A86',bone:'#FFF0C9',
+  crow:'#3F3752',crowWing:'#5C5275',crowBeak:'#2B2433',ant:'#C4482F',antShine:'#E98A6C',hamster:'#EDA85A',hamsterBelly:'#FFF3E2',seed:'#F4E2A8',
+  parrot:'#4DBA5C',parrotBelly:'#F5D64A',parrotWing:'#4A7FD4',parrotCrest:'#F2545B',cone:'#EAF4FA',
+  robot:'#B4C6D6',robotDark:'#71889B',wheel:'#3B3546',light:'#FF5A4F',bat:'#6E5E86',batWing:'#9C89BF',
+  gristle:'#D08478',gristleDeep:'#A9483F',gristleBelly:'#F0B8AC',tyrant:'#4F9F49',champ:'#3F3A48',champBelly:'#F2EEF4',champStripe:'#2A2532',
+  voidHorn:'#ECE6FF',voidIris:'#7DF0FF',hazard:'#FFC83D',robe:'#E0505A',kingBody:'#D8C67F',clump:'#CDBE92',add:'#B7A3E8',plusRed:'#F2545B'}};
+
+/* ---------- the drawing core ---------- */
+function at(o){let r='';for(const k in o){if(o[k]!==undefined&&o[k]!==null)r+=` ${k}="${o[k]}"`;}return r;}
+function lwOf(f){const base=(f.lw!==undefined)?f.lw:(f.noLine?0:LW);return base/SC;}
+function S(tag,a,fill,f={}){const ink=fill==='INK',col=ink?L.ink:fill,lw=ink?0:lwOf(f);return `<${tag}${at(a)} fill="${col}"${lw?` stroke="${L.ink}" stroke-width="${r2(lw)}" stroke-linejoin="round"`:''}/>`;}
+function T(d,w,fill,f={}){const ink=fill==='INK',col=ink?L.ink:fill,lw=ink?0:lwOf(f),b=` d="${d}" fill="none" stroke-linecap="round" stroke-linejoin="round"`;return (lw?`<path${b} stroke="${L.ink}" stroke-width="${r2(w+2*lw)}"/>`:'')+`<path${b} stroke="${col}" stroke-width="${w}"/>`;}
+function RING(cx,cy,rx,ry,w,col){const lw=lwOf({}),e=(sw,c)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${c}" stroke-width="${r2(sw)}"/>`;return (lw?e(w+2*lw,L.ink):'')+e(w,col);}
+function G(tx,ty,s,rot,fn,flip){const p=SC;SC=p*s;const r=fn();SC=p;return `<g transform="translate(${tx} ${ty})${rot?` rotate(${rot})`:''}${(s!==1||flip)?` scale(${flip?-s:s} ${s})`:''}">${r}</g>`;}
+const E=(cx,cy,rx,ry,f,o)=>S('ellipse',{cx,cy,rx,ry},f,o);
+const E2=(cx,cy,rx,ry,rot,f,o)=>S('ellipse',{cx,cy,rx,ry,transform:`rotate(${rot} ${cx} ${cy})`},f,o);
+const C=(cx,cy,r,f,o)=>S('circle',{cx,cy,r},f,o);
+const P=(d,f,o)=>S('path',{d},f,o);
+const R=(x,y,w,h,rx,f,o)=>S('rect',{x,y,width:w,height:h,rx},f,o);
+function star4(x,y,r){const k=r*0.2;return `M${x} ${y-r} Q${r2(x+k)} ${r2(y-k)} ${x+r} ${y} Q${r2(x+k)} ${r2(y+k)} ${x} ${y+r} Q${r2(x-k)} ${r2(y+k)} ${x-r} ${y} Q${r2(x-k)} ${r2(y-k)} ${x} ${y-r} Z`;}
+function scallop(cx,cy,r,n,b){let d='';for(let i=0;i<=n;i++){const a=i/n*Math.PI*2,x=r2(cx+r*Math.cos(a)),y=r2(cy+r*Math.sin(a));d+=i?`A${b} ${b} 0 0 1 ${x} ${y} `:`M${x} ${y} `;}return d+'Z';}
+const DROP='M0 -9 C 3 -4, 6 -1, 6 2.5 C 6 6, 3 8, 0 8 C -3 8, -6 6, -6 2.5 C -6 -1, -3 -4, 0 -9 Z';
+function eye(x,y,r,px=0,py=0){return C(x,y,r,L.c.eye,{lw:L.eyeLW})+C(r2(x+px*r*0.42),r2(y+py*r*0.42),r2(r*0.34),'INK');}
+function blob(x,y,s,col){return G(x,y,s,0,()=>P(DROP,col));}
+function spark(x,y,r,col){return P(star4(x,y,r),col,{lw:L.eyeLW*0.7});}
+/* bosses: confident, not scared. Pupils forward, brows down */
+function bossEyes(x1,y1,x2,y2,r){return C(x1,y1,r,L.c.eye,{lw:L.eyeLW})+C(x2,y2,r,L.c.eye,{lw:L.eyeLW})+C(r2(x1-r*.3),r2(y1+r*.12),r2(r*.38),'INK')+C(r2(x2-r*.3),r2(y2+r*.12),r2(r*.38),'INK')
+  +T(`M${r2(x1-r*1.15)} ${r2(y1-r*1.2)} L${r2(x1+r*.75)} ${r2(y1-r*.5)}`,3.8,'INK')+T(`M${r2(x2-r*.75)} ${r2(y2-r*.5)} L${r2(x2+r*1.15)} ${r2(y2-r*1.2)}`,3.8,'INK');}
+
+/* ---------- the cat (for scale) ---------- */
+function catFig(o={}){
+  const c=L.c,fur=o.fur||c.catFur,belly=o.belly||c.catBelly,stripe=o.stripe||c.catStripe,helmet=o.stage===2,cyber=o.stage===3;
+  const ears=()=>(o.splitEar?P('M-42 -63 L-47 -96 L-37 -85 L-31 -94 L-21 -77 Z',fur):P('M-42 -63 L-41 -95 L-21 -77 Z',fur))+P('M-9 -77 L-4 -87 L0 -84 L4 -97 L9 -68 Z',fur)+P('M-37.5 -70 L-37 -87 L-27 -77 Z',c.pink,{noLine:true})+P('M-2 -77 L3 -89 L6.5 -71 Z',c.pink,{noLine:true});
+  let s=T('M34 -16 C 56 -18, 60 -44, 47 -58',11,fur)+E(10,-27,34,27,fur)+T('M29 -50 C 34 -46, 36 -40, 33 -35',5,stripe,{noLine:true})+T('M40 -42 C 44 -38, 45 -33, 43 -29',5,stripe,{noLine:true})+E(-6,-19,16,14,belly,{noLine:true})+E(-19,-4.5,9.5,6,fur)+E(1,-4,9.5,6,fur);
+  if(helmet)s+=P('M-40 -80 L-45 -101 L-29 -90 Z',c.metal)+P('M-3 -90 L6 -104 L10 -84 Z',c.metal);else s+=ears();
+  if(o.neck)s+=o.neck();
+  s+=E(-17,-58,29,23,fur);
+  if(!helmet)s+=T('M-23 -79 L-22.5 -73',4,stripe,{noLine:true})+T('M-15 -80 L-15 -73.5',4,stripe,{noLine:true})+T('M-7 -78.5 L-7.5 -72.5',4,stripe,{noLine:true});
+  s+=E(-24,-47,13.5,8.5,belly,{noLine:true});
+  if(helmet)s+=T('M-17 -92 C -14 -104, -3 -109, 6 -105',7,c.plume)+P('M-49 -60 C -52 -100, 16 -100, 14 -62 C 4 -70, -6 -72, -17 -72 C -30 -72, -40 -68, -49 -60 Z',c.metal)+C(-40,-67,1.9,'INK')+C(6,-68,1.9,'INK')+C(-17,-75,1.9,'INK');
+  s+=C(-33,-60,9.5,c.eye,{lw:L.eyeLW})+C(-12,-61,10,c.eye,{lw:L.eyeLW})+C(-29.5,-59,2.9,'INK')+C(-15.5,-59.5,2.9,'INK');
+  if(cyber)s+=S('rect',{x:-47,y:-70,width:50,height:18,rx:9,'fill-opacity':0.55},c.visor)+T('M-13 -80 L-7 -98',2.6,'INK')+C(-6.5,-100,4.6,c.visor);
+  s+=T('M-44 -74 L-28 -68.5',4.4,'INK')+T('M-18 -69 L-1 -75',4.4,'INK')+E(-17,-40,3.6,4.4,c.pink,{lw:L.eyeLW*0.6})+P('M-28 -52.5 L-20 -52.5 L-24 -47.5 Z',c.pink,{lw:L.eyeLW*0.7})+T('M-36 -45 Q -24 -36 -11 -46',2.7,'INK')+P('M-30.5 -42.3 L-28.6 -37.6 L-26.8 -41.4 Z',c.eye,{lw:L.eyeLW*0.5})+T('M-40 -50 L-55 -53',1.7,'INK')+T('M-40 -46.5 L-54 -44.5',1.7,'INK');
+  if(!o.noWeapon){
+    if(helmet)s+=G(37,-24,1,32,()=>P('M-5 -5 L-5 -40 L0 -48 L5 -40 L5 -5 Z',c.metal)+R(-3,0,6,15,3,c.grip)+R(-12,-6,24,6,3,c.horn));
+    if(cyber)s+=G(38,-26,1,35,()=>R(-4,-38,8,24,3,c.visor)+E(0,-10,13,9,c.metal)+R(-7,-42,14,6,3,c.metalDark)+C(0,-10,3,c.plume));
+  }
+  return s;
+}
+function riderFig(stage){
+  const c=L.c,v=stage===4?'cavalry':stage===5?'alicorn':stage===6?'void':'last',body=v==='void'?c.voidBody:v==='last'?c.lastBody:c.uniWhite;
+  const far=mix(body,L.ink,.14),snout=v==='void'?mix(c.voidBody,'#FFFFFF',.32):c.uniSnout;
+  const mane=v==='void'?[c.voidMane,c.rainbow[5],c.voidMane,c.rainbow[5]]:v==='last'?[c.halo,c.rainbow[0],c.halo,c.rainbow[0]]:[c.rainbow[0],c.rainbow[1],c.rainbow[2],c.rainbow[4]];
+  const tail=v==='void'?[c.voidMane,c.rainbow[5],c.voidStar]:v==='last'?[c.halo,c.rainbow[0],c.uniWhite]:[c.rainbow[0],c.rainbow[2],c.rainbow[4]];
+  let s=T('M48 -54 C 68 -54, 74 -32, 64 -14',9,tail[0])+T('M50 -48 C 64 -46, 66 -30, 58 -18',6.5,tail[1])+T('M50 -43 C 58 -40, 58 -30, 53 -24',4.5,tail[2])+R(-10,-34,12,34,6,far)+R(26,-34,12,34,6,far)+E(14,-45,40,23,body);
+  s+=R(-22,-30,13,30,6.5,body)+R(32,-30,13,30,6.5,body)+R(-22,-7,13,7,3,c.hoof)+R(32,-7,13,7,3,c.hoof);
+  if(v!=='cavalry')s+=P('M10 -62 C 14 -100, 50 -126, 86 -116 C 80 -110, 84 -103, 75 -100 C 79 -93, 72 -88, 64 -88 C 64 -80, 54 -72, 40 -68 Z',v==='void'?mix(c.voidBody,'#FFFFFF',.24):c.uniWhite);
+  s+=G(22,-63,0.6,0,()=>catFig({stage:1,noWeapon:true}))+G(30,-70,1,30,()=>T('M0 6 L0 -66',5,c.grip)+P('M0 -58 L22 -52 L0 -46 Z',c.rainbow[0])+P('M-4.5 -64 L0 -80 L4.5 -64 Z',c.metal));
+  s+=P('M-30 -102 L-24 -119 L-19 -99 Z',body)+P('M-30 -52 C -40 -68, -42 -84, -32 -92 L -12 -88 C -14 -74, -10 -62, 0 -55 Z',body)+E(-38,-91,19,15,body);
+  s+=C(-21,-97,8,mane[0])+C(-14,-85,8,mane[1])+C(-9,-72,7.5,mane[2])+C(-6,-61,6.5,mane[3])+E(-52,-83,12.5,10,snout)+C(-59,-86,1.9,'INK');
+  s+=P('M-43 -104 L-51 -131 L-33 -106 Z',c.horn)+T('M-46 -112 L-38 -114',1.6,'INK')+T('M-48 -120 L-42 -121.5',1.6,'INK')+eye(-41,-94,7,-0.3,-0.9)+E(-49,-74,3.2,5,c.pink,{lw:L.eyeLW*0.6});
+  if(v==='last')s+=RING(-38,-122,15,4.5,3.6,c.halo);
+  return s;
+}
+const catStageFn=n=>n<=3?()=>catFig({stage:n}):()=>riderFig(n);
+
+/* ---------- enemies (100-unit box, feet at y=0, facing left; panic face) ---------- */
+function mouseFig(o={}){
+  const c=L.c,gold=!!o.gold,fur=gold?c.gold:(o.wing?c.flierFur:c.mouseFur),belly=gold?c.goldBelly:c.mouseBelly;
+  const WING='M4 -34 C 4 -58, 24 -74, 46 -68 C 41 -62, 44 -56, 37 -54 C 38 -47, 31 -44, 26 -45 C 24 -38, 15 -34, 8 -32 Z';
+  let s=T('M26 -12 C 46 -8, 54 -28, 42 -38',3.8,c.pink);
+  if(o.wing)s+=G(-12,-2,0.92,-16,()=>P(WING,mix(c.flierWing,L.ink,.18)));
+  s+=C(-12,-50,11.5,fur)+C(7,-47,10.5,fur)+C(-12,-50,6.4,c.pink,{noLine:true})+C(7,-47,5.8,c.pink,{noLine:true});
+  s+=E(6,-21,26,21,fur)+E(-14,-31,19,17,fur)+E(-2,-13,13,8,belly,{noLine:true})+E(-31,-27,9,7,fur)+C(-39.5,-28.5,3.8,c.pink);
+  s+=eye(-22,-36,7.5,-0.7,-0.6)+eye(-8,-38,7,0.75,0.45)+E(-26,-21.5,2.6,3.4,'INK')+E(-12,-2.5,7,4.5,fur)+E(14,-2.5,7,4.5,fur);
+  if(o.wing)s+=P(WING,c.flierWing);
+  if(gold&&o.spark!==false)s+=spark(-40,-56,6,c.gold)+spark(30,-64,4.6,c.gold)+spark(46,-24,5,c.gold);
+  
+  return s;
+}
+function voleFig(){const c=L.c,f=c.vole;
+  return T('M30 -12 L41 -16',5,f)+E(16,-3,8,4.5,c.pink)
+   +P('M-31 -15 C -35 -35, -14 -47, 6 -46 C 27 -45, 39 -32, 36 -16 C 34 -4, 20 0, 0 0 C -18 0, -29 -4, -31 -15 Z',f)+E(-2,-12,17,8,c.voleBelly,{noLine:true})
+   +E(-34,-21,10,8.5,f)+C(-43,-23,4.4,c.pink)+T('M-36 -16 L-48 -14',1.5,'INK')+T('M-36 -19 L-49 -20',1.5,'INK')
+   +eye(-22,-30,6.5,-0.7,-0.5)+eye(-10,-33,6,0.7,0.5)+E(-26,-12.5,2.2,3,'INK')
+   +E(-23,-2.5,11,5,c.pink)+T('M-31 -1 L-33 2',1.6,'INK')+T('M-26 0 L-27 3',1.6,'INK')+T('M-21 0 L-21 3',1.6,'INK');}
+function ratFig(o={}){const c=L.c,f=o.fur||c.rat,b=o.belly||c.ratBelly,tl=o.tail||c.ratTail;let s='';
+  if(o.melt)s+=E(6,-3,38,6,f);
+  s+=T('M30 -10 C 52 -6, 62 -20, 58 -36',6,tl)+T('M44 -12 L45 -6',1.4,'INK')+T('M53 -18 L58 -15',1.4,'INK')+T('M57 -28 L62 -28',1.4,'INK');
+  if(!o.melt)s+=E(20,-3,9,4.5,f);
+  s+=C(-10,-44,6.5,f)+C(-10,-44,3.6,c.pink,{noLine:true});
+  s+=P('M-14 -10 C -20 -30, -2 -50, 18 -44 C 36 -38, 38 -14, 30 -6 C 22 0, -6 0, -14 -10 Z',f)+E(4,-12,14,8,b,{noLine:true});
+  s+=P('M-6 -42 C -18 -48, -36 -38, -50 -28 C -44 -20, -26 -18, -8 -22 Z',f)+C(-50,-28,3.6,c.pink)+R(-45,-25,5,6,1.2,c.eye,{lw:1.3});
+  s+=eye(-26,-35,6,-0.7,-0.5)+eye(-15,-38,5.6,0.7,0.5)+T('M-40 -27 L-52 -24',1.4,'INK')+T('M-40 -24 L-51 -19',1.4,'INK');
+  if(!o.melt)s+=E(-12,-3,7,4,f);
+  else s+=blob(-16,-6,0.75,f)+blob(12,-4,0.65,f)+blob(30,-7,0.55,f)+C(14,-26,2.6,mix(f,L.ink,.2),{noLine:true})+C(4,-34,2,mix(f,L.ink,.2),{noLine:true});
+  if(o.goggles)s+=T('M-24 -46 L-4 -45',3,'INK')+C(-19,-47,5,c.goggle)+C(-9,-46.5,5,c.goggle)+C(-20,-48.5,1.6,'#FFFFFF',{noLine:true});
+  if(o.plaster)s+=G(4,-44,1,24,()=>R(-7,-3,14,6,2,c.plaster,{lw:1.6}))+C(24,-22,2.4,mix(f,L.ink,.25),{noLine:true});
+  return s;}
+function pigeonFig(){const c=L.c,g=c.pigeon,w=c.pigeonWing,bar=mix(w,L.ink,.45);
+  return T('M-4 -12 L-6 -2',3,c.footP)+T('M8 -12 L8 -2',3,c.footP)+T('M-12 -1 L0 -1',3,c.footP)+T('M2 -1 L14 -1',3,c.footP)
+   +P('M26 -24 L48 -20 L44 -11 L24 -13 Z',w)+E(4,-24,28,20,g)+E(-18,-39,15,14,g)
+   +E(-9,-30,11,7,c.neckGreen,{noLine:true})+E(-6,-27,7,4.5,c.neckPurple,{noLine:true})
+   +E(12,-25,17,11,w)+T('M6 -26 L22 -26',2.4,bar,{noLine:true})+T('M8 -20 L24 -20',2.4,bar,{noLine:true})
+   +P('M-31 -42 L-41 -38 L-31 -35 Z','#45404F',{lw:L.eyeLW*0.7})+E(-31,-41.5,2.6,1.8,'#F4F2F6',{noLine:true})
+   +eye(-23,-44,5.6,-0.6,-0.6)+eye(-14,-46,5.4,0.6,0.5);}
+function seagullFig(){const c=L.c,W='M-12 -46 C -28 -62, -50 -64, -66 -54 C -58 -50, -56 -46, -48 -44 C -46 -38, -34 -36, -18 -36 Z',TIP='M-66 -54 C -60 -58, -54 -58, -50 -56 C -54 -52, -58 -50, -62 -51 Z';
+  const wing=()=>P(W,c.gullWing)+P(TIP,c.gullTip,{noLine:true});
+  return wing()+G(0,0,1,0,wing,true)+T('M-6 -14 L-7 -3',3.4,c.footO)+T('M6 -14 L7 -3',3.4,c.footO)+P('M-15 -2 L-7 -6 L1 -2 Z',c.footO)+P('M-1 -2 L7 -6 L15 -2 Z',c.footO)
+   +E(0,-30,18,20,c.seagull)+E(0,-56,14,12.5,c.seagull)+eye(-6,-60,5,-0.6,-0.6)+eye(6,-60,5.4,0.6,0.5)
+   +P('M-5 -53 L5 -53 L0 -41 Z',c.beakY,{lw:L.eyeLW*0.8})+C(0,-45.5,1.6,'#E04F3A',{noLine:true});}
+/* the crocodile: long snout, a row of teeth, scutes down the back. Chunky, with the tail curled up behind,
+   so it fills its square instead of lying flat in it. */
+function crocFig(){const c=L.c,f=c.croc,sc=mix(f,L.ink,.15),far=mix(f,L.ink,.14);let s='';
+  s+=T('M20 -16 C 38 -16, 46 -28, 44 -42',12,f)+T('M44 -42 C 43 -52, 35 -55, 31 -48',7,f);
+  for(const [x,y] of [[-6,-33],[4,-34.5],[14,-33],[24,-28],[36,-30],[42,-40]])s+=P(`M${x-4} ${y+4} L${x} ${y-4} L${x+4} ${y+4} Z`,sc);
+  s+=E(-12,-6,8,5,far)+E(18,-6,8,5,far)+E(4,-18,26,16,f)+E(2,-8,18,5.5,c.crocBelly,{noLine:true});
+  s+=E(-18,-4,9,5,f)+E(14,-4,9,5,f)+T('M-25 -2 L-27 1',1.5,'INK')+T('M-20 -1 L-21 2',1.5,'INK')+T('M8 -2 L6 1',1.5,'INK')+T('M13 -1 L12 2',1.5,'INK');
+  s+=C(-24,-36,8.5,f)+C(-10,-37,8.5,f);
+  s+=P('M-8 -34 C -24 -40, -46 -34, -56 -24 C -58 -14, -48 -8, -30 -8 C -18 -8, -8 -14, -8 -22 Z',f);
+  s+=P('M-52 -17 L-50 -13 L-47 -17 L-44 -13 L-41 -17 L-38 -13 L-35 -17 L-32 -13 L-29 -17 L-26 -13 L-23 -17 Z',c.eye,{lw:1.3});
+  return s+C(-52,-28,1.6,'INK')+C(-48,-30,1.6,'INK')+eye(-24,-37.5,6.4,-0.6,-0.6)+eye(-10,-38.5,6.4,0.6,0.5);}
+function toadFig(){const c=L.c,f=c.toad,w=c.toadWart;
+  return E(22,-9,15,10,f)+E(30,-2.5,11,4,f)+E(4,-17,30,17,f)+E(-2,-7,19,6.5,c.toadBelly,{noLine:true})
+   +C(12,-24,3,w,{noLine:true})+C(22,-18,2.4,w,{noLine:true})+C(4,-28,2.2,w,{noLine:true})+C(26,-28,2.6,w,{noLine:true})
+   +C(-24,-36,8.5,f)+C(-8,-37,8.5,f)+E(-14,-25,21,13,f)+eye(-24,-37,6.6,-0.6,-0.6)+eye(-8,-38,6.6,0.6,0.5)
+   +T('M-33 -22 Q -20 -14 -4 -20',2.5,'INK')+E(-22,-3,9,4,f);}
+function ghostFig(){const c=L.c,g=c.ghost;
+  return T('M22 -26 C 34 -28, 40 -38, 34 -46',3.4,g)+C(-12,-66,10,g)+C(9,-64,9,g)+C(-12,-66,5.5,c.ghostInner,{noLine:true})+C(9,-64,5,c.ghostInner,{noLine:true})
+   +P('M-26 -12 C -30 -44, -20 -70, 0 -70 C 20 -70, 30 -44, 26 -12 Q 20 -4, 14 -12 Q 8 -20, 2 -12 Q -4 -4, -10 -12 Q -16 -20, -20 -12 Q -24 -4, -26 -12 Z',g)
+   +eye(-10,-46,8,-0.6,-0.6)+eye(8,-47,8.5,0.6,0.5)+E(-1,-31,3,4.2,'INK');}
+function houndFig(){const c=L.c,f=c.hound,far=mix(f,L.ink,.15),sp=c.houndSpot;
+  return T('M28 -40 C 38 -46, 40 -56, 36 -62',4,f)+T('M-10 -24 L-13 -2',6,far)+T('M22 -30 L26 -2',6,far)
+   +P('M-22 -42 C -26 -26, -16 -18, -2 -24 C 10 -28, 22 -30, 30 -36 C 34 -46, 24 -52, 10 -50 C -2 -50, -16 -52, -22 -42 Z',f)
+   +T('M-16 -26 L-19 -2',7,f)+T('M18 -32 L16 -2',7,f)+E(-21,-2,6,3.4,f)+E(14,-2,6,3.4,f)
+   +C(6,-40,3.4,sp,{noLine:true})+C(18,-38,2.6,sp,{noLine:true})+C(-8,-44,2.4,sp,{noLine:true})
+   +P('M-20 -62 L-14 -76 L-10 -60 Z',f)+E(-24,-56,13,11,f)+P('M-32 -60 C -44 -60, -56 -56, -60 -50 C -56 -45, -44 -45, -32 -48 Z',f)
+   +E(-60,-51,3.6,3,'INK')+eye(-28,-60,5.4,-0.6,-0.6)+eye(-19,-61,5.2,0.6,0.5)+E(-44,-44,2,2.8,'INK');}
+function impFig(){const c=L.c,f=c.imp,h=c.bone;
+  return T('M14 -16 C 30 -12, 38 -24, 34 -36',3.6,f)+P('M34 -46 L41 -36 L34 -31 L27 -36 Z',f)
+   +P('M6 -40 C 12 -58, 28 -66, 40 -60 C 34 -56, 36 -52, 30 -50 C 30 -46, 24 -44, 16 -44 Z',c.impWing)
+   +T('M-6 -18 C -10 -10, -4 -8, -8 -3',7,f)+T('M8 -18 C 12 -10, 6 -8, 10 -3',7,f)+R(-13,-5,10,5,2.5,'#3B3546')+R(5,-5,10,5,2.5,'#3B3546')
+   +E(0,-28,16,15,f)+E(-2,-25,9,8,c.impBelly,{noLine:true})+P('M6 -56 L22 -64 L12 -47 Z',f)
+   +P('M-17 -61 C -22 -71, -18 -78, -13 -81 C -13 -73, -11 -67, -8 -63 Z',h)+P('M3 -63 C 4 -71, 8 -77, 13 -78 C 11 -71, 10 -66, 8 -61 Z',h)
+   +E(-5,-50,17,15,f)+eye(-13,-52,6.4,-0.6,-0.5)+eye(-1,-53,6,0.6,0.5)+E(-8,-40,2.3,3,'INK')+E(-14,-30,4,3.4,f)+E(10,-30,4,3.4,f);}
+function crowFig(){const c=L.c,f=c.crow;
+  return T('M-2 -10 L-4 -2',3,'#8F86A8')+T('M8 -10 L8 -2',3,'#8F86A8')+T('M-10 -1 L2 -1',3,'#8F86A8')+T('M2 -1 L14 -1',3,'#8F86A8')
+   +P('M24 -26 L48 -32 L46 -18 L26 -12 Z',f)+E(4,-26,26,20,f)+P('M-2 -34 L30 -38 L34 -22 L6 -16 Z',c.crowWing)
+   +P('M-24 -56 L-20 -66 L-16 -56 Z',f)+P('M-16 -57 L-10 -66 L-8 -55 Z',f)+E(-18,-44,15,14,f)
+   +P('M-30 -48 L-52 -42 L-30 -37 Z',c.crowBeak,{lw:L.eyeLW*0.8})+eye(-22,-46,5.6,-0.6,-0.6)+eye(-12,-47,6,0.6,0.5)+eye(-17,-56,3.6,0,-0.7)
+   +spark(-40,-62,4.4,c.voidStar)+spark(32,-44,3.6,c.voidStar);}
+function antFig(){const c=L.c,f=c.ant;
+  return T('M-2 -20 L-10 -12 L-14 -2',2.4,'INK')+T('M2 -20 L4 -10 L0 -2',2.4,'INK')+T('M4 -20 L16 -12 L20 -2',2.4,'INK')
+   +E(22,-20,17,13,f)+E(24,-26,7,3,c.antShine,{noLine:true})+E(0,-22,9,8,f)
+   +T('M-22 -38 L-26 -52 L-36 -56',2.4,'INK')+T('M-14 -39 L-14 -54 L-4 -60',2.4,'INK')+E(-18,-28,13,12,f)
+   +P('M-29 -22 C -36 -24, -38 -18, -34 -15 L-30 -19 Z',mix(f,L.ink,.3),{lw:L.eyeLW*0.6})+eye(-22,-31,5.6,-0.6,-0.6)+eye(-13,-32,5.6,0.6,0.5)
+   +T('M-4 -18 L-14 -10 L-20 -2',2.8,'INK')+T('M0 -16 L-2 -8 L-6 -2',2.8,'INK')+T('M4 -18 L12 -10 L14 -2',2.8,'INK');}
+function hamsterFig(){const c=L.c,f=c.hamster,b=c.hamsterBelly;
+  return C(-13,-55,6,f)+C(13,-55,6,f)+C(-13,-55,3.2,c.pink,{noLine:true})+C(13,-55,3.2,c.pink,{noLine:true})+E(-10,-2.5,7,4,c.pink)+E(10,-2.5,7,4,c.pink)
+   +E(0,-26,25,25,f)+E(0,-18,15,15,b,{noLine:true})+E(0,-45,20,15,f)+E(-15,-38,10,8.5,b)+E(15,-38,10,8.5,b)
+   +E(0,-27,5,6.5,c.seed,{lw:L.eyeLW*0.7})+E(-6,-29,4,3.4,c.pink)+E(6,-29,4,3.4,c.pink)
+   +eye(-7,-49,5.6,-0.6,-0.6)+eye(7,-49,6,0.6,0.5)+C(0,-42,2.2,c.pink,{noLine:true})+E(0,-37.5,1.8,2.4,'INK');}
+function parrotFig(){const c=L.c,g=c.parrot,ft='#8F86A8';
+  return P('M16 -22 L40 -6 L33 1 L10 -14 Z',c.parrotWing)+T('M-4 -8 L-6 -2',3,ft)+T('M6 -8 L6 -2',3,ft)+T('M-12 -1 L0 -1',3,ft)+T('M0 -1 L12 -1',3,ft)
+   +E(4,-26,18,21,g)+E(-2,-20,10,13,c.parrotBelly,{noLine:true})+E(11,-26,10,15,c.parrotWing)
+   +P('M-2 -60 C 0 -74, 8 -80, 14 -78 C 8 -72, 6 -66, 4 -60 Z',c.parrotCrest)+P('M2 -60 C 8 -70, 16 -72, 20 -68 C 14 -66, 10 -62, 8 -58 Z',c.parrotCrest)
+   +E(-6,-50,14,13,g)+P('M-17 -55 C -27 -55, -29 -44, -23 -38 C -23 -44, -19 -46, -15 -47 Z','#3A3448')+E(-15,-47,4,3,'#57506A')
+   +eye(-9,-54,5.4,-0.6,-0.6)+eye(0,-55,5.2,0.6,0.5);}
+function robotFig(){const c=L.c,m=c.robot,d=c.robotDark;
+  return T('M22 -26 L34 -26',3,d)+P('M34 -34 C 44 -38, 46 -24, 36 -24 C 46 -24, 44 -12, 34 -16 Z',m)
+   +C(-16,-44,10,m)+C(6,-46,9,m)+C(-16,-44,3,d)+C(6,-46,2.6,d)+C(-13,-7,7.5,c.wheel)+C(13,-7,7.5,c.wheel)
+   +R(-28,-40,52,32,8,m)+T('M-24 -22 L20 -22',1.6,mix(m,L.ink,.35),{noLine:true})+C(-23,-35,1.6,'INK')+C(19,-35,1.6,'INK')+C(-23,-13,1.6,'INK')+C(19,-13,1.6,'INK')
+   +P('M-28 -32 L-42 -26 L-28 -20 Z',m)+C(-43,-26,4.2,c.light)+C(-13,-7,2.6,m,{noLine:true})+C(13,-7,2.6,m,{noLine:true})
+   +eye(-17,-30,6,-0.6,-0.6)+eye(-4,-31,6.4,0.6,0.5);}
+function batFig(){const c=L.c,f=c.bat,w=c.batWing,bn=mix(w,L.ink,.5),W='M-10 -44 C -26 -60, -48 -64, -60 -52 C -54 -48, -52 -44, -48 -42 C -46 -36, -40 -34, -34 -36 C -30 -30, -22 -30, -12 -34 Z';
+  const wing=()=>P(W,w)+T('M-12 -42 L-58 -52',1.5,bn,{noLine:true})+T('M-12 -40 L-47 -42',1.5,bn,{noLine:true})+T('M-12 -38 L-34 -36',1.5,bn,{noLine:true});
+  return wing()+G(0,0,1,0,wing,true)+P('M-12 -54 L-14 -72 L-2 -58 Z',f)+P('M12 -54 L14 -72 L2 -58 Z',f)+P('M-11 -57 L-12 -67 L-5 -59 Z',c.pink,{noLine:true})+P('M11 -57 L12 -67 L5 -59 Z',c.pink,{noLine:true})
+   +E(0,-38,13,15,f)+E(0,-34,7,8,mix(f,'#FFFFFF',.3),{noLine:true})+eye(-5.5,-44,5,-0.6,-0.6)+eye(5.5,-44,5.4,0.6,0.5)
+   +E(0,-34.5,2.4,3,'INK')+P('M-4 -32 L-3 -28 L-2 -32 Z',c.eye,{lw:1})+P('M2 -32 L3 -28 L4 -32 Z',c.eye,{lw:1})+T('M-4 -24 L-5 -21',2.4,f)+T('M4 -24 L5 -21',2.4,f);}
+function mothFig(){const c=L.c;
+  return T('M-5 -54 C -8 -66, -14 -72, -21 -72',2.4,'INK')+T('M5 -54 C 8 -66, 14 -72, 21 -72',2.4,'INK')+C(-22,-72,3.8,c.mothWing2)+C(22,-72,3.8,c.mothWing2)
+   +E2(-19,-48,21,14,-32,c.mothWing)+E2(19,-48,21,14,32,c.mothWing)+E2(-16,-22,14,10,24,c.mothWing2)+E2(16,-22,14,10,-24,c.mothWing2)
+   +C(-24,-52,5,c.mothWing2,{noLine:true})+C(24,-52,5,c.mothWing2,{noLine:true})+E(-6,-3,5.5,3.5,c.mothBody)+E(6,-3,5.5,3.5,c.mothBody)
+   +E(0,-30,15,24,c.mothBody)+E(0,-46,11,5.5,mix(c.mothBody,'#FFFFFF',.5),{noLine:true})+eye(-6,-36,6.5,-0.6,0.5)+eye(6.5,-37,6,0.6,-0.6)+E(0,-23,2.3,3.2,'INK');}
+function gooseFig(o={}){const c=L.c,b=o.fur||c.gooseBody,wing=o.fur?mix(o.fur,L.ink,.16):c.gooseWing,bk=c.gooseBeak;
+  return T('M2 -10 L2 -3',3.6,bk)+T('M22 -10 L22 -3',3.6,bk)+E(-1,-2,8,3.4,bk)+E(19,-2,8,3.4,bk)+P('M36 -36 L54 -46 L48 -28 Z',b)
+   +E(16,-25,30,19,b)+E(22,-27,17,10,wing)+T('M-2 -32 C -10 -46, -2 -58, -10 -70',13,b)+E(-12,-73,12.5,11,b)
+   +P('M-22 -78 L-41 -78 L-24 -71 Z',bk)+P('M-23 -69 L-38 -65 L-22 -64 Z',bk)+eye(-17,-78,5.4,-0.6,-0.5)+eye(-7.5,-79,5.8,0.6,0.5);}
+function dogFig(){const c=L.c,f=c.dogFur,far=mix(f,L.ink,.14);
+  return T('M36 -30 C 46 -38, 50 -48, 45 -57',7,f)+R(-2,-22,10,22,5,far)+R(30,-22,10,22,5,far)+E(12,-25,30,18,f)+E(20,-31,11,7,c.dogSpot,{noLine:true})
+   +R(-12,-18,11,18,5.5,f)+R(20,-18,11,18,5.5,f)+E(-36,-27,4,6,c.pink,{lw:L.eyeLW*0.6})+E(-17,-43,21,18,f)+E(-35,-36,13,9.5,mix(f,'#FFFFFF',.55))
+   +E(-46.5,-40,4.6,3.6,'INK')+P('M-12 -60 C 0 -64, 7 -54, 3 -38 C -1 -33, -8 -37, -8 -46 Z',c.dogSpot)+eye(-27,-49,6.5,-0.6,0.5)+eye(-13.5,-51,7,0.7,-0.45);}
+function roachFig(){const c=L.c;let s='';
+  for(const x of [-2,12,26])s+=T(`M${x+5} -12 L${x+9} -1`,2.4,'INK');
+  s+=T('M-30 -26 C -44 -40, -42 -56, -26 -62',2,'INK')+T('M-25 -29 C -34 -46, -26 -58, -12 -62',2,'INK')+E(8,-20,30,15,c.roachShell)
+   +T('M-14 -24 C 4 -34, 22 -34, 37 -22',2.2,mix(c.roachShell,L.ink,.35),{noLine:true})+E(12,-28,10,3,mix(c.roachShell,'#FFFFFF',.35),{noLine:true});
+  for(const x of [-2,12,26])s+=T(`M${x} -8 L${x-5} -1`,2.8,'INK');
+  return s+E(-22,-19,12.5,11.5,c.roachBelly)+eye(-27,-23,5.6,-0.6,-0.5)+eye(-17.5,-24.5,5.9,0.6,0.5)+E(-30,-13,1.9,2.5,'INK');}
+function dustFig(){const c=L.c,f=c.dustFur;
+  return E2(-10,-66,6.5,17,-12,f)+E2(18,-58,6,15,64,f)+E2(-10,-66,3,11,-12,c.pink,{noLine:true})+E2(18,-58,2.8,10,64,c.pink,{noLine:true})
+   +E(-10,-3,7,4,f)+E(10,-3,7,4,f)+P(scallop(0,-34,26,14,6.4),f)
+   +C(-33,-54,2.2,c.dustDark,{noLine:true})+C(31,-14,2,c.dustDark,{noLine:true})+C(35,-48,1.6,c.dustDark,{noLine:true})+C(-35,-22,1.8,c.dustDark,{noLine:true})
+   +eye(-9,-38,8.5,-0.6,-0.6)+eye(9.5,-39,9,0.65,0.5)+E(0,-24,2.5,3.3,'INK');}
+function sludgeFig(){const c=L.c,g=c.sludge,d=c.sludgeDark;
+  return E(4,-6,42,8,g)+T('M26 -10 C 40 -18, 44 -34, 36 -44',7,g)+P('M-20 -50 L-23 -70 L-9 -56 Z',g)+P('M1 -56 C 9 -59, 15 -55, 18 -46 L 5 -50 Z',g)
+   +P('M-30 -6 C -34 -28, -27 -54, -8 -57 C 12 -59, 26 -36, 30 -6 Z',g)+C(12,-28,4,d,{noLine:true})+C(18,-16,3,d,{noLine:true})+C(-16,-15,3.4,d,{noLine:true})+C(-2,-47,2.4,d,{noLine:true})
+   +blob(-34,-16,0.7,g)+eye(-14,-41,7,-0.5,-0.6)+eye(1,-37,6,0.5,0.6)+E(-7,-27,2.4,3.4,'INK');}
+/* the gristle: a brute that walks on its knuckles. High shoulders, a small head sunk low in front of them, long thick arms,
+   a back that slopes down to small hips and short hind legs. Spikes run along the back ridge; they, the lumps and the scars
+   grow with the tier. */
+function bz(p,t){const u=1-t;return [u*u*u*p[0][0]+3*u*u*t*p[1][0]+3*u*t*t*p[2][0]+t*t*t*p[3][0],u*u*u*p[0][1]+3*u*u*t*p[1][1]+3*u*t*t*p[2][1]+t*t*t*p[3][1]];}
+function gristleFig(t=0){const c=L.c,f=mix(c.gristle,c.gristleDeep,t),dk=mix(f,L.ink,.22);let s='';
+  const A=[[-30,-42],[-32,-64],[-10,-76],[8,-72]],B=[[8,-72],[26,-68],[40,-52],[42,-34]];
+  const pt=u=>{u=Math.max(0,Math.min(1,u));return u<.5?bz(A,.45+u*1.1):bz(B,(u-.5)*1.8);};
+  const nrm=u=>{const a=pt(u-.01),b=pt(u+.01),dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;return [dy/l,-dx/l];};
+  const nS=2+Math.round(t*5),nL=Math.round(t*3);
+  for(let i=0;i<nS;i++){const u=.14+i*(.78/(nS-1)),p=pt(u),n=nrm(u),tx=-n[1],ty=n[0],h=8+t*9,w=5.5;
+    s+=P(`M${r2(p[0]-tx*w-n[0]*4)} ${r2(p[1]-ty*w-n[1]*4)} L${r2(p[0]+n[0]*h)} ${r2(p[1]+n[1]*h)} L${r2(p[0]+tx*w-n[0]*4)} ${r2(p[1]+ty*w-n[1]*4)} Z`,c.bone);}
+  for(let i=0;i<nL;i++){const u=.56+i*.15,p=pt(u),n=nrm(u);s+=C(r2(p[0]-n[0]*1.5),r2(p[1]-n[1]*1.5),r2(5+t*3),f);}
+  s+=T('M-4 -52 C -4 -36, 0 -22, 0 -8',13,dk)+E(0,-6,9,6,dk)+E(24,-12,9,7,dk)+E(26,-3,9,4,dk);
+  s+=P('M-30 -42 C -32 -64, -10 -76, 8 -72 C 26 -68, 40 -52, 42 -34 C 44 -20, 36 -12, 26 -12 C 16 -12, 8 -20, -2 -22 C -16 -24, -28 -30, -30 -42 Z',f);
+  s+=E(-14,-34,13,11,c.gristleBelly,{noLine:true});
+  s+=T('M2 -62 L14 -52',1.8,'INK')+T('M5 -55 L10 -59',1.4,'INK');
+  if(t>.35)s+=T('M22 -46 L32 -38',1.8,'INK')+T('M25 -40 L29 -44',1.4,'INK');
+  if(t>.7)s+=T('M10 -40 L16 -30',1.8,'INK')+T('M11 -34 L15 -36',1.4,'INK');
+  s+=E(32,-18,11,10,f)+E(36,-4,11,5,f);
+  s+=E(-38,-40,12,11,f)+G(-38,-51,1,-20,()=>R(-7,-2.5,14,5,2,c.plaster,{lw:1.5}));
+  s+=eye(-44,-42,4.8,-0.6,-0.5)+eye(-35,-43,4.6,0.6,0.5)+E(-41,-33,2,2.6,'INK')+P('M-47 -30 L-46 -35 L-44 -30 Z',c.eye,{lw:1})+P('M-38 -29.5 L-37 -34.5 L-35 -29.5 Z',c.eye,{lw:1});
+  s+=T('M-14 -54 C -24 -40, -26 -22, -22 -8',16,f)+E(-23,-6,11,7,f)+T('M-29 -7 L-29 -3',1.4,'INK')+T('M-24 -8 L-24 -3',1.4,'INK')+T('M-19 -7 L-19 -3',1.4,'INK');
+  return s;}
+
+/* ---------- bosses ---------- */
+function tyrantFig(){const c=L.c,f=c.tyrant,wk=mix(f,L.ink,.18),bk=c.gooseBeak,WG='M14 -62 C 4 -108, 50 -132, 86 -104 C 76 -100, 80 -92, 70 -88 C 76 -80, 68 -74, 60 -74 C 62 -66, 50 -60, 40 -60 Z';
+  return G(-26,6,0.85,-14,()=>P(WG,mix(wk,L.ink,.1)))+P(WG,wk)+T('M30 -76 L62 -98',2,mix(wk,L.ink,.4),{noLine:true})+T('M34 -68 L66 -84',2,mix(wk,L.ink,.4),{noLine:true})
+   +T('M-6 -22 L-14 -4',5,bk)+T('M30 -22 L40 -4',5,bk)+P('M-28 -1 L-14 -8 L-4 -1 Z',bk)+P('M30 -1 L40 -8 L52 -1 Z',bk)
+   +E(14,-42,42,28,f)+E(22,-44,24,14,wk)+T('M-18 -50 C -36 -56, -52 -46, -64 -42',18,f)+E(-72,-44,17,14,f)
+   +P('M-84 -52 L-114 -48 L-86 -42 Z',bk)+P('M-84 -38 L-108 -30 L-82 -31 Z',bk)+E(-96,-38.5,8,3,c.pink,{noLine:true})+bossEyes(-80,-51,-67,-52,6);}
+function championFig(){const c=L.c;
+  return catFig({stage:1,fur:c.champ,belly:c.champBelly,stripe:c.champStripe,noWeapon:true,splitEar:true,neck:()=>T('M-34 -40 L-20 -24',4.5,'#E0505A')+T('M-4 -40 L-16 -24',4.5,'#E0505A')+C(-18,-21,7.5,c.halo)+P(star4(-18,-21,4.2),'#FFFFFF',{noLine:true})});}
+function voidFig(){const c=L.c,v=c.voidBody;let s='';
+  for(const [d,w] of [['M-30 -40 C -40 -20, -30 -6, -42 6',9],['M-12 -36 C -16 -16, -4 -4, -10 12',10],['M8 -36 C 10 -14, 22 -6, 18 10',10],['M26 -40 C 36 -22, 30 -8, 40 4',9],['M40 -50 C 54 -40, 56 -24, 62 -18',8]])s+=T(d,w,mix(v,'#FFFFFF',.1));
+  for(const [x,h,a] of [[-36,24,-22],[-20,34,-9],[-2,44,0],[16,30,10],[32,22,22],[44,16,32]])s+=G(x,r2(-96+Math.abs(x)*0.3),1,a,()=>P(`M-6 6 L0 ${-h} L6 6 Z`,c.voidHorn));
+  s+=P('M-46 -60 C -58 -92, -20 -110, 6 -104 C 34 -110, 62 -88, 56 -60 C 66 -40, 44 -24, 20 -30 C 6 -22, -18 -26, -28 -34 C -48 -30, -56 -44, -46 -60 Z',v);
+  s+=[[-30,-82,3.4],[40,-84,2.8],[32,-46,3.2],[-38,-48,2.6],[10,-97,2.4],[-14,-40,2.8],[46,-66,2.2]].map(([x,y,r])=>P(star4(x,y,r),c.voidStar,{noLine:true})).join('');
+  s+=C(2,-72,20,c.eye,{lw:L.eyeLW})+C(-4,-70,10.5,c.voidIris,{noLine:true})+C(-5,-70,5,'INK')+C(-1,-74.5,2.2,'#FFFFFF',{noLine:true});
+  s+=eye(-30,-64,5,0.6,-0.5)+eye(34,-72,6,-0.7,0.4)+eye(-18,-92,4,0.4,0.6)+eye(28,-94,4.4,-0.5,-0.6)+eye(46,-54,3.6,0.6,0.6);
+  return s+P('M-16 -42 C -6 -32, 14 -32, 22 -44 C 14 -37, -4 -37, -16 -42 Z','#120E24',{lw:L.eyeLW*0.8})+P('M-10 -40.6 L-8 -37 L-6 -39.6 L-3 -36.4 L0 -39.2 L3 -36.4 L6 -39.4 L9 -37 L12 -40.4 Z',c.eye,{lw:1});}
+function foremanFig(){const c=L.c,f=c.gristle,dk=mix(f,L.ink,.2),m=c.metal,md=c.metalDark;
+  return T('M30 -20 C 50 -18, 58 -30, 56 -44',12,f)+R(46,-30,10,8,2,md)+R(-22,-24,18,24,8,dk)+R(10,-24,18,24,8,dk)+E(-14,-3,12,5,dk)+E(19,-3,12,5,dk)
+   +E(0,-56,38,40,f)+E(2,-44,22,22,c.gristleBelly,{noLine:true})+R(-10,-64,30,18,4,m)+C(-6,-60,1.8,md)+C(16,-60,1.8,md)+C(-6,-50,1.8,md)+C(16,-50,1.8,md)
+   +T('M8 -78 L24 -66',2,'INK')+T('M12 -72 L16 -76',1.5,'INK')+T('M17 -68 L21 -72',1.5,'INK')
+   +G(22,-82,1,35,()=>R(-4.5,-58,9,66,4.5,md)+P('M-12 -60 C -12 -54, 12 -54, 12 -60 L12 -70 C 12 -76, 8 -80, 4 -80 L4 -70 L-4 -70 L-4 -80 C -8 -80, -12 -76, -12 -70 Z',m))
+   +E(22,-80,11,10,f)+E(-10,-92,22,18,f)+P('M-34 -100 C -34 -126, 14 -126, 14 -100 Z',c.hazard)
+   +T('M-24 -104 L-18 -116',3.4,'INK')+T('M-12 -104 L-6 -118',3.4,'INK')+T('M0 -104 L5 -113',3.4,'INK')+R(-38,-103,56,6,3,c.hazard)+C(-30,-109,5,'#FFF3A0')
+   +bossEyes(-20,-91,-6,-92,6.5)+T('M-24 -79 Q -12 -73 0 -79',2.6,'INK')+P('M-20 -78 L-18 -73 L-16 -77.4 Z',c.eye,{lw:1})+P('M-6 -77.6 L-4 -73 L-2 -78.4 Z',c.eye,{lw:1});}
+function kingFig(){const c=L.c,b=c.kingBody;let s=P(scallop(0,-66,56,16,12),c.clump);
+  for(const [x,y] of [[-44,-10],[-22,-6],[22,-6],[44,-10]])s+=P(scallop(x,y,12,8,5),c.clump);
+  s+=P('M-40 -60 C -56 -30, -52 -6, -40 -2 L40 -2 C 52 -6, 56 -30, 40 -60 Z',c.robe)+E(-18,-4,12,6,b)+E(18,-4,12,6,b)+E(0,-38,36,30,b)+E(0,-30,24,17,mix(b,'#FFFFFF',.45),{noLine:true});
+  s+=P('M-34 -62 C -20 -50, 20 -50, 34 -62 C 30 -70, -30 -70, -34 -62 Z','#FFFFFF')+[[-22,-60],[-8,-57],[8,-57],[22,-60]].map(([x,y])=>E(x,y,1.6,2.6,'INK')).join('');
+  s+=P('M-6 -50 L-2 -41 L2 -41 L6 -50 Z',c.robe,{lw:1.5})+C(0,-36,6,c.crown)+P(star4(0,-36,3.4),'#FFFFFF',{noLine:true});
+  s+=P('M-26 -92 L-25 -112 L-11 -101 Z',b)+P('M26 -92 L25 -112 L11 -101 Z',b)+E(0,-84,28,23,b)+P('M-22 -102 L-27 -130 L-12 -112 L0 -134 L12 -112 L27 -130 L22 -102 Z',c.crown);
+  s+=C(0,-115,3.8,c.rainbow[0])+C(-15,-109,3,c.rainbow[4])+C(15,-109,3,c.rainbow[3])+bossEyes(-10,-86,10,-87,8)+T('M-10 -71 Q 0 -66 10 -71',2.6,'INK');
+  return s+G(46,-46,1,22,()=>T('M0 8 L0 -42',5,c.grip)+P('M-13 -42 L13 -42 L11 -66 L-11 -66 Z',c.rainbow[4])+T('M-5 -48 L-4 -61',2,'INK')+T('M0 -48 L0 -61',2,'INK')+T('M5 -48 L4 -61',2,'INK'))+E(42,-46,7,6,b);}
+function addFig(){const c=L.c,f=c.add;
+  return E(-8,-3,6,4,f)+E(8,-3,6,4,f)+E(0,-20,19,17,f)+E(0,-14,11,8,mix(f,'#FFFFFF',.5),{noLine:true})
+   +P('M12 -46 L17 -46 L17 -41 L22 -41 L22 -36 L17 -36 L17 -31 L12 -31 L12 -36 L7 -36 L7 -41 L12 -41 Z',c.plusRed,{lw:1.6})
+   +eye(-6,-24,5,-0.6,-0.6)+eye(5,-25,5.4,0.6,0.5)+E(0,-15,2,2.8,'INK');}
+
+/* ---------- placing drawings ---------- */
+function fig(fn,x,y,s,o={}){
+  const pLW=LW,pSC=SC;LW=(o.lw!==undefined)?o.lw:L.lineW;SC=1;
+  let inner=fn();if(o.rim!==false)inner=`<g filter="url(#rim)">${inner}</g>`;
+  LW=pLW;SC=pSC;
+  let body=`<g transform="scale(${r2((o.flip?-1:1)*s)} ${r2(s)})">${inner}</g>`;
+  if(o.anim)body=`<g class="${o.anim}" style="animation-delay:${r2(o.delay||0)}s">${body}</g>`;
+  return `<g transform="translate(${r2(x)} ${r2(y)})">${body}</g>`;
+}
+const SVGNS='http://www.w3.org/2000/svg';
+const MEAS=document.createElementNS(SVGNS,'svg');
+MEAS.setAttribute('style','position:absolute;left:-9999px;top:0;width:10px;height:10px;visibility:hidden');
+document.body.appendChild(MEAS);
+const BOXES=new Map();
+function bbox(key,fn){if(BOXES.has(key))return BOXES.get(key);LW=L.lineW;SC=1;MEAS.innerHTML=`<g>${fn()}</g>`;const b=MEAS.firstChild.getBBox(),pad=L.lineW/2+4.6;const box=[b.x-pad,b.y-pad,b.x+b.width+pad,b.y+b.height+pad];BOXES.set(key,box);return box;}
+const shadowEl=(cx,cy,rx,col,op)=>`<ellipse cx="${r2(cx)}" cy="${r2(cy)}" rx="${r2(rx)}" ry="${r2(rx*0.26)}" fill="${col}" opacity="${op}"/>`;
+
+/* ---------- the roster (names from the art; sizes from Data/EnemyData.csv) ---------- */
+const FIG={
+  mouse:['Mouse',()=>mouseFig()],vole:['Vole',voleFig],rat:['Rat',()=>ratFig()],pigeon:['Pigeon',pigeonFig],
+  sewerrat:['Sewer rat',()=>ratFig({fur:L.c.sewerRat,belly:L.c.sewerBelly,plaster:true})],slimerat:['Slime rat',()=>ratFig({fur:L.c.slime,belly:L.c.slimeBelly,tail:L.c.slime,melt:true})],
+  ghost:['Ghost',ghostFig],imp:['Imp',impFig],ant:['Ant',antFig],hamster:['Hamster',hamsterFig],facrat:['Factory rat',()=>ratFig({fur:L.c.facRat,belly:L.c.facBelly,goggles:true})],dust:['Dust bunny',dustFig],
+  moth:['Moth',mothFig],dog:['Dog',dogFig],goose:['Goose',()=>gooseFig()],seagull:['Seagull',seagullFig],croc:['Crocodile',crocFig],toad:['Toad',toadFig],
+  hound:['Hound',houndFig],crow:['Crow',crowFig],roach:['Cockroach',roachFig],parrot:['Parrot',parrotFig],robot:['Robot mouse',robotFig],sludge:['Sludge cat',sludgeFig],
+  flymouse:['Flying mouse',()=>mouseFig({wing:true})],bat:['Bat',batFig],golden:['Golden mouse',()=>mouseFig({gold:true})],goldenplain:['Golden mouse',()=>mouseFig({gold:true,spark:false})]};
+const BIOMES=[
+ {n:1,name:'Backyard',stage:1,common:'mouse',sig:'moth',flier:null,px:[64.4,95.2,99.82,0,61.6],ground:'#9ACF6C',patch:'#8CC35F',shadow:'#3F6B2C'},
+ {n:2,name:'Alley',stage:1,common:'vole',sig:'dog',flier:'flymouse',px:[64.4,95.2,99.82,56,61.6],ground:'#A9B0BA',patch:'#9CA4AF',shadow:'#454C5A'},
+ {n:3,name:'Neighborhood Park',stage:1,boss:'The Park Tyrant',common:'rat',sig:'goose',flier:'flymouse',px:[64.4,95.2,99.82,56,61.6],ground:'#7CC46A',patch:'#70B75E',shadow:'#2F5E28'},
+ {n:4,name:'City Rooftops',stage:2,common:'pigeon',sig:'seagull',flier:'bat',px:[64.4,95.2,99.82,56,61.6],ground:'#C9B5A7',patch:'#BDA899',shadow:'#5E4A40'},
+ {n:5,name:'Sewers',stage:2,common:'sewerrat',sig:'croc',flier:'bat',px:[64.4,95.2,99.82,56,61.6],ground:'#6F8F88',patch:'#628179',shadow:'#26403B'},
+ {n:6,name:'Rival Cat Turf',stage:2,boss:'The Rival Champion',common:'slimerat',sig:'toad',flier:'bat',px:[64.4,95.2,99.82,56,61.6],ground:'#D8C878',patch:'#CCBB6A',shadow:'#6E6230'},
+ {n:7,name:'Portal Zone',stage:3,common:'ghost',sig:'hound',flier:'bat',px:[64.4,95.2,99.82,56,61.6],ground:'#93A9DC',patch:'#869CD1',shadow:'#36437A'},
+ {n:8,name:'Mythic Realm',stage:3,boss:'The Void God',common:'imp',sig:'crow',flier:'bat',px:[64.4,95.2,99.82,56,61.6],ground:'#C7A6EE',patch:'#B995E6',shadow:'#5E3F8E'},
+ {n:9,name:"The Neighbour's Kitchen",stage:4,common:'ant',sig:'roach',flier:'bat',px:[65.688,72.2568,101.816,59.1192,62.4036],ground:'#ECDFC9',patch:'#E0D1B7',shadow:'#7A6A52',tiles:true},
+ {n:10,name:"The Vet's Waiting Room",stage:4,common:'hamster',sig:'parrot',flier:'bat',px:[66.976,73.6736,103.813,60.2784,63.6272],ground:'#BDE0D5',patch:'#AFD4C8',shadow:'#3F6A5E'},
+ {n:11,name:'The Pet Food Factory',stage:4,boss:'The Foreman',common:'facrat',sig:'robot',flier:'bat',px:[68.264,75.0904,105.809,61.4376,64.8508],ground:'#B3B7BE',patch:'#A6AAB2',shadow:'#454950'},
+ {n:12,name:'The Litterbox Dimension',stage:5,boss:'The Litter King',common:'dust',sig:'sludge',flier:'bat',px:[69.552,76.5072,107.806,62.5968,66.0744],ground:'#E1D2A6',patch:'#D5C38F',shadow:'#7A6A3C'}];
+const STAGE_NAMES=['Tiny Kitten','Armored Tomcat','Cyber Cat','Rainbow Cavalry','Alicorn','Void Unicorn','The Last Unicorn'];
+
+/* a strip: the biome's ground with its cast standing on it, labelled, at game proportions */
+function strip(items,ground,patch,shadow,o={}){
+  const gap=30,padX=22,top=14,lab=40;
+  const placed=items.map(it=>{const box=bbox(it.key,it.fn),w=box[2]-box[0],h=box[3]-box[1],s=it.px/Math.max(w,h);return Object.assign({box,s,w:w*s,h:h*s},it);});
+  const maxH=Math.max(...placed.map(p=>p.h+(p.lift||0)));
+  const base=top+maxH;let x=padX;
+  for(const p of placed){p.x=x-p.box[0]*p.s;p.cx=x+p.w/2;x+=Math.max(p.w,70)+gap;}
+  const W=x-gap+padX,H=base+lab;
+  let s=`<svg viewBox="0 0 ${r2(W)} ${r2(H)}" role="img" aria-label="${esc(o.label||'')}"><rect width="${r2(W)}" height="${r2(H)}" fill="${ground}"/>`;
+  if(o.tiles){for(let i=0;i*22<W;i++)for(let j=0;j*22<H;j++)if((i+j)%2)s+=`<rect x="${i*22}" y="${j*22}" width="22" height="22" fill="${patch}"/>`;}
+  else s+=`<path d="M${r2(W*0.08)} ${r2(H*0.7)} C ${r2(W*0.2)} ${r2(H*0.4)}, ${r2(W*0.45)} ${r2(H*0.5)}, ${r2(W*0.5)} ${r2(H*0.72)} C ${r2(W*0.56)} ${r2(H*0.98)}, ${r2(W*0.2)} ${r2(H*1.02)}, ${r2(W*0.08)} ${r2(H*0.7)} Z" fill="${patch}"/><path d="M${r2(W*0.62)} ${r2(H*0.3)} C ${r2(W*0.75)} ${r2(H*0.1)}, ${r2(W*0.98)} ${r2(H*0.2)}, ${r2(W*0.95)} ${r2(H*0.5)} C ${r2(W*0.92)} ${r2(H*0.75)}, ${r2(W*0.66)} ${r2(H*0.7)}, ${r2(W*0.62)} ${r2(H*0.3)} Z" fill="${patch}"/>`;
+  s+=`<rect x="0" y="${r2(base+8)}" width="${r2(W)}" height="${lab}" fill="#FFF8EB" opacity=".86"/>`;
+  for(const p of placed)s+=shadowEl(p.cx,base,p.w*0.33,shadow,p.lift?.14:L.shadowOp);
+  placed.forEach((p,i)=>{
+    if(p.glow)s+=`<ellipse cx="${r2(p.cx)}" cy="${r2(base-p.h*.45)}" rx="${r2(p.w*.55)}" ry="${r2(p.h*.55)}" fill="#FFFFFF" opacity=".7" filter="url(#softglow)"/>`;
+    s+=fig(p.fn,p.x,base-(p.lift||0),p.s,{anim:p.isCat?'bob':'jit',delay:-i*.19,lw:L.lineW});
+    s+=`<text x="${r2(p.cx)}" y="${r2(base+24)}" text-anchor="middle" font-family="Nunito, sans-serif" font-weight="800" font-size="12" fill="#2A2131">${esc(p.name)}</text><text x="${r2(p.cx)}" y="${r2(base+38)}" text-anchor="middle" font-family="Nunito, sans-serif" font-weight="700" font-size="10" fill="#665A6E">${esc(p.role)}</text>`;
+  });
+  return s+'</svg>';
+}
+function renderBiomes(){
+  $('#biomes').innerHTML=BIOMES.map(b=>{
+    const st=b.stage,items=[{key:'cat'+st,fn:catStageFn(st),px:st>3?150:112,name:STAGE_NAMES[st-1],role:'The cat, for scale',isCat:true}];
+    const [pc,ps,pg,pf,pgo]=b.px;
+    items.push({key:b.common,fn:FIG[b.common][1],px:pc,name:FIG[b.common][0],role:'Common'});
+    items.push({key:b.sig,fn:FIG[b.sig][1],px:ps,name:FIG[b.sig][0],role:'Signature',glow:true});
+    items.push({key:'g'+b.n,fn:()=>gristleFig((b.n-1)/11),px:pg,name:'Gristle',role:`Tier ${b.n}`});
+    if(b.flier)items.push({key:b.flier,fn:FIG[b.flier][1],px:pf,name:FIG[b.flier][0],role:'Flier',lift:22});
+    const gk=b.n<=8?'golden':'goldenplain';items.push({key:gk,fn:FIG[gk][1],px:pgo,name:'Golden mouse',role:b.n<=8?'Flees, sparkles':'Flees'});
+    const tags=[`<span class="tag">Needs ${STAGE_NAMES[st-1]}</span>`];if(b.boss)tags.push(`<span class="tag boss">Boss: ${esc(b.boss)}</span>`);
+    return `<article class="card biome"><div class="bhead"><span class="num">${b.n}</span><h3>${esc(b.name)}</h3><div class="bmeta">${tags.join('')}</div></div><div class="strip">${strip(items,b.ground,b.patch,b.shadow,{tiles:b.tiles,label:`The enemies of ${b.name}`})}</div></article>`;
+  }).join('');
+}
+function renderGristles(){
+  const items=BIOMES.map(b=>({key:'g'+b.n,fn:()=>gristleFig((b.n-1)/11),px:b.px[2],name:`Tier ${b.n}`,role:b.name.replace(/^The /,'').split(' ').slice(0,2).join(' ')}));
+  $('#gristles').innerHTML=`<div class="strip">${strip(items.slice(0,6),'#D9C9B4','#CFBEA7','#6E5A44',{label:'The gristle, tiers 1 to 6'})}</div><div class="strip">${strip(items.slice(6),'#D9C9B4','#CFBEA7','#6E5A44',{label:'The gristle, tiers 7 to 12'})}</div>`;
+}
+function bossTile(main,minion,b,label){
+  const mb=bbox(main.key,main.fn),nb=bbox(minion.key,minion.fn),ms=230/Math.max(mb[2]-mb[0],mb[3]-mb[1]),ns=minion.px/Math.max(nb[2]-nb[0],nb[3]-nb[1]);
+  const W=420,H=300,base=262,mx=40-mb[0]*ms,nx=W-30-nb[2]*ns*(minion.flip?-1:1);
+  const mcx=mx+ms*(mb[0]+mb[2])/2,ncx=W-30-(nb[2]-nb[0])*ns/2;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}"><rect width="${W}" height="${H}" fill="${b.ground}"/><path d="M-20 230 C 60 190, 230 200, 280 240 C 330 290, 120 320, 20 300 Z" fill="${b.patch}"/>`;
+  s+=shadowEl(mcx,base,(mb[2]-mb[0])*ms*0.34,b.shadow,L.shadowOp)+shadowEl(ncx,base,(nb[2]-nb[0])*ns*0.33,b.shadow,L.shadowOp);
+  s+=fig(main.fn,mx,base-(main.lift||0),ms,{anim:'jit',delay:-.3})+fig(minion.fn,W-30-nb[0]*ns-(nb[2]-nb[0])*ns,base,ns,{anim:'jit',delay:-.1});
+  return s+'</svg>';
+}
+function renderBosses(){
+  const by=n=>BIOMES[n-1];
+  const list=[
+    [{key:'tyrant',fn:tyrantFig},{key:'rat',fn:FIG.rat[1],px:64.4},by(3),'The Park Tyrant','Neighborhood Park','A goose, twice the mass. It hisses with its neck thrust out and its wings up like a cloak.'],
+    [{key:'champion',fn:championFig},{key:'slimerat',fn:FIG.slimerat[1],px:64.4},by(6),'The Rival Champion','Rival Cat Turf','The cat, wrong: a black coat, a split ear and a gold medal on a red ribbon.'],
+    [{key:'void',fn:voidFig,lift:26},{key:'imp',fn:FIG.imp[1],px:64.4},by(8),'The Void God','Mythic Realm','No fixed shape. One huge eye among small unpaired ones, a crown of horns, stars inside, five tentacles.'],
+    [{key:'foreman',fn:foremanFig},{key:'facrat',fn:FIG.facrat[1],px:68.3},by(11),'The Foreman','The Pet Food Factory','Gristle mass with bolted plates, a hard hat with a lamp, and a wrench on its shoulder.'],
+    [{key:'king',fn:kingFig},{key:'dust',fn:FIG.dust[1],px:69.6},by(12),'The Litter King','The Litterbox Dimension','Round, on a throne of litter clumps, in a robe, with the only crown in the game and a scoop for a sceptre.'],
+    [{key:'add',fn:addFig},{key:'mouse',fn:FIG.mouse[1],px:64.4},{ground:'#E7D3D0',patch:'#DCC5C1',shadow:'#6E4A45'},'The add','Every boss fight','Small and round. The plus says what it does: it heals the boss.']];
+  $('#bosses').innerHTML=list.map(([m,n,b,name,where,txt])=>{
+    let svg;
+    if(name==='The add'){const ab=bbox('add',addFig),as=90/Math.max(ab[2]-ab[0],ab[3]-ab[1]);svg=`<svg viewBox="0 0 420 300" role="img" aria-label="The add"><rect width="420" height="300" fill="${b.ground}"/><path d="M-20 230 C 60 190, 230 200, 280 240 C 330 290, 120 320, 20 300 Z" fill="${b.patch}"/>`;
+      [[110,262],[200,250],[290,266]].forEach(([x,y],i)=>{svg+=shadowEl(x,y,30,b.shadow,L.shadowOp)+fig(addFig,x-as*(ab[0]+ab[2])/2,y,as,{anim:'jit',delay:-i*.3});});svg+='</svg>';}
+    else svg=bossTile(m,n,b,name);
+    return `<article class="card boss"><div class="art">${svg}</div><div class="txt"><span class="where">${esc(where)}</span><h3>${esc(name)}</h3><p>${esc(txt)}</p></div></article>`;}).join('');
+}
+function renderFaces(){
+  const one=(fn,key,label,ground)=>{const b=bbox(key,fn),w=b[2]-b[0],h=b[3]-b[1];return `<svg viewBox="${r2(b[0]-6)} ${r2(b[1]-6)} ${r2(w+12)} ${r2(h+12)}" role="img" aria-label="${esc(label)}"><rect x="${r2(b[0]-6)}" y="${r2(b[1]-6)}" width="${r2(w+12)}" height="${r2(h+12)}" rx="10" fill="${ground}"/>${fig(fn,0,0,1,{})}</svg>`;};
+  $('#faces').innerHTML=[[()=>mouseFig(),'mouse','Enemies panic','Huge mismatched eyes and an o mouth.','#9ACF6C'],[catStageFn(1),'cat1','The cat schemes','Crossed pinprick pupils, brows down, a fang grin, tongue out.','#9ACF6C'],[tyrantFig,'tyrant','Bosses are sure of themselves','Pupils forward, brows down, mouth open.','#7CC46A']]
+    .map(([fn,key,t,d,g])=>`<div class="face">${one(fn,key,t,g)}<div><b>${t}</b><span>${d}</span></div></div>`).join('');
+}
+renderFaces();renderBiomes();renderGristles();renderBosses();
+</script>

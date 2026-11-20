@@ -58,8 +58,10 @@ public:
 	double RainbowPhase = 0.0;
 	double PulseClock = 0.0;
 
-	// The ring path around a node: a rounded rectangle traced just outside the frame (_ring_path).
+	// The ring path around a node (_ring_path): D18 (S4) a hexagon, point up, traced just outside the node's own (Godot: a
+	// rounded rectangle); each side cut in PerSide pieces (a rainbow needs the points), closed.
 	static TArray<FVector2D> RingPath(const FVector2D& Centre, const FVector2D& Half);
+	static TArray<FVector2D> HexPath(const FVector2D& Centre, double Radius, int32 PerSide);
 
 protected:
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling, FSlateWindowElementList& Out,
@@ -73,6 +75,33 @@ class PAWPOCALYPSE_API UPawTreeNodeStyle : public UCommonButtonStyle
 
 public:
 	UPawTreeNodeStyle();
+};
+
+// D18 (S4, the designer 2026-11-19: "do hexagon"): a skill tree node's plate, a hexagon point up filling its box top to
+// bottom (the UI concept's treeNode), in the node state's fill and edge. A piece the node holds as its first part, so it
+// paints UNDER the icon and the counter (a user widget's own NativePaint runs after its children: the node itself cannot).
+UCLASS()
+class PAWPOCALYPSE_API UPawHexPlate : public UUserWidget
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool Initialize() override;
+	void SetLook(const FLinearColor& InFill, const FLinearColor& InEdge, float InEdgeWidth);
+	FLinearColor GetFill() const { return Fill; }
+	FLinearColor GetEdge() const { return Edge; }
+	float GetEdgeWidth() const { return EdgeWidth; }
+	int32 GetPaints() const { return Paints; }
+
+protected:
+	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling, FSlateWindowElementList& Out,
+		int32 LayerId, const FWidgetStyle& InStyle, bool bParentEnabled) const override;
+
+private:
+	FLinearColor Fill = FLinearColor::Transparent;
+	FLinearColor Edge = FLinearColor::Transparent;
+	float EdgeWidth = 3.0f;
+	mutable int32 Paints = 0;
 };
 
 // One node: the frame of its state (LOCKED / READY / OWNED in the trunk's colour, heavier and rounder for an unlock), the
@@ -91,7 +120,11 @@ public:
 	FText GetCounter() const;
 	FLinearColor GetFrameFill() const;
 	FLinearColor GetFrameEdge() const;
-	float GetFrameRadius() const; // R4f: a skill round, an unlock a rounded square
+	float GetFrameEdgeWidth() const;
+	// D18 (S4): the node's hexagon plate (the concept's); how many times it has painted (tests), and the old frame clear.
+	int32 GetHexPaints() const;
+	const UPawHexPlate* GetPlate() const { return Plate; }
+	bool IsFrameClear() const;
 	bool IsShining() const { return bShine; }
 
 	FString BranchId;
@@ -118,6 +151,8 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UImage> Icon;
 	Pc::PcTreeNodeState State = Pc::PcTreeNodeState::Locked;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UPawHexPlate> Plate; // D18 (S4): the hexagon under the icon
 	bool bShine = false;
 	double ShineClock = 0.0;
 };

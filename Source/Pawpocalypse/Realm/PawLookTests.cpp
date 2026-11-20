@@ -69,27 +69,29 @@ bool FPawLookRulesTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("back ease 1"), BackEaseIn(1.0), 1.0, 1e-12);
 	TestTrue(TEXT("back ease winds back"), BackEaseIn(0.3) < 0.0);
 
-	// The hat on a standing cat: (-0.10, -0.31) of 175 px from its centre, 0.62 of its width; mounted (0.045, -0.29), 0.36.
+	// The hat on a standing cat: (-0.189, -0.202) of 175 px from its centre, 0.775 of its width; mounted (-0.010, -0.220),
+	// 0.366 (Sticker Box, D18: tools/art/sticker_art.py works them out from the approved cat and the approved hats).
 	const FOverlay Hat = CatOverlay(true, false, 1.0, 1.0);
-	TestEqual(TEXT("hat x"), Hat.X, -17.5, 1e-9);
-	TestEqual(TEXT("hat y"), Hat.Y, -54.25, 1e-9);
-	TestEqual(TEXT("hat width"), Hat.Width, 108.5, 1e-9);
+	TestEqual(TEXT("hat x"), Hat.X, 175.0 * -0.189, 1e-9);
+	TestEqual(TEXT("hat y"), Hat.Y, 175.0 * -0.202, 1e-9);
+	TestEqual(TEXT("hat width"), Hat.Width, 175.0 * 0.775, 1e-9);
 	const FOverlay Mounted = CatOverlay(true, true, 1.0, 1.0);
-	TestEqual(TEXT("mounted hat x"), Mounted.X, 7.875, 1e-9);
-	TestEqual(TEXT("mounted hat width"), Mounted.Width, 63.0, 1e-9);
+	TestEqual(TEXT("mounted hat x"), Mounted.X, 175.0 * -0.010, 1e-9);
+	TestEqual(TEXT("mounted hat y"), Mounted.Y, 175.0 * -0.220, 1e-9);
+	TestEqual(TEXT("mounted hat width"), Mounted.Width, 175.0 * 0.366, 1e-9);
 	// Facing right, the hat and the weapon mirror with the cat, as one figure (F38, a Godot fault the port does not copy, D16:
 	// Godot flipped only the cat's picture, so a cat steered right wore its hat behind its ears and held its weapon behind
 	// its back).
-	TestEqual(TEXT("facing left: the hat where it is drawn"), FacingOverlay(Hat, false).X, -17.5, 1e-9);
-	TestEqual(TEXT("facing right: the hat mirrored onto the head"), FacingOverlay(Hat, true).X, 17.5, 1e-9);
+	TestEqual(TEXT("facing left: the hat where it is drawn"), FacingOverlay(Hat, false).X, 175.0 * -0.189, 1e-9);
+	TestEqual(TEXT("facing right: the hat mirrored onto the head"), FacingOverlay(Hat, true).X, 175.0 * 0.189, 1e-9);
 	TestEqual(TEXT("facing right: the same height"), FacingOverlay(Hat, true).Y, Hat.Y, 1e-9);
 	TestTrue(TEXT("the hat's drawing mirrors with the cat"), !HatFlipX(false) && HatFlipX(true));
-	TestTrue(TEXT("the weapon (drawn leaning right) mirrored while the cat faces left, not right"), WeaponFlipX(false) && !WeaponFlipX(true));
-	// The weapon (-0.38, 0.14), 0.405; it scales with the cat's breathing and hop.
+	TestTrue(TEXT("the weapon (drawn facing the cat's way, D18) mirrors with the cat"), !WeaponFlipX(false) && WeaponFlipX(true));
+	// The weapon (0.323, 0.135), 0.517; it scales with the cat's breathing and hop.
 	const FOverlay Weapon = CatOverlay(false, false, 1.0, 1.1);
-	TestEqual(TEXT("weapon x"), Weapon.X, -66.5, 1e-9);
-	TestEqual(TEXT("weapon y follows the cat's height"), Weapon.Y, 175.0 * 0.14 * 1.1, 1e-9);
-	TestEqual(TEXT("weapon width"), Weapon.Width, 70.875, 1e-9);
+	TestEqual(TEXT("weapon x"), Weapon.X, 175.0 * 0.323, 1e-9);
+	TestEqual(TEXT("weapon y follows the cat's height"), Weapon.Y, 175.0 * 0.135 * 1.1, 1e-9);
+	TestEqual(TEXT("weapon width"), Weapon.Width, 175.0 * 0.517, 1e-9);
 
 	// A Godot modulate becomes a linear tint: white stays white, the shield's 0.6 alpha stays the opacity, 0.5 -> 0.5^2.2.
 	TestEqual(TEXT("white"), Modulate(FLinearColor::White), FLinearColor::White);
@@ -271,7 +273,11 @@ bool FPawLookAtlasTest::RunTest(const FString& Parameters)
 	// the same depth painted its transparent texels black over another (the R5 rig, 2026-11-09).
 	const IConsoleVariable* MaskOnlyInEarlyZ = IConsoleManager::Get().FindConsoleVariable(TEXT("r.EarlyZPassOnlyMaterialMasking"));
 	TestTrue(TEXT("r.EarlyZPassOnlyMaterialMasking is off"), MaskOnlyInEarlyZ && MaskOnlyInEarlyZ->GetInt() == 0);
-	TestTrue(TEXT("the anatomy pass's drawings are rigged (R5)"), Rigged > 0 && Atlas->Rig(Atlas->Find(TEXT("enemy_rooftop_seagull"))));
+	// Sticker Box (D18, 2026-11-18): the approved Bestiary's drawings are one sprite each until they get their own wing and
+	// leg layers (E3, open); tools/art/sticker_art.py removes the grammar's layers with its drawings, so no old wing flaps on
+	// a new body. Any rig the atlas does carry is still checked whole above.
+	TestTrue(TEXT("a Sticker drawing carries no rig layers (D18, until E3)"), Atlas->Find(TEXT("enemy_rooftop_seagull")) != INDEX_NONE
+		&& !Atlas->Rig(Atlas->Find(TEXT("enemy_rooftop_seagull"))));
 
 	// Everything the data can put on the field.
 	UGameInstance* GI = NewObject<UGameInstance>(GEngine);

@@ -111,6 +111,9 @@ public:
 	FPawJuice& GetJuice() { return Juice; } // the cluster's hover pops (NativeTick steps it)
 	FText GetStatusText() const;
 	FText GetSlotText(int32 SlotIndex) const;
+	// D18 (S4): the cat in a slot card's photo well (its texture's name; empty when none is shown) and the well's fill.
+	FString GetSlotCatName(int32 SlotIndex) const;
+	FLinearColor GetSlotPhotoColour(int32 SlotIndex) const;
 	FText GetSlotNumberText(int32 SlotIndex) const;
 	FText GetLeaderboardText() const;
 	FText GetConfirmText() const;
@@ -191,6 +194,10 @@ private:
 	TArray<TObjectPtr<UPawButton>> SlotDeletes;
 	UPROPERTY()
 	TArray<TObjectPtr<UTextBlock>> SlotTexts;
+	UPROPERTY()
+	TArray<TObjectPtr<UBorder>> SlotPhotos;
+	UPROPERTY()
+	TArray<TObjectPtr<class UImage>> SlotCats;
 	UPROPERTY()
 	TArray<TObjectPtr<UTextBlock>> SlotNumbers;
 	UPROPERTY()

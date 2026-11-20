@@ -10,6 +10,10 @@
 // Each card: the flavour on a coloured header band, the name, NEW or "LEVEL n of max", the description at the level taking
 // it gives, a red frame and a warning when it costs something; Take, and Banish under it while a banish is held. A click
 // anywhere on a card takes it (designer 2026-08-29); the card itself is mouse-only, Take is what the pad lands on.
+// D18 (S4, the UI concept's scrPick): the band holds the flavour alone; the picture sits on a panel tinted with the flavour,
+// the name under it; "LEVEL n of max" with a dot per level, filled to the level taking it gives (a new card's too); NEW is
+// a red starburst over the band's right end; the card the pointer or the pad is on has its Take on the yellow plate. The
+// title and subtitle sit on a card-stock panel; Reroll carries the Reawaken arrow.
 //
 // THE GUARD (controller plan 6.2; MenuFocus.guard_ok): a press counts only once ModalGuardSec has passed since the hand was
 // dealt (a reroll's deal included), and for the keys and the pad only a press that BEGAN after the deal, so the Space held
@@ -27,6 +31,7 @@
 
 class UBorder;
 class UHorizontalBox;
+class UOverlay;
 class UPawButton;
 class UPawRealmSubsystem;
 class USizeBox;
@@ -63,6 +68,9 @@ public:
 		FText Body;
 		bool bCosts = false;
 		bool bBanish = false;
+		bool bNew = false;   // D18: the NEW starburst
+		int64 Level = 1;     // D18: the dots, filled to the level taking the card gives
+		int64 MaxLevel = 1;
 		FString ArtPath; // the card's icon_path: its picture, when it has one (phase 6 slice 5b)
 	};
 	void SetLook(const FLook& Look);
@@ -71,12 +79,19 @@ public:
 
 	// Hovered by the mouse (anywhere on the card, Take and Banish included) or Take / Banish selected: the card lifts.
 	bool IsLifted() const;
-	// The lift's tween, one frame (NativeTick; the tests drive it).
+	// The lift's tween, one frame (NativeTick; the tests drive it). D18 (S4): it also puts Take on the yellow plate while lifted.
 	void StepLift(double DeltaSeconds);
+	// The tests' pointer: lifted as if hovered (IsHovered needs a real cursor over a window).
+	void HoldLiftForTest(bool bHold) { bLiftHeld = bHold; }
 	float GetLiftScale() const { return LiftScale; }
 	// Read from what is drawn (the plate's frame, the band's fill), not from a flag beside it.
 	bool HasCostFrame() const;
 	FLinearColor GetBandColour() const;
+	// D18 (S4), read from what is drawn: the starburst shown, the dots and how many are filled, the art panel's tint.
+	bool IsNewShown() const;
+	int32 GetDotCount() const;
+	int32 GetFilledDotCount() const;
+	FLinearColor GetArtPanelColour() const;
 
 	UPawButton* GetTake() const { return Take; }
 	UPawButton* GetBanish() const { return Banish; }
@@ -92,6 +107,9 @@ protected:
 
 private:
 	void OnFaceReady();
+	void ShowDots(int64 Level, int64 MaxLevel);
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UOverlay> Stack;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> Plate;
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -103,7 +121,19 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> RankText;
 	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UBorder> ArtPanel;
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UImage> Art;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UHorizontalBox> LevelRow;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UHorizontalBox> Dots;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UOverlay> NewBadge;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> NewStar;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> NewText;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> BodyText;
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -113,6 +143,8 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> Banish;
 	float LiftScale = 1.0f;
+	bool bTakeCall = false; // Take on the yellow plate (the lifted card's)
+	bool bLiftHeld = false;
 };
 
 UCLASS()
@@ -160,6 +192,8 @@ public:
 	UWidget* GetDim() const;
 	FText GetTitleText() const;
 	FText GetSubtitleText() const;
+	// D18 (S4): the title and the subtitle sit on the title panel (read from the tree, not a flag).
+	bool IsTitleOnPanel() const;
 	// The selectable widgets as wired, in reading order.
 	const TArray<UWidget*>& GetWired() const { return Wired; }
 
@@ -180,6 +214,8 @@ private:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> Dim;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UBorder> TitlePanel;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Title;
 	UPROPERTY(meta = (BindWidgetOptional))

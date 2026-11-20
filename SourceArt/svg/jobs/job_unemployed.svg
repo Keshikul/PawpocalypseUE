@@ -1,11 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64">
-<g stroke-width="3.1" stroke-linejoin="round" stroke-linecap="round">
-<rect x="3.0" y="26.3" width="122.0" height="75.4" rx="27.3" fill="#2A1A33" stroke="none"/>
-<rect x="7.0" y="30.3" width="114.0" height="67.3" rx="23.3" fill="#8596C3" stroke="none"/>
-<ellipse cx="64.0" cy="64.0" rx="38.9" ry="23.3" fill="#6B81B9" stroke="none"/>
-<ellipse cx="12.2" cy="35.5" rx="9.1" ry="9.1" fill="#6B81B9" stroke="none"/>
-<ellipse cx="115.8" cy="35.5" rx="9.1" ry="9.1" fill="#6B81B9" stroke="none"/>
-<ellipse cx="12.2" cy="92.5" rx="9.1" ry="9.1" fill="#6B81B9" stroke="none"/>
-<ellipse cx="115.8" cy="92.5" rx="9.1" ry="9.1" fill="#6B81B9" stroke="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" data-look="sticker" data-rim="0.000" data-ink="4.025">
+<g stroke-linejoin="round" stroke-linecap="round">
+<polygon points="19.11,91.09 21.62,78.55 28.45,68.80 38.50,61.83 50.71,57.65 64.00,56.26 77.29,57.65 89.50,61.83 99.55,68.80 106.38,78.55 108.89,91.09" fill="#F2545B" stroke="#2A2131" stroke-width="4.02"/>
+<rect x="16.01" y="81.80" width="95.98" height="15.48" rx="7.74" fill="#C93323" stroke="#2A2131" stroke-width="4.02"/>
+<ellipse cx="64.00" cy="41.55" rx="10.84" ry="10.84" fill="#FFFFFF" stroke="#2A2131" stroke-width="4.02"/>
 </g>
 </svg>

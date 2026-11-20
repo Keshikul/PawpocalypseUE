@@ -1,6 +1,7 @@
 #include "UI/PawControlsPanel.h"
 
 #include "Blueprint/WidgetTree.h"
+#include "Components/Border.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Overlay.h"
@@ -112,14 +113,25 @@ bool UPawControlsPanel::Initialize()
 		ShowPromptsCheck = Check(T, Body, TEXT("ShowPromptsCheck"), CheckKeys[0]);
 		TutorialTipsCheck = Check(T, Body, TEXT("TutorialTipsCheck"), CheckKeys[1]);
 
-		// The table's head: the two columns' names over the cells, nothing over the labels or the Resets.
+		// The table's head: the two columns' names over the cells, nothing over the labels or the Resets. D18 (S4): on a
+		// raised band, as the concept draws it.
+		UBorder* HeadPlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("TableHeadPlate"));
+		HeadPlate->SetBrush(Rounded(PawTokens::UI_BUTTON, PawTokens::INK, static_cast<float>(ControlsHeadEdgePx),
+			static_cast<float>(ControlsHeadRadius)));
+		HeadPlate->SetPadding(FMargin(static_cast<float>(ControlsHeadPadX), static_cast<float>(ControlsHeadPadY)));
+		HeadPlate->SetVisibility(ESlateVisibility::HitTestInvisible);
+		Body->AddChildToVerticalBox(HeadPlate)->SetPadding(FMargin(0.0f, static_cast<float>(ControlsSeparation), 0.0f, 0.0f));
 		UHorizontalBox* Head = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("TableHead"));
-		Body->AddChildToVerticalBox(Head)->SetPadding(FMargin(0.0f, static_cast<float>(ControlsSeparation), 0.0f, 0.0f));
+		HeadPlate->SetContent(Head);
 		USpacer* HeadSpace = T->ConstructWidget<USpacer>(USpacer::StaticClass(), TEXT("HeadSpace"));
 		Head->AddChildToHorizontalBox(HeadSpace)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 		auto HeadText = [T, Head](const TCHAR* Name, const TCHAR* Key)
 		{
-			UTextBlock* L = MakeText(T, ControlsSmallPx, PawTokens::UI_TEXT, false, Name);
+			// D18 (S4): muted, heavy, spaced out (capitals: OnLayoutReady, a text's transform is not part of its look).
+			UTextBlock* L = Heavy(MakeText(T, ControlsSmallPx, PawTokens::UI_TEXT_MUTED, false, Name));
+			FSlateFontInfo HeadFont = L->GetFont();
+			HeadFont.LetterSpacing = ControlsHeadSpacing;
+			L->SetFont(HeadFont);
 			L->SetText(PawText::Ui(Key));
 			L->SetJustification(ETextJustify::Center);
 			L->SetAutoWrapText(false);
@@ -165,6 +177,14 @@ bool UPawControlsPanel::Initialize()
 
 void UPawControlsPanel::OnLayoutReady()
 {
+	// D18 (S4): the column heads in capitals, as the concept draws them (the words stay the string table's).
+	for (UTextBlock* HeadText : { KeyboardHead.Get(), PadHead.Get() })
+	{
+		if (HeadText)
+		{
+			HeadText->SetTextTransformPolicy(ETextTransformPolicy::ToUpper);
+		}
+	}
 	BuildRows();
 	auto Click = [this](UPawButton* B, TFunction<void()> Do)
 	{
@@ -184,6 +204,33 @@ void UPawControlsPanel::OnLayoutReady()
 	Sync();
 }
 
+bool UPawControlsPanel::IsHeadOnBand() const
+{
+	const UWidget* Plate = KeyboardHead ? KeyboardHead->GetParent() : nullptr;   // its size box, the head row, the plate
+	for (int32 Up = 0; Plate && Up < 3 && Plate->GetFName() != TEXT("TableHeadPlate"); ++Up)
+	{
+		Plate = Plate->GetParent();
+	}
+	const UBorder* B = Cast<UBorder>(Plate);
+	return B && B->GetFName() == TEXT("TableHeadPlate") && B->Background.TintColor.GetSpecifiedColor() == PawTokens::UI_BUTTON;
+}
+
+bool UPawControlsPanel::AreHeadsCapitals() const
+{
+	return KeyboardHead && PadHead && KeyboardHead->GetTextTransformPolicy() == ETextTransformPolicy::ToUpper
+		&& PadHead->GetTextTransformPolicy() == ETextTransformPolicy::ToUpper;
+}
+
+int32 UPawControlsPanel::GetBandedRowCount() const
+{
+	int32 N = 0;
+	for (const UBorder* B : RowBands)
+	{
+		N += B && B->Background.DrawAs != ESlateBrushDrawType::NoDrawType && B->Background.TintColor.GetSpecifiedColor().A > 0.0f ? 1 : 0;
+	}
+	return N;
+}
+
 void UPawControlsPanel::BuildRows()
 {
 	// _build_row(): the label (filling), the keyboard cell, the controller cell (each a button with its prompt over it), Reset.
@@ -192,6 +239,7 @@ void UPawControlsPanel::BuildRows()
 		return;
 	}
 	BindingTable->ClearChildren();
+	RowBands.Reset();
 	RowLabels.Reset();
 	Cells.Reset();
 	CellPrompts.Reset();
@@ -199,8 +247,16 @@ void UPawControlsPanel::BuildRows()
 	UWidgetTree* T = WidgetTree;
 	for (int32 Row = 0; Row < Pc::BindingRowCount; ++Row)
 	{
+		// D18 (S4): every other row on a faint band (the concept's), the rows touching so the bands read as stripes.
+		UBorder* Band = T->ConstructWidget<UBorder>(UBorder::StaticClass());
+		Band->SetBrush(Row % 2 == 1 ? Rounded(PawTokens::UI_BUTTON.CopyWithNewOpacity(static_cast<float>(ControlsRowBandAlpha)),
+			PawTokens::INK, 0.0f, static_cast<float>(ControlsHeadRadius)) : NoBrush());
+		Band->SetPadding(FMargin(static_cast<float>(ControlsRowPadX), static_cast<float>(ControlsSeparation) * 0.5f));
+		Band->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		BindingTable->AddChildToVerticalBox(Band);
+		RowBands.Add(Band);
 		UHorizontalBox* Box = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
-		BindingTable->AddChildToVerticalBox(Box)->SetPadding(FMargin(0.0f, static_cast<float>(ControlsSeparation), 0.0f, 0.0f));
+		Band->SetContent(Box);
 		UTextBlock* Label = MakeText(T, LabelPx, PawTokens::UI_TEXT);
 		Label->SetText(RowName(Row));
 		Label->SetAutoWrapText(true);

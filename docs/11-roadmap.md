@@ -317,6 +317,12 @@ composite fonts with CJK/Thai (DONE early in restyle R2: `F_Paw`, doc 07 §5); p
 **Exit criteria**: 20 cultures complete (or a reviewed exception list of strings new to the port); placeholder sets identical;
 font coverage test green (`tools/check_font_coverage.py`, everyday since R2); no overflow in the pseudo-locale tour at 1280x800 and 150% UI scale.
 
+**Status 2026-11-20 (HANDOFF-LOG (125), (128))**: started (`docs/WORKLIST-LOC-2026-11-18.md`; 23 languages since the
+designer added Dutch and Danish). Done: Godot's translations carried over (`port_po.py`, 518 of 838 lines a language),
+`loc_status.py`, the run-time route (polyglot text, no Dashboard import, no `.locres`: doc 08 §4 "As built"), the
+languages' rules (`PcLocales`, fixture `locales`), Settings > Language (complete languages only). To do: the title's
+language menu, `loc_status --apply`, the translations, ICU plurals for cs/pl/ru/uk, the pseudo-locale tour.
+
 ## Phase 8 - hardening and packaging
 
 **Steps**: every gate in `tools/check_all.ps1` (everyday and `-Full`); packaged gates (a `tools/package.ps1`, doc 10 §2); the packaged soak at 5x for the whole game and 20x for 30

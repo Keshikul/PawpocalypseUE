@@ -49,6 +49,9 @@ PawCore's L1 tests compare against what Godot itself computes, not against what 
            rainbow_frame_godot.tsv, rainbow_follow_godot.tsv, sky_layout_godot.tsv, sky_frames_godot.tsv
   unicorn  the real unicorn_ceremony.gd recompiled with its draw calls, random draws and sounds renamed to recorders, its
            tweens stepped by custom_step: 16 runs at 4 sizes, presses at random frames -> Tests/Data/unicorn_godot.tsv
+  locales  the real locales.gd recompiled with the system's language and the loaded .po files as probes: available(),
+           from_system() over 85 OS locales and from_steam() over 28 Steam names, x 104 loaded sets; each language's
+           picker label with its own "(draft)" from Godot's .po files -> Tests/Data/locales_godot.tsv
   dock_repeat the real DockNavigator of the real HUD: hold-to-buy and the held row step, frame by frame on Godot's own action
            state, 600 sequences x 40 frames -> Tests/Data/dock_repeat_godot.tsv, dock_repeat_rows_godot.tsv
   juice    Godot's Tween easing (Tween.interpolate_value: linear, sine, quad, back, elastic x in, out, in_out, out_in) and the
@@ -155,6 +158,7 @@ def copy_project(godot, dest, reuse):
                  "juice_fixture.gd", "juice_fixture.tscn",
                  "rainbow_fixture.gd", "rainbow_fixture.tscn",
                  "unicorn_fixture.gd", "unicorn_fixture.tscn",
+                 "locales_fixture.gd",
                  "amounts_values.txt"):
         shutil.copy2(SCRIPTS / name, dest / name)
     # The port's fixes to Godot's code (D16, tools/godot_fixes.py), on this scratch copy only: a fixture then shows Godot's
@@ -208,6 +212,19 @@ def convert_cell(cell):
 def convert_tokens(cell):
     """Every encoded double anywhere in a cell built of `|`, `,`, `;`, `:` and `=` separated parts (op logs, digests)."""
     return "".join(float.hex(decode(t)) if VARIANT_FLOAT.match(t) else t for t in re.split(r"([|,;:=])", cell))
+
+
+def convert_locales(raw, path):
+    """The locales rows as Godot wrote them (UTF-8 names), under a header."""
+    rows = open(raw, encoding="utf-8").read().splitlines()
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write("# Godot 4.7.1 Locales ground truth: the real scripts/systems/locales.gd (with the port's fix F52) recompiled with\n")
+        f.write("# the system's language and the loaded .po files as probes, generated %s by tools/godot_fixtures/locales_fixture.gd.\n" % GENERATED_ON)
+        f.write("# avail <loaded> <> <available>; system <OS locale> <loaded> <from_system>; steam <name> <loaded> <from_steam>;\n")
+        f.write("# label <code> <native_name> <picker_label> <draft_marker>. Lists comma-joined.\n")
+        for line in rows:
+            f.write(line + "\n")
+    return len(rows)
 
 
 def convert_table(raw, path, comment_lines, take, tokens=False):
@@ -368,11 +385,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--godot", default="C:/Games/pawpocalypse")
     ap.add_argument("--godot-exe", default="C:/Program Files/Godot/Godot.exe")
-    ap.add_argument("--only", choices=["amounts", "combat", "stats", "economy", "cards", "tree", "jobs", "progress", "achievements", "draw", "field_rules", "kittens", "aura", "pounce", "extras", "boss", "tree_layout", "tree_text", "job_picker", "victory", "save", "title", "pause", "settings", "input_axis", "input_device", "input_glyphs", "input_bindings", "controls", "dock_repeat", "backdrop", "juice", "rainbow", "unicorn"], action="append")
+    ap.add_argument("--only", choices=["amounts", "combat", "stats", "economy", "cards", "tree", "jobs", "progress", "achievements", "draw", "field_rules", "kittens", "aura", "pounce", "extras", "boss", "tree_layout", "tree_text", "job_picker", "victory", "save", "title", "pause", "settings", "input_axis", "input_device", "input_glyphs", "input_bindings", "controls", "dock_repeat", "backdrop", "juice", "rainbow", "unicorn", "locales"], action="append")
     ap.add_argument("--reuse-copy", action="store_true")
     ap.add_argument("--check", action="store_true", help="write to build/godot_fixtures/out and require byte-identity")
     args = ap.parse_args()
-    which = args.only or ["amounts", "combat", "stats", "economy", "cards", "tree", "jobs", "progress", "achievements", "draw", "field_rules", "kittens", "aura", "pounce", "extras", "boss", "tree_layout", "tree_text", "job_picker", "victory", "save", "title", "pause", "settings", "input_axis", "input_device", "input_glyphs", "input_bindings", "controls", "dock_repeat", "backdrop", "juice", "rainbow", "unicorn"]
+    which = args.only or ["amounts", "combat", "stats", "economy", "cards", "tree", "jobs", "progress", "achievements", "draw", "field_rules", "kittens", "aura", "pounce", "extras", "boss", "tree_layout", "tree_text", "job_picker", "victory", "save", "title", "pause", "settings", "input_axis", "input_device", "input_glyphs", "input_bindings", "controls", "dock_repeat", "backdrop", "juice", "rainbow", "unicorn", "locales"]
     godot = Path(args.godot)
 
     before = godot_status(godot)
@@ -590,6 +607,10 @@ def main():
                            "# (x,y,vx,vy,rot,spin,sx,sy,r,g,b,star,rain); arcs cx,cy,r,from,to,n,r,g,b,width,aa; shapes kind:r:g:b:a:width:x0:y0..."],
                           None, tokens=True)
         written.append(("unicorn_godot.tsv", out_tests, n))
+    if "locales" in which:
+        run_godot(args.godot_exe, project, ["--script", "res://locales_fixture.gd"], "LOCALES_FIXTURE", WORK / "locales.log")
+        n = convert_locales(project / "locales_fixture.tsv", out_tests / "locales_godot.tsv")
+        written.append(("locales_godot.tsv", out_tests, n))
     if "input_axis" in which:
         run_godot(args.godot_exe, project, ["res://input_axis_fixture.tscn"], "INPUT_AXIS_FIXTURE done", WORK / "input_axis.log")
         n = convert_table(project / "input_axis_fixture.tsv", out_tests / "input_axis_godot.tsv",

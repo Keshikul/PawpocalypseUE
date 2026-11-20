@@ -113,8 +113,31 @@ bool FPawIconsTest::RunTest(const FString& Parameters)
 	for (int32 I = 0; I < Set->Textures.Num(); ++I)
 	{
 		const UTexture2D* Tex = Set->Textures[I];
-		TestTrue(FString::Printf(TEXT("%s: Godot's 128 px"), Set->Names.IsValidIndex(I) ? *Set->Names[I] : TEXT("?")),
-			Tex && Tex->Source.GetSizeX() == 128 && Tex->Source.GetSizeY() == 128);
+		const FString Name = Set->Names.IsValidIndex(I) ? Set->Names[I] : TEXT("?");
+		// The UI concept's pictures (D18, S4) ride in the set at the size they are drawn: the Reawaken ceremony's rays at
+		// 1920 x 1080 and its cat at 512, the title's cat at 512 and its mouse at 256, the save cards' seven cats at 256;
+		// every icon is Godot's 128 px.
+		static const TMap<FString, FIntPoint> Pictures = {
+			{ TEXT("ui_icon_ceremony_rays"), FIntPoint(1920, 1080) }, { TEXT("ui_icon_unicorn_rays"), FIntPoint(1920, 1080) }, { TEXT("ui_icon_ceremony_cat"), FIntPoint(512, 512) },
+			{ TEXT("ui_icon_title_cat"), FIntPoint(512, 512) }, { TEXT("ui_icon_title_mouse"), FIntPoint(256, 256) },
+			{ TEXT("ui_icon_slot_cat_1"), FIntPoint(256, 256) }, { TEXT("ui_icon_slot_cat_2"), FIntPoint(256, 256) },
+			{ TEXT("ui_icon_slot_cat_3"), FIntPoint(256, 256) }, { TEXT("ui_icon_slot_cat_4"), FIntPoint(256, 256) },
+			{ TEXT("ui_icon_slot_cat_5"), FIntPoint(256, 256) }, { TEXT("ui_icon_slot_cat_6"), FIntPoint(256, 256) },
+			{ TEXT("ui_icon_slot_cat_7"), FIntPoint(256, 256) } };
+		// D18 (S4): the job picker's cats in their hats (ui_icon_job_cat_<job>, _none), 256 px like the slot cards'.
+		const FIntPoint* Drawn = Pictures.Find(Name);
+		static const FIntPoint JobCat(256, 256);
+		if (!Drawn && Name.StartsWith(TEXT("ui_icon_job_cat_")))
+		{
+			Drawn = &JobCat;
+		}
+		if (Drawn)
+		{
+			TestTrue(FString::Printf(TEXT("%s: its picture's size"), *Name), Tex && Tex->Source.GetSizeX() == Drawn->X
+				&& Tex->Source.GetSizeY() == Drawn->Y);
+			continue;
+		}
+		TestTrue(FString::Printf(TEXT("%s: Godot's 128 px"), *Name), Tex && Tex->Source.GetSizeX() == 128 && Tex->Source.GetSizeY() == 128);
 	}
 
 	FIconWorld W;
@@ -190,7 +213,8 @@ bool FPawIconsTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the total wears Stardust's"), H->GetTotalLine() && H->GetTotalLine()->IsIconShown()
 		&& H->GetTotalLine()->IconName == CurrencyIconName(TEXT("stardust")));
 	TestEqual(TEXT("the payout wears Stardust's"), Drawn(H->GetPayoutIcon()), FString(TEXT("T_ui_icon_stardust")));
-	TestEqual(TEXT("the Reawaken button wears Stardust's"), H->GetReawakenButton()->GetIconName(), CurrencyIconName(TEXT("stardust")));
+	// D18 (S4, the UI concept's scrReawaken): the Reawaken swirl on its button (Godot: Stardust's).
+	TestEqual(TEXT("the Reawaken button wears the Reawaken swirl"), H->GetReawakenButton()->GetIconName(), TabIconName(TEXT("reawaken")));
 	TestTrue(TEXT("the achievement summary wears Stardust's"), H->GetAchievementSummaryLine() && H->GetAchievementSummaryLine()->IsIconShown());
 	TestEqual(TEXT("Claim all wears Stardust's"), H->GetClaimAllButton()->GetIconName(), CurrencyIconName(TEXT("stardust")));
 	for (int32 I = 0; I < static_cast<int32>(D.Achievements.size()); ++I)
@@ -213,12 +237,19 @@ bool FPawIconsTest::RunTest(const FString& Parameters)
 		const Pc::PcRealmRow Row = Pc::RealmRow(D, W.Game->Progress(), I);
 		const bool bOwed = Row.Kind == Pc::PcRealmRowKind::NeedsCatnip;
 		bSawOwed = bSawOwed || bOwed;
-		TestEqual(FString::Printf(TEXT("realm row %d: Catnip's icon only when it asks for Catnip"), I),
-			H->GetRealmButton(I)->IsIconShown(), bOwed);
+		// D18 (S4, the UI concept's scrRealms): every row an icon; Catnip's only where it asks for Catnip, then the paw where
+		// the cat is, the flag to travel, the lock where it cannot go yet.
+		const FString Want = bOwed ? CurrencyIconName(TEXT("catnip"))
+			: Row.Kind == Pc::PcRealmRowKind::Here ? TabIconName(TEXT("upgrades"))
+			: (Row.Kind == Pc::PcRealmRowKind::Travel || Row.Kind == Pc::PcRealmRowKind::TravelBoss) ? TabIconName(TEXT("realms"))
+			: FString(TEXT("ui_lock"));
+		TestTrue(FString::Printf(TEXT("realm row %d: its icon (%s), drawn"), I, *Want),
+			H->GetRealmButton(I)->IsIconShown() && H->GetRealmButton(I)->GetIconName() == Want);
 	}
 	TestTrue(TEXT("a new game has a realm row asking for Catnip (the case is seen)"), bSawOwed);
 
-	// 3. The quick bar (hud.tscn QuickBar): four bare icon buttons, the mouse's; save says so; quit saves and leaves.
+	// 3. The quick bar (hud.tscn QuickBar): four icon buttons, the mouse's; save says so; quit saves and leaves. D18 (S4):
+	// each on its plate (the UI concept's dock; Godot: bare TextureButtons).
 	const TCHAR* QuickIcons[] = { TEXT("ui_quick_settings"), TEXT("ui_quick_skills"), TEXT("ui_quick_save"), TEXT("ui_quick_quit") };
 	for (int32 I = 0; I < 4; ++I)
 	{
@@ -227,9 +258,9 @@ bool FPawIconsTest::RunTest(const FString& Parameters)
 		{
 			continue;
 		}
-		TestTrue(FString::Printf(TEXT("quick %d: its icon (%s), 40 px"), I, QuickIcons[I]), Q->IsIconShown() && Q->GetIconName() == QuickIcons[I]);
-		TestTrue(FString::Printf(TEXT("quick %d: bare (a TextureButton: no plate)"), I), Q->bBareLook && Q->GetStyle()
-			&& Q->GetStyle()->GetClass()->IsChildOf(UPawBareButtonStyle::StaticClass()));
+		TestTrue(FString::Printf(TEXT("quick %d: its icon (%s)"), I, QuickIcons[I]), Q->IsIconShown() && Q->GetIconName() == QuickIcons[I]);
+		TestTrue(FString::Printf(TEXT("quick %d: on its plate (not bare)"), I), !Q->bBareLook && Q->GetStyle()
+			&& !Q->GetStyle()->GetClass()->IsChildOf(UPawBareButtonStyle::StaticClass()));
 		TestFalse(FString::Printf(TEXT("quick %d: never in the pad's order"), I), Q->GetIsFocusable());
 		TestFalse(FString::Printf(TEXT("quick %d: its tooltip"), I), Q->GetToolTipText().IsEmpty());
 	}

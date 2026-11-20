@@ -35,6 +35,10 @@ SNAPSHOT = ROOT / "tools" / "art" / "palette_godot_snapshot.json"
 # The palette the baked Widget Blueprints carry (they saved their colours as values when baked): what
 # tools/bake_widgets.py --recolour migrates them FROM, rewritten to today's palette after a migration.
 WIDGETS_SNAPSHOT = ROOT / "tools" / "art" / "palette_widgets_snapshot.json"
+# The palettes the widgets carried before, frozen (D18, 2026-11-18: plum as the assets held it at 1a10eeb). A migration
+# rewrites WIDGETS_SNAPSHOT to today's palette, so without these the colours it migrated away from would stop counting as
+# retired, and Pawpocalypse.UI.Widgets.Palette would no longer catch an asset slipping back to them.
+PAST_WIDGET_SNAPSHOTS = [ROOT / "tools" / "art" / "palette_plum_snapshot.json"]
 RE_BACKDROP = re.compile(r'^\t"(\w+)": \{"field": (Color\([^)]*\)), "detail": (Color\([^)]*\)), "patch": (Color\([^)]*\)), '
                          r'"puddle": (Color\([^)]*\)), "dark": (true|false)\},?$', re.M)
 RE_CONST = re.compile(r'^const ([A-Z][A-Z0-9_]*) := Color\("#([0-9A-Fa-f]{6})([0-9A-Fa-f]{2})?"\)', re.M)
@@ -114,6 +118,13 @@ def render(src):
         "\t// sRGB floats (Godot's Color(r, g, b, a) in a scene), decoded as Godot's Color::srgb_to_linear; alpha stays as is.",
         "\tinline float SrgbToLinear(double C) { return static_cast<float>(C <= 0.04045 ? C / 12.92 : FMath::Pow((C + 0.055) / 1.055, 2.4)); }",
         "\tinline FLinearColor SrgbF(double R, double G, double B, double A = 1.0) { return FLinearColor(SrgbToLinear(R), SrgbToLinear(G), SrgbToLinear(B), static_cast<float>(A)); }",
+        "\t// The UI concept's mix(a, b, t) (D18): per sRGB byte, a + (b - a) * t, rounded; alpha from a (the card's art panel).",
+        "\tinline FLinearColor MixSrgb(const FLinearColor& A, const FLinearColor& B, double T)",
+        "\t{",
+        "\t\tconst FColor X = A.ToFColor(true), Y = B.ToFColor(true);",
+        "\t\tauto M = [T](uint8 P, uint8 Q) { return static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(P + (Q - P) * T), 0, 255)); };",
+        "\t\treturn Srgb(M(X.R, Y.R), M(X.G, Y.G), M(X.B, Y.B), X.A);",
+        "\t}",
         "",
     ]
     for name, hexrgb, alpha in rows:
@@ -187,12 +198,17 @@ def colour_pairs(snapshot, ui=True):
 
 
 # The UI tokens that colour TEXT (restyle R3). Every other UI token is a surface: a panel, a button, a frame, a well.
-UI_TEXT_KEYS = ("text", "text_muted", "text_disabled", "boss_banner_text", "field_label")
+# Since D18 (2026-11-17) also the keys that colour text by meaning: a label on the selected plate, a card's ink, the
+# Take and Banish labels.
+UI_TEXT_KEYS = ("text", "text_muted", "text_disabled", "boss_banner_text", "field_label", "selected_text", "card_ink",
+                "card_take", "card_banish")
 # R3's shapes: the UI keys a brush's OUTLINE is drawn in (PawUi::IsEdgeColour): the plates' and buttons' frames.
 UI_EDGE_KEYS = ("panel_frame", "button_frame")
 # R4a: UI keys no asset ever saves: the focus ring is painted at run time (UPawButton::NativePaint, the tree node's style
 # from its native defaults). Left out of the maps, or coral -> Butter would collide with the badge's coral, which stays.
-UI_PAINTED_KEYS = ("focus",)
+# Since D18 also the field's labels and the boss banner's text, painted in code (PawUiKit, PawIcons): no asset saves them
+# apart from the text colour they shared in plum.
+UI_PAINTED_KEYS = ("focus", "field_label", "boss_banner_text")
 
 
 def ui_role_pairs(snapshot):
@@ -232,11 +248,132 @@ def ui_role_pairs(snapshot):
     return out[0], out[1], out[2]
 
 
+# THE STICKER BOX MIGRATION (D18, docs/WORKLIST-STICKER-2026-11-17.md S1). Plum folded roles into shared values (the panel
+# IS the ink; frames, shadow, pressed and well are one Deep Plum; Butter is focus and selection), so a value map alone
+# cannot split them again. RULES come first, first match wins; a key is a UI key, or "ink" for the ink. The role maps follow with no path; an old colour they cannot place without ambiguity
+# is left to the rules, and the pre-flight against the inventory (bake_widgets.py --colours) refuses a run that leaves a
+# retired colour unplaced. Found in the inventory of 2026-11-17 (build/widget_colours.tsv, 7,549 colours, 32 assets).
+# (asset, role, path suffix, old key, new key, why): asset "" = every asset, else the asset's name, or "asset:object" for one
+# widget of it (its name in the asset, as the inventory's object column).
+UI_PROPERTY_RULES = [
+    ("", "surface", "ShadowColorAndOpacity", "shadow", "shadow", "a text's shadow: Deep Plum -> the ink"),
+    ("", "surface", ".Pressed.TintColor.SpecifiedColor", "button_pressed", "button_pressed", "a pressed tint"),
+    ("", "surface", "Brush.TintColor.SpecifiedColor", "slot", "slot", "a dropdown's item brushes: the well"),
+    ("", "surface", "BackgroundImage.TintColor.SpecifiedColor", "slot", "slot", "a bar's track (the zone and boss bars): the well"),
+    ("", "surface", "OutlineSettings.OutlineColor", "panel", "ink", "a font's outline: plum was the ink"),
+    ("", "surface", "SliderHandleColor", "panel", "ink", "a slider's handle"),
+    ("", "surface", "Foreground.SpecifiedColor", "text", "text", "a style's foreground: text drawn by a button"),
+    ("", "surface", "ForegroundColor.SpecifiedColor", "text", "text", "a widget's foreground colour: its text"),
+    ("", "surface", "TextColor.SpecifiedColor", "text", "text", "a list item's text colour"),
+    ("", "edge", "FillImage.OutlineSettings.Color.SpecifiedColor", "selected", "selected", "a bar fill's outline (0 px) follows its fill"),
+    ("", "edge", "", "selected", "focus", "an outline in Butter marked hover or the active row: the focus ring"),
+    ("WBP_MainMenu:TextBlock_0", "text", "", "selected", "text", "Boba's name: on its card with no outline, ink"),
+    ("", "text", "", "selected", "selected", "an outlined title in Butter (ButterTitle, the name): the yellow sticker title"),
+    ("", "text", "", "good", "good", "a good line's text"),
+]
+
+
+def ui_key_value(table, key):
+    """A UI key's value in a palette table (as_dict's shape or a snapshot), or the ink for "ink"."""
+    return (table["ink"] if key == "ink" else table["ui"][key]).upper()
+
+
+# Assets whose ink stays the ink in every role (a card: ink text and an ink frame on its card-stock body): the old ink
+# becomes today's, before any map can read it as a plum panel. (bake_widgets.py's KEEP_INK of the plum era.)
+UI_KEEP_INK_ASSETS = ("WBP_CardFace",)
+
+
+def ui_rules(snapshot):
+    """([(asset, role, suffix, old, new, why)], [ambiguous]): the kept inks, the property rules, then the role maps (asset
+    "", role, "", old, new), then every other changed palette colour in every role ("", "*", "", old, new). "#RRGGBB"
+    upper; asset "" is every asset. An old colour that would become two within a role's map is left out of it and listed:
+    only a rule may place it."""
+    then = json.loads(Path(snapshot).read_text(encoding="utf-8"))
+    now = palette.as_dict()
+    rules = []
+    if then["ink"].upper() != now["ink"].upper():
+        for asset in UI_KEEP_INK_ASSETS:
+            rules.append((asset, "*", "", then["ink"].upper(), now["ink"].upper(), "the ink of an asset that keeps it"))
+    for asset, role, suffix, old_key, new_key, why in UI_PROPERTY_RULES:
+        old, new = ui_key_value(then, old_key), ui_key_value(now, new_key)
+        if old != new:
+            rules.append((asset, role, suffix, old, new, why))
+    roles = {"text": {}, "surface": {}, "edge": {}}
+    for key, old in sorted(then.get("ui", {}).items()):
+        if key not in palette.UI or key in UI_PAINTED_KEYS:
+            continue
+        role = "text" if key in UI_TEXT_KEYS else "edge" if key in UI_EDGE_KEYS else "surface"
+        roles[role].setdefault(old.upper(), {}).setdefault(palette.UI[key].upper(), []).append(key)
+    ambiguous = []
+    maps = {}
+    for role, table in roles.items():
+        m = {}
+        for old, news in table.items():
+            if len(news) > 1:
+                ambiguous.append("%s %s: %s" % (role, old, "; ".join("%s (%s)" % (n, ", ".join(k)) for n, k in news.items())))
+                continue
+            (new, _keys), = news.items()
+            if new != old:
+                m[old] = new
+        maps[role] = m
+    # A text colour also drawn as a surface moves with the text unless a surface key owns that old colour; an edge in a
+    # colour no edge key owns moves as that surface does (ui_role_pairs' two rules).
+    for old, new in maps["text"].items():
+        if old not in roles["surface"]:
+            maps["surface"].setdefault(old, new)
+    for old, new in maps["surface"].items():
+        if old not in roles["edge"]:
+            maps["edge"].setdefault(old, new)
+    for role in ("text", "surface", "edge"):
+        for old, new in sorted(maps[role].items()):
+            rules.append(("", role, "", old, new, "the %s map" % role))
+    for old, new, paths in colour_pairs(snapshot, ui=False):
+        rules.append(("", "*", "", old.upper(), new.upper(), "a changed palette colour (%s)" % ", ".join(paths[:2])))
+    return rules, ambiguous
+
+
+def place(rules, asset, obj, role, path, colour):
+    """The first rule that places a saved colour (in asset's object obj), or None. As RecolourByRule matches."""
+    for rule in rules:
+        r_asset, r_role, suffix, old, _new, _why = rule
+        r_name, _, r_obj = r_asset.partition(":")
+        if old == colour and (not r_name or asset.endswith(r_name)) and (not r_obj or obj == r_obj)                 and (r_role == "*" or r_role == role) and (not suffix or path.endswith(suffix)):
+            return rule
+    return None
+
+
+def rules_arg(rules):
+    """The rules as UPawWidgetBaker::RecolourByRule reads them: "asset[:object]|role|suffix|RRGGBB>RRGGBB;..."."""
+    return ";".join("%s|%s|%s|%s>%s" % (a, r, s, o[1:], n[1:]) for a, r, s, o, n, _w in rules)
+
+
+def preflight(rules, inventory, snapshot):
+    """Every saved colour of the inventory (bake_widgets.py --colours) placed or kept. Returns (placed, kept, unplaced):
+    unplaced = a RETIRED colour (in the assets' palette, nowhere in today's) that no rule places: the run must not go."""
+    import csv
+    then = set(drawn(json.loads(Path(snapshot).read_text(encoding="utf-8"))).values())
+    now = set(drawn(palette.as_dict()).values())
+    retired_here = {c.upper() for c in then - now}
+    placed, kept, unplaced = [], [], []
+    with open(inventory, encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f, delimiter="\t"):
+            colour = "#" + row["colour"].upper()
+            hit = place(rules, row["asset"], row["object"], row["role"], row["path"], colour)
+            if hit:
+                placed.append((row, hit))
+            elif colour in retired_here:
+                unplaced.append(row)
+            else:
+                kept.append(row)
+    return placed, kept, unplaced
+
+
 def retired():
-    """Colours the Godot palette or the widgets' last palette drew that today's palette no longer has anywhere: a baked asset
-    that still holds one missed a migration (Pawpocalypse.UI.Widgets.Palette)."""
+    """Colours the Godot palette, the widgets' last palette or any palette they carried before (PAST_WIDGET_SNAPSHOTS) drew
+    that today's palette no longer has anywhere: a baked asset that still holds one missed a migration
+    (Pawpocalypse.UI.Widgets.Palette)."""
     old = set()
-    for snap in (SNAPSHOT, WIDGETS_SNAPSHOT):
+    for snap in [SNAPSHOT, WIDGETS_SNAPSHOT] + PAST_WIDGET_SNAPSHOTS:
         old |= set(drawn(json.loads(snap.read_text(encoding="utf-8"))).values())
     return sorted(old - set(drawn(palette.as_dict()).values()))
 

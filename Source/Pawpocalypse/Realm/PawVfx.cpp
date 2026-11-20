@@ -733,10 +733,10 @@ void FPawVfx::DrawEffect(const FFx& E, const FContext& C, FPawFxCanvas& Out) con
 			return;
 		}
 		auto World = [&E](const FVector2D& Local) { return E.At + Rotate(Local, E.Angle); };
-		const FColorG Stroke = E.bA ? PawFxLook::Crit : SwipeColor;
+		const FColorG Stroke = E.bA ? PawFxLook::Crit : PawFxLook::StrikeArc; // D18: the concept's white (Godot's: SwipeColor)
 		const double Width = E.bB ? SwipeWidth * EarnedWidthScale : SwipeWidth * (E.bA ? CritWidthScale : 1.0);
 		const double Lead = -ArcSpan * 0.5 + ArcSpan * Sweep;
-		// Restyle D3: the arc is the trail of the paw at its tip, shorter than Godot's (PawFxLook::StrikeArcTrail).
+		// The arc's length: Godot's since D18 (D3 shortened it behind its paw: PawFxLook::StrikeArcTrail).
 		const double Span = ArcSpan * 0.55 * PawFxLook::StrikeArcTrail;
 		const double Start = Lead - Span;
 		TArray<FVector2D, TInlineAllocator<21>> Points, Echo;
@@ -764,14 +764,23 @@ void FPawVfx::DrawEffect(const FFx& E, const FContext& C, FPawFxCanvas& Out) con
 				const FVector2D Half = Along * ClawLength * 0.5;
 				const FVector2D A = Centre + Off - Half;
 				const FVector2D B = A + Along * ClawLength * Grow;
+				if (PawFxLook::StrikeSlashInk) // D18: the concept's slashes, ink with no colour inside
+				{
+					Out.Line(World(A), World(B), WithAlpha(Ink, Alpha), ClawW);
+					continue;
+				}
 				Out.Line(World(A), World(B), WithAlpha(Ink, 0.85 * Alpha), ClawW + SwipeInkEdge);
 				Out.Line(World(A), World(B), Scaled(Stroke, Alpha), ClawW);
 			}
 		}
 		Out.Polyline(Echo, Scaled(Stroke, Alpha * 0.45), Width * 0.55);
 		// Restyle D3: the clutching paw (ui_cursor_paw_closed's drawing) at the arc's tip, its toes along the motion, on top.
-		DrawStrikePaw(Out, World(FVector2D(FMath::Cos(Lead), FMath::Sin(Lead)) * E.Radius),
-			Rotate(FVector2D(-FMath::Sin(Lead), FMath::Cos(Lead)), E.Angle), FMath::Min(1.0, Alpha * PawFxLook::StrikePawFadeGain));
+		// Off since D18 (the concept's swipe has none): PawFxLook::StrikePaw.
+		if (PawFxLook::StrikePaw)
+		{
+			DrawStrikePaw(Out, World(FVector2D(FMath::Cos(Lead), FMath::Sin(Lead)) * E.Radius),
+				Rotate(FVector2D(-FMath::Sin(Lead), FMath::Cos(Lead)), E.Angle), FMath::Min(1.0, Alpha * PawFxLook::StrikePawFadeGain));
+		}
 		return;
 	}
 	case EKind::Beam:
@@ -928,8 +937,11 @@ void FPawVfx::Draw(const FContext& C, FPawFxCanvas& Ground, FPawFxCanvas& Under,
 		else
 		{
 			Over.Circle(C.Cat, AuraRadius, PawFxLook::AuraLift);
-			Over.Arc(C.Cat, AuraRadius, 0.0, Tau, AuraSegments, WithAlpha(InkColor, PawFxLook::AuraInkAlpha),
-				PawFxLook::AuraRingWidth + PawFxLook::AuraInkEdge * 2.0);
+			if (PawFxLook::AuraInkEdge > 0.0) // D3's Plum edge; the Sticker ring has none (D18)
+			{
+				Over.Arc(C.Cat, AuraRadius, 0.0, Tau, AuraSegments, WithAlpha(InkColor, PawFxLook::AuraInkAlpha),
+					PawFxLook::AuraRingWidth + PawFxLook::AuraInkEdge * 2.0);
+			}
 			Over.Arc(C.Cat, AuraRadius, 0.0, Tau, AuraSegments, PawFxLook::AuraRing, PawFxLook::AuraRingWidth);
 		}
 	}

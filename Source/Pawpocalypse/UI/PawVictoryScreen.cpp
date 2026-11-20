@@ -47,7 +47,9 @@ bool UPawVictoryScreen::Initialize()
 
 		// The dim: MOUSE_FILTER_STOP on purpose, nothing behind the ending may be clicked while it is up.
 		Dim = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Dim"));
-		Dim->SetBrush(Rounded(PawTokens::VICTORY_DIM, PawTokens::VICTORY_DIM, 0.0f, 0.0f));
+		// D18 (S4, the UI concept's scrVictory): the realm stays bright under the panel (the rider, the fallen king); the
+		// clear layer still takes every click (Godot: a 0.88 near-black dim).
+		Dim->SetBrush(NoBrush());
 		Dim->SetVisibility(ESlateVisibility::Visible);
 		UOverlaySlot* DimSlot = Root->AddChildToOverlay(Dim);
 		DimSlot->SetHorizontalAlignment(HAlign_Fill);
@@ -70,7 +72,7 @@ bool UPawVictoryScreen::Initialize()
 		Box->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		Panel->SetContent(Box);
 
-		Headline = ButterTitle(BoxLabel(T, Box, VictoryHeadlinePx, true, TEXT("Headline")), ButterTitleOutline); // R4g
+		Headline = ButterTitle(BoxLabel(T, Box, VictoryHeadlinePx, true, TEXT("Headline")), CeremonyTitleOutline); // D18: the big sticker
 		Headline->SetText(PawText::Ui(TEXT("VICTORY_headline")));
 		Flavour = BoxLabel(T, Box, LabelPx, false, TEXT("Flavour"));
 		// AUTOWRAP_WORD_SMART at the column's width, the panel's less its margins (a fixed wrap width: KB U/09 §3).
@@ -99,6 +101,7 @@ void UPawVictoryScreen::OnLayoutReady()
 	if (Ok)
 	{
 		Ok->OnClicked().AddWeakLambda(this, [this]() { Dismiss(); });
+		Ok->SetCallLook(true); // D18 (S4): the concept's OK, the thing to press, on the yellow plate
 	}
 }
 

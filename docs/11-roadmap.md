@@ -317,11 +317,15 @@ composite fonts with CJK/Thai (DONE early in restyle R2: `F_Paw`, doc 07 §5); p
 **Exit criteria**: 20 cultures complete (or a reviewed exception list of strings new to the port); placeholder sets identical;
 font coverage test green (`tools/check_font_coverage.py`, everyday since R2); no overflow in the pseudo-locale tour at 1280x800 and 150% UI scale.
 
-**Status 2026-11-20 (HANDOFF-LOG (125), (128))**: started (`docs/WORKLIST-LOC-2026-11-18.md`; 23 languages since the
-designer added Dutch and Danish). Done: Godot's translations carried over (`port_po.py`, 518 of 838 lines a language),
+**Status 2026-11-20 (HANDOFF-LOG (125), (128)-(131))**: started (`docs/WORKLIST-LOC-2026-11-18.md`; 23 languages since the
+designer added Dutch and Danish). Done: Godot's translations carried over (`port_po.py`, 518 of 837 lines a language),
 `loc_status.py`, the run-time route (polyglot text, no Dashboard import, no `.locres`: doc 08 §4 "As built"), the
-languages' rules (`PcLocales`, fixture `locales`), Settings > Language (complete languages only). To do: the title's
-language menu, `loc_status --apply`, the translations, ICU plurals for cs/pl/ru/uk, the pseudo-locale tour.
+languages' rules (`PcLocales`, fixture `locales`), Settings > Language and the title's language list (complete languages
+only), `loc_status --apply`, **all 22 translations complete** (837 lines each; drafts until a native read; ICU plurals
+not needed: a count follows a colon in cs/pl/ru/uk), **the language pass** ((131): every screen with words in every
+language and the pseudo-locale at 1280x800 and 150% UI, no text past its box: `Pawpocalypse.UI.Layout.Languages`,
+`.PseudoLocale`, everyday). To do: a native read per language, a packaging gate for the shipped languages, the store
+page's Dutch and Danish.
 
 ## Phase 8 - hardening and packaging
 

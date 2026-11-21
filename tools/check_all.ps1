@@ -77,6 +77,10 @@ Invoke-Gate 'text overrides agree' 'py tools\text_overrides.py --check'
 # Phase 7 (2026-11-19): Godot's translations carried over are current; the status tool tells stale from missing.
 Invoke-Gate 'translations carried over' 'py tools\port_po.py --check'
 Invoke-Gate 'loc status self-test' 'py tools\loc_status.py --self-test'
+# The wording review (2026-11-20): numbers kept, line breaks, nothing left in English, no mice for enemies (F55), the fixes
+# to Godot's translations (F53, F54), one percent style per language; its self-test plants each fault.
+Invoke-Gate 'translations lint' 'py tools\loc_lint.py'
+Invoke-Gate 'translations lint self-test' 'py tools\loc_lint.py --self-test'
 # Every sabotage's target still in its source (seconds, nothing built): a target a later slice rewrote otherwise stays unseen
 # until the nightly's sabotage gate refuses to start (2026-11-06: one stale since slice 3 cost a whole night's realm gate).
 Invoke-Gate 'sabotage targets current' 'py tools\sabotage_pawcore.py --list && py tools\sabotage_realm.py --list'

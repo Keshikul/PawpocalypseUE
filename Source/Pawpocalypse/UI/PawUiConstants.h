@@ -105,6 +105,7 @@ namespace PawUi
 	constexpr double CardHoverSec = 0.09;            // CARD_HOVER_SEC
 	constexpr double CardGap = 20.0;                 // _row separation
 	constexpr double PickColumnGap = 18.0;           // column separation
+	constexpr double PickEdgePad = 16.0;             // the column kept this far off the screen's edges when it shrinks to fit
 	constexpr double PickTitlePx = 56.0;             // D18 (S4): LEVEL n as the concept's sticker title (Godot 40)
 	constexpr double PickSubtitlePx = 18.0;          // D18 (S4): ink on the title panel (Godot 17, muted on the dim)
 	constexpr double PickTitlePadX = 40.0;           // D18 (S4): the title panel's margins (the concept's 480 x 108 plate)
@@ -163,6 +164,10 @@ namespace PawUi
 	constexpr double CeremonyPayoutBottom = 420.0;
 	constexpr double CeremonyCatPx = 380.0;          // the cat's picture, square (the concept's stage-2 cat at 1.9)
 	constexpr double CeremonyCatTop = -190.0;
+	// The stage the three stand on, about the screen's centre: the headline's box wide, its top's distance from the centre
+	// twice over tall, 20 to spare each way. Smaller screens (150 % UI: 720 tall) shrink it to fit; it never grows.
+	constexpr double CeremonyStageWidth = 2.0 * CeremonyTextHalfWidth + 40.0;
+	constexpr double CeremonyStageHeight = 2.0 * (-CeremonyHeadlineTop) + 40.0;
 	constexpr int32 CeremonyTitleOutline = 5;        // the title's ink outline
 
 	// The theme's WindowPanel (SBT_window: ui_window.svg, PawUi::Chrome Window since phase 6 slice 5a; content margins 22 / 20).
@@ -226,6 +231,8 @@ namespace PawUi
 	constexpr double TitleSlotScrimAlpha = 0.88;     // SlotPanel/Scrim
 	constexpr double TitleWindowTitlePx = 32.0;      // the credits' and leaderboard's Title
 	constexpr double TitleWindowWidth = 760.0;       // CreditsPanel / LeaderboardPanel Window
+	constexpr double TitleScrollBarRoom = 12.0;      // a window's text wraps this much short of its width: the scroll bar's
+	                                                 // place once it shows (the language pass, 2026-11-20: Dutch, 6 px over)
 	constexpr double TitleCreditsHeight = 520.0;
 	constexpr double TitleLeaderboardHeight = 440.0;
 	constexpr double TitleConfirmWidth = 560.0;      // ConfirmPanel Window
@@ -234,7 +241,10 @@ namespace PawUi
 	constexpr double TitleConfirmRowSeparation = 12.0;
 	constexpr double TitleConfirmButtonWidth = 120.0; // Yes / Cancel custom_minimum_size
 	constexpr double TitleConfirmButtonHeight = 40.0;
-	constexpr double TitleSlotBodyWidth = 1680.0;    // SlotPanel/Body: offsets -840 .. 840, -290 .. 290
+	// SlotPanel/Body: Godot's offsets -840 .. 840, -290 .. 290. The width is the row's (5 cards of 280, 4 gaps of 24; the row
+	// is centred in Godot's 1680, so nothing moves): a screen narrower than it shrinks the slots to fit by the row, not by
+	// 1680 (the language pass, 2026-11-20: at 1280 x 800 and 150 % UI the fifth slot was off the screen).
+	constexpr double TitleSlotBodyWidth = 1496.0;
 	constexpr double TitleSlotBodyHeight = 580.0;
 	constexpr double TitleSlotSeparation = 24.0;     // Body and Row separation
 	constexpr double TitleSlotTitlePx = 40.0;
@@ -272,6 +282,13 @@ namespace PawUi
 	constexpr double ClusterGap = 10.0;              // CLUSTER_GAP
 	constexpr double ClusterRadius = 10.0;
 	constexpr double ClusterPad = 7.0;
+	// main_menu.gd _open_language_menu (phase 7): a paper list above the Language button, one row per language.
+	constexpr double LanguageMenuGap = 8.0;          // its foot 8 above the cluster
+	constexpr double LanguageMenuPad = 6.0;          // the plate's content margin
+	constexpr double LanguageRowWidth = 220.0;       // a row's custom_minimum_size (the list grows to its longest name)
+	constexpr double LanguageRowHeight = 40.0;       // Godot 34; the port's 18 px label and the kit's row
+	constexpr double LanguageRowSeparation = 2.0;    // the list's separation
+	constexpr double LanguageTickPx = 20.0;          // the current language's tick (the check box's tick, CheckTickPx)
 
 	// RESTYLE R4c (2026-11-08): the title after the canvas board "Main menu (plum)" (1600 x 900, drawn here x 1.2 at 1080p).
 	// Godot's numbers above stay for what they still size; these place and size the plum title.

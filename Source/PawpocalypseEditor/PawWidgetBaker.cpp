@@ -367,8 +367,11 @@ namespace
 
 	// wrap:Part>Wrapper (R4h, 2026-11-08: the settings pages into a scroll box): the code layout holds Part inside a new panel
 	// Wrapper; the asset's own Part (with everything under it, as the asset has it) moves into a copy of that panel, which
-	// takes Part's place. Wrapper's slot and Part's new slot come from the code layout.
-	FString WrapPart(UUserWidget* Source, UWidgetBlueprint* BP, const UClass* Native, const FName PartName, const FName WrapperName)
+	// takes Part's place. Wrapper's slot and Part's new slot come from the code layout. wrap:Code=Asset>Wrapper names an
+	// unnamed part whose auto-name differs (the language pass, 2026-11-20: the title's slot body, SizeBox_5 in code,
+	// SizeBox_7 in the asset).
+	FString WrapPart(UUserWidget* Source, UWidgetBlueprint* BP, const UClass* Native, const FName PartName, const FName WrapperName,
+		const FName AssetPartName)
 	{
 		UPanelWidget* CodeWrapper = Cast<UPanelWidget>(Source->WidgetTree->FindWidget(WrapperName));
 		UWidget* CodePart = Source->WidgetTree->FindWidget(PartName);
@@ -386,11 +389,15 @@ namespace
 		{
 			return TEXT("kept (the asset has it)");
 		}
-		UWidget* Mine = BP->WidgetTree->FindWidget(PartName);
+		UWidget* Mine = BP->WidgetTree->FindWidget(AssetPartName);
 		UPanelWidget* Into = Mine ? Mine->GetParent() : nullptr;
 		if (!Mine || !Into)
 		{
-			return TEXT("FAILED: the asset has no ") + PartName.ToString() + TEXT(" under a panel");
+			return TEXT("FAILED: the asset has no ") + AssetPartName.ToString() + TEXT(" under a panel");
+		}
+		if (Mine->GetClass() != CodePart->GetClass())
+		{
+			return TEXT("FAILED: the asset's ") + AssetPartName.ToString() + TEXT(" is not the code's kind of part");
 		}
 		if (Into->GetClass() != CodeWrapper->GetParent()->GetClass())
 		{
@@ -611,6 +618,26 @@ namespace
 		return TEXT("restyled (text: font, size, colour, shadow, justification)");
 	}
 
+	// wrapat: a text's wrapping (its fixed wrap width and auto-wrap) copied from the code layout's text to the asset's of the
+	// same name ("Code>Asset" as restyle:): the language pass (2026-11-20) moved wraps that were wider than their boxes.
+	// Its words and look stay the asset's.
+	FString CopyTextWrap(UUserWidget* Source, UWidgetBlueprint* BP, const FString& Arg)
+	{
+		FString CodeName = Arg, AssetName = Arg;
+		Arg.Split(TEXT(">"), &CodeName, &AssetName);
+		UTextLayoutWidget* From = Cast<UTextLayoutWidget>(Source->WidgetTree->FindWidget(FName(*CodeName)));
+		UTextLayoutWidget* To = Cast<UTextLayoutWidget>(BP->WidgetTree->FindWidget(FName(*AssetName)));
+		if (!From || !To)
+		{
+			return FString::Printf(TEXT("FAILED: %s has no text %s"), !From ? TEXT("the code layout") : TEXT("the asset"),
+				!From ? *CodeName : *AssetName);
+		}
+		To->Modify();
+		To->SetAutoWrapText(From->GetAutoWrapText());
+		To->SetWrapTextAt(From->GetWrapTextAt());
+		return FString::Printf(TEXT("restyled (wrap: at %.1f, auto %d)"), From->GetWrapTextAt(), From->GetAutoWrapText() ? 1 : 0);
+	}
+
 	// remove: a part of the asset, and everything under it (R4c: to put a part back with add:, which copies its children).
 	FString RemovePart(UWidgetBlueprint* BP, const FName Name)
 	{
@@ -700,7 +727,9 @@ FString UPawWidgetBaker::GraftParts(const FString& ClassName, const FString& Ops
 		}
 		else if (Kind == TEXT("wrap") && Arg.Split(TEXT(">"), &Old, &New))
 		{
-			Result = WrapPart(Source, BP, Native, FName(*Old), FName(*New));
+			FString CodePart = Old, AssetPart = Old;
+			Old.Split(TEXT("="), &CodePart, &AssetPart);
+			Result = WrapPart(Source, BP, Native, FName(*CodePart), FName(*New), FName(*AssetPart));
 		}
 		else if (Kind == TEXT("restyle"))
 		{
@@ -717,6 +746,10 @@ FString UPawWidgetBaker::GraftParts(const FString& ClassName, const FString& Ops
 		else if (Kind == TEXT("text"))
 		{
 			Result = CopyTextLook(Source, BP, Arg);
+		}
+		else if (Kind == TEXT("wrapat"))
+		{
+			Result = CopyTextWrap(Source, BP, Arg);
 		}
 		else if (Kind == TEXT("slot"))
 		{

@@ -11,6 +11,7 @@
 
 class UUserWidget;
 class UWidget;
+class UWidgetTree;
 
 namespace PawLayout
 {
@@ -24,7 +25,22 @@ namespace PawLayout
 		bool bTilted = false; // it or an ancestor is rotated (a render transform with a turn, not only a scale)
 		int32 Parent = INDEX_NONE;     // the nearest listed ancestor's index
 		TWeakObjectPtr<UWidget> Widget; // the part itself
+		FVector2D Desired = FVector2D::ZeroVector; // what it asks for (the Slate prepass), in its own units
+		float Scale = 1.0f;                       // its geometry's layout scale: Desired * Scale is screen px
 	};
+
+	// A text that does not fit (phase 7, 2026-11-20: the language pass): what it says, where, and why.
+	struct FTextMiss
+	{
+		FString Path;
+		FString Text;
+		FString Why;
+	};
+
+	// Every shown text (a text block or rich text) that does not fit: wider than its box (it spills past it), taller than
+	// its box (a line cut or over the next part), or cut sideways by a parent that clips (the way a long locked shop row
+	// ran past its row in Russian). A part a scroll box clips vertically is judged only when wholly in view. Slack in px.
+	TArray<FTextMiss> TextMisses(const TArray<FPart>& Parts, float Slack = 2.0f);
 
 	// True when Parts[Index] lies inside a listed part named Ancestor (its path's last name).
 	bool IsUnder(const TArray<FPart>& Parts, int32 Index, const FString& Ancestor);
@@ -37,6 +53,8 @@ namespace PawLayout
 	// ticks the widgets, as the game's first frames do), then arranged. Only painted parts are listed (collapsed and hidden
 	// ones are not).
 	TArray<FPart> Arrange(UUserWidget* Widget, FVector2D Screen, float Scale, int32 Frames = 2);
+	// The same for a bare widget tree, no user widget around it (the detector's own test: UUserWidget is abstract).
+	TArray<FPart> ArrangeTree(UWidgetTree* Tree, FVector2D Screen, float Scale, int32 Frames = 2);
 
 	const FPart* Find(const TArray<FPart>& Parts, const FString& Path);
 	// Every listed part whose path starts with Prefix.

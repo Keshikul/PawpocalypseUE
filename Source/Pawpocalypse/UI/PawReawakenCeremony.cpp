@@ -5,6 +5,8 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
+#include "Components/ScaleBox.h"
+#include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "UI/PawIcons.h"
 #include "UI/PawText.h"
@@ -24,9 +26,10 @@ namespace
 		return 0.5 - 0.5 * FMath::Cos(PI * X);
 	}
 
-	// A label centred in a rect given as Godot offsets about the screen's centre (anchors 0.5).
+	// A label centred in a rect given as Godot offsets about the stage's centre (anchors 0.5). bFit: the words shrink to the
+	// rect when they are wider (the headline: "WIEDERERWACHEN" is wider than "REAWAKENING"; the language pass, 2026-11-20).
 	UTextBlock* CentredLabel(UWidgetTree* T, UCanvasPanel* Canvas, double Px, const FLinearColor& Colour, double Top, double Bottom,
-		FName Name, double HalfWidth = CeremonyTextHalfWidth)
+		FName Name, double HalfWidth = CeremonyTextHalfWidth, bool bFit = false)
 	{
 		UBorder* Box = T->ConstructWidget<UBorder>(UBorder::StaticClass(), FName(Name.ToString() + TEXT("Box")));
 		Box->SetBrush(NoBrush());
@@ -36,7 +39,19 @@ namespace
 		Box->SetVisibility(ESlateVisibility::HitTestInvisible);
 		UTextBlock* Text = MakeText(T, Px, Colour, false, Name);
 		Text->SetJustification(ETextJustify::Center); // horizontal_alignment = 1
-		Box->SetContent(Text);
+		if (bFit)
+		{
+			UScaleBox* Fit = T->ConstructWidget<UScaleBox>(UScaleBox::StaticClass(), FName(Name.ToString() + TEXT("Fit")));
+			Fit->SetStretch(EStretch::ScaleToFitX); // by width alone: a display face's line runs a little over its box
+			Fit->SetStretchDirection(EStretchDirection::DownOnly);
+			Fit->SetVisibility(ESlateVisibility::HitTestInvisible);
+			Fit->SetContent(Text);
+			Box->SetContent(Fit);
+		}
+		else
+		{
+			Box->SetContent(Text);
+		}
 		UCanvasPanelSlot* S = Canvas->AddChildToCanvas(Box);
 		S->SetAnchors(FAnchors(0.5f, 0.5f));
 		S->SetAutoSize(false);
@@ -71,18 +86,36 @@ bool UPawReawakenCeremony::Initialize()
 		FlashSlot->SetAnchors(FAnchors(0.0f, 0.0f, 1.0f, 1.0f));
 		FlashSlot->SetOffsets(FMargin(0.0f));
 
-		// The cat in the middle, the title above it as a sticker, the payout on a card-stock panel below (the concept's).
+		// The cat in the middle, the title above it as a sticker, the payout on a card-stock panel below (the concept's), on a
+		// stage of their size that shrinks to the screen when it is shorter (the language pass, 2026-11-20: at 150 % UI the
+		// screen is 720 tall and they reach 850: the title went off the top, the payout off the bottom, in every language).
+		UScaleBox* Stage = T->ConstructWidget<UScaleBox>(UScaleBox::StaticClass(), TEXT("Stage"));
+		Stage->SetStretch(EStretch::ScaleToFit);
+		Stage->SetStretchDirection(EStretchDirection::DownOnly);
+		Stage->SetVisibility(ESlateVisibility::HitTestInvisible);
+		UCanvasPanelSlot* StageSlot = Canvas->AddChildToCanvas(Stage);
+		StageSlot->SetAnchors(FAnchors(0.0f, 0.0f, 1.0f, 1.0f));
+		StageSlot->SetOffsets(FMargin(0.0f));
+		USizeBox* StageSize = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("StageSize"));
+		StageSize->SetWidthOverride(static_cast<float>(CeremonyStageWidth));
+		StageSize->SetHeightOverride(static_cast<float>(CeremonyStageHeight));
+		StageSize->SetVisibility(ESlateVisibility::HitTestInvisible);
+		Stage->SetContent(StageSize);
+		UCanvasPanel* StageCanvas = T->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("StageCanvas"));
+		StageCanvas->SetVisibility(ESlateVisibility::HitTestInvisible);
+		StageSize->SetContent(StageCanvas);
 		Cat = T->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("Cat"));
 		Cat->SetBrush(PawUi::IconBrush(CatIcon, CeremonyCatPx));
 		Cat->SetVisibility(ESlateVisibility::HitTestInvisible);
-		UCanvasPanelSlot* CatSlot = Canvas->AddChildToCanvas(Cat);
+		UCanvasPanelSlot* CatSlot = StageCanvas->AddChildToCanvas(Cat);
 		CatSlot->SetAnchors(FAnchors(0.5f, 0.5f));
 		CatSlot->SetAutoSize(false);
 		CatSlot->SetOffsets(FMargin(static_cast<float>(-0.5 * CeremonyCatPx), static_cast<float>(CeremonyCatTop),
 			static_cast<float>(CeremonyCatPx), static_cast<float>(CeremonyCatPx)));
-		Headline = CentredLabel(T, Canvas, CeremonyHeadlinePx, PawTokens::UI_SELECTED, CeremonyHeadlineTop, CeremonyHeadlineBottom, TEXT("Headline"));
+		Headline = CentredLabel(T, StageCanvas, CeremonyHeadlinePx, PawTokens::UI_SELECTED, CeremonyHeadlineTop, CeremonyHeadlineBottom,
+			TEXT("Headline"), CeremonyTextHalfWidth, true);
 		ButterTitle(Headline, CeremonyTitleOutline);
-		Payout = CentredLabel(T, Canvas, CeremonyPayoutPx, PawTokens::UI_TEXT, CeremonyPayoutTop, CeremonyPayoutBottom, TEXT("Payout"),
+		Payout = CentredLabel(T, StageCanvas, CeremonyPayoutPx, PawTokens::UI_TEXT, CeremonyPayoutTop, CeremonyPayoutBottom, TEXT("Payout"),
 			CeremonyPayoutHalfWidth);
 		if (UBorder* PayoutBox = Cast<UBorder>(Payout->GetParent()))
 		{

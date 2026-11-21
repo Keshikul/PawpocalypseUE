@@ -54,6 +54,153 @@ namespace PawText
 		RegisterOne(TableUi);
 		RegisterOne(TableData);
 		RegisterOne(TableTree);
+		if (FParse::Param(FCommandLine::Get(), TEXT("PseudoLoc")) && !IsPseudoLocale())
+		{
+			SetPseudoLocale(true);
+		}
+	}
+
+	// --- The pseudo-locale ------------------------------------------------------------------------------------------------
+
+	namespace
+	{
+		// The real English of every entry while the pseudo-locale is on (table -> key -> English).
+		TMap<FName, TMap<FString, FString>>& RealEnglish()
+		{
+			static TMap<FName, TMap<FString, FString>> Held;
+			return Held;
+		}
+
+		void SetEnglish(const FName Table, const FString& Key, const FString& Source)
+		{
+			const FStringTablePtr Loaded = FStringTableRegistry::Get().FindMutableStringTable(Table);
+			if (!Loaded.IsValid())
+			{
+				return;
+			}
+#if WITH_EDITORONLY_DATA
+			FString Notes;
+			if (const FStringTableEntryConstPtr Entry = Loaded->FindEntry(Key))
+			{
+				Notes = Entry->GetDevNotes();
+			}
+			Loaded->SetSourceString(Key, Source, Notes);
+#else
+			Loaded->SetSourceString(Key, Source);
+#endif
+		}
+
+		TCHAR Accented(TCHAR C)
+		{
+			switch (C)
+			{
+			case TEXT('a'): return TEXT('å'); case TEXT('e'): return TEXT('ë'); case TEXT('i'): return TEXT('ï');
+			case TEXT('o'): return TEXT('ö'); case TEXT('u'): return TEXT('ü'); case TEXT('y'): return TEXT('ÿ');
+			case TEXT('c'): return TEXT('ç'); case TEXT('n'): return TEXT('ñ');
+			case TEXT('A'): return TEXT('Å'); case TEXT('E'): return TEXT('Ë'); case TEXT('I'): return TEXT('Ï');
+			case TEXT('O'): return TEXT('Ö'); case TEXT('U'): return TEXT('Ü'); case TEXT('Y'): return TEXT('Ý');
+			case TEXT('C'): return TEXT('Ç'); case TEXT('N'): return TEXT('Ñ');
+			default: return C;
+			}
+		}
+	}
+
+	FString Pseudo(const FString& English)
+	{
+		if (!NeedsWords(English))
+		{
+			return English;
+		}
+		FString Out = TEXT("[");
+		int32 Letters = 0;
+		for (int32 I = 0; I < English.Len(); ++I)
+		{
+			const TCHAR C = English[I];
+			if (C == TEXT('{'))
+			{
+				// A {placeholder} goes through as it is (FText::Format fills it).
+				int32 J = I + 1;
+				while (J < English.Len() && (FChar::IsAlnum(English[J]) || English[J] == TEXT('_')))
+				{
+					++J;
+				}
+				if (J < English.Len() && English[J] == TEXT('}') && J > I + 1)
+				{
+					Out += English.Mid(I, J - I + 1);
+					I = J;
+					continue;
+				}
+			}
+			Letters += FChar::IsAlpha(C) ? 1 : 0;
+			Out.AppendChar(Accented(C));
+		}
+		// About 40 % more: the longest real languages run 30-40 % over the English in a UI line. In words of up to 6 letters,
+		// as a language's words are: one long padding word could never wrap (the language pass: a 28-letter one did).
+		for (int32 P = 0; P < (Letters * 2 + 4) / 5; ++P)
+		{
+			if (P % 6 == 0)
+			{
+				Out += TEXT(" ");
+			}
+			Out.AppendChar((P & 1) ? TEXT('ñ') : TEXT('ë'));
+		}
+		Out += TEXT("]");
+		return Out;
+	}
+
+	bool IsPseudoLocale()
+	{
+		return RealEnglish().Num() > 0;
+	}
+
+	void SetPseudoLocale(bool bOn)
+	{
+		if (bOn == IsPseudoLocale())
+		{
+			return;
+		}
+		for (const FName Table : { TableUi, TableData, TableTree })
+		{
+			const FStringTableConstPtr Loaded = FStringTableRegistry::Get().FindStringTable(Table);
+			if (!Loaded.IsValid())
+			{
+				continue;
+			}
+			if (bOn)
+			{
+				TMap<FString, FString>& Held = RealEnglish().FindOrAdd(Table);
+				Loaded->EnumerateSourceStrings([&Held](const FString& Key, const FString& English)
+				{
+					Held.Add(Key, English);
+					return true;
+				});
+				// Names never translated stay as they are (the logo, Boba, Discord, the pad brands: their comments say so).
+				static const TSet<FString> Names = { TEXT("TITLE_name"), TEXT("TITLE_boba_name"), TEXT("TITLE_discord"),
+					TEXT("SETTINGS_prompts_xbox"), TEXT("SETTINGS_prompts_playstation"), TEXT("SETTINGS_prompts_steam_deck") };
+				for (const TPair<FString, FString>& Line : Held)
+				{
+					if (!Names.Contains(Line.Key))
+					{
+						SetEnglish(Table, Line.Key, Pseudo(Line.Value));
+					}
+				}
+			}
+			else if (const TMap<FString, FString>* Held = RealEnglish().Find(Table))
+			{
+				for (const TPair<FString, FString>& Line : *Held)
+				{
+					SetEnglish(Table, Line.Key, Line.Value);
+				}
+			}
+		}
+		if (!bOn)
+		{
+			RealEnglish().Empty();
+		}
+		// The translations again: with the English pseudo, no row matches its Source (none is shown), so English shows the
+		// pseudo text; with the English back, every row is in use again.
+		RegisterTranslations();
+		UE_LOG(LogPaw, Log, TEXT("Pseudo-locale %s"), bOn ? TEXT("on") : TEXT("off"));
 	}
 
 	FText Ui(const TCHAR* Key)

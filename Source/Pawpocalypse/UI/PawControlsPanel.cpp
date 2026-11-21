@@ -6,6 +6,7 @@
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
+#include "Components/ScaleBox.h"
 #include "Components/ScrollBox.h"
 #include "Components/SizeBox.h"
 #include "Components/Slider.h"
@@ -138,7 +139,13 @@ bool UPawControlsPanel::Initialize()
 			L->SetWrapTextAt(static_cast<float>(ControlsCellWidth));
 			USizeBox* Box = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), FName(*(FString(Name) + TEXT("Box"))));
 			Box->SetWidthOverride(static_cast<float>(ControlsCellWidth));
-			Box->SetContent(L);
+			// A line wraps at the column; a single word wider than it ("HANDKONTROLL") shrinks to it (the language pass,
+			// 2026-11-20). Never grown.
+			UScaleBox* Fit = T->ConstructWidget<UScaleBox>(UScaleBox::StaticClass(), FName(*(FString(Name) + TEXT("Fit"))));
+			Fit->SetStretch(EStretch::ScaleToFitX);
+			Fit->SetStretchDirection(EStretchDirection::DownOnly);
+			Fit->SetContent(L);
+			Box->SetContent(Fit);
 			Head->AddChildToHorizontalBox(Box)->SetPadding(FMargin(static_cast<float>(ControlsSeparation), 0.0f, 0.0f, 0.0f));
 			return L;
 		};
@@ -206,7 +213,7 @@ void UPawControlsPanel::OnLayoutReady()
 
 bool UPawControlsPanel::IsHeadOnBand() const
 {
-	const UWidget* Plate = KeyboardHead ? KeyboardHead->GetParent() : nullptr;   // its size box, the head row, the plate
+	const UWidget* Plate = KeyboardHead ? KeyboardHead->GetParent() : nullptr;   // its fit, size box, the head row, the plate
 	for (int32 Up = 0; Plate && Up < 3 && Plate->GetFName() != TEXT("TableHeadPlate"); ++Up)
 	{
 		Plate = Plate->GetParent();

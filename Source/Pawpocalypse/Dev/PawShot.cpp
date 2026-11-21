@@ -10,7 +10,8 @@
 //   paw.Wait <frames>        hold the queue this many frames (a step otherwise waits 30)
 //   paw.Take                 take the first card of the hand (as its button does)
 //   paw.Victory [seconds]    the ending, as the last boss's kill raises it (the time shown: 4200 s unless given)
-//   paw.Title <press> [n]    a press on the title screen: new, load, continue, leaderboard, credits, back, slot <n>
+//   paw.Title <press> [n]    a press on the title screen: new, load, continue, leaderboard, credits, back, slot <n>,
+//                            language (the cluster's Language: its list opens or closes)
 //                            (0-based; an empty slot starts a game there, an occupied one loads it; both open L_Realm)
 //   paw.Press <key> [device] a key or pad button pressed and let go THROUGH SLATE (the device subsystem sees it, focus moves
 //                            on it): Gamepad_DPad_Down 1 is pad 1's D-pad (the prompts turn to the pad's)
@@ -260,6 +261,7 @@ namespace
 			else if (P == TEXT("credits")) { M->PressCredits(); }
 			else if (P == TEXT("back")) { M->Back(); }
 			else if (P == TEXT("slot")) { M->PressSlot(Step.Arg); }
+			else if (P == TEXT("language")) { M->PressCluster(2); }
 			else { UE_LOG(LogPaw, Warning, TEXT("paw.Title: no such press '%s'"), *P); }
 			return true;
 		}

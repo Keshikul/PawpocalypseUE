@@ -624,7 +624,7 @@ bool FPawSettingsLanguageTest::RunTest(const FString& Parameters)
 	}
 	List = D->GetOption(TEXT("LanguageOption"));
 	const TArray<FString> Codes = PawText::Languages();
-	TestTrue(TEXT("English and Godot's 20 languages"), Codes.Num() == 21 && Codes[0] == TEXT("en"));
+	TestTrue(TEXT("English and the 22 translated languages"), Codes.Num() == 23 && Codes[0] == TEXT("en"));
 	TestTrue(TEXT("open"), List->GetIsEnabled());
 	TestEqual(TEXT("System, then one row per language"), List->GetOptionCount(), Codes.Num() + 1);
 	TestEqual(TEXT("System first"), List->GetOptionAtIndex(0), FString(TEXT("System")));

@@ -1859,9 +1859,9 @@ SABOTAGES = [
      'ActiveTabRef() == PcDockTab::Upgrades ? TEXT("HUD_legend_upgrades")',
      'ActiveTabRef() != PcDockTab::Count ? TEXT("HUD_legend_upgrades")',
      'Pawpocalypse.Input.Prompts'),
-    ('prompt_title_hint_words', TITLE,
-     'HintPrompts->SetTemplate(PawText::Ui(TEXT("TITLE_hint")));',
-     'HintPrompts->SetTemplate(PawText::Ui(TEXT("TITLE_hint_words")));',
+    ('prompt_title_hint_words', TITLE,  # the hint as the screen is made (since 2026-11-20 also made again on a language change)
+     'VersionText->SetText(PawText::Version());\n\t}\n\tif (HintPrompts)\n\t{\n\t\tHintPrompts->SetTemplate(PawText::Ui(TEXT("TITLE_hint")));',
+     'VersionText->SetText(PawText::Version());\n\t}\n\tif (HintPrompts)\n\t{\n\t\tHintPrompts->SetTemplate(PawText::Ui(TEXT("TITLE_hint_words")));',
      'Pawpocalypse.UI.Title'),
     # --- remapping (phase 5 slice 4): the live context, the key table, the settings ---
     ('remap_keys_read_the_asset', INMAP,
@@ -2690,10 +2690,72 @@ SABOTAGES = [
      "\t\t\t\tconst FString Source = FString(Cells[SourceAt]).ReplaceEscapedCharWithChar();\n",
      "\t\t\t\tconst FString Source = FString(Cells[SourceAt]);\n",
      'Pawpocalypse.UI.Language.Loader'),
+    # The title's language list (main_menu.gd _open_language_menu).
+    ('title_language_button_dead', TITLE,  # the cluster's Language opens the list
+     "\telse if (Index == 2)\n\t{\n\t\t// _toggle_language_menu()\n",
+     "\telse if (Index == 2 && false)\n\t{\n\t\t// _toggle_language_menu()\n",
+     'Pawpocalypse.UI.Title.Language'),
+    ('title_language_lists_unfinished', TITLE,  # only complete languages offered
+     "\tLanguageCodes = PawText::Languages();\n",
+     "\tLanguageCodes = PawText::Languages(true);\n",
+     'Pawpocalypse.UI.Title.Language'),
+    ('title_language_current_not_marked', TITLE,  # the language shown on the yellow plate
+     "\t\tRow->SetActiveLook(bCurrent);\n",
+     "\t\tRow->SetActiveLook(false);\n",
+     'Pawpocalypse.UI.Title.Language'),
+    ('title_language_keys_start_first', TITLE,  # the keys start on the language shown
+     "\t\treturn LanguageRows.IsValidIndex(Current) ? LanguageRows[Current].Get() : LanguageRows.Num() > 0 ? LanguageRows[0].Get() : nullptr;\n",
+     "\t\treturn LanguageRows.Num() > 0 ? LanguageRows[0].Get() : nullptr;\n",
+     'Pawpocalypse.UI.Title.Language'),
+    ('title_language_back_asks_to_quit', TITLE,  # Back closes the list first
+     "\tcase ELayer::Language: CloseLanguageMenu(); return;\n",
+     "",
+     'Pawpocalypse.UI.Title.Language'),
+    ('title_language_pick_not_saved', TITLE,  # a row saves and shows its language
+     "\t\tS->SetLanguage(Code);\n",
+     "\t\t(void)S;\n",
+     'Pawpocalypse.UI.Title.Language'),
+    ('title_language_words_not_remade', TITLE,  # the screen's words follow the new language
+     "\tShownCulture = S->GetLanguageApplied().Culture;\n\t// The string-table texts follow the culture by themselves; what was made from them once is made again.\n\tif (HintPrompts)\n",
+     "\tShownCulture = S->GetLanguageApplied().Culture;\n\t// The string-table texts follow the culture by themselves; what was made from them once is made again.\n\tif (false)\n",
+     'Pawpocalypse.UI.Title.Language'),
+    ('title_language_click_off_ignored', TITLE,  # a press off the list closes it
+     "\tif (!LanguageMenu || !LanguageMenu->GetCachedGeometry().IsUnderLocation(ScreenPosition))\n",
+     "\tif (false)\n",
+     'Pawpocalypse.UI.Title.Language'),
     ('language_setting_ignored', SETSUB,  # the setting resolved, not the system's alone
      "\tstd::string Setting = Settings.Language;\n",
      "\tstd::string Setting = Pc::LocaleSystem;\n",
      'Pawpocalypse.UI.Settings.Language'),
+    # Phase 7, the language pass (2026-11-20): no text runs past its box in any language at 1280 x 800 and 150 % UI.
+    ('text_miss_width_blind', 'UI/PawLayoutCheck.cpp',  # the detector sees a text wider than its box
+     '\t\t\tif (NeedW > BoxW + Slack)\n',
+     '\t\t\tif (false && NeedW > BoxW + Slack)\n',
+     'Pawpocalypse.UI.Layout.TextMisses'),
+    ('text_miss_cut_blind', 'UI/PawLayoutCheck.cpp',  # and a whole line cut by a box that clips
+     '\t\t\telse if (bWholeHeight && (P.Shown.Left',
+     '\t\t\telse if (false && bWholeHeight && (P.Shown.Left',
+     'Pawpocalypse.UI.Layout.TextMisses'),
+    ('pseudo_pad_one_word', TEXTS,  # the pseudo padding in short words, as a language's (one long word never wraps)
+     '\t\t\tif (P % 6 == 0)\n',
+     '\t\t\tif (P == 0)\n',
+     'Pawpocalypse.UI.Layout.PseudoLocale'),
+    ('button_wrap_ignores_icon', BUTTON,  # words beside an icon wrap by what the icon leaves (Catches, Realms rows)
+     'WrapAt - (bIconSlot ? IconPx + IconGap : 0.0f)',
+     'WrapAt - 0.0f',
+     'Pawpocalypse.UI.Layout.Languages'),
+    ('job_words_under_button', HUD,  # a job's words wrap by its state button's width in this language
+     '\tconst float Wrap = JobTextWrap - (ButtonWidth - static_cast<float>(JobButtonWidth));\n',
+     '\tconst float Wrap = JobTextWrap;\n',
+     'Pawpocalypse.UI.Layout.Languages'),
+    ('tree_hub_fixed_width', TREE,  # the hub's pill grows with its words ("Árbol de habilidades")
+     '\tHubSlot->SetAutoSize(true);\n',
+     '\tHubSlot->SetSize(FVector2D(HubPlateW, HubPlateH));\n',
+     'Pawpocalypse.UI.Layout.Languages'),
+    ('job_picker_blurb_full_width', JOBPICK,  # the blurb wraps a little short of its card (a shrunk font measures wider)
+     '\t\tBlurb->SetWrapTextAt(CardInner - 4.0f);\n',
+     '\t\tBlurb->SetWrapTextAt(CardInner);\n',
+     'Pawpocalypse.UI.Layout.Languages'),
 ]
 
 

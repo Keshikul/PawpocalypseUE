@@ -208,5 +208,6 @@
   Last run 2026-11-10 (HANDOFF-LOG (85), (89)): FAIL on draw calls, 68.7 for the whole frame against 50 (the field ~26); the
   budget is the designer's call (doc 01 Q11).
 - From §4: the colour gate in the real build (spike S1 proved the method), the cook gate, frame-rate independence in a
-  packaged build, the hardware cursor in a packaged build; the soak (§5); the tours at several resolutions and in the
-  pseudo-locale (§6, phase 7).
+  packaged build, the hardware cursor in a packaged build; the soak (§5); the screenshot tours at several resolutions
+  (§6). The pseudo-locale and every language are gated as a layout test since 2026-11-20 ((131):
+  `Pawpocalypse.UI.Layout.Languages`, `.PseudoLocale`, `.TextMisses`, in the everyday `Pawpocalypse.UI` gate).

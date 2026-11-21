@@ -7,6 +7,10 @@
 // Pawpocalypse.UI.Layout.Dock      the Upgrades page: no shop row shows under the quick bar or the legend
 // Pawpocalypse.UI.Layout.Settings  each section: nothing on the page shows under Close; the window on screen
 // Pawpocalypse.UI.Layout.Tree      the tree (every node) on screen and centred in the content area
+// Pawpocalypse.UI.Layout.Languages every screen with words, in English and every translation, at 1280 x 800 and 150 % UI:
+//                                  no text wider than its box, cut by a box that clips, or off the screen (phase 7)
+// Pawpocalypse.UI.Layout.PseudoLocale  the same in the pseudo-locale (every line accented and ~40 % longer)
+// Pawpocalypse.UI.Layout.TextMisses    the detector sees what it must (a text too wide, a line cut) and passes what fits
 //
 // Every run writes what it measured to Saved/Layout/<screen>_<W>x<H>_<scale>.txt. Sabotages: tools/sabotage_realm.py
 // (`layout_*`, `shop_not_scrolling`, `settings_page_spills`, `tree_fit_stale_size`).
@@ -32,13 +36,29 @@
 #include "Save/PawSaveStorage.h"
 #include "Save/PawSaveSubsystem.h"
 #include "Save/PawSettingsSubsystem.h"
+#include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetTree.h"
+#include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
+#include "Components/SizeBox.h"
+#include "Components/TextBlock.h"
+#include "Components/TextWidgetTypes.h"
+#include "Internationalization/Culture.h"
+#include "Internationalization/Internationalization.h"
+#include "PcSave.h"
 #include "UI/PawButton.h"
+#include "UI/PawCardPickScreen.h"
 #include "UI/PawHudScreen.h"
+#include "UI/PawJobPicker.h"
+#include "UI/PawPauseMenu.h"
+#include "UI/PawReawakenCeremony.h"
+#include "UI/PawVictoryScreen.h"
 #include "UI/PawLayoutCheck.h"
 #include "UI/PawMainMenu.h"
 #include "UI/PawRootLayout.h"
 #include "UI/PawSettingsDialog.h"
 #include "UI/PawSkillTreeScreen.h"
+#include "UI/PawText.h"
 #include "UI/PawWidgets.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 
@@ -224,6 +244,19 @@ bool FPawLayoutTitleTest::RunTest(const FString& Parameters)
 			TestEqual(Where + TEXT(": Boba's card over the corner"), Clashes(*this, Parts, { TEXT("BobaCard") },
 				{ TEXT("VersionText"), TEXT("ClusterButton"), TEXT("MenuPanel"), TEXT("NameText") }, Where), 0);
 		}
+		// Phase 7: the language list at its longest (all 23 languages): on the screen, above the cluster, clear of it.
+		PawText::SetShowUnfinishedLanguagesForTest(true);
+		Menu->PressCluster(2);
+		TestEqual(TEXT("the list's 23 rows"), Menu->GetLanguageRows().Num(), 23);
+		for (const FSize& Size : Sizes)
+		{
+			const TArray<PawLayout::FPart> Parts = Measure(*this, Menu, Size, TEXT("title_language"));
+			const FString Where = FString::Printf(TEXT("title, the language list, %s"), Size.Name);
+			TestTrue(Where + TEXT(": the list shows"), PawLayout::Find(Parts, TEXT("LanguageMenu")) != nullptr);
+			TestEqual(Where + TEXT(": the list over the cluster"), Clashes(*this, Parts, { TEXT("LanguageMenu") }, { TEXT("ClusterButton") }, Where), 0);
+		}
+		Menu->CloseLanguageMenu();
+		PawText::SetShowUnfinishedLanguagesForTest(false);
 	}
 	W.Close();
 	return true;
@@ -437,6 +470,426 @@ bool FPawLayoutTreeTest::RunTest(const FString& Parameters)
 		Tree->PressClose();
 	}
 	W.Close();
+	return true;
+}
+
+// --- The language pass (phase 7, 2026-11-20; WORKLIST-LOC step 4, doc 11's exit: no overflow at 1280 x 800 and 150 % UI) ---
+// Every screen with words, in every language the game has and in the pseudo-locale, laid out at its tightest (1280 x 800 at
+// 150 % UI: 1153 x 720 of layout), and every text checked against its box (PawLayout::TextMisses). What it finds goes to
+// Saved/Layout/languages.txt, one line each: culture, screen, part, why, the words.
+
+namespace
+{
+	const FSize Tight = { FVector2D(1280.0, 800.0), 1.5f, TEXT("1280x800 150 %") };
+
+	struct FMisses
+	{
+		TArray<FString> Lines;
+		void Check(UUserWidget* W, const FString& Culture, const FString& Screen)
+		{
+			if (!W)
+			{
+				Lines.Add(FString::Printf(TEXT("%s\t%s\t-\tthe screen did not open\t-"), *Culture, *Screen));
+				return;
+			}
+			const TArray<PawLayout::FPart> Parts = PawLayout::Arrange(W, Tight.Screen, Tight.Scale());
+			// The skill tree's map pans and zooms (fitted on a tick, which this does not run): a node past the screen's edge is
+			// not a text cut short. Its words are still held to their boxes.
+			TSet<FString> Panned;
+			if (Cast<UPawSkillTreeScreen>(W))
+			{
+				for (int32 I = 0; I < Parts.Num(); ++I)
+				{
+					if (PawLayout::IsUnder(Parts, I, TEXT("Canvas")))
+					{
+						Panned.Add(Parts[I].Path);
+					}
+				}
+			}
+			for (const PawLayout::FTextMiss& M : PawLayout::TextMisses(Parts))
+			{
+				if (Panned.Contains(M.Path) && M.Why.StartsWith(TEXT("cut sideways")))
+				{
+					continue;
+				}
+				Lines.Add(FString::Printf(TEXT("%s\t%s\t%s\t%s\t%s"), *Culture, *Screen, *M.Path, *M.Why, *M.Text));
+			}
+			for (const PawLayout::FPart& P : Parts)
+			{
+				if (P.bShown && !Panned.Contains(P.Path) && !PawLayout::OnScreen(PawLayout::Footprint(P), Tight.Screen)
+					&& Cast<UTextLayoutWidget>(P.Widget.Get()))
+				{
+					Lines.Add(FString::Printf(TEXT("%s\t%s\t%s\toff the screen at %s\t-"), *Culture, *Screen, *P.Path,
+						*PawLayout::Describe(PawLayout::Footprint(P))));
+				}
+			}
+		}
+	};
+
+	void PutSave(FLayoutWorld& W, int32 Slot, int64 Reawakens, int64 Kills, double Play)
+	{
+		Pc::PcSaveState S;
+		S.ReawakenCount = Reawakens;
+		S.LifetimeKills = Kills;
+		S.TotalPlaySeconds = Play;
+		S.LastPlayedUnix = 1.8e9;
+		S.LifetimeCatnipEver = 10.0;
+		const std::string File = Pc::WriteSaveFile(S, "test");
+		W.Disk->Put(UPawSaveSubsystem::SlotName(Slot), TArray<uint8>(reinterpret_cast<const uint8*>(File.data()), static_cast<int32>(File.size())));
+	}
+
+	// Every screen with words, in the language shown now.
+	void TourScreens(FAutomationTestBase& T, const FString& Culture, FMisses& M)
+	{
+		FLayoutWorld W;
+		if (!W.Open(T))
+		{
+			W.Close();
+			return;
+		}
+		const Pc::PcGameData& D = W.Game->Data();
+		Pc::PcProgress& P = W.Game->Progress();
+
+		// The title: the menu, the language list, the slots (a game, an unreadable file, empty ones), the delete prompt,
+		// the leaderboard, the credits, the quit prompt.
+		PutSave(W, 0, 7, 4321987, 3700.0);
+		W.Disk->Put(UPawSaveSubsystem::SlotName(1), TArray<uint8>(reinterpret_cast<const uint8*>("not a save"), 10));
+		if (UPawMainMenu* Menu = CreateWidget<UPawMainMenu>(W.GI, PawUi::Resolve<UPawMainMenu>()))
+		{
+			Menu->Refresh();
+			M.Check(Menu, Culture, TEXT("title"));
+			Menu->PressCluster(2);
+			M.Check(Menu, Culture, TEXT("title, language list"));
+			Menu->CloseLanguageMenu();
+			Menu->PressLoad();
+			M.Check(Menu, Culture, TEXT("title, slots"));
+			Menu->PressDelete(0);
+			M.Check(Menu, Culture, TEXT("title, delete prompt"));
+			Menu->PressConfirmNo();
+			Menu->PressSlotsBack();
+			Menu->PressLeaderboard();
+			M.Check(Menu, Culture, TEXT("title, leaderboard"));
+			Menu->PressClose();
+			Menu->PressCredits();
+			M.Check(Menu, Culture, TEXT("title, credits"));
+			Menu->PressClose();
+			Menu->PressExit();
+			M.Check(Menu, Culture, TEXT("title, quit prompt"));
+			Menu->PressConfirmNo();
+		}
+
+		// The dock, fresh (the kitten rows locked), then with a run under way: every page.
+		W.Hud->SelectTab(Pc::PcDockTab::Upgrades);
+		W.Hud->RefreshNow();
+		M.Check(W.Hud, Culture, TEXT("dock, upgrades (new game)"));
+		Pc::CheatUnlockAllTiers(D, P);
+		P.Catnip = 1e12; // a run worth Reawakening (the flow tests' amount): the Reawaken below reaches the spend step
+		P.LifetimeCatnipEver = 1e12;
+		P.LifetimeCatnipThisCycle = 1e12;
+		P.ReawakenCount = 2;
+		P.Rerolls = 3;
+		P.Banishes = 2;
+		int32 Held = 0;
+		for (const Pc::PcCard& C : D.Cards)
+		{
+			if (Held++ % 3 == 0)
+			{
+				P.CardLevels[C.Id] = 1;
+			}
+		}
+		for (size_t A = 0; A < D.Achievements.size(); A += 4)
+		{
+			P.AchievementsEarned.insert(D.Achievements[A].Id);
+		}
+		for (size_t J = 0; J < D.Jobs.size(); J += 2)
+		{
+			P.JobsHeld.insert(D.Jobs[J].Id);
+		}
+		const Pc::PcDockTab Tabs[] = { Pc::PcDockTab::Upgrades, Pc::PcDockTab::Reawaken, Pc::PcDockTab::Realms, Pc::PcDockTab::Catches,
+			Pc::PcDockTab::Achievements, Pc::PcDockTab::Jobs };
+		const TCHAR* TabNames[] = { TEXT("upgrades"), TEXT("reawaken"), TEXT("realms"), TEXT("catches"), TEXT("achievements"), TEXT("jobs") };
+		// On screen first, as in the game: a job row's words wrap by its button's measured width, which a refresh takes from
+		// the drawn button (the game refreshes 10 times a second; this refreshes once).
+		W.Hud->TakeWidget();
+		for (int32 I = 0; I < 6; ++I)
+		{
+			W.Hud->SelectTab(Tabs[I]);
+			W.Hud->RefreshNow();
+			M.Check(W.Hud, Culture, FString::Printf(TEXT("dock, %s"), TabNames[I]));
+		}
+		W.Hud->SelectTab(Pc::PcDockTab::Upgrades);
+
+		// The card pick: every card, three a hand.
+		for (size_t C = 0; C < D.Cards.size(); C += 3)
+		{
+			std::vector<std::string> Hand;
+			for (size_t K = C; K < FMath::Min(C + 3, D.Cards.size()); ++K)
+			{
+				Hand.push_back(D.Cards[K].Id);
+			}
+			P.Hand = Hand;
+			P.CatchesLevel = 4;
+			W.Hud->Pump(0.0);
+			M.Check(W.Hud->GetCardPick(), Culture, FString::Printf(TEXT("card pick, %s"), UTF8_TO_TCHAR(Hand.front().c_str())));
+		}
+		// Out of the pick the player's way (a take closes it): left open, it holds back the Reawaken's spend step below.
+		for (int32 I = 0; I < 10 && W.Hud->IsCardPickUp(); ++I)
+		{
+			// The hand the screen shows is the one held (the tour set the progress's hand under it).
+			UPawCardPickScreen* Pick = W.Hud->GetCardPick();
+			P.Hand.clear();
+			for (int32 K = 0; K < Pick->GetCardCount(); ++K)
+			{
+				P.Hand.push_back(TCHAR_TO_UTF8(*Pick->GetCardId(K)));
+			}
+			Pick->Take(0);
+			W.Hud->Pump(0.0);
+		}
+		P.Hand.clear();
+		W.Hud->Pump(0.0);
+
+		// The skill tree: browsing, with the tip on the nodes whose tips say the most in this language; the spend step.
+		if (W.Hud->OpenSkillTree(false))
+		{
+			UPawSkillTreeScreen* Tree = W.Hud->GetSkillTree();
+			TArray<TPair<int32, FString>> Longest;
+			for (const std::string& Id : Tree->GetLayout().Order)
+			{
+				Tree->NodeFocused(UTF8_TO_TCHAR(Id.c_str()));
+				int32 Len = Tree->GetTipTitle().ToString().Len();
+				for (const FText& Line : Tree->GetTipLines())
+				{
+					Len += Line.ToString().Len();
+				}
+				Longest.Add({ Len, UTF8_TO_TCHAR(Id.c_str()) });
+			}
+			Longest.Sort([](const TPair<int32, FString>& A, const TPair<int32, FString>& B) { return A.Key > B.Key; });
+			M.Check(Tree, Culture, TEXT("tree"));
+			for (int32 I = 0; I < FMath::Min(4, Longest.Num()); ++I)
+			{
+				Tree->NodeFocused(Longest[I].Value);
+				M.Check(Tree, Culture, FString::Printf(TEXT("tree, tip %s"), *Longest[I].Value));
+			}
+			Tree->PressClose();
+		}
+		else
+		{
+			M.Check(nullptr, Culture, TEXT("tree"));
+		}
+
+		// The pause menu: its page, the armed main menu, the slots page. A frame on: the tree held the field this one.
+		W.Hud->Pump(1.0 / 60.0);
+		GFrameCounter += 2;
+		if (W.Hud->OpenPauseMenu())
+		{
+			UPawPauseMenu* Pause = W.Hud->GetPauseMenu();
+			M.Check(Pause, Culture, TEXT("pause"));
+			Pause->PressMainMenu();
+			M.Check(Pause, Culture, TEXT("pause, armed"));
+			Pause->PressSave();
+			M.Check(Pause, Culture, TEXT("pause, slots"));
+			Pause->PressSlotsBack();
+			Pause->PressContinue();
+		}
+		else
+		{
+			M.Check(nullptr, Culture, TEXT("pause"));
+		}
+
+		// Settings: each section.
+		if (UPawSettingsDialog* S = UPawSettingsDialog::Open(W.Root->ModalStack, nullptr))
+		{
+			const Pc::PcSettingsSection Sections[] = { Pc::PcSettingsSection::Audio, Pc::PcSettingsSection::Video, Pc::PcSettingsSection::Controls };
+			const TCHAR* SectionNames[] = { TEXT("audio"), TEXT("video"), TEXT("controls") };
+			for (int32 I = 0; I < 3; ++I)
+			{
+				S->PressSection(Sections[I]);
+				M.Check(S, Culture, FString::Printf(TEXT("settings, %s"), SectionNames[I]));
+			}
+			S->PressClose();
+		}
+
+		// A Reawaken: the ceremony, the spend step, the job picker.
+		if (!W.Hud->GetAskReawakenButton()->IsTicked())
+		{
+			W.Hud->ToggleAskBeforeReawaken();
+		}
+		W.Hud->RefreshNow();
+		W.Hud->PressReawaken();
+		W.Hud->PressReawaken();
+		for (int32 I = 0; I < 60; ++I)
+		{
+			W.Hud->Pump(1.0 / 60.0);
+		}
+		M.Check(W.Hud->GetCeremony(), Culture, TEXT("ceremony"));
+		for (int32 I = 0; I < 400 && W.Hud->GetCeremony() && W.Hud->GetCeremony()->IsPlaying(); ++I)
+		{
+			W.Hud->Pump(1.0 / 60.0);
+		}
+		W.Hud->Pump(1.0 / 60.0);
+		if (UPawSkillTreeScreen* Tree = W.Hud->GetSkillTree(); Tree && Tree->IsActivated() && Tree->IsSpendMode())
+		{
+			M.Check(Tree, Culture, TEXT("spend step"));
+			Tree->PressClose();
+			M.Check(Tree, Culture, TEXT("spend step, armed"));
+			Tree->PressClose();
+			W.Hud->Pump(1.0 / 60.0);
+			M.Check(W.Hud->GetJobPicker(), Culture, TEXT("job picker"));
+		}
+		else
+		{
+			const UPawSkillTreeScreen* Shown = W.Hud->GetSkillTree();
+			const int32 Reawakens = static_cast<int32>(P.ReawakenCount);
+			const int32 bMade = Shown ? 1 : 0, bActive = Shown && Shown->IsActivated() ? 1 : 0, bSpend = Shown && Shown->IsSpendMode() ? 1 : 0;
+			const int32 bPick = W.Hud->GetCardPick() && W.Hud->GetCardPick()->IsActivated() ? 1 : 0;
+			M.Lines.Add(FString::Printf(TEXT("%s\tspend step\t-\tthe Reawaken did not reach the spend step (Reawakens %d, tree %d, activated %d, spend %d, pick %d)\t-"),
+				*Culture, Reawakens, bMade, bActive, bSpend, bPick));
+		}
+
+		// The ending.
+		W.Hud->ShowVictory(5025.0);
+		M.Check(W.Hud->GetVictory(), Culture, TEXT("victory"));
+		W.Close();
+	}
+
+	struct FCultureShown
+	{
+		FString Was;
+		FCultureShown() : Was(FInternationalization::Get().GetCurrentCulture()->GetName()) {}
+		~FCultureShown()
+		{
+			PawText::SetPseudoLocale(false);
+			PawText::ShowCulture(Was);
+		}
+	};
+
+	void WriteMisses(const FMisses& M, const FString& Name)
+	{
+		const FString File = FPaths::ProjectSavedDir() / TEXT("Layout") / Name;
+		FFileHelper::SaveStringToFile(TEXT("culture\tscreen\tpart\twhy\twords\n") + FString::Join(M.Lines, TEXT("\n")) + TEXT("\n"), *File,
+			FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawLayoutLanguagesTest, "Pawpocalypse.UI.Layout.Languages", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawLayoutLanguagesTest::RunTest(const FString& Parameters)
+{
+	PawText::RegisterTables();
+	PawText::RegisterTranslations();
+	const FCultureShown Restore;
+	TArray<FString> Cultures = PawText::LoadedCultures().Array();
+	Cultures.Sort();
+	Cultures.Insert(TEXT("en"), 0);
+	TestEqual(TEXT("English and the 22 translations"), Cultures.Num(), 23);
+	FMisses M;
+	for (const FString& Culture : Cultures)
+	{
+		if (!TestTrue(FString::Printf(TEXT("%s shown"), *Culture), PawText::ShowCulture(Culture)))
+		{
+			continue;
+		}
+		TourScreens(*this, Culture, M);
+	}
+	WriteMisses(M, TEXT("languages.txt"));
+	for (int32 I = 0; I < FMath::Min(20, M.Lines.Num()); ++I)
+	{
+		AddError(M.Lines[I]);
+	}
+	TestEqual(TEXT("texts that do not fit, in every language (Saved/Layout/languages.txt)"), M.Lines.Num(), 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawLayoutPseudoTest, "Pawpocalypse.UI.Layout.PseudoLocale", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawLayoutPseudoTest::RunTest(const FString& Parameters)
+{
+	// Every line accented and about 40 % longer: what fits only in today's languages shows here.
+	PawText::RegisterTables();
+	PawText::RegisterTranslations();
+	const FCultureShown Restore;
+	PawText::ShowCulture(TEXT("en"));
+	PawText::SetPseudoLocale(true);
+	TestTrue(TEXT("the pseudo-locale on"), PawText::IsPseudoLocale());
+	TestTrue(TEXT("a line made pseudo"), PawText::Ui(TEXT("TAB_upgrades")).ToString().StartsWith(TEXT("[")));
+	// The rule itself: every letter accented, a {placeholder} and a multiplier kept, about 40 % more in short words.
+	TestEqual(TEXT("pseudo: accents, placeholder, padding"), PawText::Pseudo(TEXT("Upgrades {n} x5")), FString(TEXT("[Üpgrådës {n} x5 ëñëñ]")));
+	TestEqual(TEXT("pseudo: no letters, no change"), PawText::Pseudo(TEXT("{value} / {threshold}")), FString(TEXT("{value} / {threshold}")));
+	{
+		TArray<FString> Words;
+		PawText::Pseudo(TEXT("Pounce damage x4. Pounce lock: you cannot move for 3s after each Pounce.")).ParseIntoArray(Words, TEXT(" "));
+		int32 Longest = 0;
+		for (const FString& Word : Words)
+		{
+			Longest = FMath::Max(Longest, Word.Len());
+		}
+		TestTrue(FString::Printf(TEXT("pseudo: no word longer than the English's (%d letters)"), Longest), Longest <= 7);
+	}
+	FMisses M;
+	TourScreens(*this, TEXT("pseudo"), M);
+	PawText::SetPseudoLocale(false);
+	TestEqual(TEXT("English back"), PawText::Ui(TEXT("TAB_upgrades")).ToString(), FString(TEXT("Upgrades")));
+	WriteMisses(M, TEXT("pseudo.txt"));
+	for (int32 I = 0; I < FMath::Min(20, M.Lines.Num()); ++I)
+	{
+		AddError(M.Lines[I]);
+	}
+	TestEqual(TEXT("texts that do not fit in the pseudo-locale (Saved/Layout/pseudo.txt)"), M.Lines.Num(), 0);
+	return true;
+}
+
+// The detector itself (PawLayout::TextMisses): a pass that finds nothing could be one that sees nothing. It must see a
+// text wider than its box and a whole line cut by a box that clips, and pass one that fits.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawLayoutTextMissesTest, "Pawpocalypse.UI.Layout.TextMisses", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawLayoutTextMissesTest::RunTest(const FString& Parameters)
+{
+	UWidgetTree* T = NewObject<UWidgetTree>(GetTransientPackage(), NAME_None, RF_Transient);
+	UCanvasPanel* Canvas = T->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("Canvas"));
+	T->RootWidget = Canvas;
+	auto Words = [T](const TCHAR* Name, const TCHAR* Text)
+	{
+		UTextBlock* X = T->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), Name);
+		X->SetText(FText::FromString(Text));
+		return X;
+	};
+	auto Put = [](UCanvasPanel* Into, UWidget* What, double X, double Y)
+	{
+		UCanvasPanelSlot* S = Into->AddChildToCanvas(What);
+		S->SetPosition(FVector2D(X, Y));
+		S->SetAutoSize(true);
+	};
+	// Wider than its box: an unwrapped line in a 60 px size box.
+	USizeBox* Narrow = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("Narrow"));
+	Narrow->SetWidthOverride(60.0f);
+	Narrow->SetContent(Words(TEXT("TooWide"), TEXT("A line much wider than its box")));
+	Put(Canvas, Narrow, 10.0, 10.0);
+	// Cut sideways: a whole line placed past the right edge of a box that clips.
+	USizeBox* Clip = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("Clip"));
+	Clip->SetWidthOverride(100.0f);
+	Clip->SetHeightOverride(60.0f);
+	Clip->SetClipping(EWidgetClipping::ClipToBounds);
+	UCanvasPanel* Inner = T->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("Inner"));
+	Clip->SetContent(Inner);
+	Put(Inner, Words(TEXT("Clipped"), TEXT("Past the edge")), 60.0, 0.0);
+	Put(Canvas, Clip, 10.0, 80.0);
+	// Fits: a short word in a wide box.
+	USizeBox* Wide = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("Wide"));
+	Wide->SetWidthOverride(300.0f);
+	Wide->SetContent(Words(TEXT("Fits"), TEXT("Fits")));
+	Put(Canvas, Wide, 10.0, 170.0);
+
+	const TArray<PawLayout::FTextMiss> Misses = PawLayout::TextMisses(PawLayout::ArrangeTree(T, FVector2D(480.0, 320.0), 1.0f));
+	auto Why = [&Misses](const TCHAR* Path)
+	{
+		const PawLayout::FTextMiss* M = Misses.FindByPredicate([Path](const PawLayout::FTextMiss& X) { return X.Path == Path; });
+		return M ? M->Why : FString();
+	};
+	TestTrue(TEXT("a text wider than its box is seen (") + Why(TEXT("TooWide")) + TEXT(")"), Why(TEXT("TooWide")).StartsWith(TEXT("needs")));
+	TestTrue(TEXT("a line cut by a box that clips is seen (") + Why(TEXT("Clipped")) + TEXT(")"),
+		Why(TEXT("Clipped")).StartsWith(TEXT("cut sideways")));
+	TestTrue(TEXT("a text that fits passes (") + Why(TEXT("Fits")) + TEXT(")"), Why(TEXT("Fits")).IsEmpty());
+	TestEqual(TEXT("nothing else is seen"), Misses.Num(), 2);
 	return true;
 }
 

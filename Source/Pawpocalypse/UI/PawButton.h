@@ -85,6 +85,11 @@ public:
 
 	void SetLabel(const FText& Text);
 	FText GetLabel() const;
+	// The width the button's content needs with Text as its label, measured with the label's font (no drawn widget needed):
+	// its padding, its icon's place and the words. Not its minimum width: the caller takes that (the language pass,
+	// 2026-11-20).
+	float WidthFor(const FText& Text) const;
+	int32 GetMinWidth() const { return MinWidth; } // SetMinDimensions' (Common UI keeps it protected)
 	// A fill drawn under the label (a tab's own colour); cleared with bShow = false.
 	void SetPlate(bool bShow, const FLinearColor& Fill);
 	// R4a: "the selected thing" (a settings section, a biome just reachable, the Bait calling): the Butter plate under an ink
@@ -98,7 +103,8 @@ public:
 	// The label's colour while unlocked (a boss row is red, a cleared one Stardust); bOverride = false: the text colour.
 	// bAlsoWhenLocked: the colour holds on a locked row too ("you are here" stays green: Godot's font_disabled_color).
 	void SetLabelColour(bool bOverride, const FLinearColor& Colour, bool bAlsoWhenLocked = false);
-	// Wraps the label at this width (0 = never): a fixed width, or a wrapped line overdraws the next (KB U/09 §3).
+	// Wraps the label at this width (0 = never): a fixed width, or a wrapped line overdraws the next (KB U/09 §3). The width is
+	// the whole line: beside an icon (or its kept place) the words wrap that much and the gap narrower.
 	void SetWrapAt(float Width);
 	// Locked: selectable, never pressed, drawn disabled (see the class comment).
 	void SetLocked(bool bInLocked);

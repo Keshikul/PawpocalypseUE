@@ -5,8 +5,9 @@
                                                  letter cut from the text face), and PASS on the real one
 
 The strings: English (Godot's messages.pot msgids and the port's string tables, Content/Pawpocalypse/Localization/Strings),
-every Godot locale/*.po msgstr (the translations reach the port in phase 7; the text is Godot's until parity), and the
-language picker's names (locales.gd NATIVE_NAMES), shown in EVERY language. Each character (NFC, minus whitespace and
+every Godot locale/*.po msgstr, every line of the port's translation files (Content/Pawpocalypse/Localization/Translations/
+<culture>/*.csv, Text: the port's own translations since 2026-11-20, Dutch and Danish only there), and the language picker's
+names (locales.gd NATIVE_NAMES), shown in EVERY language. Each character (NFC, minus whitespace and
 controls) is resolved the way Slate resolves it (tools/fonts.py, the docstring): the culture's sub-fonts, the culture-less
 sub-fonts, the default typeface, the fallback. Both text weights are checked (the default typeface's faces).
 
@@ -30,6 +31,7 @@ GODOT = Path("C:/Games/pawpocalypse")
 LOCALE = GODOT / "locale"
 LOCALES_GD = GODOT / "scripts" / "systems" / "locales.gd"
 ST = fonts.ROOT / "Content" / "Pawpocalypse" / "Localization" / "Strings"
+TRANS = fonts.ROOT / "Content" / "Pawpocalypse" / "Localization" / "Translations"
 
 
 # ---- the strings ----
@@ -87,6 +89,16 @@ def corpus():
         if not own:
             raise SystemExit("font coverage: %s has no translations" % po.name)
         out[fonts.culture(po.stem)] = (chars_of(own), picker)
+    # The port's translation files (2026-11-20: before, only Godot's .po were read, and a character new in the port's own
+    # lines was never checked). The folders are Unreal's cultures.
+    for folder in sorted(p for p in TRANS.iterdir() if p.is_dir()):
+        lines = []
+        for f in sorted(folder.glob("*.csv")):
+            with f.open(encoding="utf-8") as fh:
+                lines += [row.get("Text") or "" for row in csv.DictReader(fh)]
+        if lines:
+            had = out.get(folder.name, (set(), picker))[0]
+            out[folder.name] = (had | chars_of(lines), picker)
     return out
 
 

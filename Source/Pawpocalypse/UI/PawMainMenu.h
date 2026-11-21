@@ -14,8 +14,16 @@
 //
 // NOT YET, each with its phase: the garden behind the menu, Boba's photo and his cameo on a click, the cluster's icons
 // (the art, phase 6: a paper floor, an empty frame and the button's word stand in, at Godot's sizes); the menu music
-// (audio, phase 6); the Language list (phase 7: its button is there and disabled). Settings opens the settings dialog on
-// the Modal stack; the slot screen opens on the last slot used (the settings' last_slot, which the active slot follows).
+// (audio, phase 6). Settings opens the settings dialog on the Modal stack; the slot screen opens on the last slot used (the
+// settings' last_slot, which the active slot follows).
+//
+// THE LANGUAGE LIST (phase 7; main_menu.gd _open_language_menu, the designer 2026-09-21: "a menu should appear with all
+// available languages and the player can click on the one they want"): the cluster's Language opens a paper list above it,
+// one row per language offered (PawText::Languages: complete ones; -PawDraftLanguages: unfinished too), each in its own
+// name, never translated; the language shown sits on the yellow plate with the tick. A row saves the language, shows it at
+// once and closes the list; Back or a click anywhere else closes it. A layer like the others: its rows have the keys
+// while it is up, the selection starting on the language shown. The concept draws only the button: the list follows the
+// kit (a card, rows, the yellow "you are here").
 //
 // A WIDGET BLUEPRINT (PawWidgets.h): WBP_MainMenu owns the layout; the parts below are bound by name (the repeated ones as
 // MenuButton0..6, ClusterButton0..2, SlotCard0..4, SlotDelete0..4, SlotText0..4, SlotNumber0..4, SlotSize0..4,
@@ -57,7 +65,7 @@ class PAWPOCALYPSE_API UPawMainMenu : public UCommonActivatableWidget
 	GENERATED_BODY()
 
 public:
-	enum class ELayer : uint8 { Menu, Slots, Leaderboard, Credits, Confirm };
+	enum class ELayer : uint8 { Menu, Slots, Leaderboard, Credits, Confirm, Language };
 	static constexpr int32 SlotCount = 5;
 
 	virtual bool Initialize() override;
@@ -90,7 +98,14 @@ public:
 	void PressConfirmNo();
 	void PressClose();          // the credits' or the leaderboard's Close
 	void PressSlotsBack();
-	void PressCluster(int32 Index); // 0 bug, 1 Discord, 2 language
+	void PressCluster(int32 Index); // 0 bug, 1 Discord, 2 language (opens or closes the list)
+	// A language row (_on_language_chosen): the setting saved and shown, the list closed, this screen's words again.
+	void PressLanguage(const FString& Code);
+	// The list closed, as Back or a click outside it does (_close_language_menu).
+	void CloseLanguageMenu();
+	// A press at ScreenPosition that no row took while the list is up (the clear scrim's): off the list's card it closes
+	// the list; on it (its edge, its scroll bar) nothing. False when the list is not up.
+	bool PressOffLanguageMenu(const FVector2D& ScreenPosition);
 	// Back from the top layer down (_back): the confirm, the credits, the leaderboard, the slots; on the menu, "Quit?".
 	void Back();
 	// _refresh() and _refresh_slot_cards(): read the game and the slots again.
@@ -125,6 +140,9 @@ public:
 	float GetSlotCardWidth(int32 SlotIndex) const;
 	const TArray<UWidget*>& GetWired() const { return Wired; }
 	UWidget* GetTopDefault() const { return NativeGetDesiredFocusTarget(); }
+	// The language list's rows, in its order, and the language each sets (Godot's codes).
+	const TArray<TObjectPtr<UPawButton>>& GetLanguageRows() const { return LanguageRows; }
+	const TArray<FString>& GetLanguageCodes() const { return LanguageCodes; }
 	// Steps the slot cards' swell by DeltaSeconds (NativeTick does it every frame; the tests drive it).
 	void StepSwell(double DeltaSeconds);
 
@@ -132,6 +150,8 @@ protected:
 	virtual void NativeOnActivated() override;
 	virtual void NativeTick(const FGeometry& Geometry, float DeltaSeconds) override;
 	virtual FReply NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& KeyEvent) override;
+	// The clear scrim behind the language list: a press anywhere off the list closes it (Godot's LanguageScrim).
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& MouseEvent) override;
 
 private:
 	UPawGameSubsystem* Game() const;
@@ -148,6 +168,11 @@ private:
 	void RefreshSlotCards();
 	void RefreshLeaderboard();
 	bool CanTakeFocus() const;
+	void OpenLanguageMenu();
+	// _fill_language_menu(): one row per language offered, rebuilt on every open.
+	void FillLanguageMenu();
+	// _on_language_changed(): this screen's code-built words again, in the language shown.
+	void OnSettingsChanged();
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UCanvasPanel> Canvas;
@@ -188,6 +213,16 @@ private:
 	TObjectPtr<UPawButton> CreditsClose;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> SlotsBack;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UBorder> LanguageLayer;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UBorder> LanguageMenu;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UVerticalBox> LanguageList;
+	UPROPERTY()
+	TArray<TObjectPtr<UPawButton>> LanguageRows;
+	TArray<FString> LanguageCodes;
+	FString ShownCulture; // the culture this screen's words were last made in (OnSettingsChanged)
 	UPROPERTY()
 	TArray<TObjectPtr<UPawButton>> SlotCards;
 	UPROPERTY()

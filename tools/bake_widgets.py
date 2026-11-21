@@ -13,6 +13,7 @@ GRAFT new parts of a class's code layout into its existing asset (UPawWidgetBake
 stays as the designer left it):
     py tools/bake_widgets.py --run --graft "PawHudScreen=add:DockLegend;add:PouncePrompt" [--graft "PawMainMenu=swap:HintText>HintPrompts"]
 RESTYLE a part (its brush, padding, bar style or size from the code layout; nothing else of it): "PawJobPicker=restyle:Panel".
+WRAPAT a text's wrap width and auto-wrap from the code layout (2026-11-20, the language pass): "PawMainMenu=wrapat:CreditsText".
 LIST an asset's widget names (to find a part baked without a name): "PawHudScreen=names:".
 
 RECOLOUR every baked asset after a palette change: `py tools/bake_widgets.py --run --recolour`. The assets saved their colours

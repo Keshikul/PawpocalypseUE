@@ -18,6 +18,10 @@
 #include "PcStats.h"
 #include "Save/PawSaveStorage.h"
 #include "Save/PawSaveSubsystem.h"
+#include "Save/PawSettingsSubsystem.h"
+#include "PcSettings.h"
+#include "Internationalization/Culture.h"
+#include "Internationalization/Internationalization.h"
 #include "UI/PawButton.h"
 #include "UI/PawMainMenu.h"
 #include "UI/PawText.h"
@@ -321,7 +325,7 @@ bool FPawTitleLookTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Settings opens the settings dialog"), M->GetMenuButton(4)->GetIsEnabled());
 	TestTrue(TEXT("Report a bug is live"), M->GetClusterButton(0)->GetIsEnabled());
 	TestTrue(TEXT("Discord is live"), M->GetClusterButton(1)->GetIsEnabled());
-	TestFalse(TEXT("Language waits for the languages"), M->GetClusterButton(2)->GetIsEnabled());
+	TestTrue(TEXT("Language opens the language list (phase 7)"), M->GetClusterButton(2)->GetIsEnabled());
 	TestFalse(TEXT("the cluster is mouse only"), M->GetClusterButton(0)->GetIsFocusable());
 	// Phase 6 slice 5b: the plates wear main_menu.gd's icons (Art.texture), no words; the name is the tooltip.
 	const TCHAR* ClusterIcons[] = { TEXT("ui_menu_bug"), TEXT("ui_menu_discord"), TEXT("ui_menu_language") };
@@ -837,6 +841,96 @@ bool FPawTitleBackTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("two links opened"), W.Opened.Num(), 2);
 	TestEqual(TEXT("the bug board"), W.Opened.IsValidIndex(0) ? W.Opened[0] : FString(), FString(UPawMainMenu::BugReportUrl));
 	TestEqual(TEXT("the Discord"), W.Opened.IsValidIndex(1) ? W.Opened[1] : FString(), FString(UPawMainMenu::DiscordUrl));
+	TestTrue(TEXT("Language opens its list, no link"), M->GetTopLayer() == UPawMainMenu::ELayer::Language);
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTitleLanguageTest, "Pawpocalypse.UI.Title.Language", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// The cluster's Language (phase 7; main_menu.gd _open_language_menu): the languages offered, each in its own name, the one
+// shown ticked on the yellow plate; a layer whose rows have the keys while it is up, starting on the language shown; a row
+// saves and shows its language and closes the list; Back, the button again and a press off the list close it; the
+// screen's words follow the new language.
+bool FPawTitleLanguageTest::RunTest(const FString& Parameters)
+{
+	using ELayer = UPawMainMenu::ELayer;
+	FTitleWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	UPawSettingsSubsystem* Settings = W.GI->GetSubsystem<UPawSettingsSubsystem>();
+	if (!TestNotNull(TEXT("the settings"), Settings))
+	{
+		W.Close();
+		return false;
+	}
+	Settings->UseStorageForTest(W.Disk); // the setting is written to the sandbox, "system" to start with
+	const FString Was = FInternationalization::Get().GetCurrentCulture()->GetName();
+	UPawMainMenu* M = W.Menu;
+
+	// Only complete languages are offered (2026-11-20: English and German). The button toggles the list.
+	M->PressCluster(2);
+	TestTrue(TEXT("the list is up, on top"), M->GetTopLayer() == ELayer::Language);
+	TestEqual(TEXT("complete languages only"), FString::Join(M->GetLanguageCodes(), TEXT(",")), FString::Join(PawText::Languages(false), TEXT(",")));
+	M->PressCluster(2);
+	TestTrue(TEXT("the button again closes it"), M->GetTopLayer() == ELayer::Menu);
+
+	// The review's list (-PawDraftLanguages): every language with a line in use, in the picker's order.
+	PawText::SetShowUnfinishedLanguagesForTest(true);
+	M->PressCluster(2);
+	const TArray<FString> Codes = M->GetLanguageCodes();
+	TestEqual(TEXT("English and the 22 translated"), Codes.Num(), 23);
+	TestEqual(TEXT("in the picker's order"), FString::Join(Codes, TEXT(",")), FString::Join(PawText::Languages(true), TEXT(",")));
+	const TArray<TObjectPtr<UPawButton>>& Rows = M->GetLanguageRows();
+	TestEqual(TEXT("one row each"), Rows.Num(), Codes.Num());
+	const int32 En = Codes.IndexOfByKey(TEXT("en")), De = Codes.IndexOfByKey(TEXT("de"));
+	if (!TestTrue(TEXT("English and German listed"), Rows.IsValidIndex(En) && Rows.IsValidIndex(De)))
+	{
+		PawText::SetShowUnfinishedLanguagesForTest(false);
+		Settings->UseStorageForTest(nullptr);
+		W.Close();
+		return false;
+	}
+	TestEqual(TEXT("each in its own name"), S(Rows[De]->GetLabel()), FString(TEXT("Deutsch (Entwurf)")));
+	TestEqual(TEXT("English, never a draft"), S(Rows[En]->GetLabel()), FString(TEXT("English")));
+	TestTrue(TEXT("the language shown: the yellow plate and the tick"), Rows[En]->HasActiveLook() && Rows[En]->GetIconName() == TEXT("ui_tick"));
+	TestTrue(TEXT("the others: neither"), !Rows[De]->HasActiveLook() && Rows[De]->GetIconName().IsEmpty());
+	TestTrue(TEXT("the keys start on the language shown"), M->GetTopDefault() == Rows[En]);
+	TestEqual(TEXT("its rows are the keys' rows"), M->GetWired().Num(), Codes.Num());
+	M->Back();
+	TestTrue(TEXT("Back closes it"), M->GetTopLayer() == ELayer::Menu);
+
+	// A press off the list closes it (Godot's scrim); with the list down it is not the list's.
+	M->PressCluster(2);
+	TestTrue(TEXT("a press off the card closes it"), M->PressOffLanguageMenu(FVector2D(-5000.0, -5000.0)) && M->GetTopLayer() == ELayer::Menu);
+	TestFalse(TEXT("with the list down, a press is the screen's"), M->PressOffLanguageMenu(FVector2D(-5000.0, -5000.0)));
+
+	// A row: the language saved and shown, the list closed, the screen's words in it. (The editor never shows a language
+	// itself: the test shows German as the game would.)
+	const FString EnglishHint = M->GetHintText();
+	PawText::ShowCulture(TEXT("de"));
+	M->PressCluster(2);
+	M->PressLanguage(TEXT("de"));
+	Pc::PcSettings File;
+	TArray<uint8> Bytes;
+	TestTrue(TEXT("saved: de"), W.Disk->Read(UPawSettingsSubsystem::EntryName, Bytes)
+		&& Pc::SettingsLoad(std::string(reinterpret_cast<const char*>(Bytes.GetData()), static_cast<size_t>(Bytes.Num())), File)
+		&& File.Language == "de");
+	TestEqual(TEXT("applied: German"), Settings->GetLanguageApplied().Culture, FString(TEXT("de")));
+	TestTrue(TEXT("the list closed"), M->GetTopLayer() == ELayer::Menu);
+	TestTrue(TEXT("the hint made again, in German"), M->GetHintText() != EnglishHint && M->GetHintText().StartsWith(TEXT("Im Spiel:")));
+	TestEqual(TEXT("the status line too"), S(M->GetStatusText()), FString(TEXT("Noch kein Spielstand. Beginne ein neues Spiel.")));
+	M->PressCluster(2);
+	TestTrue(TEXT("reopened: German is the one shown"), M->GetLanguageRows().IsValidIndex(De) && M->GetLanguageRows()[De]->HasActiveLook()
+		&& M->GetTopDefault() == M->GetLanguageRows()[De]);
+	M->PressLanguage(TEXT("en"));
+	PawText::ShowCulture(Was);
+
+	PawText::SetShowUnfinishedLanguagesForTest(false);
+	Settings->UseStorageForTest(nullptr);
 	W.Close();
 	return true;
 }

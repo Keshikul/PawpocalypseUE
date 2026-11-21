@@ -54,7 +54,8 @@ namespace
 	// skill_tree_ui.gd / skill_tree.tscn / upgrade_tooltip.gd / skill_tree_connector_layer.gd (presentation constants).
 	constexpr double NodePx = Pc::TreeLayout::NodeSize;  // NODE_SIZE
 	constexpr double ContentTop = 130.0;                // ContentArea offset_top
-	constexpr double HubPlateW = 150.0, HubPlateH = 44.0; // HUB_PLATE_SIZE
+	constexpr double HubPlateW = 150.0, HubPlateH = 44.0; // HUB_PLATE_SIZE (the least: the pill grows with its words)
+	constexpr double HubPadX = 14.0;                      // the words' room inside the pill's round ends
 	constexpr double HaloPad = 16.0;                    // HALO_PAD
 	constexpr double HaloRadius = NodePx * 0.5 + HaloPad; // D18 (S4): round behind the hexagon (Godot HALO_RADIUS 26: a rounded square)
 	constexpr double HaloAlphaLow = 0.55, HaloAlphaHigh = 1.0; // HALO_ALPHA
@@ -687,16 +688,26 @@ void UPawSkillTreeScreen::BuildCanvas()
 		Place(Halo, V(Layout.Nodes.at(Utf8(Id))), FVector2D(NodePx + 2.0 * HaloPad));
 		Halos.Add(Id, Halo);
 	}
-	// The hub: a pill just big enough for its words, on the sky, belonging to no trunk.
+	// The hub: a pill just big enough for its words, on the sky, belonging to no trunk. HUB_PLATE_SIZE at least, wider when
+	// the words are ("Árbol de habilidades" ran past Godot's fixed 150: the language pass, 2026-11-20).
 	UBorder* Hub = T->ConstructWidget<UBorder>();
 	Hub->SetBrush(Rounded(WithAlpha(PawTokens::SKY_PLATE, 0.96), WithAlpha(PawTokens::SKY_PLATE_EDGE, 0.8), 2.0f, 18.0f));
 	Hub->SetHorizontalAlignment(HAlign_Center);
 	Hub->SetVerticalAlignment(VAlign_Center);
+	Hub->SetPadding(FMargin(static_cast<float>(HubPadX), 0.0f));
 	Hub->SetVisibility(ESlateVisibility::HitTestInvisible);
 	UTextBlock* HubText = MakeText(T, LabelPx, PawTokens::SKY_STAR);
 	HubText->SetText(PawText::Ui(TEXT("TREE_hub")));
 	Hub->SetContent(HubText);
-	Place(Hub, V(Layout.Hub), FVector2D(HubPlateW, HubPlateH));
+	USizeBox* HubSize = T->ConstructWidget<USizeBox>();
+	HubSize->SetMinDesiredWidth(static_cast<float>(HubPlateW));
+	HubSize->SetMinDesiredHeight(static_cast<float>(HubPlateH));
+	HubSize->SetVisibility(ESlateVisibility::HitTestInvisible);
+	HubSize->SetContent(Hub);
+	UCanvasPanelSlot* HubSlot = Canvas->AddChildToCanvas(HubSize);
+	HubSlot->SetAutoSize(true);
+	HubSlot->SetAlignment(FVector2D(0.5, 0.5));
+	HubSlot->SetPosition(V(Layout.Hub));
 
 	for (const FString& Id : Order)
 	{

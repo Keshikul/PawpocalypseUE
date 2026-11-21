@@ -97,7 +97,11 @@ namespace
 	constexpr double JobIconPx = 40.0;         // hud.gd _build_job_page
 	constexpr double CardIconPx = 40.0;        // D18 (S4): a Catches row's card picture (the concept's tile)
 	constexpr double JobButtonWidth = 104.0;   // hud.gd _build_job_page (42 high, as Claim)
-	constexpr float RowTextWrap = 360.0f;      // a row's text beside its button
+	// A row's text beside its picture and its button: the dock's inner width less the plate's padding, the picture and the
+	// button with their 8 px gaps, and 4 px to spare (the language pass, 2026-11-20: 360 for both ran past the button in
+	// English too; a job row has 339).
+	constexpr float JobTextWrap = static_cast<float>(PageWrap - 2.0 * PawUi::AwardPlatePadX - (JobIconPx + 8.0) - (JobButtonWidth + 8.0) - 4.0);
+	constexpr float AwardTextWrap = static_cast<float>(PageWrap - 2.0 * PawUi::AwardPlatePadX - (AchievementIconPx + 8.0) - (ClaimWidth + 8.0) - 4.0);
 	constexpr float MarkSize = 14.0f;          // the achievement mark (★ ◆ ☆: the font has none until phase 6's art)
 
 	const TCHAR* TabKey(PcDockTab T)
@@ -877,7 +881,7 @@ void UPawHudScreen::BuildAchievementRows()
 		TextsSlot->SetVerticalAlignment(VAlign_Center);
 		UTextBlock* Name = PawUi::Heavy(PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT));
 		Name->SetAutoWrapText(false);
-		Name->SetWrapTextAt(RowTextWrap);
+		Name->SetWrapTextAt(AwardTextWrap);
 		Texts->AddChildToVerticalBox(Name);
 		// D18 (S4): a row still going: its bar, then the numbers (the concept's); a done one: the description alone.
 		UHorizontalBox* Sub = T->ConstructWidget<UHorizontalBox>();
@@ -894,7 +898,7 @@ void UPawHudScreen::BuildAchievementRows()
 		BarSlot->SetPadding(FMargin(0.0f, 0.0f, static_cast<float>(PawUi::AwardBarGap), 0.0f));
 		UTextBlock* Line2 = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT_MUTED);
 		Line2->SetAutoWrapText(false);
-		Line2->SetWrapTextAt(RowTextWrap);
+		Line2->SetWrapTextAt(AwardTextWrap);
 		Sub->AddChildToHorizontalBox(Line2)->SetVerticalAlignment(VAlign_Center);
 		UPawButton* Claim = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>());
 		Claim->Index = I;
@@ -948,11 +952,11 @@ void UPawHudScreen::BuildJobRows()
 		TextsSlot->SetVerticalAlignment(VAlign_Center);
 		UTextBlock* Name = PawUi::Heavy(PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT));
 		Name->SetAutoWrapText(false);
-		Name->SetWrapTextAt(RowTextWrap);
+		Name->SetWrapTextAt(JobTextWrap);
 		Texts->AddChildToVerticalBox(Name);
 		UTextBlock* Line2 = PawUi::MakeText(T, PawUi::LabelPx, PawTokens::UI_TEXT);
 		Line2->SetAutoWrapText(false);
-		Line2->SetWrapTextAt(RowTextWrap);
+		Line2->SetWrapTextAt(JobTextWrap);
 		Texts->AddChildToVerticalBox(Line2);
 		UPawButton* State = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>());
 		State->Index = I;
@@ -2787,6 +2791,18 @@ void UPawHudScreen::RefreshJobs(const UPawGameSubsystem& G)
 {
 	const Pc::PcGameData& D = G.Data();
 	const std::vector<Pc::PcJobRow> JobStates = Pc::JobRows(D, G.Progress());
+	// Every state button as wide as the widest of the three words in this language (JobButtonWidth at least: "Zablokowany",
+	// "Na tua posse" are wider), so the buttons line up and the words beside them wrap by them (the language pass,
+	// 2026-11-20: a fixed 360 ran the words under the button in English too).
+	float ButtonWidth = static_cast<float>(JobButtonWidth);
+	if (JobButtons.Num() > 0 && JobButtons[0])
+	{
+		for (const TCHAR* Key : { TEXT("JOBS_worn"), TEXT("JOBS_owned"), TEXT("JOBS_locked") })
+		{
+			ButtonWidth = FMath::Max(ButtonWidth, FMath::CeilToFloat(JobButtons[0]->WidthFor(PawText::Ui(Key))));
+		}
+	}
+	const float Wrap = JobTextWrap - (ButtonWidth - static_cast<float>(JobButtonWidth));
 	for (int32 I = 0; I < JobButtons.Num() && I < static_cast<int32>(JobStates.size()); ++I)
 	{
 		const Pc::PcJobRow& S = JobStates[static_cast<size_t>(I)];
@@ -2842,6 +2858,17 @@ void UPawHudScreen::RefreshJobs(const UPawGameSubsystem& G)
 		PawUi::SetTextColour(JobNames[I], Colour);
 		PawUi::SetTextColour(JobDetails[I], bShut ? PawTokens::UI_TEXT_DISABLED : PawTokens::UI_TEXT_MUTED);
 		JobButtons[I]->SetLabel(PawText::Ui(State));
+		if (JobButtons[I]->GetMinWidth() != static_cast<int32>(ButtonWidth))
+		{
+			JobButtons[I]->SetMinDimensions(static_cast<int32>(ButtonWidth), static_cast<int32>(ClaimHeight));
+		}
+		for (UTextBlock* T : { JobNames[I].Get(), JobDetails[I].Get() })
+		{
+			if (T && !FMath::IsNearlyEqual(T->GetWrapTextAt(), Wrap, 0.5f))
+			{
+				T->SetWrapTextAt(Wrap);
+			}
+		}
 		// "You are wearing this" must not render in the same grey as "locked" (hud.gd's font_disabled_color note).
 		const bool bOwned = S.Kind == Pc::PcJobRowKind::Worn || S.Kind == Pc::PcJobRowKind::Owned;
 		JobButtons[I]->SetLabelColour(bOwned, PawTokens::UI_TEXT, true);

@@ -178,7 +178,9 @@ void UPawJobPicker::EnsureRow(int32 Index)
 		Column->AddChildToVerticalBox(Button);
 		UTextBlock* Blurb = MakeText(WidgetTree, JobBlurbPx, PawTokens::UI_TEXT_MUTED);
 		Blurb->SetAutoWrapText(false);
-		Blurb->SetWrapTextAt(CardInner);
+		// 4 px short of the card: a font shrunk to fit measures a little wider than at full size (the language pass,
+		// 2026-11-20: 3 px over in English at 150 % UI).
+		Blurb->SetWrapTextAt(CardInner - 4.0f);
 		Column->AddChildToVerticalBox(Blurb)->SetPadding(FMargin(0.0f, static_cast<float>(JobListSeparation), 0.0f, 0.0f));
 		Buttons.Add(Button);
 		Blurbs.Add(Blurb);

@@ -89,7 +89,12 @@ The full plan with session prompts is [11-roadmap.md](11-roadmap.md).
   (https://claude.ai/artifact/2GuLR3DBNV8soFRfLDrn8K).
 - **2026-11-20, phase 7**: the translations load at run time (polyglot text), the languages' rules are ported and proven
   (`PcLocales`, fixture `locales`; F52 fixed), Settings > Language works and offers only complete languages
-  (`-PawDraftLanguages` shows the unfinished ones). Next: the title's language menu (HANDOFF-LOG (128)).
+  (`-PawDraftLanguages` shows the unfinished ones); the title's language list built (HANDOFF-LOG (128), (129));
+  `loc_status --apply` built and **all 22 translations complete** (837 lines each, drafts until a native read;
+  HANDOFF-LOG (130)); the language pass: no text past its box in any language or the pseudo-locale at 1280 x 800 and
+  150 % UI (`Pawpocalypse.UI.Layout.Languages`, `.PseudoLocale`; HANDOFF-LOG (131)); the wording review (122 lines fixed,
+  F55, the `loc_lint` gate; HANDOFF-LOG (132)); every line read for meaning (96 more fixed, F56; HANDOFF-LOG (133)).
+  Next: the native reads, a packaging gate for the shipped languages.
 
 **The Sticker Box restyle (D18, 2026-11-17).** The designer replaced the plum look: every enemy and boss (Bestiary) and
 every UI screen (UI Screens) were drawn as concepts and approved before any Unreal change. The plan, the look spec and the
@@ -121,12 +126,14 @@ status; doc 09 §7 the gates as they are today.
 | 5 Pad and keyboard | **Work done** 2026-11-05 (42)-(49): Godot's input map as data, every screen on it, devices, glyphs and prompts, remapping and the Controls page, keys by position on any layout, the dock's held keys, the paw cursors, the pad-only playthrough. Waiting for the designer: hand-checks on real pads and a real AZERTY keyboard |
 | 6 Presentation | Slices 1-5d and 6a **done** 2026-11-05/07 (50)-(63): the field's art and atlas, the backdrops, the effects, the sound, the chrome, the icons, the motion, the rainbows and the tree's sky, the Unicorn ceremony. **The restyle (D14) runs before 6b-6d** (the Reawaken banner, Boba, the tutorial: `WORKLIST-SLICE6-2026-11-07.md`) |
 | The restyle (D14) | `WORKLIST-RESTYLE-2026-11-07.md`. **R0-R4 done** (65)-(70): the port's own palette (`tools/art/palette.py`), Plum ink, M PLUS Rounded 1c (`F_Paw`), plum chrome with Deep Plum edges and one solid shadow, Butter focus, the 16 px text floor, every screen fits at 150 % UI; the plain text (D15) (71)-(72). **R5 drawn** (73)-(90): D3 (aura, strike paw, crits), the look lint (everyday), the faces, the anatomy pass with one colour per character, the rig (moving wings and legs), the props. Waiting: the bosses, the imp, the rig's motion, the cat's pale coats, the draw-call budget (doc 01 Q11). R6, R7 to come |
-| 7 Localisation | **Started** 2026-11-19 (125): Godot's 20 translations carried over (`port_po.py`, `loc_status.py`); 2026-11-20 (128): loaded at run time, the languages' rules (`PcLocales`), Settings > Language. Next: the title's language menu, `--apply`, the translations (`docs/WORKLIST-LOC-2026-11-18.md`). The fonts were done early in R2 |
+| 7 Localisation | **Started** 2026-11-19 (125): Godot's 20 translations carried over (`port_po.py`, `loc_status.py`); 2026-11-20 (128)-(130): loaded at run time, the languages' rules (`PcLocales`), Settings > Language, the title's language list, `--apply`, all 22 translations complete (drafts); (131): the language pass; (132), (133): the wording review and every line read (218 lines fixed, F55, F56, the `loc_lint` gate); (134): the handoff. Next: native reads, a packaging gate for the shipped languages (`docs/WORKLIST-LOC-2026-11-18.md`). The fonts were done early in R2 |
 | 8-9 | Hardening and packaging, parity sign-off: not started |
 
-- **Git**: committed and pushed through HANDOFF-LOG (108) (2026-11-17, at the designer's request: the `if` audit's
-  fixes 1-4, the waiting engine guards, D18 planned, the colour inventory). Before that, through HANDOFF-LOG (103) (2026-11-12, at the designer's request: F3, CR17, the economy
-  review and D17, the `if` audit, tonight's plan).
+- **Git**: committed and pushed through HANDOFF-LOG (134) (2026-11-21, at the designer's request: the title's language
+  list, the 22 translations, the language pass, the wording reviews and `loc_lint`). Before that, through (128)
+  (2026-11-20, `56a5a4e`: the Sticker Box restyle in the game, the Steam page, phase 7 started); through (108) (2026-11-17: the `if`
+  audit's fixes 1-4, the waiting engine guards, D18 planned, the colour inventory) and (103) (2026-11-12: F3, CR17, the
+  economy review and D17, the `if` audit).
   The Godot repo holds uncommitted decisions made there first for the designer (the findings'
   fixes; since (81) the dock default "right" in `settings_manager.gd`).
 - **Gates**: `powershell -ExecutionPolicy Bypass -File tools\check_all.ps1` (everyday, 28 gates, ~6 min) or `-Full`

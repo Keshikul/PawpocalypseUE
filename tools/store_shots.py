@@ -1,6 +1,6 @@
 """The Steam store screenshots: the real game, scripted, the same scenes every run (the night of 2026-11-17).
 
-    py tools/store_shots.py [--res 1920x1080] [--only NAME ...]
+    py tools/store_shots.py [--res 1920x1080] [--only NAME ...] [--culture de]
 
 One run of the game (the editor build with -game, as the screenshot tour), a FRESH sandboxed save folder
 (build/steam/shots/saves: never the designer's saves), the debug readout off, frames capped at 60. Each scene is set up by
@@ -8,6 +8,8 @@ paw.* steps in the tour queue; cheats run in order through paw.Do (queued). The 
 and are copied to build/steam/shots/<name>.png, each with the step list that made it (shots.txt).
 
 Valve's rules (Steam/05): real gameplay only, 1920x1080 or more, 16:9, no marketing text; the HUD stays on.
+--culture: the same scenes in another language (the store's per-language shots, and a translation's read in the real
+game): Saved/PawShots/store_<culture>_<name>.png -> build/steam/shots/<culture>/<name>.png. English is the default.
 """
 import argparse
 import shutil
@@ -57,10 +59,10 @@ SCENES = [
 ]
 
 
-def steps_for(scenes):
+def steps_for(scenes, tag="store_"):
     steps = ["t.MaxFPS 60", "paw.DebugHud 0"]
     for name, _what, pre in scenes:
-        steps += pre + ["paw.Shot store_%s" % name]
+        steps += pre + ["paw.Shot %s%s" % (tag, name)]
     steps[-1] += " quit"
     return steps
 
@@ -69,7 +71,10 @@ def main(argv):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--res", default="1920x1080")
     ap.add_argument("--only", nargs="*")
+    ap.add_argument("--culture", default="en", help="the language shown (an Unreal culture: de, pt-BR, zh-Hans ...)")
     args = ap.parse_args(argv)
+    out = OUT if args.culture == "en" else OUT / args.culture
+    tag = "store_" if args.culture == "en" else "store_%s_" % args.culture
     found = unreal_procs.blocking()
     if found:
         print("store_shots: an Unreal process of this project is running; close it first")
@@ -79,30 +84,30 @@ def main(argv):
     scenes = [s for s in SCENES if not args.only or s[0] in args.only]
     shots = ROOT / "Saved" / "PawShots"
     for name, _w, _p in scenes:
-        (shots / ("store_%s.png" % name)).unlink(missing_ok=True)
-        (OUT / ("%s.png" % name)).unlink(missing_ok=True)   # never an old shot mistaken for a new one
+        (shots / ("%s%s.png" % (tag, name))).unlink(missing_ok=True)
+        (out / ("%s.png" % name)).unlink(missing_ok=True)   # never an old shot mistaken for a new one
     if not args.only:   # a whole run: no shot of a scene that is no longer in the list either (a renamed scene's old file)
-        for old in OUT.glob("*.png"):
+        for old in out.glob("*.png"):
             old.unlink()
     if SAVES.exists():
         shutil.rmtree(SAVES)
     SAVES.mkdir(parents=True)
-    steps = steps_for(scenes)
+    steps = steps_for(scenes, tag)
     cmd = [EDITOR, str(ROOT / "Pawpocalypse.uproject"), "/Game/Pawpocalypse/Maps/L_Realm", "-game", "-windowed",
-           "-ResX=%d" % w, "-ResY=%d" % h, "-unattended", "-NoSave", "-nosplash", "-nosound", "-SCCProvider=None", "-culture=en",
+           "-ResX=%d" % w, "-ResY=%d" % h, "-unattended", "-NoSave", "-nosplash", "-nosound", "-SCCProvider=None", "-culture=" + args.culture,
            "-PawSaveDir=%s" % SAVES, "-ExecCmds=" + ",".join(steps), "-log=PawStoreShots.log"]
     subprocess.run(cmd, timeout=1800)
-    OUT.mkdir(parents=True, exist_ok=True)
+    out.mkdir(parents=True, exist_ok=True)
     lines, missing = [], []
     for name, what, pre in scenes:
-        src = shots / ("store_%s.png" % name)
+        src = shots / ("%s%s.png" % (tag, name))
         if src.exists():
-            shutil.copy2(src, OUT / ("%s.png" % name))
+            shutil.copy2(src, out / ("%s.png" % name))
             lines.append("%s  %s\n    steps: %s" % (name, what, ", ".join(pre)))
         else:
             missing.append(name)
-    (OUT / "shots.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print("store_shots: %d of %d shots -> %s%s" % (len(scenes) - len(missing), len(scenes), OUT,
+    (out / "shots.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print("store_shots: %d of %d shots -> %s%s" % (len(scenes) - len(missing), len(scenes), out,
                                                    ("; MISSING " + ", ".join(missing)) if missing else ""))
     return 1 if missing else 0
 

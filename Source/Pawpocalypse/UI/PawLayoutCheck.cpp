@@ -4,6 +4,8 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetTree.h"
+#include "Components/RichTextBlock.h"
+#include "Components/TextBlock.h"
 #include "Engine/UserInterfaceSettings.h"
 #include "Input/HittestGrid.h"
 #include "Layout/ArrangedChildren.h"
@@ -19,14 +21,16 @@ namespace
 		UWidget* Widget = nullptr;
 	};
 
+	void Index(UUserWidget* Owner, const FString& Prefix, TMap<const SWidget*, FName2>& Out);
+
 	// Every part of every widget tree (a user widget's own parts under its instance's name) by its Slate widget.
-	void Index(UUserWidget* Owner, const FString& Prefix, TMap<const SWidget*, FName2>& Out)
+	void IndexTree(UWidgetTree* Tree, const FString& Prefix, TMap<const SWidget*, FName2>& Out)
 	{
-		if (!Owner || !Owner->WidgetTree)
+		if (!Tree)
 		{
 			return;
 		}
-		Owner->WidgetTree->ForEachWidget([&](UWidget* W)
+		Tree->ForEachWidget([&](UWidget* W)
 		{
 			if (!W)
 			{
@@ -43,6 +47,18 @@ namespace
 			}
 		});
 	}
+
+	void Index(UUserWidget* Owner, const FString& Prefix, TMap<const SWidget*, FName2>& Out)
+	{
+		if (Owner)
+		{
+			IndexTree(Owner->WidgetTree, Prefix, Out);
+		}
+	}
+
+	// Lays S out (Frames painted frames, then a prepass), names its parts with IndexNames and walks it (below).
+	TArray<PawLayout::FPart> ArrangeSlate(const TSharedRef<SWidget>& S, TMap<const SWidget*, FName2>& Names, FVector2D Screen,
+		float Scale, int32 Frames, TFunctionRef<void(TMap<const SWidget*, FName2>&)> IndexNames);
 
 	void Walk(const TSharedRef<SWidget>& S, const FGeometry& G, const FSlateRect& Clip, const TMap<const SWidget*, FName2>& Names,
 		TArray<PawLayout::FPart>& Out, int32 Parent, bool bTilted)
@@ -67,6 +83,8 @@ namespace
 			P.bTilted = bTilted;
 			P.Parent = Parent;
 			P.Widget = Name->Widget;
+			P.Desired = S->GetDesiredSize();
+			P.Scale = G.Scale;
 			Parent = Out.Add(P);
 		}
 		const FSlateRect Inner = S->GetClipping() != EWidgetClipping::Inherit ? Shown : Clip;
@@ -83,12 +101,33 @@ namespace PawLayout
 {
 	TArray<FPart> Arrange(UUserWidget* Widget, FVector2D Screen, float Scale, int32 Frames)
 	{
-		TArray<FPart> Out;
 		if (!Widget)
 		{
-			return Out;
+			return TArray<FPart>();
 		}
 		const TSharedRef<SWidget> S = Widget->TakeWidget();
+		TMap<const SWidget*, FName2> Names;
+		return ArrangeSlate(S, Names, Screen, Scale, Frames, [Widget](TMap<const SWidget*, FName2>& N) { Index(Widget, FString(), N); });
+	}
+
+	TArray<FPart> ArrangeTree(UWidgetTree* Tree, FVector2D Screen, float Scale, int32 Frames)
+	{
+		if (!Tree || !Tree->RootWidget)
+		{
+			return TArray<FPart>();
+		}
+		const TSharedRef<SWidget> S = Tree->RootWidget->TakeWidget();
+		TMap<const SWidget*, FName2> Names;
+		return ArrangeSlate(S, Names, Screen, Scale, Frames, [Tree](TMap<const SWidget*, FName2>& N) { IndexTree(Tree, FString(), N); });
+	}
+}
+
+namespace
+{
+	TArray<PawLayout::FPart> ArrangeSlate(const TSharedRef<SWidget>& S, TMap<const SWidget*, FName2>& Names, FVector2D Screen,
+		float Scale, int32 Frames, TFunctionRef<void(TMap<const SWidget*, FName2>&)> IndexNames)
+	{
+		TArray<PawLayout::FPart> Out;
 		const FGeometry Root = FGeometry::MakeRoot(Screen / Scale, FSlateLayoutTransform(Scale));
 		const FSlateRect Whole(0.0f, 0.0f, static_cast<float>(Screen.X), static_cast<float>(Screen.Y));
 		const TSharedRef<SWindow> Window = SNew(SWindow);
@@ -101,13 +140,16 @@ namespace PawLayout
 			S->Paint(Args, Root, Whole, List, 0, FWidgetStyle(), true);
 		}
 		S->SlatePrepass(Scale);
-		TMap<const SWidget*, FName2> Names;
-		Index(Widget, FString(), Names);
+		IndexNames(Names);
 		// Shown is what the part's ANCESTORS let through (a scroll box), never the screen: a part past the edge must show as such.
 		const FSlateRect Unclipped(-1.0e7f, -1.0e7f, 1.0e7f, 1.0e7f);
 		Walk(S, Root, Unclipped, Names, Out, INDEX_NONE, false);
 		return Out;
 	}
+}
+
+namespace PawLayout
+{
 
 	float GameScale(FVector2D Screen, float UiSize)
 	{
@@ -177,6 +219,56 @@ namespace PawLayout
 	FString Describe(const FSlateRect& R)
 	{
 		return FString::Printf(TEXT("(%.0f, %.0f)-(%.0f, %.0f)"), R.Left, R.Top, R.Right, R.Bottom);
+	}
+
+	TArray<FTextMiss> TextMisses(const TArray<FPart>& Parts, float Slack)
+	{
+		TArray<FTextMiss> Out;
+		for (const FPart& P : Parts)
+		{
+			const UWidget* W = P.Widget.Get();
+			FString Text;
+			if (const UTextBlock* T = Cast<UTextBlock>(W))
+			{
+				Text = T->GetText().ToString();
+			}
+			else if (const URichTextBlock* R = Cast<URichTextBlock>(W))
+			{
+				Text = R->GetText().ToString();
+			}
+			else
+			{
+				continue;
+			}
+			if (!P.bShown || Text.TrimStartAndEnd().IsEmpty())
+			{
+				continue;
+			}
+			// The box before any render transform (a pop or a tilt changes what is drawn, not what the text was given).
+			const float BoxW = P.Layout.Right - P.Layout.Left, BoxH = P.Layout.Bottom - P.Layout.Top;
+			const float NeedW = static_cast<float>(P.Desired.X) * P.Scale, NeedH = static_cast<float>(P.Desired.Y) * P.Scale;
+			const bool bWholeHeight = P.Shown.Top <= P.Rect.Top + Slack && P.Shown.Bottom >= P.Rect.Bottom - Slack;
+			FString Why;
+			if (NeedW > BoxW + Slack)
+			{
+				Why = FString::Printf(TEXT("needs %.0f px wide, has %.0f"), NeedW, BoxW);
+			}
+			// Taller: only by a line's worth (a quarter of the box). A display face's line height runs a little over the
+			// box it was sized for while its letters fit (the logo, the ceremony's headline): that is not a text cut short.
+			else if (NeedH > BoxH * 1.25f + Slack)
+			{
+				Why = FString::Printf(TEXT("needs %.0f px high, has %.0f"), NeedH, BoxH);
+			}
+			else if (bWholeHeight && (P.Shown.Left > P.Rect.Left + Slack || P.Shown.Right < P.Rect.Right - Slack))
+			{
+				Why = FString::Printf(TEXT("cut sideways: %s of %s shows"), *Describe(P.Shown), *Describe(P.Rect));
+			}
+			if (!Why.IsEmpty())
+			{
+				Out.Add(FTextMiss{ P.Path, Text.Replace(TEXT("\n"), TEXT(" / ")), Why });
+			}
+		}
+		return Out;
 	}
 }
 

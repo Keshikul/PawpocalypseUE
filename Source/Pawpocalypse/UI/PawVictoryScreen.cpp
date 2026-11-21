@@ -4,6 +4,7 @@
 #include "Components/Border.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
+#include "Components/ScaleBox.h"
 #include "Components/SizeBox.h"
 #include "Components/SizeBoxSlot.h"
 #include "Components/TextBlock.h"
@@ -72,7 +73,15 @@ bool UPawVictoryScreen::Initialize()
 		Box->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		Panel->SetContent(Box);
 
-		Headline = ButterTitle(BoxLabel(T, Box, VictoryHeadlinePx, true, TEXT("Headline")), CeremonyTitleOutline); // D18: the big sticker
+		// D18: the big sticker, shrunk to the panel's width when a language's word is wider ("OVERWINNING", "ZWYCIĘSTWO": the
+		// language pass, 2026-11-20); never grown.
+		UScaleBox* HeadlineFit = T->ConstructWidget<UScaleBox>(UScaleBox::StaticClass(), TEXT("HeadlineFit"));
+		HeadlineFit->SetStretch(EStretch::ScaleToFitX);
+		HeadlineFit->SetStretchDirection(EStretchDirection::DownOnly);
+		Box->AddChildToVerticalBox(HeadlineFit)->SetHorizontalAlignment(HAlign_Fill);
+		Headline = ButterTitle(MakeText(T, VictoryHeadlinePx, PawTokens::UI_TEXT, false, TEXT("Headline")), CeremonyTitleOutline);
+		Headline->SetJustification(ETextJustify::Center);
+		HeadlineFit->SetContent(Headline);
 		Headline->SetText(PawText::Ui(TEXT("VICTORY_headline")));
 		Flavour = BoxLabel(T, Box, LabelPx, false, TEXT("Flavour"));
 		// AUTOWRAP_WORD_SMART at the column's width, the panel's less its margins (a fixed wrap width: KB U/09 §3).

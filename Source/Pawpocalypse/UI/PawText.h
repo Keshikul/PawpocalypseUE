@@ -111,4 +111,15 @@ namespace PawText
 	// Locales.picker_label(): the language in its own name (never translated), then "(draft)" in that language's own words
 	// while nobody has reviewed it ("Deutsch (Entwurf)"); without that line, in the language shown now.
 	PAWPOCALYPSE_API FText LanguageLabel(const FString& Code);
+
+	// --- The pseudo-locale (phase 7's language pass, 2026-11-20; KB Unreal/20 §2) ---------------------------------------
+	// One line made pseudo: every letter accented (Latin-1 marks, which every face of F_Paw has), then padded by about 40 %
+	// and bracketed ("[Ûpgrádés ~~~~]"), so a text that only just fits in English shows where a longer language spills.
+	// {placeholders} and an escaped line break are kept as they are; a line with no letters is left alone.
+	PAWPOCALYPSE_API FString Pseudo(const FString& English);
+	// Every string table's English made pseudo (true), or the real English back (false). -PseudoLoc on the command line turns
+	// it on at start (the tours); the tests turn it on in a scope. The translations stay registered: they show only in their
+	// own cultures, so the pseudo text shows in English.
+	PAWPOCALYPSE_API void SetPseudoLocale(bool bOn);
+	PAWPOCALYPSE_API bool IsPseudoLocale();
 }

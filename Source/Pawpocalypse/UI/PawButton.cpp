@@ -11,6 +11,9 @@
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "Engine/GameInstance.h"
+#include "Fonts/FontMeasure.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Rendering/SlateRenderer.h"
 #include "Input/PawInputDeviceSubsystem.h"
 #include "Rendering/DrawElements.h"
 #include "UI/PawIcons.h"
@@ -260,11 +263,6 @@ void UPawButton::ApplySettings()
 	{
 		if (T)
 		{
-			if (WrapAt > 0.0f)
-			{
-				T->SetAutoWrapText(false);
-				T->SetWrapTextAt(WrapAt);
-			}
 			T->SetJustification(bAlignLeft ? ETextJustify::Left : ETextJustify::Center);
 		}
 	}
@@ -283,6 +281,18 @@ void UPawButton::ApplyLineLayout()
 	if (UHorizontalBoxSlot* TextsSlot = Label && Label->GetParent() ? Cast<UHorizontalBoxSlot>(Label->GetParent()->Slot) : nullptr)
 	{
 		TextsSlot->SetSize(FSlateChildSize(bIconBesideWords ? ESlateSizeRule::Fill : ESlateSizeRule::Automatic));
+	}
+	// WrapAt is the whole line inside the button: words beside an icon (or its kept place) get what the icon and its gap leave
+	// (the language pass, 2026-11-20: a Catches row's card and a Realms row ran past the dock's edge in ten languages).
+	const bool bIconSlot = Icon && Icon->GetVisibility() != ESlateVisibility::Collapsed && !LabelText.IsEmpty();
+	const float Wrap = WrapAt > 0.0f ? FMath::Max(1.0f, WrapAt - (bIconSlot ? IconPx + IconGap : 0.0f)) : 0.0f;
+	for (UTextBlock* T : { Label.Get(), Detail.Get() })
+	{
+		if (T && Wrap > 0.0f)
+		{
+			T->SetAutoWrapText(false);
+			T->SetWrapTextAt(Wrap);
+		}
 	}
 }
 
@@ -391,6 +401,18 @@ void UPawButton::SetLabelColour(bool bOverride, const FLinearColor& Colour, bool
 	bColourWhenLocked = bAlsoWhenLocked;
 	OverrideColour = Colour;
 	ApplyLabelColour();
+}
+
+float UPawButton::WidthFor(const FText& Text) const
+{
+	float Words = 0.0f;
+	if (Label && FSlateApplication::IsInitialized() && FSlateApplication::Get().GetRenderer())
+	{
+		Words = static_cast<float>(FSlateApplication::Get().GetRenderer()->GetFontMeasureService()->Measure(Text, Label->GetFont()).X);
+	}
+	const FMargin Pad = PawUi::ButtonContentPadding();
+	const bool bIconSlot = Icon && Icon->GetVisibility() != ESlateVisibility::Collapsed && !Text.IsEmpty();
+	return Pad.Left + Pad.Right + Words + (bIconSlot ? IconPx + IconGap : 0.0f);
 }
 
 void UPawButton::SetWrapAt(float Width)

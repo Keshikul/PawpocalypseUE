@@ -9,6 +9,269 @@ in whichever file holds it.
 
 ---
 
+## 2026-11-21 (134) - Handoff: phase 7 where (133) left it; what is uncommitted; the choices waiting
+
+**Where the project is.** Committed and pushed through (128) (`56a5a4e`). (129)-(133) are uncommitted: the title's
+language list, `loc_status --apply` and all 22 translations (drafts), the language pass, the wording review with the
+`loc_lint` gate, every line read for meaning. Nothing changed since (133). The designer: "Create a handoff", then
+"Commit and push": (129)-(134) committed and pushed the same day (the list below is that commit). The Godot repo's
+findings file stays uncommitted there.
+
+**Proof, today.** `loc_lint` PASS (0 findings, 22 cultures); its self-test PASS (13 plants caught); every culture
+837 / 837, 0 stale, 0 broken; `port_po --check` OK; font coverage PASS (26 languages, 6943 characters per weight). The
+last `check_all` (everyday, exit 0, `build/check_all_20261120_deepread133.log`) ran 22:24-22:30 on 2026-11-20, after the
+last translation edit (22:23). Only `tools/loc_lint.py` changed after it (F56 and its plant); the gates above cover it.
+In the Godot repo the port's one file is `docs/pawpocalypse-port-findings.md` (untracked there; F52-F56 added); every
+other change there is the designer's.
+
+**What the commit of (129)-(134) holds**:
+- New: `tools/loc_lint.py`; Dutch and Danish, `Content/Pawpocalypse/Localization/Translations/da/` and `nl/`.
+- The other 20 cultures' translation files (60 CSVs).
+- `Source/Pawpocalypse/UI/` (20 files), `Source/Pawpocalypse/Dev/PawShot.cpp`,
+  `Source/PawpocalypseEditor/PawWidgetBaker.cpp`.
+- Six grafted assets in `Content/Pawpocalypse/UI/Widgets/`: `WBP_CardFace`, `WBP_CardPickScreen`, `WBP_ControlsPanel`,
+  `WBP_MainMenu`, `WBP_ReawakenCeremony`, `WBP_VictoryScreen`.
+- Tools: `bake_widgets.py`, `check_all.ps1`, `check_font_coverage.py`, `godot_tour.py`, `loc_status.py`, `port_po.py`,
+  `sabotage_realm.py`, `store_shots.py`.
+- Docs: `CLAUDE.md`, docs 00, 01, 08, 09, 11, `HANDOFF-LOG.md`, `WORKLIST-LOC-2026-11-18.md`.
+
+### Open, phase 7 (gathered from (128)-(133))
+- **A native read of every language** before it ships (each still says "(draft)"). `loc_status --todo` now writes
+  nothing (every line is translated), so a reviewer has no file yet. To build: one review sheet per language (every
+  line, the English beside it, a column for the fix) in the work file's form, so `--apply` takes the fixes back as
+  (130)'s fix-only files did.
+- **A packaged check of the shipped languages**: each one offered and complete in the package (the worklist's order,
+  step 3). Needs the designer's word to package.
+- **Text a screen builds once as a string** ((128); not checked since): a language changed in Settings while the HUD or
+  the tree is up. String-table and formatted text follow the switch (`Language.Translations`); text built as a string
+  keeps the old language until its screen rebuilds. The title remakes its words ((129)); the HUD hears a settings change
+  for the dock side only. Check with `-PawDraftLanguages`.
+- **The designer's eye**: the shrunk headlines and the slot picker at 150 % UI
+  (`py tools/godot_tour.py --skip-godot --res 1280x800 --uiscale 1.5 --culture de`); the title's language list, the
+  kit's card and rows, which the concept does not draw (`Saved/PawShots/title_language_en.png`, `_de.png`).
+- The store page in Dutch and Danish: the designer, "not yet" (terms in (130)).
+
+### Open, from before phase 7
+`docs/00-START-HERE.md`, "Waiting on the designer", and the drafts it names: the card pictures and the skill and badge
+pictures ((127)), `docs/TEXT-DRAFT-2026-11-18.csv`. No complete `-Full` since 2026-11-11/12 (D17's nightly is owed).
+
+### Next step
+The designer's call, one of:
+1. **The packaged language check**: package (the designer's word), then prove in the package that every shipped
+   language is offered and complete.
+2. **The native reads' review sheets** (above), so readers can start. Needs no decision.
+3. **The string-built text check** (above). Needs no decision.
+
+Done is `check_all` exit 0.
+
+## 2026-11-20 (133) - Phase 7: every translated line read for meaning; 96 fixed; F56; the lint's skipped lines
+
+**Where the project is.** On (132), uncommitted ((129)-(133)). The designer: "fix what the pass finds", then chose "Read
+every line deeper" (every line of all 22 languages, for meaning, grammar and plainness).
+
+**What happened** (`docs/WORKLIST-LOC-2026-11-18.md` §2f). Every line longer than a short label (473 English lines, each
+beside its 22 translations) read; the short labels were read in (132). Not a native read. **96 lines fixed in 21
+languages**:
+- Wrong meanings: the Rival Champion called "the Rival Cat" (es, es-419), Fence "smuggler" (tr), Overflow "bank transfer"
+  (pl), Thai Reawaken "beaten bosses still lose", Japanese スネア (a snare drum), Chinese 第二份工作 (a real second job).
+- Grammar: Turkish and Hungarian case suffixes on a number placeholder; Slavic "(s)" plurals wrong for 1 or 5+; the
+  rooftops biome without its article or case in 8 languages.
+- Address and words: Ukrainian formal verbs in an informal language; "Full ház" / "Full ev"; pt-PT "Cocô"; da / sv
+  "every 6th s".
+- **F56** (doc 01 §5, Godot's findings doc): zh-Hant Critical Mass 臨界品質 ("critical quality"), now 臨界質量.
+- **F55 extended**: the cs / pl Exterminator was a rat exterminator ("Deratizátor" / "Deratyzator").
+
+**A hole in `loc_lint` closed.** Its mouse rule exempted any line whose English held "rat" anywhere, so "spawn rate",
+"frame rate", "crater" and `{mice}` placeholders skipped 16 English lines in every language. Now it matches whole words on
+the English with its placeholders removed; it also knows the cs / pl exterminator words, and F56 stays fixed.
+
+**Proof.** The fixes went through a script that writes the files' own CSV form and requires every listed row found
+(96 rows; every rule matched). `loc_lint` PASS (0 findings, 22 cultures). Its self-test CAUGHT all 13 planted faults, the
+new ones on a "rate" line, a `{mice}` line, "Deratizátor" and 臨界品質. With the old English rule put back in memory, the
+"rate" and `{mice}` plants are MISSED: the plants test the change. Every culture 837 / 837, 0 stale, 0 broken;
+`port_po --check` OK; font coverage PASS (くくり罠, 機率, 職業, 명 in fonts). `check_all` (everyday) exit 0
+(`build/check_all_20261120_deepread133.log`), including `Pawpocalypse.UI.Layout.Languages`: the new lines fit their
+boxes. After it, `loc_lint` gained the F56 entry and its plant; that gate and its self-test were re-run: PASS. Knowledge
+base: U/20 (Turkish percent-first suffixes, Slavic "(s)" hedges, English-keyed lint exemptions) and INDEX.
+
+### Open
+- **A native read of every language** before it ships: two machine-and-eye passes cannot judge idiom and tone.
+- (131)'s open items stand: the designer's eye on the shrunk headlines; a packaging gate for the shipped languages; the
+  store page's Dutch and Danish (the designer: not yet).
+
+### Next step
+The designer's call: a packaged-build language check (needs the word to package), or the native reads.
+
+## 2026-11-20 (132) - Phase 7: the wording review of the 22 translations; `loc_lint` gate; F55
+
+**Where the project is.** On (131), uncommitted ((129)-(132)). The designer: "Don't do steam page stuff yet. Check
+languages", then chose "Review the wording" (not the packaged-build check, not a no-package run).
+
+**What happened** (`docs/WORKLIST-LOC-2026-11-18.md` §2e). Every translation swept by machine (numbers, line breaks,
+English left over, the currency words in every sentence, names translated one way, repeats, how the player is addressed,
+mouse words, punctuation, percent signs, scripts, length) and every short UI label read side by side in all 22 languages.
+Not a native read. **122 lines fixed**: numbers written as words ("every 100th kill" in cs, pl, ru, sv, uk; Hungarian x3;
+a dropped 1 in cs, pl); the credits line left in English in ja, ko; Turkish "wake early" for "Reawaken early"; Banish a
+noun beside the verb Take in es, es-419, pl, ru, uk, tr; Korean 와 after an unknown word (와(과)); one percent style per
+language (Turkish %40 throughout; cs, fr, sv 40%); Danish and Dutch Bait capitalised as their Catnip and Stardust; **F55**:
+both Chinese scripts called Swarm, Exterminator and Infestation by rat words (敌群, 歼灭专家, 泛滥 now; doc 01 §5, Godot's
+findings doc). New gate `tools/loc_lint.py` (+ self-test) in check_all: numbers, line breaks, untranslated lines, mice,
+F53/F54/F55 stay fixed, one percent style.
+
+**Proof.** `loc_lint` PASS (22 cultures); its self-test CAUGHT all 9 planted faults and passes a narrow no-break space as a
+thousands mark. `port_po --check` OK; every culture 837 / 837, 0 stale, 0 broken; font coverage PASS (6944 characters).
+The changed lines still fit their boxes in every language (`Layout.Languages` in the `Pawpocalypse.UI` gate). `check_all`
+(everyday) passed, exit 0, with the two new gates (`build/check_all_20261120_wording132.log`).
+
+### Open
+- **A native read of every language** before it ships: this review catches what rules and a side-by-side read can, not
+  idiom or tone.
+- (131)'s open items stand: the designer's eye on the shrunk headlines; a packaging gate for the shipped languages; the
+  store page's Dutch and Danish (the designer: not yet).
+
+### Next step
+The designer's call: a packaged-build language check (needs the word to package), or the native reads.
+
+## 2026-11-20 (131) - Phase 7: the language pass (no text past its box in any language at 1280 x 800, 150 % UI)
+
+**Where the project is.** On (130), uncommitted ((129)-(131) all are). The designer: "do the level pass", read as the
+language (pseudo-locale) pass, (130)'s next step.
+
+**What happened** (`docs/WORKLIST-LOC-2026-11-18.md` §2d).
+- **The pass is three tests** in the everyday `Pawpocalypse.UI` gate (25 s together). `Layout.Languages`: every screen
+  with words (title and windows, slots, delete prompt, the six dock pages with a filled save, the card pick with every
+  card, the skill tree with each language's four longest tips, pause and its slots, the settings sections, a Reawaken's
+  ceremony, spend step and job picker, the victory) in English and the 22 translations at 1280 x 800 and 150 % UI, every
+  text held to its box (`PawLayout::TextMisses`: wider than its box, a line cut by a box that clips, off the screen;
+  `Saved/Layout/languages.txt`). `Layout.PseudoLocale`: the same in the pseudo-locale (`PawText::Pseudo`,
+  `SetPseudoLocale`, `-PseudoLoc`: letters accented, placeholders kept, ~40 % longer in short words). `Layout.TextMisses`:
+  the detector sees a text too wide and a line cut, and passes one that fits.
+- **First run: 594 texts in 23 languages, 30 in the pseudo-locale**, most of them real in English too. Fixed:
+  - At 150 % UI the screen is 720 tall: the Reawaken ceremony's title off the top and payout off the bottom, the slot
+    picker's fifth slot off the right, the card pick's Reroll off the bottom (German). Each now shrinks to the screen and
+    never grows (the ceremony on an 880 x 900 stage; the slots by their row, 1496 wide, not Godot's 1680 box; the pick's
+    column 16 px off the edges).
+  - Headlines shrink to their box when a language's word is wider: the ceremony's, the victory's, the controls table's
+    column heads.
+  - Wraps wider than their boxes: a button's words beside its icon wrap by what the icon leaves (Catches, Realms, the
+    Reawaken button; ten languages); the job rows wrapped at 360 beside 339 (English too): every state button is as wide
+    as the widest of Worn / Owned / Locked in the language (measured with its font) and the words wrap by it; award rows by
+    their Claim; the job picker's blurb 4 px short (a shrunk font measures ~1.5 % wider); the credits / leaderboard text
+    short of the scroll bar.
+  - The card face's body padding was still Godot's 18 in the asset (the Sticker change to 13 missed it); the skill tree's
+    hub pill grows with its words ("Árbol de habilidades").
+  - Translations shortened: Boba's role (and tooltip) in hu, it, ru, sv; the Hungarian save status.
+  - Assets grafted (`bake_widgets --graft`; new `wrapat:` and `wrap:Code=Asset>Wrapper`): WBP_ReawakenCeremony,
+    WBP_VictoryScreen, WBP_CardPickScreen, WBP_ControlsPanel, WBP_MainMenu, WBP_CardFace.
+  - The tour itself: it left the card pick open (which held back the spend step and the pause menu, hiding both screens
+    from the check); it now takes a card the way a player does, and a screen that does not open is a finding.
+- No rule or number changed (layout and draft translations only): nothing for doc 01 §5.
+
+**Proof.** The three tests PASS (0 findings in 23 languages and the pseudo-locale). Sabotages (`tools/sabotage_realm.py`,
+7 new): all CAUGHT (`text_miss_width_blind`, `text_miss_cut_blind` by `Layout.TextMisses`; `pseudo_pad_one_word` by
+`Layout.PseudoLocale`; `button_wrap_ignores_icon`, `job_words_under_button`, `tree_hub_fixed_width`,
+`job_picker_blurb_full_width` by `Layout.Languages`), the clean sources PASS. The pre-fix state was each fix's failing case (the first runs' findings, by part and language).
+`port_po --check` OK; every culture 837 / 837, 0 stale, 0 broken. `check_all` (everyday) passed, exit 0
+(`build/check_all_20261120_pass131.log`).
+
+### Open
+- **A native read of every language** before it ships (each is a draft).
+- The designer's eye on the shrunk headlines and the slot picker at 150 % UI (the test proves the boxes, not the look):
+  `py tools/godot_tour.py --skip-godot --res 1280x800 --uiscale 1.5 --culture de` shoots them.
+- A packaging gate for the shipped languages; the store page's Dutch and Danish. (129)'s items stand.
+
+### Next step
+The packaging gate for the shipped languages (every shipped culture complete in the packaged build), then the store page
+in Dutch and Danish; the native reads are the designer's (or translators') to arrange.
+
+## 2026-11-20 (130) - Phase 7: `loc_status --apply`; every language translated (22 x 837 lines, drafts)
+
+**Where the project is.** On (129), uncommitted. The designer: "Do next" ((129)'s next step: `--apply`, then the
+translations).
+
+**What happened** (`docs/WORKLIST-LOC-2026-11-18.md` §2c).
+- **The files are the translations.** `port_po.py` rebuilt each culture's files from Godot's `.po` alone, so a run after
+  a hand translation would have dropped it. Now a run keeps every row in use (Godot's or the port's own), fills only what
+  Godot has for today's English, keeps a stale or broken row (the old English shows beside the new) and drops a row whose
+  key left the tables. Dutch and Danish get files with their first row. Its report counts Godot's, own and stale rows.
+- **`loc_status.py --apply <work file>`**: the Translation column of `build/loc/todo/<culture>.csv` into the culture's
+  files, Source = the English the translator saw; all or nothing (no such line, a key twice, a placeholder lost or added);
+  written through `port_po`'s merge. `--todo` never overwrites a work file with translations not yet applied.
+- **Fixed:** `loc_status.py` counted an escaped line break's `n` as a letter (`TITLE_leaderboard_text` needed words for
+  it, not for the game): 838 against the game's 837. **Font coverage read only Godot's `.po`**: a character new in the
+  port's own lines, and all of Dutch and Danish, went unchecked; it now reads the translation files.
+- **Every language translated: 22 x 837 lines** (Godot's 20: the 319 lines each lacked, 322 in cs/pl/ru/uk; Dutch and
+  Danish: all 837), each with its carried translation's terms. Dutch and Danish terms chosen here (the store page has no
+  Dutch or Danish yet and follows them): nl Kattenkruid, Sterrenstof, Lokaas, kittens, Sprong, Herontwaken, Rijken,
+  Vangsten, Vaardighedenboom, Beroep; da Kattemynte, Stjernestøv, Madding, killinger, Spring, Genopvågn, Riger, Fangster,
+  Færdighedstræ, Erhverv. Grammar the placeholders cannot follow (KB U/20 §3): cs/pl/ru/uk put a count after a colon (no
+  ICU plurals needed), Hungarian and Turkish put no suffix on a placeholder, Swedish avoids `{v}:e`. Numbers keep the
+  game's '.'. Every language is offered in Settings and on the title, each still "(draft)" in its own words.
+- **Two of Godot's carried translations fixed** (D16, faults; Godot's files untouched): Traditional Chinese's spawn rate
+  重新整理速度 (a machine conversion: "browser refresh") is 生成速度 / 生成率; Czech "Duhový Hovínko" (wrong gender) is
+  "Duhové hovínko".
+- `store_shots.py --culture X`: the store scenes in any language (`build/steam/shots/<culture>/`). **Found in the Russian
+  shot:** the locked Kitten Speed row's one line ran past the row (a line holds about 47 characters). Fixed in the
+  translations, through fix-only work files and `--apply`: Kitten Speed on two lines (name, then the requirement) in
+  ru, uk, ko, fr, pt-PT, pt-BR, es, es-419, it; Kitten Power (already two lines) with a shorter requirement in the
+  Romance languages. Other screens' long lines are for the pseudo-locale tour (worklist step 4).
+- Tests for 23 languages: `Language.Translations` (22 cultures), `.Labels` (Godot's 21 labels, then "Nederlands
+  (concept)", "Dansk (udkast)", Dutch and Danish after Swedish), `Settings.Language`, `Title.Language`, `Layout.Title`
+  (the list's 23 rows at the four sizes).
+
+**Proof.** `loc_status --self-test` PASS (the refusals, the Source seen, the merge order, the guard, an apply into a copy
+of the German files less Godot's gaps that a later `port_po` run leaves byte for byte); 11 planted faults in the two tools
+each failed it (`safe_mutate`). `port_po --check` OK after every apply; every culture 837 / 837, 0 stale, 0 broken.
+Font coverage PASS (26 culture lists, 6938 characters); a planted unsupported character in a German line CAUGHT. Engine:
+`Language`, `Settings`, `Title`, `Layout.Title`: 25 PASS. Real game (`store_shots --culture`): German, all nine scenes,
+nothing overflows; Russian (three scenes) and Thai (two): Thai renders
+whole; Russian showed the locked-row overflow below, fixed and reshot in Russian, European Portuguese and French. `check_all` (everyday) passed, exit 0 (`build/check_all_20261120_loc3.log`).
+
+### Open
+- **A native read of every language** before it ships (each is a draft; the list shows "(draft)").
+- A complete language drops out of the lists when an English edit makes one of its lines stale (complete only, as
+  Godot): a packaging gate for the shipped languages is to build before release.
+- The store page's Dutch and Danish (with the terms above); the pseudo-locale tour (worklist step 4).
+- (129)'s open items stand: the list's look; whether players see unfinished languages (moot while every one is complete).
+
+### Next step
+The pseudo-locale tour at 1280 x 800 and 150 % UI (worklist step 4), then a packaging gate for the shipped languages;
+the native reads are the designer's (or translators') to arrange.
+
+## 2026-11-20 (129) - Phase 7: the title's language list
+
+**Where the project is.** The designer: "Commit and push. Do next step". (128) and everything before it committed and
+pushed (`56a5a4e`). This entry's work is uncommitted.
+
+**What happened.** The cluster's Language (`main_menu.gd` `_open_language_menu`) opens a card above it: one row per
+language offered (`PawText::Languages`: complete ones; `-PawDraftLanguages`: unfinished too), each in its own name with
+its own "(draft)"; the language shown on the yellow plate with the tick (the concept's "you are here"). A layer like the
+others (`ELayer::Language`, between the leaderboard and the slots, as Godot's `_focus_top`): its rows have the keys,
+starting on the language shown; a row saves and shows its language and closes the list; Back, the button again or a
+press off the card close it (`PressOffLanguageMenu`, the clear scrim's); the title's code-built words (the hint, the
+status line) are made again when the language shown changes (it hears `UPawSettingsSubsystem::OnChanged`). Built in the
+code layout and grafted into `WBP_MainMenu` (`PawMainMenu=add:LanguageLayer`: the layer, the card, a width box, a scroll
+box, the list); the rows are made on every open. Sizes in `PawUiConstants.h` (`Language*`). The tour's `paw.Title`
+takes `language`. The concept draws only the button: the list is the kit's card and rows, for the designer's look.
+
+**Proof.** `Pawpocalypse.UI.Title.Language` (complete languages only, then the review's 21: names, the yellow plate and
+tick on the language shown only, the keys' rows and start, Back, the toggle, a press off the card, a row saving `de`,
+the hint and status made again in German, reopened on German); `Layout.Title` with the list open at its longest at the
+four sizes (on screen, above the cluster: at 1280 x 800 and 150 % the 21 rows scroll inside the card);
+`Title.Look` (Language live); the widget parity tests: 28 PASS. 8 sabotages `title_language_*` CAUGHT. In a real game
+window (`-game`, `-NoSave`, `-PawDraftLanguages`): the list in English, and started with `-culture=de` the title in
+German with Deutsch ticked (`Saved/PawShots/title_language_en.png`, `_de.png`): the packaged path, which the editor tests
+cannot take. `check_all` (everyday) passed, exit 0 (`build/check_all_20261120_title2.log`; the first run failed only on
+`prompt_title_hint_words`, whose target now occurs twice: retargeted, seen CAUGHT).
+
+### Open
+- The list's look is the kit's, not drawn by the concept: the designer's word (screenshots above).
+- (128)'s other open items stand: `loc_status --apply`, the translations, ICU plurals, other screens' cached words.
+
+### Next step
+`loc_status --apply` (a translated work file into the culture's files, stamped with the English the translator saw),
+then the translations themselves, language by language, each with a native read before it ships.
+
 ## 2026-11-20 (128) - Phase 7: the translations at run time, the languages' rules (F52), Settings > Language
 
 **Where the project is.** On (127), uncommitted. The designer: "last session stopped. continue it". Session (127) had

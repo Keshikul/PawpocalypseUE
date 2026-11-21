@@ -46,8 +46,7 @@ then translate" (`docs/WORKLIST-NIGHT-2026-11-18.md`).
   today's English) / broken placeholders; a multiplier (x5) or a letterless line needs no words. `--list` prints a stale
   line's old English beside the new. `--todo` writes `build/loc/todo/<culture>.csv`: every line to translate with the
   English, the old English of a stale line, the translator comment and the store glossary's terms it contains.
-- Still to build: an `--apply` that writes a translated work file into the culture's files, stamping the Source the
-  translator SAW (KB Unreal/20 §3); the title's language menu.
+- `--apply` and the title's language menu: built 2026-11-20 (§2b, §2c).
 - **The run-time route (built 2026-11-20, HANDOFF-LOG (128)):** the translation files registered as polyglot text at
   start (`PawText::RegisterTranslations`, KB Unreal/20 §3: no `.locres`, no Dashboard round trip, the language changes
   live), a row only when its Source is today's English (a stale line shows the English until it is translated again).
@@ -64,15 +63,166 @@ then translate" (`docs/WORKLIST-NIGHT-2026-11-18.md`).
   language), a `-culture=` on the command line wins (the tour, the shots); never in the editor.
 - **Settings > Video > Language**: "System", then every COMPLETE language in its own name with "(draft)" in its own
   words (`SETTINGS_language_draft`, Godot's "(draft)" carried with its 20 translations); a pick saves and shows it at
-  once. Complete = no line missing (`PawText::TranslationCount(...).Missing`, counted as `loc_status.py` counts: 838
-  lines need words). Godot lists only loaded `.po` files "so an unfinished language cannot be chosen by accident", and
-  its files were complete; today no language is (320 lines each to translate), so the list is System and English.
+  once. Complete = no line missing (`PawText::TranslationCount(...).Missing`, counted as `loc_status.py` counts: 837
+  lines need words since §2c's fix). Godot lists only loaded `.po` files "so an unfinished language cannot be chosen by
+  accident", and its files were complete; on 2026-11-20 no language was (319 lines each to translate), so the list was
+  System and English (German complete since §2c).
   **`-PawDraftLanguages`** on the command line lists the unfinished ones too, for review: their missing lines show in
   English.
 - The loader also leaves out a row whose `{placeholders}` differ from the English (as `loc_status.py` counts it broken).
-- The title's Language button stays disabled until its menu is built (next step; the concept draws only the button).
+- **The title's language list** (2026-11-20, HANDOFF-LOG (129); `main_menu.gd` `_open_language_menu`): the cluster's
+  Language opens a card above it, one row per language offered, each in its own name; the language shown on the yellow
+  plate with the tick; the keys start there; a row saves and shows its language and closes the list; Back, the button
+  again or a press off the card close it; the title's words follow a new language. 21 rows scroll inside the card at
+  1280 x 800 and 150 % UI (`Layout.Title`). The concept draws only the button: the list is built from the kit and waits
+  for the designer's look.
 - In the editor, game text follows a culture only with `Localization.ForceLoadGameLocalizationInEditor` on (the
   preview needs compiled game localisation, which this game does not have): `PawText::ShowCulture` sets it.
+
+## 2c. Built 2026-11-20 (HANDOFF-LOG (130))
+
+- **The files are the translations.** `port_po.py` used to write each culture's files from Godot's `.po` alone: a run
+  after a hand translation would have dropped it. Now, per key in the English table's order: the file's row when it is in
+  use (its Source is today's English, its placeholders the English's: Godot's or the port's own), else Godot's
+  translation of today's English, else the file's row as it is (stale or broken: kept, so the old English shows beside
+  the new), else none. A row whose key left the tables is dropped. `--check` fails when a run would change a file. Dutch and
+  Danish get files with their first row. The report (`build/loc/port_po.md`) counts Godot's, the port's own and the stale
+  rows kept.
+- **`loc_status.py --apply build/loc/todo/<culture>.csv`**: the work file's Translation column into the culture's files,
+  Source = the work file's English (what the translator saw: a line whose English changed since arrives stale and is
+  listed again). All or nothing: a row for no line, a key twice or a `{placeholder}` lost or added refuses the whole file.
+  Written through `port_po.py`'s merge, so a later `port_po` run keeps every row. `--todo` never overwrites a work file
+  holding a translation not yet applied. Self-test (gate `loc status self-test`): the refusals, the Source seen, the
+  merge order, the guard, and an apply into a copy of the German files (less the lines Godot never translated) that a
+  later `port_po` run leaves byte for byte; 11 planted faults in the two tools each failed it.
+- **Fixed:** `loc_status.py` counted the `n` of an escaped line break (`\n` in the CSV) as a letter, so the layout-only
+  `TITLE_leaderboard_text` ("{rank}\n\n{offline}\n\n{last}") needed words for it and not for the game
+  (`PawText::NeedsWords` reads the unescaped English): 838 against 837. It now reads a cell as the engine does.
+- **Every language complete: 22 translations x 837 lines** (2026-11-20). Godot's 20: the 319 lines each had no Godot
+  translation for (322 in cs, pl, ru, uk), with each carried translation's own terms (German Katzenminze, Satz,
+  Wiedererwachen; es-419 "Presiona", "Configuración"; pt-PT "tu", Salto, ranhura; ...). Dutch and Danish: all 837, terms
+  chosen here and listed at the top of their scratch dicts, recorded in the handoff (nl Kattenkruid, Sterrenstof, Lokaas,
+  Sprong, Herontwaken, Rijken, Vangsten; da Kattemynte, Stjernestøv, Madding, Spring, Genopvågn, Riger, Fangster): the
+  store page's Dutch and Danish follow them. Numbers keep the game's '.'. Every language is offered in Settings and on the
+  title, each still "(draft)" in its own words: no native read yet.
+- **Grammar the placeholders cannot follow** (KB Unreal/20 §3): Russian, Polish, Czech and Ukrainian put a count after a
+  colon ("Перебросы: +{v}") so no noun agrees with a number (the three plural lines Godot gave more forms need no ICU
+  pattern now); Hungarian and Turkish put no suffix on a `{placeholder}`; Swedish avoids `{v}:e` where the number varies.
+- **Two of Godot's carried translations fixed** (D16, faults): Traditional Chinese called the spawn rate 重新整理速度 (a
+  machine conversion of 刷新, "browser refresh"): now 生成速度 / 生成率; Czech "Duhový Hovínko" (a masculine adjective on a
+  neuter noun): now "Duhové hovínko", in the carried lines too (a work file's fix rows).
+- **Font coverage reads the translation files** (it read only Godot's `.po`): 26 culture lists, 6938 characters, PASS; a
+  planted unsupported character in a German line is CAUGHT.
+- The store scenes in a language: `py tools/store_shots.py --culture de` -> `build/steam/shots/de/` (German: all nine;
+  Russian and Thai: three and two).
+- Open: a language that was complete drops out of the lists when an English edit makes one of its lines stale (complete
+  only, as Godot). Before release, a packaging gate for the shipped languages (step 3 below) keeps that from shipping.
+  A native read of every language before it ships; the pseudo-locale tour (step 4).
+
+## 2d. Built 2026-11-20 (HANDOFF-LOG (131)): the language pass (step 4's tour)
+
+- **The pass is a test, not screenshots.** `Pawpocalypse.UI.Layout.Languages` lays out every screen with words (the
+  title and its windows, the slots and the delete prompt, the six dock pages with a filled save, the card pick with every
+  card, the skill tree with the four longest tips in each language, the pause menu and its slots, the three settings
+  sections, a Reawaken's ceremony, spend step and job picker, the victory) in English and the 22 translations at the
+  tightest size, 1280 x 800 at 150 % UI (1153 x 720 of layout), and holds every text to its box
+  (`PawLayout::TextMisses`: wider than its box, a whole line cut by a box that clips, or off the screen). What it finds
+  goes to `Saved/Layout/languages.txt`. `Pawpocalypse.UI.Layout.PseudoLocale` does the same in the pseudo-locale;
+  `Pawpocalypse.UI.Layout.TextMisses` proves the detector sees a text too wide and a line cut and passes one that fits.
+  The three run in 25 s, in the everyday `Pawpocalypse.UI` gate.
+- **The pseudo-locale** (`PawText::Pseudo`, `SetPseudoLocale`, `-PseudoLoc` on the command line for the tours): every
+  string table's English rewritten in place, each letter accented (Latin-1, which every face of `F_Paw` has),
+  `{placeholders}` and multipliers kept, about 40 % more in words of up to six letters (one long padding word could never
+  wrap), bracketed. Names never translated (the logo, Boba, Discord, the pad brands) stay. `godot_tour.py --culture X`
+  (or `pseudo`) shoots the real game in a language.
+- **Found and fixed** (the first run: 594 texts in 23 languages, 30 in the pseudo-locale; most in English too):
+  - At 150 % UI the screen is 720 tall: the **Reawaken ceremony**'s title went off the top and its payout off the bottom,
+    the **slot picker**'s fifth slot off the right, the **card pick**'s Reroll off the bottom in German. Each now stands
+    in a box that shrinks it to the screen and never grows it (the ceremony's cat, title and payout on a 880 x 900 stage;
+    the slots by their row, 1496 wide; the pick's column 16 px off the edges).
+  - Headlines a language makes wider than their box shrink to it: the ceremony's ("WIEDERERWACHEN", "YENİDEN UYANIYOR"),
+    the victory's ("OVERWINNING", "ZWYCIĘSTWO", "CHIẾN THẮNG"), the controls table's column heads ("HANDKONTROLL").
+  - Wraps wider than their boxes: a button's words beside its icon now wrap by what the icon leaves (the Catches rows'
+    held cards, the Realms rows, the Reawaken button: ten languages); the job rows wrapped at 360 beside a 339 space
+    (English too): every state button is now as wide as the widest of Worn / Owned / Locked in the language, measured
+    with its font, and the words wrap by it; the award rows by their Claim button; the job picker's blurb 4 px short of
+    its card (a shrunk font measures ~1.5 % wider); the credits and leaderboard windows' text short of the scroll bar.
+  - The card face's body padding was still Godot's 18 (the asset missed the Sticker change to 13: the text box 10 px
+    under its wrap); the skill tree's hub pill now grows with its words ("Árbol de habilidades" ran past Godot's 150).
+  - Translations shortened where a line was wider than its box: Boba's role in hu, it, ru, sv ("AD e direttore
+    generale", "VD och general manager", "Гендиректор и управляющий", "Vezérigazgató és ügyvezető", and the tooltip with
+    it); Hungarian's save status ("Van mentés — ...").
+  - In the assets: `bake_widgets --graft` (new: `wrapat:` copies a text's wrap width; `wrap:Code=Asset>Wrapper` when the
+    auto-names differ). WBP_ReawakenCeremony, WBP_VictoryScreen, WBP_CardPickScreen, WBP_ControlsPanel, WBP_MainMenu,
+    WBP_CardFace.
+- Open: the native reads; the real game's screenshots at the tight size in a few languages for the designer's eye (the
+  test proves the boxes, not the look of a shrunk headline).
+
+## 2e. Built 2026-11-20 (HANDOFF-LOG (132)): the wording review
+
+- **What was read**: all 22 translations, by machine where a rule can be strict (numbers, line breaks, lines left in
+  English, the game's words for Catnip / Stardust / Bait in every sentence that names them, each name translated one way,
+  repeated English translated the same way, how each language addresses the player, mouse words, punctuation, quotes,
+  percent signs, scripts mixed, length), then by eye: every short UI label side by side in all 22 languages. Not a native
+  read.
+- **Held up**: every name is translated one way in each language; every line the English repeats is repeated; each
+  language addresses the player one way (du, vous, ты/вы...); every sentence that names a currency uses the language's
+  word for it.
+- **Fixed (122 lines)**:
+  - "every 100th kill" written as a word in cs, pl, ru, sv, uk ("сотое", "setne"...): now the number ("100-е", "100.",
+    "100:e"); Hungarian "x3" as a word ("háromszorosáért"); Czech and Polish dropped a "1" (real numbers: the text rules).
+  - Japanese and Korean left the credits line "created by keshi" in English.
+  - Turkish "Reawaken early" said "wake early" (Erken uyan), unlike every other Turkish line: "Erken yeniden uyan".
+  - The card's Take / Banish buttons: Banish was a noun beside a verb in es, es-419, pl, ru, uk, tr ("Destierro",
+    "Изгнание"): now verbs.
+  - Korean "Swapped with {action}" used 와, which is wrong after a consonant; the word is not known: 와(과), as its Bait line
+    writes 이(가).
+  - Percent signs: Turkish wrote "40%" in 53 lines and its own "%40" in 21 (one line both): now "%40" throughout. Czech,
+    French and Swedish had two lines with "40 %": now "40%" as their other 100.
+  - Danish and Dutch capitalised Catnip and Stardust like the English but not Bait: "Madding", "Lokaas" now too.
+  - **F55** (doc 01 §5): both Chinese scripts named enemies after rats where the English names no animal (Swarm 鼠群,
+    Exterminator 灭鼠专家, Infestation 鼠患): now 敌群 / 敵群, 歼灭专家 / 殲滅專家, 泛滥 / 氾濫 ("enemies, never mice").
+- **Kept, on purpose**: "10.000" for ten thousand in de, da, es, it, nl, pt, tr, vi (the language's own mark; the game's
+  decimals keep '.', and only whole thousands are written this way); counters a language adds ("1 回", "1 体"); the
+  abbreviations "Máx.", "Niv."; Italian "Gioco di prestigio" for Sleight of Hand (a conjuring trick, not the Reawaken).
+- **The gate** `tools/loc_lint.py` (check_all `translations lint` + its self-test): numbers kept (a thousands mark of the
+  language's own allowed), line breaks, no line of 3+ words left in English, no mouse or rat word where the English has
+  none (F55), F53 and F54 stay fixed (until now asserted by nothing), one percent style per language. The self-test plants
+  each fault in a copy of today's rows and requires it caught.
+
+## 2f. Built 2026-11-20 (HANDOFF-LOG (133)): every line read for meaning
+
+- **What was read**: every line longer than a short label (473 English lines, each beside its 22 translations), for
+  meaning, grammar and plainness; the short labels were read in §2e. Still not a native read: idiom and tone need one.
+- **Fixed (96 lines, 21 languages)**:
+  - Wrong meaning: es / es-419 named the Rival Champion "El Gato Rival" (a different boss); Turkish Fence "Kaçakçı"
+    (smuggler; a fence is "Yatakçı"); Polish Overflow "Przelew" (a bank transfer); Russian Swarm Caller "Зовущий рой" ("the
+    swarm that calls"); Thai Reawaken said the beaten bosses "still lose"; Hungarian "nem tölt vissza" ("does not
+    recharge") for "has no cooldown"; Czech "se přehání" (said of weather) for the beam's sweep; "fading" as a picture
+    fades in de, hu, pt-BR (the bonus decays); Italian "derivano" (derive) for drift; Japanese スネア (a snare drum) for the
+    trap: くくり罠; Chinese 第二份工作 (a real second job) for the second job: 职业 / 職業, the game's word.
+  - **F56**: Traditional Chinese Critical Mass 臨界品質 ("critical quality"), now 臨界質量; and 幾率 (the Simplified 几率
+    converted) for chance in 7 lines, now 機率 as its crit chance upgrade.
+  - **F55, Czech and Polish**: Exterminator "Deratizátor" / "Deratyzator" (a rat exterminator), now "Likvidátor" /
+    "Eksterminator".
+  - Grammar: a case suffix on a number placeholder, which must follow the number's own vowels (Turkish "%{v}'ini", 3
+    lines; Hungarian "x{v}-szereséért"): rephrased so the suffix sits on a fixed word; "(s)" plurals that are wrong for 1
+    in cs, pl, ru, uk ("kartu/y", "карт(ы)"): the count after a colon, as those languages do elsewhere; the rooftops biome
+    without its article or case in de, fr, es, es-419, it, pt-BR, pt-PT, nl ("bei Stadtdächer", "à Toits de la ville");
+    German "pro ... genommener Karte" (pro takes the accusative); Danish "Ikke den" for a neuter card; Korean enemies
+    without the counter 명, as the same skills' blurbs have it.
+  - One address form: Ukrainian (ти) had four formal verbs ("покличте", "заробіть", "Натисніть"); Hungarian "mentsen" (3rd
+    person) for "save".
+  - Half-translated or unidiomatic: "Full ház" / "Full ev" (Full House) now "Teli ház" / "Ev dolusu"; Danish "Sidste stand"
+    now "Sidste skanse"; Danish / Swedish "every 6th s" as "Hvert 6. s" / "Var 6:e s" now "sekund" written out (11 lines);
+    Polish "na stać" (not Polish) in the tree's legend; pt-PT "Cocô" (Brazilian) now "Cocó" as its own skill name (6
+    lines); pt-PT "sobrepor" (superimpose) for overwrite; pt-BR "Toque" (touch) for press; "por você / por ti" (by you)
+    for "for you"; Turkish "boss" left in English; Chinese "Reawaken progress" with the numbers first and a dangling
+    clause.
+- **The gate**: `loc_lint`'s mouse rule knew no cs / pl exterminator word, and its English test matched "rat" anywhere,
+  so every English line with "rate" (spawn rate, frame rate) or "crater", and every line with a `{mice}` count, was
+  skipped (16 lines, in every language; all clean once checked). Now whole words, on the English without its placeholders; the self-test plants a fault on such a line and on
+  "Deratizátor" (shown MISSED with the old rule put back, CAUGHT with the new). F56 stays fixed (FIXED).
 
 ## 3. Order
 
@@ -86,5 +236,6 @@ then translate" (`docs/WORKLIST-NIGHT-2026-11-18.md`).
 3. **`tools/loc_status.py` and its gate**: every shipped culture 100 % (or a reviewed exception list), placeholders
    identical, stale lines listed.
 4. **The language menu** (the title's Language button waits for it), the pseudo-locale tour at 1280 x 800 and 150 % UI,
-   font coverage (already a gate).
+   font coverage (already a gate). DONE 2026-11-20: the menu (§2b), the tour as a test in every language and the
+   pseudo-locale (§2d).
 5. **The store**: each language listed once its game text and store page are both done and read.

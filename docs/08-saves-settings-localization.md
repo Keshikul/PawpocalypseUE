@@ -185,7 +185,7 @@ translators.
 | `.format({"n": x})` | `FText::Format(Pattern, FFormatNamedArguments{{TEXT("n"), PawText::Count(x)}})` (Godot prints the int ungrouped). **Argument names are `FString`, not FName** (FName case flips in packaged builds and the placeholder shows raw) `[KB U/05 §3]` |
 | `tr_n(singular, plural, n)` | ICU plural in ONE pattern: `"{n}|plural(one=Reawaken,other=Reawakens)"`, per language forms (Polish, Russian, Czech, Ukrainian need `few`/`many`) |
 | `{pounce}` action tokens | kept as literal tokens in the English source; the prompt rich-text decorator replaces them (doc 05 §5). Translators keep them untouched (the bible's rule) |
-| `xa` pseudo-locale | Unreal's built-in pseudo-localisation (`-culture=` + the Localization Dashboard preview) **plus** the existing `xa.po` carried as an extra culture for the tour, because it is what the Godot tests compared against |
+| `xa` pseudo-locale | Planned: Unreal's built-in pseudo-localisation plus Godot's `xa.po`. **As built (2026-11-20, (131))**: the port's own, `PawText::Pseudo` / `SetPseudoLocale` (`-PseudoLoc`): every string table's English rewritten in place (letters accented, `{placeholders}` kept, ~40 % longer in short words, bracketed); `Pawpocalypse.UI.Layout.PseudoLocale` lays every screen out in it at 1280x800 and 150 % UI. `xa.po` is not carried |
 | `# TRANSLATABLE: ctx` dictionaries, `# NO_TRANSLATE` | string-table rows; `FText::AsCultureInvariant` for the exceptions ("Pawpocalypse" and "Boba" are never translated) |
 | `tools/loc.py extract`, the `loc` gate (every `.text =` through `tr()`, `.pot` current) | a checker script: no `FText::FromString` on player text, no `LOCTEXT` literals outside string tables, every key used exists, every table key is used `[KB U/20 §2]` |
 
@@ -210,7 +210,10 @@ only when its Source is today's English and its `{placeholders}` are the English
 translated again (`tools/loc_status.py` lists it). The language setting keeps Godot's codes (`settings.cfg` stays Godot's);
 `Pc::Languages()` (`PcLocales`, port of `locales.gd`, fixture `locales`) maps each to its culture. A language is offered only
 when its translation is complete (Godot: only loaded `.po` files, "so an unfinished language cannot be chosen by accident");
-`-PawDraftLanguages` offers the unfinished ones too, for review.
+`-PawDraftLanguages` offers the unfinished ones too, for review. The files are the translations: `port_po.py` keeps every
+row in use and fills only what Godot has; the port's own translations go in through `loc_status.py --apply` (a work file
+from `--todo`, stamped with the English the translator saw). All 22 translations complete 2026-11-20 (worklist §2c),
+each a draft until a native read.
 
 - **Unreal culture codes** differ from Godot's: `zh_Hans` -> `zh-Hans`, `zh_Hant` -> `zh-Hant`, `pt_BR` -> `pt-BR`, `es_MX` ->
   `es-419` (Steam's Latin American Spanish), `pt` -> `pt-PT`; Dutch `nl` and Danish `da` are the port's own. Mapped once, in

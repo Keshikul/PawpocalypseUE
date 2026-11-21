@@ -11,6 +11,8 @@
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
+#include "Components/ScaleBox.h"
+#include "Components/ScaleBoxSlot.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
@@ -433,11 +435,24 @@ bool UPawCardPickScreen::Initialize()
 		DimSlot->SetHorizontalAlignment(HAlign_Fill);
 		DimSlot->SetVerticalAlignment(VAlign_Fill);
 
+		// The column shrinks to the screen when the hand is taller than it (the language pass, 2026-11-20: German cards put the
+		// Reroll button under a 720-tall screen at 150 % UI); it never grows.
+		UScaleBox* ColumnFit = T->ConstructWidget<UScaleBox>(UScaleBox::StaticClass(), TEXT("ColumnFit"));
+		ColumnFit->SetStretch(EStretch::ScaleToFit);
+		ColumnFit->SetStretchDirection(EStretchDirection::DownOnly);
+		ColumnFit->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		UOverlaySlot* FitSlot = Root->AddChildToOverlay(ColumnFit);
+		FitSlot->SetHorizontalAlignment(HAlign_Fill);
+		FitSlot->SetVerticalAlignment(VAlign_Fill);
+		FitSlot->SetPadding(FMargin(static_cast<float>(PickEdgePad)));
 		UVerticalBox* Column = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("Column"));
 		Column->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		UOverlaySlot* ColumnSlot = Root->AddChildToOverlay(Column);
-		ColumnSlot->SetHorizontalAlignment(HAlign_Center);
-		ColumnSlot->SetVerticalAlignment(VAlign_Center);
+		ColumnFit->SetContent(Column);
+		if (UScaleBoxSlot* ColumnSlot = Cast<UScaleBoxSlot>(Column->Slot))
+		{
+			ColumnSlot->SetHorizontalAlignment(HAlign_Center);
+			ColumnSlot->SetVerticalAlignment(VAlign_Center);
+		}
 		const FMargin Gap(0.0f, 0.0f, 0.0f, static_cast<float>(PickColumnGap));
 
 		// D18 (S4, the concept's scrPick): LEVEL n as a sticker title and "Take 1 card." in ink, on a card-stock panel.

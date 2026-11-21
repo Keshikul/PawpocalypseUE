@@ -33,6 +33,7 @@
 #include "PcStats.h"
 #include "PcTitle.h"
 #include "Save/PawSaveSubsystem.h"
+#include "Save/PawSettingsSubsystem.h"
 #include "UI/PawButton.h"
 #include "UI/PawIcons.h"
 #include "UI/PawPrompts.h"
@@ -59,6 +60,13 @@ namespace
 	{
 		// HasAnyUserFocus is false for a Common button whose inner SCommonButton holds focus (KB U/08 §3.3).
 		return W && W->GetVisibility() != ESlateVisibility::Collapsed && (W->HasAnyUserFocus() || W->HasFocusedDescendants());
+	}
+
+	// The player's preferences (the language among them); null outside a game instance (the bake, a bare test widget).
+	UPawSettingsSubsystem* SettingsOf(const UUserWidget* W)
+	{
+		const UGameInstance* GI = W ? W->GetGameInstance() : nullptr;
+		return GI ? GI->GetSubsystem<UPawSettingsSubsystem>() : nullptr;
 	}
 
 	// D18 (S4): the title's cast, the UI concept's (tools/art/sticker_art.py write_title).
@@ -397,7 +405,7 @@ bool UPawMainMenu::Initialize()
 			ScrollSlot->SetPadding(FMargin(0.0f, static_cast<float>(TitleBodySeparation), 0.0f, 0.0f));
 			OutText = MakeText(T, LabelPx, PawTokens::UI_TEXT, false, FName(FString(Part) + TEXT("Text")));
 			OutText->SetAutoWrapText(false);
-			OutText->SetWrapTextAt(WindowInner);
+			OutText->SetWrapTextAt(WindowInner - static_cast<float>(TitleScrollBarRoom));
 			Scroll->AddChild(OutText);
 			OutClose = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), FName(FString(Part) + TEXT("Close")));
 			OutClose->SetLabel(PawText::Ui(TEXT("TITLE_close")));
@@ -429,7 +437,12 @@ bool UPawMainMenu::Initialize()
 		USizeBox* SlotBodySize = T->ConstructWidget<USizeBox>();
 		SlotBodySize->SetWidthOverride(static_cast<float>(TitleSlotBodyWidth));
 		SlotBodySize->SetHeightOverride(static_cast<float>(TitleSlotBodyHeight));
-		SlotsLayer->SetContent(SlotBodySize);
+		// Shrunk to the screen when it is narrower than the row (1280 x 800 at 150 % UI); never grown.
+		UScaleBox* SlotFit = T->ConstructWidget<UScaleBox>(UScaleBox::StaticClass(), TEXT("SlotFit"));
+		SlotFit->SetStretch(EStretch::ScaleToFit);
+		SlotFit->SetStretchDirection(EStretchDirection::DownOnly);
+		SlotsLayer->SetContent(SlotFit);
+		SlotFit->SetContent(SlotBodySize);
 		UVerticalBox* SlotBody = T->ConstructWidget<UVerticalBox>();
 		SlotBodySize->SetContent(SlotBody);
 		// D18 (S4): CHOOSE A SLOT as the concept's sticker title, yellow on its ink outline.
@@ -547,6 +560,28 @@ bool UPawMainMenu::Initialize()
 		};
 		ConfirmYes = Answer(TEXT("TITLE_yes"), TEXT("ConfirmYes"), true);
 		ConfirmNo = Answer(TEXT("TITLE_cancel"), TEXT("ConfirmNo"), false);
+
+		// The language list (phase 7; main_menu.gd _open_language_menu): a clear scrim over everything, the list's card at its
+		// foot right, above the Language button (the cluster's last); its rows are made on every open (FillLanguageMenu).
+		LanguageLayer = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("LanguageLayer"));
+		LanguageLayer->SetBrush(Rounded(PawTokens::INK.CopyWithNewOpacity(0.0f), PawTokens::INK, 0.0f, 0.0f));
+		LanguageLayer->SetPadding(FMargin(static_cast<float>(TitleCornerMargin), static_cast<float>(TitleCornerMargin),
+			static_cast<float>(TitleCornerMargin), static_cast<float>(TitleCornerMargin + ClusterButtonSize + LanguageMenuGap)));
+		LanguageLayer->SetHorizontalAlignment(HAlign_Right);
+		LanguageLayer->SetVerticalAlignment(VAlign_Bottom);
+		LanguageLayer->SetVisibility(ESlateVisibility::Collapsed);
+		Fill(Canvas, LanguageLayer);
+		LanguageMenu = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("LanguageMenu"));
+		LanguageMenu->SetBrush(Chrome(EPawChrome::Panel));
+		LanguageMenu->SetPadding(PlatePadding(FMargin(static_cast<float>(LanguageMenuPad)), EPawChrome::Panel));
+		LanguageLayer->SetContent(LanguageMenu);
+		USizeBox* LanguageWidth = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("LanguageWidth"));
+		LanguageWidth->SetMinDesiredWidth(static_cast<float>(LanguageRowWidth));
+		LanguageMenu->SetContent(LanguageWidth);
+		UScrollBox* LanguageScroll = T->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("LanguageScroll"));
+		LanguageWidth->SetContent(LanguageScroll);
+		LanguageList = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("LanguageList"));
+		LanguageScroll->AddChild(LanguageList);
 	}
 	const bool bOk = Super::Initialize();
 	if (bOk && PawUi::ShouldWire(this))
@@ -614,10 +649,11 @@ void UPawMainMenu::OnLayoutReady()
 	Click(SlotsBack, [this]() { PressSlotsBack(); });
 	Click(ConfirmYes, [this]() { PressConfirmYes(); });
 	Click(ConfirmNo, [this]() { PressConfirmNo(); });
-	// The language list arrives with the languages (phase 7).
-	if (ClusterButtons[2])
+	// _on_language_changed: the settings say when the language shown changes; this screen's words follow.
+	if (UPawSettingsSubsystem* S = SettingsOf(this))
 	{
-		ClusterButtons[2]->SetIsEnabled(false);
+		S->OnChanged.AddWeakLambda(this, [this]() { OnSettingsChanged(); });
+		ShownCulture = S->GetLanguageApplied().Culture;
 	}
 	// What is formatted, not baked: the version, the hint's template.
 	if (VersionText)
@@ -805,7 +841,8 @@ void UPawMainMenu::RefreshLeaderboard()
 void UPawMainMenu::Show(ELayer Layer, bool bShow)
 {
 	UBorder* W = Layer == ELayer::Slots ? SlotsLayer.Get() : Layer == ELayer::Leaderboard ? LeaderboardLayer.Get()
-		: Layer == ELayer::Credits ? CreditsLayer.Get() : Layer == ELayer::Confirm ? ConfirmLayer.Get() : nullptr;
+		: Layer == ELayer::Credits ? CreditsLayer.Get() : Layer == ELayer::Confirm ? ConfirmLayer.Get()
+		: Layer == ELayer::Language ? LanguageLayer.Get() : nullptr;
 	if (W)
 	{
 		W->SetVisibility(bShow ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
@@ -820,14 +857,15 @@ bool UPawMainMenu::IsLayerShown(ELayer Layer) const
 	case ELayer::Leaderboard: return Shown(LeaderboardLayer);
 	case ELayer::Credits: return Shown(CreditsLayer);
 	case ELayer::Confirm: return Shown(ConfirmLayer);
+	case ELayer::Language: return Shown(LanguageLayer);
 	default: return true;
 	}
 }
 
 UPawMainMenu::ELayer UPawMainMenu::GetTopLayer() const
 {
-	// _focus_top()'s order: the confirm, the credits, the leaderboard, the slots, the menu.
-	for (const ELayer L : { ELayer::Confirm, ELayer::Credits, ELayer::Leaderboard, ELayer::Slots })
+	// _focus_top()'s order: the confirm, the credits, the leaderboard, the language list, the slots, the menu.
+	for (const ELayer L : { ELayer::Confirm, ELayer::Credits, ELayer::Leaderboard, ELayer::Language, ELayer::Slots })
 	{
 		if (IsLayerShown(L))
 		{
@@ -844,6 +882,13 @@ UWidget* UPawMainMenu::NativeGetDesiredFocusTarget() const
 	case ELayer::Confirm: return ConfirmNo; // the safe answer is under the key: deleting a slot, or quitting
 	case ELayer::Credits: return CreditsClose;
 	case ELayer::Leaderboard: return LeaderboardClose;
+	case ELayer::Language:
+	{
+		// The language shown (its row's "selected" mark), else the first.
+		const UPawSettingsSubsystem* S = SettingsOf(this);
+		const int32 Current = S ? LanguageCodes.IndexOfByKey(S->GetLanguageApplied().Code) : INDEX_NONE;
+		return LanguageRows.IsValidIndex(Current) ? LanguageRows[Current].Get() : LanguageRows.Num() > 0 ? LanguageRows[0].Get() : nullptr;
+	}
 	case ELayer::Slots:
 	{
 		const UPawSaveSubsystem* S = Saves();
@@ -872,6 +917,12 @@ void UPawMainMenu::FocusTop()
 	case ELayer::Confirm: Rows.Add({ ConfirmYes.Get(), ConfirmNo.Get() }); break;
 	case ELayer::Credits: Rows.Add({ CreditsClose.Get() }); break;
 	case ELayer::Leaderboard: Rows.Add({ LeaderboardClose.Get() }); break;
+	case ELayer::Language:
+		for (UPawButton* Row : LanguageRows)
+		{
+			Rows.Add({ Row });
+		}
+		break;
 	case ELayer::Slots:
 	{
 		TArray<UWidget*> Cards;
@@ -1136,6 +1187,105 @@ void UPawMainMenu::PressCluster(int32 Index)
 	{
 		OnOpenUrl(DiscordUrl);
 	}
+	else if (Index == 2)
+	{
+		// _toggle_language_menu()
+		if (IsLayerShown(ELayer::Language))
+		{
+			CloseLanguageMenu();
+		}
+		else
+		{
+			OpenLanguageMenu();
+		}
+	}
+}
+
+// --- the language list ---------------------------------------------------------------------------------------------------
+
+void UPawMainMenu::OpenLanguageMenu()
+{
+	FillLanguageMenu();
+	Show(ELayer::Language, true);
+	Juice.PopIn(LanguageMenu); // UiJuice.pop_in(language_menu)
+	FocusTop();
+}
+
+void UPawMainMenu::CloseLanguageMenu()
+{
+	if (!IsLayerShown(ELayer::Language))
+	{
+		return;
+	}
+	Show(ELayer::Language, false);
+	FocusTop();
+}
+
+void UPawMainMenu::FillLanguageMenu()
+{
+	if (!LanguageList || !WidgetTree)
+	{
+		return; // a part the designer removed from the Widget Blueprint
+	}
+	LanguageList->ClearChildren();
+	LanguageRows.Reset();
+	LanguageCodes = PawText::Languages();
+	const UPawSettingsSubsystem* S = SettingsOf(this);
+	const FString Current = S ? S->GetLanguageApplied().Code : FString(TEXT("en"));
+	for (int32 I = 0; I < LanguageCodes.Num(); ++I)
+	{
+		const FString Code = LanguageCodes[I];
+		// Unnamed: rebuilt on every open, and a name would still be held by the last open's row until it is collected.
+		UPawButton* Row = WidgetTree->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>());
+		Row->Index = I;
+		Row->SetMinDimensions(0, static_cast<int32>(LanguageRowHeight));
+		Row->SetAlignLeft(true);
+		Row->SetLabelSize(R4RowPx);
+		Row->SetLabel(PawText::LanguageLabel(Code)); // its own name, never translated
+		// The language shown: the yellow plate (the concept's "you are here") and the tick; the names line up either way.
+		const bool bCurrent = Code == Current;
+		Row->SetIconSlotKept(true);
+		Row->SetIcon(bCurrent ? FString(TEXT("ui_tick")) : FString(), LanguageTickPx);
+		Row->SetActiveLook(bCurrent);
+		Row->OnClicked().AddWeakLambda(this, [this, Code]() { PressLanguage(Code); });
+		UVerticalBoxSlot* RowSlot = LanguageList->AddChildToVerticalBox(Row);
+		RowSlot->SetHorizontalAlignment(HAlign_Fill);
+		RowSlot->SetPadding(FMargin(0.0f, I == 0 ? 0.0f : static_cast<float>(LanguageRowSeparation), 0.0f, 0.0f));
+		LanguageRows.Add(Row);
+	}
+}
+
+void UPawMainMenu::PressLanguage(const FString& Code)
+{
+	// _on_language_chosen(): saved and shown at once (UPawSettingsSubsystem::SetLanguage; this screen hears it), then closed.
+	UPawAudioSubsystem::PlayFrom(this, TEXT("ui_click"));
+	if (UPawSettingsSubsystem* S = SettingsOf(this))
+	{
+		S->SetLanguage(Code);
+	}
+	CloseLanguageMenu();
+}
+
+void UPawMainMenu::OnSettingsChanged()
+{
+	// _on_language_changed(): only a new language makes the words again (every other setting leaves this screen alone).
+	const UPawSettingsSubsystem* S = SettingsOf(this);
+	if (!S || S->GetLanguageApplied().Culture == ShownCulture)
+	{
+		return;
+	}
+	ShownCulture = S->GetLanguageApplied().Culture;
+	// The string-table texts follow the culture by themselves; what was made from them once is made again.
+	if (HintPrompts)
+	{
+		HintPrompts->SetTemplate(PawText::Ui(TEXT("TITLE_hint")));
+	}
+	Refresh();
+	if (IsLayerShown(ELayer::Language))
+	{
+		FillLanguageMenu();
+		FocusTop();
+	}
 }
 
 void UPawMainMenu::Back()
@@ -1143,6 +1293,7 @@ void UPawMainMenu::Back()
 	switch (GetTopLayer())
 	{
 	case ELayer::Confirm: PressConfirmNo(); return;
+	case ELayer::Language: CloseLanguageMenu(); return;
 	case ELayer::Credits:
 	case ELayer::Leaderboard: PressClose(); return;
 	case ELayer::Slots: PressSlotsBack(); return;
@@ -1166,6 +1317,27 @@ FReply UPawMainMenu::NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKe
 		return FReply::Handled();
 	}
 	return Super::NativeOnPreviewKeyDown(Geometry, KeyEvent);
+}
+
+FReply UPawMainMenu::NativeOnMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& MouseEvent)
+{
+	// Godot's LanguageScrim: a press that reaches the screen while the list is up (no row took it) closes the list, unless it
+	// landed on the list's own card (its edge, its scroll bar).
+	return PressOffLanguageMenu(MouseEvent.GetScreenSpacePosition()) ? FReply::Handled()
+		: Super::NativeOnMouseButtonDown(Geometry, MouseEvent);
+}
+
+bool UPawMainMenu::PressOffLanguageMenu(const FVector2D& ScreenPosition)
+{
+	if (!IsLayerShown(ELayer::Language))
+	{
+		return false;
+	}
+	if (!LanguageMenu || !LanguageMenu->GetCachedGeometry().IsUnderLocation(ScreenPosition))
+	{
+		CloseLanguageMenu();
+	}
+	return true;
 }
 
 // --- the slot cards' swell ---------------------------------------------------------------------------------------------

@@ -1,12 +1,13 @@
 // Pawpocalypse.UI.Language.*: the translations at run time (phase 7; PawText::RegisterTranslations, ShowCulture; KB U/20 §3).
 //
-// Pawpocalypse.UI.Language.Translations  the carried-over files load: 20 cultures (not Dutch or Danish yet), each with its
-//                                         lines in use; German shown live (a text made in English before the switch follows
+// Pawpocalypse.UI.Language.Translations  the translation files load: 22 cultures (Godot's 20, Dutch and Danish), each with
+//                                         its lines in use; German shown live (a text made in English before the switch follows
 //                                         it, a formatted line, a data name), Japanese; a line whose English changed shows
 //                                         the English until translated again (stale), and German again once it matches;
 //                                         English back.
 // Pawpocalypse.UI.Language.Labels        every language's picker label is Godot's (fixture `locales`: the native name and
-//                                         that language's own "(draft)" from Godot's .po files), and the list is Godot's order.
+//                                         that language's own "(draft)" from Godot's .po files), Dutch's and Danish's own, and
+//                                         the list is Godot's order with Dutch and Danish after Swedish.
 // Pawpocalypse.UI.Language.Loader        crafted files: a good row, a stale one, broken placeholders, no text, no such line,
 //                                         a line break; the counts (in use, left out, missing); which lines need words; only
 //                                         a complete language is offered, unless unfinished ones are asked for.
@@ -66,8 +67,8 @@ bool FPawLanguageTranslationsTest::RunTest(const FString& Parameters)
 	PawText::RegisterTables();
 	PawText::RegisterTranslations();
 	const TSet<FString>& Cultures = PawText::LoadedCultures();
-	TestEqual(TEXT("Godot's 20 languages carried over"), Cultures.Num(), 20);
-	TestFalse(TEXT("Dutch waits for its translation"), Cultures.Contains(TEXT("nl")));
+	TestEqual(TEXT("22 languages translated: Godot's 20, Dutch and Danish (2026-11-20)"), Cultures.Num(), 22);
+	TestTrue(TEXT("Dutch and Danish, the port's own"), Cultures.Contains(TEXT("nl")) && Cultures.Contains(TEXT("da")));
 	for (const FString& Culture : Cultures)
 	{
 		const PawText::FTranslationCount Count = PawText::TranslationCount(Culture);
@@ -80,7 +81,7 @@ bool FPawLanguageTranslationsTest::RunTest(const FString& Parameters)
 		TestEqual(FString::Printf(TEXT("%s offered only when complete"), *Culture), PawText::Languages(false).Contains(Code), Count.Missing == 0);
 		TestTrue(FString::Printf(TEXT("%s offered when unfinished ones are asked for"), *Culture), PawText::Languages(true).Contains(Code));
 	}
-	TestTrue(TEXT("the tables' lines that need words (tools/loc_status.py: 838 on 2026-11-20)"), PawText::LinesNeedingWords() > 800);
+	TestTrue(TEXT("the tables' lines that need words (tools/loc_status.py: 837 on 2026-11-20)"), PawText::LinesNeedingWords() > 800);
 
 	const FCultureScope Restore;
 	const FText MadeInEnglish = PawText::Ui(TEXT("TAB_realms"));
@@ -152,7 +153,16 @@ bool FPawLanguageLabelsTest::RunTest(const FString& Parameters)
 		}
 	}
 	TestEqual(TEXT("every language Godot has"), Labels, 21);
-	// Every language Godot has is in use here, in Godot's order (Dutch and Danish join after Swedish once translated).
+	// The port's two (Godot had neither): each in its own name with its own "(draft)".
+	TestEqual(TEXT("Dutch's label"), S(PawText::LanguageLabel(TEXT("nl"))), FString(TEXT("Nederlands (concept)")));
+	TestEqual(TEXT("Danish's label"), S(PawText::LanguageLabel(TEXT("da"))), FString(TEXT("Dansk (udkast)")));
+	// Every language is in use here, in Godot's order, Dutch and Danish after Swedish (PcLocales).
+	const int32 Sv = GodotOrder.IndexOfByKey(TEXT("sv"));
+	if (TestTrue(TEXT("Swedish in Godot's list"), Sv != INDEX_NONE))
+	{
+		GodotOrder.Insert(TEXT("da"), Sv + 1);
+		GodotOrder.Insert(TEXT("nl"), Sv + 1);
+	}
 	TestEqual(TEXT("the list is Godot's, in Godot's order"), FString::Join(PawText::Languages(true), TEXT(",")), FString::Join(GodotOrder, TEXT(",")));
 	return true;
 }
@@ -246,7 +256,7 @@ bool FPawLanguageLoaderTest::RunTest(const FString& Parameters)
 	// The game's own files again.
 	PawText::RegisterTranslations();
 	IFileManager::Get().DeleteDirectory(*Root, false, true);
-	TestEqual(TEXT("the game's files again: 20 cultures"), PawText::LoadedCultures().Num(), 20);
+	TestEqual(TEXT("the game's files again: 22 cultures"), PawText::LoadedCultures().Num(), 22);
 	return true;
 }
 

@@ -100,6 +100,7 @@ UE_PAUSE_STEPS = ["t.MaxFPS 60", "paw.Wait 120", "paw.Press Escape", "paw.Wait 3
 RES = (1920, 1080)
 UI_SCALE = 0.0
 UE_DEST = "ue"
+CULTURE = "en"      # --culture: the language shown (phase 7's language pass); "pseudo": English made pseudo (-PseudoLoc)
 
 
 def ue_side(shots_list=None, steps=None, level="/Game/Pawpocalypse/Maps/L_Realm"):
@@ -111,8 +112,10 @@ def ue_side(shots_list=None, steps=None, level="/Game/Pawpocalypse/Maps/L_Realm"
         (OUT / UE_DEST / ("%s.png" % s)).unlink(missing_ok=True) # never leave an old shot to be mistaken for a new one
     if UI_SCALE:
         steps = ["paw.UiScale %g" % UI_SCALE] + list(steps)
+    culture = ["-culture=en", "-PseudoLoc"] if CULTURE == "pseudo" else ["-culture=" + CULTURE]
     cmd = [EDITOR, str(UPROJECT), level, "-game", "-windowed", "-ResX=%d" % RES[0], "-ResY=%d" % RES[1],
-           "-unattended", "-NoSave", "-nosplash", "-nosound", "-SCCProvider=None", "-ExecCmds=" + ",".join(steps), "-log=PawTour.log"]
+           "-unattended", "-NoSave", "-nosplash", "-nosound", "-SCCProvider=None"] + culture + [
+           "-ExecCmds=" + ",".join(steps), "-log=PawTour.log"]
     subprocess.run(cmd, timeout=900)
     dest = OUT / UE_DEST
     dest.mkdir(parents=True, exist_ok=True)
@@ -199,14 +202,18 @@ def main():
     ap.add_argument("--skip-ue", action="store_true")
     ap.add_argument("--set", choices=["screens", "biomes", "fonts"], default="screens")
     ap.add_argument("--res", default="1920x1080")
+    ap.add_argument("--culture", default="en", help="the language shown (an Unreal culture), or pseudo (-PseudoLoc)")
     ap.add_argument("--uiscale", type=float, default=0.0, help="Slate's application scale (restyle R4h: 1.5 = the 150 %% check); "
                     "the shots go to build/tour/ue_<res>_<scale>, never over the 1080p set")
     args = ap.parse_args()
-    global RES, UI_SCALE, UE_DEST
+    global RES, UI_SCALE, UE_DEST, CULTURE
     RES = tuple(int(v) for v in args.res.lower().split("x"))
     UI_SCALE = args.uiscale
+    CULTURE = args.culture
     if UI_SCALE or RES != (1920, 1080):
         UE_DEST = "ue_%dx%d_%s" % (RES[0], RES[1], ("%g" % UI_SCALE if UI_SCALE else "1"))
+    if CULTURE != "en":
+        UE_DEST += "_" + CULTURE
     if args.set == "fonts":
         fonts_side()
         return

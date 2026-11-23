@@ -34,15 +34,15 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Copied from the Godot project (tools/pawsim.py at 350b2f5) for the port (docs/06 §7). The .tres loader reads the Godot
-# project READ-ONLY at PAWSIM_GODOT_ROOT; the CSV loader (--data csv) reads this repo's Data/*.csv.
+# Copied from the Godot project (tools/pawsim.py at 350b2f5) for the port (docs/06 §7). It reads THIS game's Data/*.csv (the
+# default since 2026-11-23, D22: the game is its own source; Godot was a first try). The old .tres loader (--data tres)
+# reads the Godot project read-only at PAWSIM_GODOT_ROOT: history only, nothing depends on it.
 import os
 REPO_ROOT = Path(os.environ.get("PAWSIM_GODOT_ROOT", "C:/Games/pawpocalypse"))
 DATA_DIR = REPO_ROOT / "data"
 # The .tres are read as the port fixes them (tools/godot_fixes.py, D16; F3, 2026-11-12, the first change to Godot's DATA),
 # as the exporter wrote Data/*.csv: the parity sweep compares like with like.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from godot_fixes import fixed_read  # noqa: E402
 
 # Simulation resolution. 1.0s is plenty — every rate in the game is per-second
 # or per-minute, and finer steps change results by well under a percent.
@@ -198,6 +198,7 @@ def parse_tres(path: Path) -> dict:
     Returns a dict of property name -> value. ExtResource references are
     resolved to absolute Paths so callers can recurse into them.
     """
+    from godot_fixes import fixed_read  # the old .tres loader only (--data tres)
     text = fixed_read(REPO_ROOT, path).replace("\r\n", "\n").replace("\r", "\n")
     ext_map = {rid: REPO_ROOT / rel for rel, rid in _EXT_RE.findall(text)}
 
@@ -2861,7 +2862,7 @@ def main() -> int:
     ap.add_argument("--autotune-iterations", type=int, default=25)
     ap.add_argument("--autotune-damping", type=float, default=0.5)
     ap.add_argument("--verbose", action="store_true")
-    ap.add_argument("--data", choices=["tres", "csv"], default="tres",
+    ap.add_argument("--data", choices=["tres", "csv"], default="csv",
                     help="tres: the Godot project's /data (read-only, PAWSIM_GODOT_ROOT); csv: this repo's Data/*.csv")
     args = ap.parse_args()
 

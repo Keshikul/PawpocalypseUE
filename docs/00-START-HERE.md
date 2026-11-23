@@ -9,7 +9,13 @@
 
 ## What this is
 
-A **recreation of the same game**, not a sequel and not a redesign. The design, the numbers and the audio carry over;
+**Since 2026-11-23 THIS IS THE GAME (D22, the designer: "Forget about godot. Treat this as a new game. Godot is
+just a first try. This is the real version.").** This project is the source of truth for every rule, number, word and
+look; the Godot game was the first try and is history: nothing is matched to it, no gate or tool reads it. PC (Q1); Next
+Fest ships the latest build of this game (Q4). The rest of this page and the older docs were written when Godot was the
+reference ("the port", "parity"): read those parts as history.
+
+*(As written 2026-10-28:)* A **recreation of the same game**, not a sequel and not a redesign. The design, the numbers and the audio carry over;
 the engine, the code and the build pipeline are new. The Godot project stays the reference build and the shipping product
 until the Unreal build reaches parity (doc 11, phase 9). **Three exceptions, all the designer's**: the look is the port's own
 since 2026-11-07 ("Plum everywhere", D14; **since 2026-11-17 Sticker Box, D18**), so is the player-facing English since 2026-11-09 (D15), and since 2026-11-10 the
@@ -98,7 +104,19 @@ The full plan with session prompts is [11-roadmap.md](11-roadmap.md).
   made to (`Pawpocalypse.UI.Language.Switch`, everyday; HANDOFF-LOG (135)). Every language in a package
   (`py tools/packaged_languages.py`): the engine's English ICU data refused zh-Hans, zh-Hant, pt-BR, pt-PT and es-419 and
   left Thai unwrapped; `InternationalizationPreset=All` now, all 23 PASS in the package (HANDOFF-LOG (136)).
-  Next: the native reads.
+  No native reads (the designer, 2026-11-23). Next: phase 8 (`tools/package.py`, HANDOFF-LOG (137)).
+- **2026-11-23, phase 8 started** (HANDOFF-LOG (137)): `tools/package.py` written and its audit self-tested (not run:
+  packaging is the designer's word); the plugin trim current again (FabLauncher had pulled USD into the game; the
+  Development exe 295.9 -> 254.9 MB); Shipping compiles (gated). Found on the way: the settings lists' ring sat off
+  the lists in a windowed game (desktop-space geometry painted; fixed, L0 rule). Then (HANDOFF-LOG (138)): the version
+  is 0.1.0 (D21: 0.MINOR.PATCH), no "(draft)" in the language lists (D20).
+- **2026-11-23, the first packages and the draw calls** (HANDOFF-LOG (139)): Development and Shipping packaged (audits PASS,
+  23 languages PASS); draw calls 83.6 -> 50.6 a frame (the scene 23 -> 9: DBuffer, occlusion queries, virtual textures and
+  the prepass off; the field atlas one page; the UI's icons and glyphs one atlas page). Next: the chrome plates into the
+  UI atlas (under 50).
+- **2026-11-23, D22 and the designer's answers** (HANDOFF-LOG (140)): this is the game, Godot a first try (no gate or tool
+  reads it); PC; Next Fest ships the latest build; the music kept; FXAA kept. The chrome plates in the UI atlas: **46.8 draw
+  calls, the bench PASSES**. The background frame cap built (30 fps behind another window, measured).
 
 **The Sticker Box restyle (D18, 2026-11-17).** The designer replaced the plum look: every enemy and boss (Bestiary) and
 every UI screen (UI Screens) were drawn as concepts and approved before any Unreal change. The plan, the look spec and the
@@ -131,9 +149,11 @@ status; doc 09 §7 the gates as they are today.
 | 6 Presentation | Slices 1-5d and 6a **done** 2026-11-05/07 (50)-(63): the field's art and atlas, the backdrops, the effects, the sound, the chrome, the icons, the motion, the rainbows and the tree's sky, the Unicorn ceremony. **The restyle (D14) runs before 6b-6d** (the Reawaken banner, Boba, the tutorial: `WORKLIST-SLICE6-2026-11-07.md`) |
 | The restyle (D14) | `WORKLIST-RESTYLE-2026-11-07.md`. **R0-R4 done** (65)-(70): the port's own palette (`tools/art/palette.py`), Plum ink, M PLUS Rounded 1c (`F_Paw`), plum chrome with Deep Plum edges and one solid shadow, Butter focus, the 16 px text floor, every screen fits at 150 % UI; the plain text (D15) (71)-(72). **R5 drawn** (73)-(90): D3 (aura, strike paw, crits), the look lint (everyday), the faces, the anatomy pass with one colour per character, the rig (moving wings and legs), the props. Waiting: the bosses, the imp, the rig's motion, the cat's pale coats, the draw-call budget (doc 01 Q11). R6, R7 to come |
 | 7 Localisation | **Started** 2026-11-19 (125): Godot's 20 translations carried over (`port_po.py`, `loc_status.py`); 2026-11-20 (128)-(130): loaded at run time, the languages' rules (`PcLocales`), Settings > Language, the title's language list, `--apply`, all 22 translations complete (drafts); (131): the language pass; (132), (133): the wording review and every line read (218 lines fixed, F55, F56, the `loc_lint` gate); (134): the handoff; (135): a language changed while a screen is up (`Language.Switch`); (136): every language in the package (`packaged_languages.py`; the ICU preset fixed). Next: native reads (`docs/WORKLIST-LOC-2026-11-18.md`). The fonts were done early in R2 |
-| 8-9 | Hardening and packaging, parity sign-off: not started |
+| 8 Hardening and packaging | **Started** 2026-11-23 (137): `tools/package.py` (clean archive, audit, README and Send logs, the L5 gates; not run yet: the designer's word to package), the plugin trim current again (`--check` gated). Next: its first run |
+| 9 | Parity sign-off: not started |
 
-- **Git**: committed and pushed through HANDOFF-LOG (134) (2026-11-21, at the designer's request: the title's language
+- **Git**: committed and pushed through HANDOFF-LOG (136) (2026-11-23, `a0161f1`, at the designer's request: a language
+  changed while a screen is up, every language in the package). Before that, through (134) (2026-11-21: the title's language
   list, the 22 translations, the language pass, the wording reviews and `loc_lint`). Before that, through (128)
   (2026-11-20, `56a5a4e`: the Sticker Box restyle in the game, the Steam page, phase 7 started); through (108) (2026-11-17: the `if`
   audit's fixes 1-4, the waiting engine guards, D18 planned, the colour inventory) and (103) (2026-11-12: F3, CR17, the

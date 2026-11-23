@@ -327,7 +327,8 @@ language and the pseudo-locale at 1280x800 and 150% UI, no text past its box: `P
 `.PseudoLocale`, everyday); **a language changed while a screen is up** ((135): every screen's words follow, the Settings
 dialog's lists made to; `Pawpocalypse.UI.Language.Switch`, everyday); **every language in the package** ((136):
 `tools/packaged_languages.py`, L5; the engine's English ICU preset refused 5 languages and left Thai unwrapped, now
-`InternationalizationPreset=All`: 23 languages PASS). To do: a native read per language, the store page's Dutch and Danish.
+`InternationalizationPreset=All`: 23 languages PASS). No native reads (the designer, 2026-11-23: "Native speakers will not be reviewing the text so skip that"). To do: the
+store page's Dutch and Danish (the designer: not yet). "(draft)" dropped from the language lists (D20, HANDOFF-LOG (138)).
 
 ## Phase 8 - hardening and packaging
 
@@ -338,7 +339,20 @@ PSO precache check; Shipping build; crash/log collection.
 **Exit criteria**: soak "no problems found" with 0 engine errors over a whole game; p99 frame time recorded and not worse than the
 Godot build on the same PC; 60 fps at 1280x800 on the Deck-class target; a one-number balance patch measured at a small delta.
 
-## Phase 9 - parity sign-off
+**Status 2026-11-23 (HANDOFF-LOG (137))**: started. `tools/package.py` written (doc 10 §2: clean archive, UAT, symbols,
+the audit, README and `Send logs.bat`, the L5 gates; not run yet: packaging is the designer's word); its audit's
+self-test and the plugin trim's `--check` in everyday `check_all`. The trim re-run for an engine update (FabLauncher
+pulled USD, Boost and TBB into the game). The version 0.1.0 (D21, (138)). **First packages 2026-11-23 ((139)): Development and
+Shipping, audits PASS, languages PASS; draw calls 83.6 -> 50.6 (renderer switches, one field atlas page, the UI icon atlas)**.
+**(140): the chrome plates in the UI atlas too: 46.8 draw calls, the bench PASSES; the background frame cap (Q10, 30 fps
+behind another window: 33.5 ms frames measured); D22 (no Godot anywhere in the gates)**. To do: the size
+work, the soak, the Deck pass, chunking and patch size, the PSO check.
+
+## Phase 9 - release sign-off (was: parity sign-off; D22, 2026-11-23: Godot was a first try, nothing to be at parity with)
+
+**As of D22**: the designer plays this game and signs it off for release; differences from Godot are not tickets. Steam Next
+Fest (February 2027) ships the latest build (Q4). What follows is the plan as written before D22.
+
 
 **Steps**: side-by-side review (the same game state set up in both builds by their cheats: no Godot save importer, Q3 = no; same
 biome/stage screenshots; pawsim length report unchanged); the designer plays the Unreal build; differences become tickets: "port bug" or "design change for later", never both.

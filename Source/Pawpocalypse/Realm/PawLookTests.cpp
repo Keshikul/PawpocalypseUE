@@ -187,6 +187,9 @@ bool FPawLookAtlasTest::RunTest(const FString& Parameters)
 		return false;
 	}
 	TestTrue(TEXT("the atlas has pages"), Atlas->Pages.Num() > 0);
+	// One page (4096 px since 2026-11-23): every page the frame draws from is a draw call per kind (masked, soft, shadow).
+	// Art that outgrows it fails here on purpose: decide then between a second page and smaller cells (HANDOFF-LOG (139)).
+	TestEqual(TEXT("the field's sprites on one page"), Atlas->Pages.Num(), 1);
 	for (const TObjectPtr<UTexture2D>& Page : Atlas->Pages)
 	{
 		TestNotNull(TEXT("every page is a texture"), Page.Get());
@@ -273,6 +276,18 @@ bool FPawLookAtlasTest::RunTest(const FString& Parameters)
 	// the same depth painted its transparent texels black over another (the R5 rig, 2026-11-09).
 	const IConsoleVariable* MaskOnlyInEarlyZ = IConsoleManager::Get().FindConsoleVariable(TEXT("r.EarlyZPassOnlyMaterialMasking"));
 	TestTrue(TEXT("r.EarlyZPassOnlyMaterialMasking is off"), MaskOnlyInEarlyZ && MaskOnlyInEarlyZ->GetInt() == 0);
+	// Draw calls (DefaultEngine.ini, 2026-11-23, HANDOFF-LOG (139)): no DBuffer (it forced a depth prepass: 4 draws a frame; the game has no
+	// decals) and no occlusion queries (8 draws a frame; nothing in a flat field hides anything).
+	const IConsoleVariable* DBuffer = IConsoleManager::Get().FindConsoleVariable(TEXT("r.DBuffer"));
+	TestTrue(TEXT("r.DBuffer is off"), DBuffer && DBuffer->GetInt() == 0);
+	const IConsoleVariable* Occlusion = IConsoleManager::Get().FindConsoleVariable(TEXT("r.AllowOcclusionQueries"));
+	TestTrue(TEXT("r.AllowOcclusionQueries is off"), Occlusion && Occlusion->GetInt() == 0);
+	// No virtual textures: with them on, the renderer kept the depth prepass (2 draws a frame).
+	const IConsoleVariable* VirtualTextures = IConsoleManager::Get().FindConsoleVariable(TEXT("r.VirtualTextures"));
+	TestTrue(TEXT("r.VirtualTextures is off"), VirtualTextures && VirtualTextures->GetInt() == 0);
+	// No depth prepass (it was drawn for the opaque floor alone: 1 draw a frame).
+	const IConsoleVariable* EarlyZ = IConsoleManager::Get().FindConsoleVariable(TEXT("r.EarlyZPass"));
+	TestTrue(TEXT("r.EarlyZPass is 0"), EarlyZ && EarlyZ->GetInt() == 0);
 	// Sticker Box (D18, 2026-11-18): the approved Bestiary's drawings are one sprite each until they get their own wing and
 	// leg layers (E3, open); tools/art/sticker_art.py removes the grammar's layers with its drawings, so no old wing flaps on
 	// a new body. Any rig the atlas does carry is still checked whole above.

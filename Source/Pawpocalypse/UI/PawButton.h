@@ -70,6 +70,8 @@ public:
 	UPawButton(const FObjectInitializer& ObjectInitializer);
 	virtual bool Initialize() override;
 	virtual void SynchronizeProperties() override;
+	// Common UI applied a built style (every state change): its plates drawn from the UI atlas (phase 8, draw calls).
+	virtual void NativeOnCurrentTextStyleChanged() override;
 
 	// The instance's settings (the setters below write these; a screen's Widget Blueprint saves them).
 	UPROPERTY(EditAnywhere, Category = "Paw")

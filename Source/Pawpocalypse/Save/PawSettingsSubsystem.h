@@ -45,6 +45,12 @@ struct FPawVideoApplied
 	int64 MaxFps = 0;
 	int32 Count = 0;          // how many times the video settings were applied
 	bool bToEngine = false;   // the last one reached the engine
+	// Q10, the background cap: while the window is not active, the frame cap is BackgroundCap (Pc::BackgroundFrameCap of
+	// CapBefore, the cap in force when the window went to the back, and paw.BackgroundFps); CapBefore comes back with focus.
+	bool bBackground = false;
+	int64 BackgroundCap = 0;
+	int64 CapBefore = 0;
+	bool bBackgroundToEngine = false; // the background cap reached the engine (never in the editor)
 };
 
 // The language the game was last set to show (the tests read it).
@@ -128,12 +134,21 @@ public:
 	void UseStorageForTest(TSharedPtr<IPawSaveStorage> InStorage);
 	// Reads the file again (a test that put one in its storage).
 	void Reload();
+	// The window going to the back (false) or the front (true), as the focus event says it (the tests; the bench's
+	// `background` run). RefreshBackgroundCap: paw.BackgroundFps changed (the bench turns it off).
+	void NoteActivationForTest(bool bActive) { OnActivationChanged(bActive); }
+	void RefreshBackgroundCap() { ApplyBackgroundCap(); }
+	// Whether the background cap may reach the engine: never in the editor, only with a game viewport. Unlike the video
+	// settings it also applies with no settings storage: it lowers the cap the command line set, and gives it back.
+	static bool MayCapInBackground(bool bEditor, bool bViewport) { return !bEditor && bViewport; }
 
 private:
 	void Save();
 	void Changed(bool bVideo);
 	void ApplyVideo();
 	void ApplyLanguage();
+	void OnActivationChanged(bool bActive);
+	void ApplyBackgroundCap();
 
 	Pc::PcSettings Settings;
 	TSharedPtr<IPawSaveStorage> Storage;
@@ -142,4 +157,6 @@ private:
 	int32 Writes = 0;
 	bool bWindowFromCommandLine = false;
 	FTSTicker::FDelegateHandle StartupApply;
+	FDelegateHandle ActivationHandle;
+	bool bAppActive = true;
 };

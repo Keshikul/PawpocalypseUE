@@ -11,9 +11,9 @@
 #include <string>
 #include <vector>
 
-// The languages against the REAL locales.gd (fixture `locales`, with the port's fix F52): available() for 104 loaded sets,
-// from_system() over 85 OS locales and from_steam() over 28 Steam names in each, and every language's picker label with
-// its own "(draft)" from Godot's .po files. Then what Godot does not have: Dutch and Danish, Unreal's '-' spellings, and
+// The languages against the REAL locales.gd (fixture `locales`, with the port's fix F52 and change D20): available() for 104
+// loaded sets, from_system() over 85 OS locales and from_steam() over 28 Steam names in each, and every language's picker
+// label (its name alone, D20). Then what Godot does not have: Dutch and Danish, Unreal's '-' spellings, and
 // apply_language()'s choice (LocaleResolve).
 
 namespace
@@ -78,7 +78,7 @@ TEST_CASE("Locales: available, from_system, from_steam and the picker's labels m
 	REQUIRE_MESSAGE(Pc::ReadTextFile(DataDir() + "/../Source/PawCore/Tests/Data/locales_godot.tsv", Text), "missing locales_godot.tsv");
 	std::istringstream In(Text);
 	std::string Line;
-	int Avail = 0, System = 0, Steam = 0, Labels = 0, Fixed = 0;
+	int Avail = 0, System = 0, Steam = 0, Labels = 0, Fixed = 0, Unmarked = 0;
 	std::set<std::string> Results;
 	while (std::getline(In, Line))
 	{
@@ -118,8 +118,10 @@ TEST_CASE("Locales: available, from_system, from_steam and the picker's labels m
 		{
 			REQUIRE(C.size() == 5);
 			CHECK(Pc::LocaleNativeName(C[1]) == C[2]);
-			CHECK_MESSAGE(Pc::LocalePickerLabel(C[1], C[4]) == C[3], "picker_label(" << C[1] << ")");
-			CHECK(Pc::LocaleReviewed(C[1]) == (C[1] == "en"));
+			CHECK_MESSAGE(Pc::LocalePickerLabel(C[1]) == C[3], "picker_label(" << C[1] << ")");
+			// Proof the fixture was made with D20: Godot has a "(draft)" for this language, and its label (with the change)
+			// leaves it out.
+			Unmarked += C[1] != "en" && !C[4].empty() && C[3] == C[2] ? 1 : 0;
 			const Pc::PcLanguage* L = Pc::LanguageByCode(C[1]);
 			REQUIRE(L != nullptr);
 			CHECK(Pc::LanguageByCulture(L->Culture) == L);
@@ -131,6 +133,7 @@ TEST_CASE("Locales: available, from_system, from_steam and the picker's labels m
 	CHECK(System == 104 * 85);
 	CHECK(Steam == 104 * 28);
 	CHECK(Labels == 21);
+	CHECK(Unmarked == 20);
 	CHECK(Results.size() == 21);
 	CHECK(Fixed > 0);
 }
@@ -165,6 +168,8 @@ TEST_CASE("Locales: Dutch and Danish (the port's two, designer 2026-11-18)")
 	CHECK(std::string(L[22].Code) == "da");
 	CHECK(Pc::LocaleNativeName("nl") == "Nederlands");
 	CHECK(Pc::LocaleNativeName("da") == "Dansk");
+	CHECK(Pc::LocalePickerLabel("nl") == "Nederlands");
+	CHECK(Pc::LocalePickerLabel("da") == "Dansk");
 	// Listed only once loaded, after Swedish.
 	CHECK(Join(Pc::LocalesAvailable({ "nl", "da", "sv" })) == "en,sv,nl,da");
 	CHECK(Join(Pc::LocalesAvailable({})) == "en");

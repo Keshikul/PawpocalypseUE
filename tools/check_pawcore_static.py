@@ -17,22 +17,22 @@
                 PawTokens.h (no FLinearColor(/FColor( literal, no FromHex/FromSRGBColor), no hard-coded player text
                 (FText::FromString, LOCTEXT, NSLOCTEXT; AsCultureInvariant only in PawText.cpp, for numbers); every string-
                 table key it names exists in ST_UI.csv, and every ST_UI key is named somewhere (docs/05 §7, docs/08 §4).
+                No NativePaint / OnPaint draws with GetCachedGeometry / GetTickSpaceGeometry (desktop space; a paint is in
+                the window's: the settings lists' ring sat off them by the window's place, 2026-11-23).
   packaging     Config/DefaultGame.ini stages what a package needs to show every language: the ICU data of every culture
                 (InternationalizationPreset=All; the engine's English stages English alone and a package refuses zh-Hans,
                 zh-Hant, pt-BR, pt-PT, es-419 and never wraps Thai, measured 2026-11-23) and the loose string tables and
                 translations (+DirectoriesToAlwaysStageAsUFS Pawpocalypse/Localization). The proof is in a package
                 (tools/packaged_languages.py); this keeps the settings from going back without one.
-  data-export   Data/*.csv is exactly what tools/export_godot_data.py exports from the Godot project today (until
-                parity Godot is the spec: a difference means someone edited a CSV, or Godot changed and nobody re-exported).
-                Covers Data/CodeConstants.csv too: the export fails when a Godot code constant has no row in the reviewed
-                Data/CodeConstantsMap.csv, or a mapped one is gone (tools/export_code_constants.py).
+  (Retired 2026-11-23, D22: the game is its own source; Godot was a first try. `data-export` compared Data/*.csv with a
+  fresh export of the Godot project, and `generated` regenerated PcEnums.h, PcDataRows.h, PawTreeTables.h,
+  PcTreeWording.h and ST_Tree.csv from Godot's scripts: Data/ and those files are now edited here, directly.)
 
 `--self-test` plants one violation per gate in a scratch copy and requires each gate to catch it.
-Usage: py tools/check_pawcore_static.py [--self-test] [--skip-export]
+Usage: py tools/check_pawcore_static.py [--self-test]
 """
 
 import argparse
-import filecmp
 import re
 import shutil
 import subprocess
@@ -49,7 +49,6 @@ UI_KEY = re.compile(r'TEXT\("((?:TAB|PAGE|SHOP|ZONE|WAVE|BOSS|REALMS|BAIT|REAWAK
 # A colour built from numbers: FLinearColor(1, 0, 0), FColor Name{255, ...}, FromHex(...); not a function returning one.
 UI_COLOUR = re.compile(r"\bF(?:Linear)?Color\s*(?:\w+\s*)?[({]\s*[-+]?[\d.]|FromHex|FromSRGBColor")
 UI_TEXT = re.compile(r"FText::FromString\s*\(|\bLOCTEXT\s*\(|\bNSLOCTEXT\s*\(")
-GODOT = "C:/Games/pawpocalypse"
 GAME_INI = ROOT / "Config" / "DefaultGame.ini"
 STD_HEADERS = {
     "algorithm", "array", "cassert", "cctype", "cerrno", "charconv", "chrono", "cinttypes", "climits", "cmath", "cstddef",
@@ -130,19 +129,36 @@ def check_test_guard(core):
 
 def check_generated():
     bad = []
-    for script in ("gen_pc_enums.py", "gen_pc_data.py"):
-        r = subprocess.run([sys.executable, str(ROOT / "tools" / script), "--godot", GODOT, "--check"], capture_output=True, text=True)
-        if r.returncode != 0:
-            bad.append("%s --check: %s" % (script, (r.stdout + r.stderr).strip()[-300:]))
-    # The game's DataTable row structs, from the Data/*.csv headers (tools/gen_paw_rows.py).
+    # Files generated from the game's own sources (the Data/*.csv headers, the palette, the fonts, the effects' look).
     for script, args in (("gen_paw_rows.py", ["--check"]), ("gen_paw_tokens.py", ["--check"]),
-                         ("gen_data_strings.py", ["--check"]), ("gen_tree_tables.py", ["--godot", GODOT, "--check"]),
+                         ("gen_data_strings.py", ["--check"]),
                          ("gen_input_defaults.py", ["--check"]), ("fonts.py", ["--check"]),
                          ("gen_fx_look.py", ["--check"])):
         r = subprocess.run([sys.executable, str(ROOT / "tools" / script)] + args, capture_output=True, text=True)
         if r.returncode != 0:
             bad.append("%s --check: %s" % (script, (r.stdout + r.stderr).strip()[-300:]))
     return bad
+
+
+def paint_bodies(code):
+    """(function name, body start, body) of every NativePaint / OnPaint definition in comment-free code."""
+    out = []
+    for m in re.finditer(r"\b\w+::(NativePaint|OnPaint)\s*\(", code):
+        open_brace = code.find("{", m.end())
+        semi = code.find(";", m.end())
+        if open_brace < 0 or (0 <= semi < open_brace):
+            continue
+        depth, i = 0, open_brace
+        while i < len(code):
+            if code[i] == "{":
+                depth += 1
+            elif code[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            i += 1
+        out.append((m.group(1), open_brace, code[open_brace:i + 1]))
+    return out
 
 
 def check_ui(ui_dir, st_ui):
@@ -173,6 +189,13 @@ def check_ui(ui_dir, st_ui):
         for n, line in enumerate(raw.splitlines(), 1):
             if "/Engine/EngineFonts" in line and not line.lstrip().startswith("//"):
                 bad.append("%s:%d names an engine font (use PawUi::PawFont)" % (path.name, n))
+        # A paint draws in the WINDOW's space; cached / tick-space geometry is the DESKTOP's: a ring drawn with it sits off
+        # its control by the window's place on the desktop (the settings lists' ring, 2026-11-23: +319, +117 px).
+        for name, body_start, body in paint_bodies(code):
+            m = re.search(r"\b(GetCachedGeometry|GetTickSpaceGeometry)\s*\(", body)
+            if m:
+                n = code.count("\n", 0, body_start + m.start()) + 1
+                bad.append("%s:%d paints with %s in %s (desktop space: use GetPaintSpaceGeometry)" % (path.name, n, m.group(1), name))
     # The string tables load loose at run time: one saved with CRLF doubles every line break inside a quoted value
     # (measured 2026-11-06: a cell's CR LF reads as two breaks). LF only.
     for table_csv in sorted(st_ui.parent.glob("ST_*.csv")):
@@ -208,32 +231,10 @@ def check_packaging(ini):
     return bad
 
 
-def check_data_export(data_dir):
-    out = ROOT / "build" / "check_export"
-    if out.exists():
-        shutil.rmtree(out)
-    r = subprocess.run([sys.executable, str(ROOT / "tools" / "export_godot_data.py"), "--godot", GODOT, "--out", str(out),
-                        "--code-map", str(data_dir / "CodeConstantsMap.csv")], capture_output=True, text=True)
-    if r.returncode != 0:
-        return ["export_godot_data.py failed: " + (r.stdout + r.stderr).strip()[-300:]]
-    bad = []
-    # CodeConstantsMap.csv is the reviewed SOURCE of the CodeConstants export (tools/export_code_constants.py), not output;
-    # TextOverrides.csv is the port's own English (tools/text_overrides.py), not exported either.
-    names = sorted(({p.name for p in out.glob("*.csv")} | {p.name for p in data_dir.glob("*.csv")})
-                   - {"CodeConstantsMap.csv", "TextOverrides.csv"})
-    for name in names:
-        a, b = out / name, data_dir / name
-        if not (a.exists() and b.exists() and filecmp.cmp(a, b, shallow=False)):
-            bad.append("Data/%s differs from a fresh export of the Godot project" % name)
-    return bad
-
-
-def run_all(core, data_dir, skip_export):
+def run_all(core):
     gates = [("no-float", lambda: check_no_float(core)), ("engine-free", lambda: check_engine_free(core)),
              ("test-guard", lambda: check_test_guard(core)), ("generated", check_generated),
              ("ui-rules", lambda: check_ui(UI, ST_UI)), ("packaging", lambda: check_packaging(GAME_INI))]
-    if not skip_export:
-        gates.append(("data-export", lambda: check_data_export(data_dir)))
     results = {}
     for name, fn in gates:
         results[name] = fn()
@@ -269,9 +270,6 @@ def self_test():
     caught["test-guard"] = bool(check_test_guard(core))
     shutil.rmtree(scratch, ignore_errors=True)
 
-    header = CORE / "Public" / "PcEnums.h"
-    with safe_mutate.mutated(header, header.read_bytes() + b"\n// planted\n", "L0 self-test"):
-        caught["generated"] = bool(check_generated())
     rows = ROOT / "Source" / "Pawpocalypse" / "Data" / "PawDataRows.h"
     with safe_mutate.mutated(rows, rows.read_bytes() + b"\n// planted\n", "L0 self-test"):
         caught["generated: PawDataRows.h"] = bool(check_generated())
@@ -280,9 +278,8 @@ def self_test():
     with safe_mutate.mutated(tokens, tokens.read_bytes() + b"\n// planted\n", "L0 self-test"):
         caught["generated: PawTokens.h"] = bool(check_generated())
 
-    for planted in (UI / "PawTreeTables.h", UI / "PawFontSpec.h", CORE / "Public" / "PcTreeWording.h",
-                    ROOT / "Source" / "Pawpocalypse" / "Realm" / "PawFxLook.h",
-                    ROOT / "Content" / "Pawpocalypse" / "Localization" / "Strings" / "ST_Tree.csv"):
+    for planted in (UI / "PawFontSpec.h", ROOT / "Source" / "Pawpocalypse" / "Realm" / "PawFxLook.h",
+                    ROOT / "Content" / "Pawpocalypse" / "Localization" / "Strings" / "ST_Data.csv"):
         with safe_mutate.mutated(planted, planted.read_bytes() + b"\n// planted\n", "L0 self-test"):
             caught["generated: " + planted.name] = bool(check_generated())
 
@@ -323,6 +320,13 @@ def self_test():
     with open(s, "a", encoding="utf-8") as f:
         f.write('"ZONE_never_named","Nobody says this",""\n')
     caught["ui-rules: unused key"] = bool(check_ui(u, s))
+    u, s = fresh_ui()
+    dialog = u / "PawSettingsDialog.cpp"
+    text = dialog.read_text(encoding="utf-8")
+    assert text.count("List->GetPaintSpaceGeometry()") == 1, "the settings dialog's ring no longer reads paint space"
+    dialog.write_text(text.replace("List->GetPaintSpaceGeometry()", "List->GetCachedGeometry()"), encoding="utf-8")
+    caught["ui-rules: paint with desktop-space geometry (the settings ring, 2026-11-23)"] = any(
+        "paints with GetCachedGeometry" in b for b in check_ui(u, s))
     shutil.rmtree(ui_copy, ignore_errors=True)
 
     # The packaging settings, each planted in a scratch copy of DefaultGame.ini.
@@ -339,27 +343,7 @@ def self_test():
     caught["packaging: translations not staged"] = bool(check_packaging(ini))
     shutil.rmtree(ini_copy, ignore_errors=True)
 
-    data_copy = ROOT / "build" / "static_selftest_data"
-    if data_copy.exists():
-        shutil.rmtree(data_copy)
-    shutil.copytree(ROOT / "Data", data_copy)
-    p = data_copy / "UpgradeData.csv"
-    p.write_text(p.read_text(encoding="utf-8").replace("2.4364", "2.4365", 1), encoding="utf-8")
-    caught["data-export"] = bool(check_data_export(data_copy))
-    shutil.rmtree(data_copy, ignore_errors=True)
-    # A Godot code constant edited in the CSV, and one dropped from the reviewed map, are each a failed export.
-    shutil.copytree(ROOT / "Data", data_copy)
-    p = data_copy / "CodeConstants.csv"
-    p.write_bytes(p.read_bytes().replace(b"max_wave,64,", b"max_wave,65,", 1))
-    caught["data-export: code constant edited"] = bool(check_data_export(data_copy))
-    shutil.rmtree(data_copy, ignore_errors=True)
-    shutil.copytree(ROOT / "Data", data_copy)
-    p = data_copy / "CodeConstantsMap.csv"
-    p.write_bytes(b"".join(l for l in p.read_bytes().splitlines(True) if b":LEVY_EVERY," not in l))
-    caught["data-export: constant unmapped"] = bool(check_data_export(data_copy))
-    shutil.rmtree(data_copy, ignore_errors=True)
-
-    clean = run_all(CORE, ROOT / "Data", False)
+    clean = run_all(CORE)
     for name, ok in caught.items():
         print("%s  %s" % ("CAUGHT  " if ok else "MISSED  ", name))
     clean_ok = not any(clean.values())
@@ -370,11 +354,10 @@ def self_test():
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--self-test", action="store_true")
-    ap.add_argument("--skip-export", action="store_true", help="skip the Godot re-export comparison")
     args = ap.parse_args()
     if args.self_test:
         return self_test()
-    results = run_all(CORE, ROOT / "Data", args.skip_export)
+    results = run_all(CORE)
     failed = 0
     for name, bad in results.items():
         print("%s  %s" % ("PASS" if not bad else "FAIL", name))

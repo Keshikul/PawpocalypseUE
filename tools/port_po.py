@@ -1,6 +1,11 @@
-"""Carry Godot's translations over to the port's string tables (phase 7, docs/WORKLIST-LOC-2026-11-18.md).
+"""Write the translation files (phase 7, docs/WORKLIST-LOC-2026-11-18.md); once, carry Godot's translations into them.
 
-    py tools/port_po.py [--godot C:/Games/pawpocalypse] [--check]
+    py tools/port_po.py [--check] [--godot C:/Games/pawpocalypse]
+
+Since 2026-11-23 (D22: the game is its own source; Godot was a first try) it reads no Godot file unless --godot is given:
+a run writes every culture's files from their own rows (and loc_status.py --apply's), in the written form, dropping a row
+whose key left the English tables. --check: exit 1 when a run would change a file. What follows is the carry-over, as it
+was done (--godot).
 
 Reads Godot's gettext files (<godot>/locale/<lang>.po: msgid = Godot's English, msgctxt for data words) and the port's string
 tables (Content/Pawpocalypse/Localization/Strings/ST_UI.csv, ST_Data.csv, ST_Tree.csv). For every key whose English source is
@@ -148,7 +153,7 @@ def merge(eng: str, have, carried):
 def godot_lines(godot: Path, lang: str):
     """Godot's translations of one language: by (msgctxt, English) and by English alone."""
     by_ctx, by_id = {}, {}
-    if lang is None:
+    if lang is None or godot is None:
         return by_ctx, by_id
     entries, nplurals = read_po(godot / "locale" / (lang + ".po"))
     for ctxt, msgid, plural, strs in entries:
@@ -247,10 +252,10 @@ def write_report(report, tables):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--godot", default="C:/Games/pawpocalypse")
+    ap.add_argument("--godot", default=None, help="carry Godot's .po translations again (history: D22, none needed)")
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args()
-    files, report, tables = build(Path(a.godot))
+    files, report, tables = build(Path(a.godot) if a.godot else None)
     if a.check:
         bad = [p for p, b in files.items() if not p.exists() or p.read_bytes() != b]
         known = set(CULTURES.values()) | set(NEW_CULTURES)

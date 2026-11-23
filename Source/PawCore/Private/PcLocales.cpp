@@ -102,19 +102,10 @@ namespace Pc
 		return L ? std::string(L->Native) : Code;
 	}
 
-	bool LocaleReviewed(const std::string& Code)
+	std::string LocalePickerLabel(const std::string& Code)
 	{
-		return Code == LocaleEnglish;
-	}
-
-	std::string LocalePickerLabel(const std::string& Code, const std::string& DraftMarker)
-	{
-		const std::string Name = LocaleNativeName(Code);
-		if (LocaleReviewed(Code))
-		{
-			return Name;
-		}
-		return Name + " " + DraftMarker;
+		// D20 (designer, 2026-11-23: "drop the draft"): Godot adds "(draft)" to every language but English; the port does not.
+		return LocaleNativeName(Code);
 	}
 
 	std::string LocaleFromSystem(const std::string& OsLocale, const std::vector<std::string>& Available)

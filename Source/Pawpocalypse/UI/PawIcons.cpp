@@ -3,6 +3,7 @@
 #include "Blueprint/WidgetTree.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
+#include "Components/Border.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Engine/Texture2D.h"
@@ -13,7 +14,7 @@
 #include "Engine/Engine.h"
 #include "Misc/Paths.h"
 
-UTexture2D* UPawIconSet::Find(const FString& Stem) const
+int32 UPawIconSet::IndexOf(const FString& Stem) const
 {
 	if (ByName.Num() != Names.Num())
 	{
@@ -24,7 +25,32 @@ UTexture2D* UPawIconSet::Find(const FString& Stem) const
 		}
 	}
 	const int32* I = ByName.Find(Stem);
-	return I && Textures.IsValidIndex(*I) ? Textures[*I].Get() : nullptr;
+	return I ? *I : INDEX_NONE;
+}
+
+int32 UPawIconSet::AtlasIndexOf(const FString& Stem) const
+{
+	if (AtlasByName.Num() != AtlasNames.Num())
+	{
+		AtlasByName.Reset();
+		for (int32 I = 0; I < AtlasNames.Num(); ++I)
+		{
+			AtlasByName.Add(AtlasNames[I], I);
+		}
+	}
+	const int32* I = AtlasByName.Find(Stem);
+	return I ? *I : INDEX_NONE;
+}
+
+FSlateAtlasData UPawUiCell::GetSlateAtlasData() const
+{
+	return FSlateAtlasData(Page, StartUV, SizeUV);
+}
+
+UTexture2D* UPawIconSet::Find(const FString& Stem) const
+{
+	const int32 I = IndexOf(Stem);
+	return Textures.IsValidIndex(I) ? Textures[I].Get() : nullptr;
 }
 
 const UPawIconSet* UPawIconCache::Get()
@@ -36,8 +62,34 @@ const UPawIconSet* UPawIconCache::Get()
 	return Set;
 }
 
+UPawUiCell* UPawIconCache::Cell(const FString& Stem)
+{
+	if (const TObjectPtr<UPawUiCell>* Made = Cells.Find(Stem))
+	{
+		return *Made;
+	}
+	const UPawIconSet* Icons = Get();
+	const int32 I = Icons ? Icons->AtlasIndexOf(Stem) : INDEX_NONE;
+	const int32 Page = I != INDEX_NONE && Icons->AtlasCellPage.IsValidIndex(I) ? Icons->AtlasCellPage[I] : INDEX_NONE;
+	if (Page == INDEX_NONE || !Icons->AtlasPages.IsValidIndex(Page) || !Icons->AtlasPages[Page] || !Icons->AtlasUV.IsValidIndex(I))
+	{
+		return nullptr;
+	}
+	// Named as the icon's own texture: a brush's resource reads the same whichever draws it (the tests ask for T_<stem>).
+	const FName Name(TEXT("T_") + Stem);
+	UPawUiCell* C = FindObjectFast<UPawUiCell>(this, Name);
+	C = C ? C : NewObject<UPawUiCell>(this, Name);
+	const FVector4& UV = Icons->AtlasUV[I];
+	C->Page = Icons->AtlasPages[Page];
+	C->StartUV = FVector2D(UV.X, UV.Y);
+	C->SizeUV = FVector2D(UV.Z - UV.X, UV.W - UV.Y);
+	Cells.Add(Stem, C);
+	return C;
+}
+
 void UPawIconCache::Deinitialize()
 {
+	Cells.Reset();
 	Set = nullptr; // with the engine, not after it
 	Super::Deinitialize();
 }
@@ -50,19 +102,44 @@ namespace PawUi
 		return Cache ? Cache->Get() : nullptr;
 	}
 
+	namespace
+	{
+		bool GAtlasForTest = false;
+
+		// art.gd path_for: the stem of a res:// path; a bare stem as it is (lower case, as the set's names).
+		FString IconStem(const FString& StemOrPath)
+		{
+			const FString Stem = StemOrPath.Contains(TEXT("/")) || StemOrPath.Contains(TEXT("."))
+				? FPaths::GetBaseFilename(StemOrPath) : StemOrPath;
+			return Stem.ToLower();
+		}
+	}
+
 	UTexture2D* Icon(const FString& StemOrPath)
 	{
 		const UPawIconSet* Set = Icons();
-		// art.gd path_for: the stem of a res:// path; a bare stem as it is.
-		const FString Stem = StemOrPath.Contains(TEXT("/")) || StemOrPath.Contains(TEXT("."))
-			? FPaths::GetBaseFilename(StemOrPath) : StemOrPath;
-		return Set && !Stem.IsEmpty() ? Set->Find(Stem.ToLower()) : nullptr;
+		const FString Stem = IconStem(StemOrPath);
+		return Set && !Stem.IsEmpty() ? Set->Find(Stem) : nullptr;
+	}
+
+	void SetAtlasForTest(bool bOn) { GAtlasForTest = bOn; }
+
+	UPawUiCell* IconCell(const FString& StemOrPath)
+	{
+		if ((GIsEditor && !GAtlasForTest) || IsBaking())
+		{
+			return nullptr; // the editor saves brushes into assets: never a transient cell there
+		}
+		UPawIconCache* Cache = GEngine ? GEngine->GetEngineSubsystem<UPawIconCache>() : nullptr;
+		const FString Stem = IconStem(StemOrPath);
+		return Cache && !Stem.IsEmpty() ? Cache->Cell(Stem) : nullptr;
 	}
 
 	FSlateBrush IconBrush(const FString& StemOrPath, double Px)
 	{
 		FSlateBrush B;
-		UTexture2D* Tex = Icon(StemOrPath);
+		UObject* Tex = IconCell(StemOrPath);
+		Tex = Tex ? Tex : Icon(StemOrPath);
 		if (!Tex)
 		{
 			B.DrawAs = ESlateBrushDrawType::NoDrawType;
@@ -73,6 +150,51 @@ namespace PawUi
 		B.ImageSize = FVector2D(Px, Px);
 		B.TintColor = FSlateColor(FLinearColor::White);
 		return B;
+	}
+
+	bool AtlasBrush(FSlateBrush& Brush)
+	{
+		const UTexture2D* Tex = Cast<UTexture2D>(Brush.GetResourceObject());
+		// Only the UI's own textures (/Game/Pawpocalypse/Art/UI: icons, glyphs, plates), never an atlas page itself.
+		if (!Tex || !Tex->GetName().StartsWith(TEXT("T_")) || Tex->GetName().StartsWith(TEXT("T_Atlas_"))
+			|| !Tex->GetPathName().StartsWith(TEXT("/Game/Pawpocalypse/Art/UI/")))
+		{
+			return false;
+		}
+		UPawUiCell* Cell = IconCell(Tex->GetName().Mid(2).ToLower());
+		if (!Cell)
+		{
+			return false;
+		}
+		Brush.SetResourceObject(Cell);
+		return true;
+	}
+
+	void UseAtlasIcons(UUserWidget* Widget)
+	{
+		if (!Widget || !Widget->WidgetTree)
+		{
+			return;
+		}
+		Widget->WidgetTree->ForEachWidget([](UWidget* Part)
+		{
+			if (UImage* I = Cast<UImage>(Part))
+			{
+				FSlateBrush B = I->GetBrush();
+				if (AtlasBrush(B))
+				{
+					I->SetBrush(B);
+				}
+			}
+			else if (UBorder* Plate = Cast<UBorder>(Part))
+			{
+				FSlateBrush B = Plate->Background;
+				if (AtlasBrush(B))
+				{
+					Plate->SetBrush(B);
+				}
+			}
+		});
 	}
 
 	FString TabIconName(const FString& TabId) { return TEXT("ui_tab_") + TabId; }

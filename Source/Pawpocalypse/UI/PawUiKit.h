@@ -80,9 +80,9 @@ namespace PawUi
 		return FMargin(In - C.Left, In - C.Top, In - C.Right, In + 4.0f - C.Bottom);
 	}
 	inline constexpr float ButtonFaceRadius = 6.0f; // the plate's radius 9 less its edge
-	// The focus ring: no fill, FocusRingWidth px of UI_FOCUS (Butter since R4a; Godot's SBF_focus was 3 px coral), corner
-	// radius 12, drawn FocusRingExpand px outside the control. A button paints it over its plate when selected
-	// (UPawButton::NativePaint).
+	// The focus ring: no fill, FocusRingWidth px of UI_FOCUS (Sticker Box's focus blue #3D7BFF, palette.py "focus"; Butter in
+	// R4a; Godot's SBF_focus was 3 px coral), corner radius 12, drawn FocusRingExpand px outside the control. A button paints
+	// it over its plate when selected (UPawButton::NativePaint); the settings dialog over its lists, in paint space.
 	FSlateBrush FocusRing();
 	inline constexpr float FocusRingWidth = 4.0f;
 	inline constexpr float FocusRingExpand = 4.0f;

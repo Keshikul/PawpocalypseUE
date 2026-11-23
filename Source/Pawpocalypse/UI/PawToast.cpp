@@ -53,6 +53,10 @@ bool UPawToast::Initialize()
 		Line->AddChildToHorizontalBox(Message)->SetVerticalAlignment(VAlign_Center);
 	}
 	const bool bOk = Super::Initialize();
+	if (bOk && PawUi::ShouldWire(this))
+	{
+		PawUi::UseAtlasIcons(this); // the asset's saved icon brushes: the atlas's cells (one batch)
+	}
 	if (bOk)
 	{
 		SetVisibility(ESlateVisibility::HitTestInvisible); // it can appear over live play space

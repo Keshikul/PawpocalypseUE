@@ -1,4 +1,4 @@
-# Godot 4.7.1 Locales ground truth: the real scripts/systems/locales.gd (with the port's fix F52) recompiled with
+# Godot 4.7.1 Locales ground truth: the real scripts/systems/locales.gd (with the port's fix F52 and change D20) recompiled with
 # the system's language and the loaded .po files as probes, generated 2026-10-28 by tools/godot_fixtures/locales_fixture.gd.
 # avail <loaded> <> <available>; system <OS locale> <loaded> <from_system>; steam <name> <loaded> <from_steam>;
 # label <code> <native_name> <picker_label> <draft_marker>. Lists comma-joined.
@@ -11859,23 +11859,23 @@ steam		zh_Hans,ru,es,pt_BR,ja,ko,th,uk,cs,pt	en
 steam	English	zh_Hans,ru,es,pt_BR,ja,ko,th,uk,cs,pt	en
 steam	korean	zh_Hans,ru,es,pt_BR,ja,ko,th,uk,cs,pt	en
 label	en	English	English	(draft)
-label	zh_Hans	简体中文	简体中文 （草稿）	（草稿）
-label	ru	Русский	Русский (черновик)	(черновик)
-label	es	Español (España)	Español (España) (borrador)	(borrador)
-label	pt_BR	Português (Brasil)	Português (Brasil) (rascunho)	(rascunho)
-label	de	Deutsch	Deutsch (Entwurf)	(Entwurf)
-label	ja	日本語	日本語 （下訳）	（下訳）
-label	fr	Français	Français (brouillon)	(brouillon)
-label	pl	Polski	Polski (wersja robocza)	(wersja robocza)
-label	ko	한국어	한국어 (초벌 번역)	(초벌 번역)
-label	zh_Hant	繁體中文	繁體中文 （草稿）	（草稿）
-label	tr	Türkçe	Türkçe (taslak)	(taslak)
-label	th	ไทย	ไทย (ฉบับร่าง)	(ฉบับร่าง)
-label	es_MX	Español (Latinoamérica)	Español (Latinoamérica) (borrador)	(borrador)
-label	uk	Українська	Українська (чернетка)	(чернетка)
-label	it	Italiano	Italiano (bozza)	(bozza)
-label	cs	Čeština	Čeština (pracovní překlad)	(pracovní překlad)
-label	hu	Magyar	Magyar (nyers)	(nyers)
-label	pt	Português (Portugal)	Português (Portugal) (rascunho)	(rascunho)
-label	vi	Tiếng Việt	Tiếng Việt (bản nháp)	(bản nháp)
-label	sv	Svenska	Svenska (utkast)	(utkast)
+label	zh_Hans	简体中文	简体中文	（草稿）
+label	ru	Русский	Русский	(черновик)
+label	es	Español (España)	Español (España)	(borrador)
+label	pt_BR	Português (Brasil)	Português (Brasil)	(rascunho)
+label	de	Deutsch	Deutsch	(Entwurf)
+label	ja	日本語	日本語	（下訳）
+label	fr	Français	Français	(brouillon)
+label	pl	Polski	Polski	(wersja robocza)
+label	ko	한국어	한국어	(초벌 번역)
+label	zh_Hant	繁體中文	繁體中文	（草稿）
+label	tr	Türkçe	Türkçe	(taslak)
+label	th	ไทย	ไทย	(ฉบับร่าง)
+label	es_MX	Español (Latinoamérica)	Español (Latinoamérica)	(borrador)
+label	uk	Українська	Українська	(чернетка)
+label	it	Italiano	Italiano	(bozza)
+label	cs	Čeština	Čeština	(pracovní překlad)
+label	hu	Magyar	Magyar	(nyers)
+label	pt	Português (Portugal)	Português (Portugal)	(rascunho)
+label	vi	Tiếng Việt	Tiếng Việt	(bản nháp)
+label	sv	Svenska	Svenska	(utkast)

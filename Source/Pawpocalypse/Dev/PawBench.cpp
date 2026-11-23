@@ -6,6 +6,9 @@
 // the four materials loaded), takes a screenshot halfway, writes Saved/PawBench/report.txt, logs PAW_BENCH lines, and quits.
 // Exit verdict in the log: "PAW_BENCH PASS" or "PAW_BENCH FAIL <reasons>".
 //
+// `paw.Bench <seconds> background` measures the game as it runs behind another window (Q10's background cap, the settings
+// subsystem's, as the focus event sets it); without it the cap is off, so a bench whose window opened behind another one
+// still measures the real frame.
 // Waits for a running realm, so it can be given on the command line before the map has loaded:
 //   Pawpocalypse.exe /Game/Pawpocalypse/Maps/L_Realm -windowed -ResX=1280 -ResY=800 -ExecCmds="r.VSync 0,t.MaxFPS 0,paw.Bench 20"
 //
@@ -32,6 +35,7 @@
 #include "Realm/PawRealmView.h"
 #include "Render/PawSpriteAtlas.h"
 #include "Render/PawSpriteRenderer.h"
+#include "Save/PawSettingsSubsystem.h"
 #include "RenderCore.h"
 #include "UnrealClient.h"
 
@@ -66,6 +70,7 @@ namespace
 	struct FBench
 	{
 		double Seconds = 20.0;
+		bool bBackground = false; // measure behind another window (the background cap on)
 		double Warmup = 0.0, Measured = 0.0;
 		bool bMeasuring = false, bShot = false, bDone = false;
 		int32 QuitIn = -1;
@@ -115,6 +120,19 @@ namespace
 				if (IConsoleVariable* Overlay = IConsoleManager::Get().FindConsoleVariable(TEXT("paw.DebugHud")))
 				{
 					Overlay->Set(0, ECVF_SetByCode);
+				}
+				// Q10's background cap: off (the frame as played), or on as the focus event would set it (`background`).
+				if (UPawSettingsSubsystem* Settings = World->GetGameInstance() ? World->GetGameInstance()->GetSubsystem<UPawSettingsSubsystem>() : nullptr)
+				{
+					if (bBackground)
+					{
+						Settings->NoteActivationForTest(false);
+					}
+					else if (IConsoleVariable* Background = IConsoleManager::Get().FindConsoleVariable(TEXT("paw.BackgroundFps")))
+					{
+						Background->Set(0, ECVF_SetByCode);
+						Settings->RefreshBackgroundCap();
+					}
 				}
 				View->bSampleInput = false; // the bench drives the cat
 				P.UpgradeLevels["kitten_count"] = 20;
@@ -243,6 +261,15 @@ namespace
 			const UPawSpriteRenderer* Sprites = View.GetRenderer();
 			Out.Add(FString::Printf(TEXT("debughud=%d pool(bodies)=%d drawn(bodies)=%d"), Overlay ? Overlay->GetInt() : -1,
 				Sprites ? Sprites->PoolSize(EPawLayer::Bodies) : -1, Sprites ? Sprites->DrawnCount(EPawLayer::Bodies) : -1));
+			// Q10's background cap as the run had it (the `background` run: on, and what t.MaxFPS was set to).
+			{
+				UWorld* W = GameWorld();
+				const UPawSettingsSubsystem* Settings = W && W->GetGameInstance() ? W->GetGameInstance()->GetSubsystem<UPawSettingsSubsystem>() : nullptr;
+				const IConsoleVariable* MaxFps = IConsoleManager::Get().FindConsoleVariable(TEXT("t.MaxFPS"));
+				Out.Add(FString::Printf(TEXT("background=%d cap=%lld to_engine=%d t.MaxFPS=%.0f"),
+					Settings && Settings->GetVideoApplied().bBackground ? 1 : 0, Settings ? Settings->GetVideoApplied().BackgroundCap : -1,
+					Settings && Settings->GetVideoApplied().bBackgroundToEngine ? 1 : 0, MaxFps ? MaxFps->GetFloat() : -1.0f));
+			}
 			// The effects bands' last frame: triangles drawn, and the sections made so far (review CR5: a busy band is made
 			// again every frame; the size of what that costs).
 			Out.Add(FString::Printf(TEXT("fx(tris) ground=%d under=%d over=%d rebuilds=%d"),
@@ -278,6 +305,7 @@ namespace
 			}
 			GBench = MakeUnique<FBench>();
 			GBench->Seconds = Args.Num() > 0 ? FMath::Max(1.0, FCString::Atod(*Args[0])) : 20.0;
+			GBench->bBackground = Args.Num() > 1 && Args[1] == TEXT("background");
 			GBench->Handle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float Dt) { return GBench->Tick(Dt); }));
 		}));
 }

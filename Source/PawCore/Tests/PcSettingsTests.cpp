@@ -363,6 +363,19 @@ TEST_CASE("Settings: what the port writes reads back the same; anything else is 
 	CHECK(B.MasterVolume == 1.0);
 }
 
+TEST_CASE("Settings: the frame cap in the background (Q10, 2026-11-23): 30, or the player's lower cap; 0 leaves it")
+{
+	CHECK(Pc::BackgroundFrameCap(0, 30) == 30);    // no cap in front: 30 behind
+	CHECK(Pc::BackgroundFrameCap(144, 30) == 30);  // a high cap: 30
+	CHECK(Pc::BackgroundFrameCap(60, 30) == 30);
+	CHECK(Pc::BackgroundFrameCap(30, 30) == 30);
+	CHECK(Pc::BackgroundFrameCap(20, 30) == 20);   // the player's own lower cap is kept
+	CHECK(Pc::BackgroundFrameCap(60, 0) == 60);    // no background rate: the cap as it is
+	CHECK(Pc::BackgroundFrameCap(0, 0) == 0);
+	CHECK(Pc::BackgroundFrameCap(-5, 0) == 0);     // a negative cap is no cap
+	CHECK(Pc::BackgroundFrameCap(-5, 15) == 15);
+}
+
 TEST_CASE("Settings: the device played to is the stored one while the system lists it, else the system's (_apply_output_device)")
 {
 	// Godot's AudioServer.get_output_device_list() always begins with "Default"; the port's list does too.

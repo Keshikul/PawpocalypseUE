@@ -8,6 +8,7 @@
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "GeneralProjectSettings.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -312,7 +313,14 @@ bool FPawTitleLookTest::RunTest(const FString& Parameters)
 	// input_prompts_godot.tsv title_hint, family 0: keycaps around the keys' labels.
 	TestEqual(TEXT("the hint, Godot's keys"), M->GetHintText(), FString(TEXT("In game:  <k:A> <k:D> menu tabs    <k:T> skill tree    <k:Esc> pause")));
 	TestEqual(TEXT("the credits"), S(M->GetCreditsText()), FString(TEXT("created by keshi")));
-	TestTrue(TEXT("the version line"), S(M->GetVersionText()).StartsWith(TEXT("v")) && S(M->GetVersionText()).Len() > 1);
+	// The version line: "v" and the project's version, 0.MINOR.PATCH (the designer, 2026-11-23: "Use minor type version
+	// numbers"; Config/DefaultGame.ini; tools/package.py --bump raises the last number).
+	const FString Version = GetDefault<UGeneralProjectSettings>()->ProjectVersion;
+	TestEqual(TEXT("the version line"), S(M->GetVersionText()), TEXT("v") + Version);
+	TArray<FString> VersionParts;
+	Version.ParseIntoArray(VersionParts, TEXT("."), false);
+	TestTrue(TEXT("the version is 0.MINOR.PATCH"), VersionParts.Num() == 3 && VersionParts[0] == TEXT("0") && VersionParts[1].IsNumeric()
+		&& VersionParts[2].IsNumeric());
 	for (int32 I = 0; I < UPawMainMenu::SlotCount; ++I)
 	{
 		TestEqual(TEXT("the slot number"), S(M->GetSlotNumberText(I)), FString::Printf(TEXT("Slot %d"), I + 1));
@@ -894,8 +902,8 @@ bool FPawTitleLanguageTest::RunTest(const FString& Parameters)
 		W.Close();
 		return false;
 	}
-	TestEqual(TEXT("each in its own name"), S(Rows[De]->GetLabel()), FString(TEXT("Deutsch (Entwurf)")));
-	TestEqual(TEXT("English, never a draft"), S(Rows[En]->GetLabel()), FString(TEXT("English")));
+	TestEqual(TEXT("each in its own name, no (draft) (D20)"), S(Rows[De]->GetLabel()), FString(TEXT("Deutsch")));
+	TestEqual(TEXT("English"), S(Rows[En]->GetLabel()), FString(TEXT("English")));
 	TestTrue(TEXT("the language shown: the yellow plate and the tick"), Rows[En]->HasActiveLook() && Rows[En]->GetIconName() == TEXT("ui_tick"));
 	TestTrue(TEXT("the others: neither"), !Rows[De]->HasActiveLook() && Rows[De]->GetIconName().IsEmpty());
 	TestTrue(TEXT("the keys start on the language shown"), M->GetTopDefault() == Rows[En]);

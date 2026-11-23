@@ -5,8 +5,8 @@
 // Pawpocalypse.UI.Settings.MatchesGodot  300 fixture rows: the settings.cfg GODOT wrote, read from the storage; every change
 //                                        made on the widget; every setting, volume line, slider, box, list and page as Godot's.
 // Pawpocalypse.UI.Settings.Look          every part wired; Godot's words; the pages' selection rows.
-// Pawpocalypse.UI.Settings.Language      the language list (phase 7): System, English, every language in its own name with
-//                                        its own "(draft)"; a pick saved and applied (never to the editor's engine), selected
+// Pawpocalypse.UI.Settings.Language      the language list (phase 7): System, English, every language in its own name, no
+//                                        "(draft)" (D20); a pick saved and applied (never to the editor's engine), selected
 //                                        on open; a click's pick a tick later; a stored language not available shows System.
 // Pawpocalypse.UI.Settings.FromPause     the pause menu steps aside for it and comes back (the field held throughout).
 // Pawpocalypse.UI.Settings.FromTitle     over the title; closing brings the selection home to Settings.
@@ -596,7 +596,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSettingsLanguageTest, "Pawpocalypse.UI.Sett
 bool FPawSettingsLanguageTest::RunTest(const FString& Parameters)
 {
 	// Settings > Video > Language (phase 7; settings_dialog.gd _fill_language_option, settings_manager.gd set_language,
-	// Locales): "System", then every language with translations in use in its own name with its own "(draft)"; a pick is
+	// Locales): "System", then every language with translations in use in its own name (no "(draft)": D20); a pick is
 	// saved and applied, never to the editor's engine; the stored value selected on open, "System" when it is not available.
 	// Only complete languages are offered; this test asks for the unfinished ones too (-PawDraftLanguages), as a review does.
 	FSettingsWorld W;
@@ -628,9 +628,9 @@ bool FPawSettingsLanguageTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("open"), List->GetIsEnabled());
 	TestEqual(TEXT("System, then one row per language"), List->GetOptionCount(), Codes.Num() + 1);
 	TestEqual(TEXT("System first"), List->GetOptionAtIndex(0), FString(TEXT("System")));
-	TestEqual(TEXT("English, never a draft"), List->GetOptionAtIndex(1), FString(TEXT("English")));
+	TestEqual(TEXT("English"), List->GetOptionAtIndex(1), FString(TEXT("English")));
 	const int32 De = Codes.IndexOfByKey(TEXT("de")) + 1;
-	TestEqual(TEXT("German in its own words"), List->GetOptionAtIndex(De), FString(TEXT("Deutsch (Entwurf)")));
+	TestEqual(TEXT("German in its own words, no (draft) (D20)"), List->GetOptionAtIndex(De), FString(TEXT("Deutsch")));
 	TestEqual(TEXT("System by default"), List->GetSelectedIndex(), 0);
 	TestEqual(TEXT("the default resolves to a language the list has"), Codes.Contains(W.Settings->GetLanguageApplied().Code), true);
 
@@ -899,6 +899,56 @@ bool FPawSettingsAppliesTest::RunTest(const FString& Parameters)
 	W.Settings->SetEffectsEnabled(true);
 	W.Settings->SetGraphicsQuality(1);
 	TestEqual(TEXT("Medium: 0.70"), W.Settings->EffectBudget(), 0.70);
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSettingsBackgroundCapTest, "Pawpocalypse.UI.Settings.BackgroundCap", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// Q10 (designer, 2026-11-23: "try to fix"): behind another window or minimised, the game draws at paw.BackgroundFps (30), or
+// at the player's own cap where that is lower; with focus the cap it had comes back. Never the editor's own engine.
+bool FPawSettingsBackgroundCapTest::RunTest(const FString& Parameters)
+{
+	FSettingsWorld W;
+	if (!W.Open(*this, false))
+	{
+		W.Close();
+		return false;
+	}
+	IConsoleVariable* Rate = IConsoleManager::Get().FindConsoleVariable(TEXT("paw.BackgroundFps"));
+	IConsoleVariable* MaxFps = IConsoleManager::Get().FindConsoleVariable(TEXT("t.MaxFPS"));
+	if (!TestNotNull(TEXT("paw.BackgroundFps"), Rate) || !TestNotNull(TEXT("t.MaxFPS"), MaxFps))
+	{
+		W.Close();
+		return false;
+	}
+	TestEqual(TEXT("30 behind another window, by default"), Rate->GetInt(), 30);
+	const float EngineCap = MaxFps->GetFloat();
+	const FPawVideoApplied& V = W.Settings->GetVideoApplied();
+	TestFalse(TEXT("in front: no background cap"), V.bBackground);
+	W.Settings->NoteActivationForTest(false);
+	TestTrue(TEXT("behind: the background cap"), V.bBackground);
+	TestEqual(TEXT("the cap: 30, or the cap in force where lower"), V.BackgroundCap, Pc::BackgroundFrameCap(V.CapBefore, 30));
+	TestEqual(TEXT("what was in force is what the engine held"), V.CapBefore, FMath::RoundToInt64(EngineCap));
+	TestFalse(TEXT("never the editor's own engine"), V.bBackgroundToEngine);
+	TestEqual(TEXT("the editor's cap untouched"), MaxFps->GetFloat(), EngineCap);
+	W.Settings->NoteActivationForTest(false); // a second focus loss changes nothing
+	TestEqual(TEXT("still what was in force before the first"), V.CapBefore, FMath::RoundToInt64(EngineCap));
+	W.Settings->NoteActivationForTest(true);
+	TestFalse(TEXT("in front again: the cap given back"), V.bBackground);
+	// paw.BackgroundFps 0: no background cap (the bench measuring a window that opened behind another).
+	const int32 Was = Rate->GetInt();
+	Rate->Set(0, ECVF_SetByCode);
+	W.Settings->NoteActivationForTest(false);
+	TestFalse(TEXT("paw.BackgroundFps 0: none"), V.bBackground);
+	Rate->Set(Was, ECVF_SetByCode);
+	W.Settings->RefreshBackgroundCap();
+	TestTrue(TEXT("set again while behind: the cap at once"), V.bBackground && V.BackgroundCap == Pc::BackgroundFrameCap(V.CapBefore, 30));
+	W.Settings->NoteActivationForTest(true);
+	TestFalse(TEXT("and gone with focus"), V.bBackground);
+	TestTrue(TEXT("a packaged game with a window caps"), UPawSettingsSubsystem::MayCapInBackground(false, true));
+	TestFalse(TEXT("the editor never"), UPawSettingsSubsystem::MayCapInBackground(true, true));
+	TestFalse(TEXT("no window, nothing to cap"), UPawSettingsSubsystem::MayCapInBackground(false, false));
 	W.Close();
 	return true;
 }

@@ -226,6 +226,7 @@ bool UPawHudScreen::Initialize()
 	const bool bOk = Super::Initialize();
 	if (bOk && PawUi::ShouldWire(this))
 	{
+		PawUi::UseAtlasIcons(this); // the asset's saved icon brushes: the atlas's cells (one batch)
 		OnLayoutReady();
 	}
 	return bOk;

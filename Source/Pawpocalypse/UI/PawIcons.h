@@ -8,6 +8,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/DataAsset.h"
+#include "Slate/SlateTextureAtlasInterface.h"
 #include "Styling/SlateBrush.h"
 #include "Subsystems/EngineSubsystem.h"
 
@@ -28,11 +29,45 @@ public:
 	TArray<FString> Names;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Icons")
 	TArray<TObjectPtr<UTexture2D>> Textures;
+	// THE UI ATLAS (phase 8, draw calls; tools/pack_ui_atlas.py): Slate batches by texture, so every icon its own texture was
+	// every icon on the HUD its own draw call. The 128 px icons and the input glyphs are also cells of AtlasPages
+	// (T_Atlas_UI_<n>): AtlasNames[i] (the picture's stem: an icon's, or a glyph's "input_keyboard_q") is on page
+	// AtlasCellPage[i] at AtlasUV[i] (u0, v0, u1, v1). A picture drawn larger than 128 px has no cell.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Icons")
+	TArray<TObjectPtr<UTexture2D>> AtlasPages;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Icons")
+	TArray<FString> AtlasNames;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Icons")
+	TArray<int32> AtlasCellPage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Icons")
+	TArray<FVector4> AtlasUV;
 
 	UTexture2D* Find(const FString& Stem) const;
+	// Names' index of Stem, or INDEX_NONE.
+	int32 IndexOf(const FString& Stem) const;
+	// AtlasNames' index of Stem, or INDEX_NONE.
+	int32 AtlasIndexOf(const FString& Stem) const;
 
 private:
 	mutable TMap<FString, int32> ByName;
+	mutable TMap<FString, int32> AtlasByName;
+};
+
+// One icon as a region of a UI atlas page: a brush whose resource is this draws the page's texels there, and Slate batches
+// it with every other region of that page (FSlateAtlasedTextureResource: one shader resource per page). Made by
+// UPawIconCache, one per icon, named as the icon's own texture ("T_<stem>"), so what a brush shows reads the same either way.
+UCLASS()
+class PAWPOCALYPSE_API UPawUiCell : public UObject, public ISlateTextureAtlasInterface
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	TObjectPtr<UTexture2D> Page;
+	FVector2D StartUV = FVector2D::ZeroVector;
+	FVector2D SizeUV = FVector2D::ZeroVector;
+
+	virtual FSlateAtlasData GetSlateAtlasData() const override;
 };
 
 // Who keeps DA_Icons loaded (review CR11): an engine subsystem's property, released when the engine shuts down. It was a
@@ -48,11 +83,15 @@ public:
 	const UPawIconSet* Get();
 	// What is held now, without loading (the tests).
 	const UPawIconSet* GetHeld() const { return Set; }
+	// The icon's atlas cell (made once and kept), or null when the icon is not in the atlas.
+	UPawUiCell* Cell(const FString& Stem);
 	virtual void Deinitialize() override;
 
 private:
 	UPROPERTY()
 	TObjectPtr<UPawIconSet> Set;
+	UPROPERTY()
+	TMap<FString, TObjectPtr<UPawUiCell>> Cells;
 };
 
 namespace PawUi
@@ -61,8 +100,23 @@ namespace PawUi
 	const UPawIconSet* Icons();
 	// The icon named Stem ("ui_tab_upgrades"), or a Godot res:// path's stem ("res://assets/art/cards/card_x.svg"); null if none.
 	UTexture2D* Icon(const FString& StemOrPath);
-	// An image brush of the icon at Px x Px (the SVGs are square), or an empty brush when there is none.
+	// The picture's cell of the UI atlas (an icon's, an input glyph's: "input_keyboard_q", a chrome plate's: "ui_panel"),
+	// or null when it is not in the atlas (the pictures drawn larger than 128 px). Null in the editor unless a test asks
+	// (SetAtlasForTest): a baked or designed Widget Blueprint saves its brushes, and a transient cell must never be saved
+	// into an asset (it would load as no picture). The editor draws the textures; the game draws the cells.
+	UPawUiCell* IconCell(const FString& StemOrPath);
+	void SetAtlasForTest(bool bOn);
+	// A brush drawing one of the UI's own textures (an icon, a glyph, a plate: /Game/Pawpocalypse/Art/UI) that the atlas
+	// has draws the cell instead, its size, margins, tint and draw type kept. True when it changed.
+	bool AtlasBrush(FSlateBrush& Brush);
+	// An image brush of the icon at Px x Px (the SVGs are square), or an empty brush when there is none: the icon's atlas
+	// cell when it has one (one Slate batch for every icon of a page), else its own texture.
 	FSlateBrush IconBrush(const FString& StemOrPath, double Px);
+	// A live widget's own tree: every image and border whose brush draws one of the UI's own textures (a Widget Blueprint
+	// saves the brush the code layout made when it was baked) draws its atlas cell instead (AtlasBrush). Called after
+	// Super::Initialize by every class whose asset saves icon brushes (Pawpocalypse.UI.Widgets.IconsFromAtlas finds one that
+	// does not); never while baking or in the designer (ShouldWire): a transient cell must never be saved into an asset.
+	void UseAtlasIcons(UUserWidget* Widget);
 	// The constructed names (Godot's): a tab's, a currency's ("catnip", "stardust", "bait"), an achievement's.
 	FString TabIconName(const FString& TabId);
 	FString CurrencyIconName(const FString& Kind);

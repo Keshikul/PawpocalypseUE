@@ -86,6 +86,10 @@ namespace Pc
 	PAWCORE_API double SettingsClampVolume(double V);                 // 0..1
 	PAWCORE_API int64_t SettingsClampQuality(int64_t V);              // 0..2
 	PAWCORE_API int64_t SettingsClampFps(int64_t V);                  // >= 0
+	// Q10 (designer, 2026-11-23: "try to fix"): the frame cap while the game's window is not active (unfocused or
+	// minimised; an idle game is left running for hours): the background rate, or the cap already in force where that is
+	// lower (0 = no cap). A background rate of 0 leaves the cap as it is. The fixed-step simulation keeps time exactly.
+	PAWCORE_API int64_t BackgroundFrameCap(int64_t Cap, int64_t BackgroundFps);
 	PAWCORE_API int64_t SettingsClampSlot(int64_t V);                 // 0..4
 	PAWCORE_API int64_t SettingsClampResolution(int64_t V);           // 0..4
 	PAWCORE_API bool SettingsIsPromptStyle(const std::string& V);

@@ -14,6 +14,7 @@
 #include "Styling/CoreStyle.h"
 #include "UI/PawTokens.h"
 #include "UI/PawUiConstants.h"
+#include "UI/PawIcons.h"
 #include "UI/PawWidgets.h"
 
 namespace PawUi
@@ -89,6 +90,7 @@ namespace PawUi
 		B.Margin = FMargin(static_cast<float>(S.Left) / S.Width, static_cast<float>(S.Top) / S.Height,
 			static_cast<float>(S.Right) / S.Width, static_cast<float>(S.Bottom) / S.Height);
 		B.SetResourceObject(LoadObject<UTexture2D>(nullptr, *ChromeTexturePath(Which), nullptr, LOAD_NoWarn | LOAD_Quiet));
+		AtlasBrush(B); // in the game, the plate's cell of the UI atlas: one Slate batch with the icons
 		return B;
 	}
 

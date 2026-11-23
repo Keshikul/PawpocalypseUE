@@ -20,6 +20,8 @@ would need new fonts (Arabic also right-to-left layout). **Decided (designer, 20
 languages.** Dutch and Danish have no Godot translation: every line is new for them, with a glossary first. Order: "Restyle
 then translate" (`docs/WORKLIST-NIGHT-2026-11-18.md`).
 
+**Decided (designer, 2026-11-23): no native reads.** "Native speakers will not be reviewing the text so skip that." The translations as they stand (machine-checked: `loc_lint`, `loc_status`, the language pass, the package; every line read for meaning, §2e-§2f) are what ships. The language lists drop "(draft)" (D20, the designer: "drop the draft"; HANDOFF-LOG (138)): each language in its own name alone.
+
 ## 2. Only what changed is translated again
 
 - **The store page** (`build/steam/localization`): `translated_from.json` keeps, per language and field, a hash of the
@@ -55,14 +57,16 @@ then translate" (`docs/WORKLIST-NIGHT-2026-11-18.md`).
 ## 2b. Built 2026-11-20
 
 - **The languages' rules** (`PcLocales`, port of `locales.gd`, fixture `locales`: available, from_system, from_steam, the
-  picker's labels with each language's own "(draft)" from Godot's .po files): the setting keeps Godot's codes
+  picker's labels with each language's own "(draft)" from Godot's .po files; the "(draft)" dropped 2026-11-23, D20):
+  the setting keeps Godot's codes
   (`es_MX`, `pt`, `zh_Hans`), the game applies Unreal's culture for each. Dutch and Danish are in the table after
   Swedish and appear once they have translations. F52 (doc 01 §5) fixed: Portugal no longer gets Brazilian Portuguese,
   Spanish outside Spain gets the Latin American translation, Macau gets Traditional Chinese.
 - **Shown at start and on change** (`UPawSettingsSubsystem::ApplyLanguage`): the setting resolved (system: the OS
   language), a `-culture=` on the command line wins (the tour, the shots); never in the editor.
 - **Settings > Video > Language**: "System", then every COMPLETE language in its own name with "(draft)" in its own
-  words (`SETTINGS_language_draft`, Godot's "(draft)" carried with its 20 translations); a pick saves and shows it at
+  words (`SETTINGS_language_draft`, Godot's "(draft)" carried with its 20 translations; dropped 2026-11-23, D20: the
+  name alone, the line gone from the tables); a pick saves and shows it at
   once. Complete = no line missing (`PawText::TranslationCount(...).Missing`, counted as `loc_status.py` counts: 837
   lines need words since §2c's fix). Godot lists only loaded `.po` files "so an unfinished language cannot be chosen by
   accident", and its files were complete; on 2026-11-20 no language was (319 lines each to translate), so the list was
@@ -104,7 +108,7 @@ then translate" (`docs/WORKLIST-NIGHT-2026-11-18.md`).
   chosen here and listed at the top of their scratch dicts, recorded in the handoff (nl Kattenkruid, Sterrenstof, Lokaas,
   Sprong, Herontwaken, Rijken, Vangsten; da Kattemynte, Stjernestøv, Madding, Spring, Genopvågn, Riger, Fangster): the
   store page's Dutch and Danish follow them. Numbers keep the game's '.'. Every language is offered in Settings and on the
-  title, each still "(draft)" in its own words: no native read yet.
+  title, each "(draft)" in its own words until D20 dropped it (2026-11-23: no native read will come).
 - **Grammar the placeholders cannot follow** (KB Unreal/20 §3): Russian, Polish, Czech and Ukrainian put a count after a
   colon ("Перебросы: +{v}") so no noun agrees with a number (the three plural lines Godot gave more forms need no ICU
   pattern now); Hungarian and Turkish put no suffix on a `{placeholder}`; Swedish avoids `{v}:e` where the number varies.
@@ -155,7 +159,7 @@ then translate" (`docs/WORKLIST-NIGHT-2026-11-18.md`).
   - In the assets: `bake_widgets --graft` (new: `wrapat:` copies a text's wrap width; `wrap:Code=Asset>Wrapper` when the
     auto-names differ). WBP_ReawakenCeremony, WBP_VictoryScreen, WBP_CardPickScreen, WBP_ControlsPanel, WBP_MainMenu,
     WBP_CardFace.
-- Open: the native reads; the real game's screenshots at the tight size in a few languages for the designer's eye (the
+- Open: the native reads (none: decided 2026-11-23, §1); the real game's screenshots at the tight size in a few languages for the designer's eye (the
   test proves the boxes, not the look of a shrunk headline).
 
 ## 2e. Built 2026-11-20 (HANDOFF-LOG (132)): the wording review
@@ -280,7 +284,7 @@ then translate" (`docs/WORKLIST-NIGHT-2026-11-18.md`).
   (three plants caught).
 - Seen: the title and its language list in every language, from the package (`build/loc/package/sheet.png`). The designer,
   2026-11-23: "The text is good." The shrunk headlines (§2d) are not in that sheet.
-- Open: the native reads. The Shipping configuration was not packaged (the ICU data is staged the same way).
+- Open: the Shipping configuration was not packaged (the ICU data is staged the same way).
 
 ## 3. Order
 

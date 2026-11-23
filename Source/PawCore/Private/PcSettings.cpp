@@ -636,6 +636,14 @@ namespace Pc
 	double SettingsClampVolume(double V) { return std::clamp(V, 0.0, 1.0); }
 	int64_t SettingsClampQuality(int64_t V) { return std::clamp<int64_t>(V, 0, SettingsQualityCount - 1); }
 	int64_t SettingsClampFps(int64_t V) { return std::max<int64_t>(V, 0); }
+	int64_t BackgroundFrameCap(int64_t Cap, int64_t BackgroundFps)
+	{
+		if (BackgroundFps <= 0)
+		{
+			return std::max<int64_t>(Cap, 0);
+		}
+		return Cap > 0 ? std::min(Cap, BackgroundFps) : BackgroundFps;
+	}
 	int64_t SettingsClampSlot(int64_t V) { return std::clamp<int64_t>(V, 0, SettingsSlotCount - 1); }
 	int64_t SettingsClampResolution(int64_t V) { return std::clamp<int64_t>(V, 0, SettingsResolutionCount - 1); }
 

@@ -18,8 +18,10 @@ WHICH SPRITES, AND HOW BIG. Each is rasterised SQUARE at 2x the largest size God
     LANDMARK_PX 230 x 1.15 (its largest roll), every other prop at PROP_PX 78 x 1.6 (the scatter's largest roll). Which
     prop plays which part is PcBackdrop's table; EDGE_PROPS / LANDMARK_PROPS below must agree with it, and
     Pawpocalypse.Realm.Look.Atlas checks every prop PcBackdrop can draw is here.
-Pages are 2048 px, shelf-packed tallest first; each cell is edge-extruded by 4 px so bilinear and mip sampling at its border
-read the sprite, never a neighbour (docs/04 §9).
+Pages are 4096 px (2048 until 2026-11-23: the field took 3 of them, and each page the frame draws from is one draw call per
+kind, masked, soft and shadow; one 4096 page holds them all at ~55 % for ~5 MB more video memory; HANDOFF-LOG (139)),
+shelf-packed tallest first; each cell is edge-extruded by 4 px so bilinear and mip sampling at its border read the sprite,
+never a neighbour (docs/04 §9).
 
 field.csv: id (the art's stem: enemy_backyard_mouse, player_cat_stage_4, ground_shadow, ...), page, x, y, w, h (the cell in
 texels, without the extrusion), u0, v0, u1, v1, native_w, native_h (the size Godot's texture had: the SVG's own width and
@@ -42,7 +44,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SVG = ROOT / "SourceArt" / "svg"
 OUT = ROOT / "SourceArt" / "png" / "atlas"
-PAGE = 2048
+PAGE = 4096
 EXTRUDE = 4
 
 PULSE = 1.03          # SpriteLiveliness.PULSE_AMPLITUDE

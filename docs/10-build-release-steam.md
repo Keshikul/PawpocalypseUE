@@ -36,17 +36,49 @@
   to measure in a package: the size, the paw cursor (staged loose).
 - `DefaultScalability.ini`: scalability cvars only (anything else stops the cook) `[KB U/12 §2]`.
 
-## 2. Packaging script (`tools/package.ps1`)
+## 2. Packaging script (`tools/package.py`)
 
-**Not written yet** (phase 8). Until then the phase gates package by hand (no version bump, no listing; the archive is
-`build/package`, git-ignored), then run `py tools/packaged_bench.py`:
+**Written 2026-11-23 (HANDOFF-LOG (137)); first run the same day at the designer's word (HANDOFF-LOG (139)): Development 439 MB (exe 255.0, paks 121.0), audit PASS, `packaged_languages` PASS (23), `packaged_bench` FAIL on draw calls only (83.6, then 50.6 after the draw-call work); Shipping 262 MB (exe 119.6), audit PASS.** A Python tool, as every other
+L5 tool (the plan said `package.ps1`). `py tools/package.py [--config Development|Shipping] [--no-gates] [--bump]`:
+refuses while an editor of this project, a packaged copy or another UAT runs; DELETES the archive first (Development
+`build/package`, Shipping `build/package_shipping`); `--bump` raises ProjectVersion's last number (the scheme: 0.MINOR.PATCH
+from 0.1.0, the designer 2026-11-23, "Use minor type version numbers"; MINOR by hand; a package for the gates is not bumped); UAT `BuildCookRun` (the command below); the
+archived exe must be newer than the run; the `.pdb` and exe kept in `build/symbols/<stamp>-<config>/`; the audit; README
+and `Send logs.bat` written into the archive; in Development the L5 gates (`packaged_languages.py`, `packaged_bench.py`).
+`--audit [ARCHIVE]` audits a package already made (read only; `build/package_audit_<config>.txt`: sizes, every archive
+file, package and loose file). `--self-test` (everyday `check_all`, gate `package audit self-test`) plants each fault.
+- **The audit** FAILs on: a `Saved` folder or a `.pdb` in the archive; a `/Game` package outside `/Game/Pawpocalypse`
+  (the shader library at the content root allowed); Developers / Collections / Screenshots; a map other than L_Title and
+  L_Realm (Shipping; Development only warns); either map missing; a string table, a culture's translation file or a paw
+  cursor not staged; ICU data without Thai's dictionary or zh-Hant (the English preset, (136)); no exe. It WARNs, with the
+  size, on what the engine stages that this game does not need.
+- **First audit of the package made by hand (2026-11-23, `build/package`)**: 495.8 MB (exe 295.9 Development, paks 121.0).
+  FAIL: two `Saved` folders, `Engine/Saved/Config/Windows/Manifest.ini` dated 2026-11-04 and the gates' own
+  `Pawpocalypse/Saved`: **the archive was never cleaned between packages**, so files a newer package no longer makes stay
+  (the archive's README was phase 4's, "English only, no audio yet"). The tool deletes the archive first. WARN: 31 files,
+  48.8 MB, not needed: the D3D12 and Vulkan debug layers, and Boost + TBB DLLs. **The Boost and TBB DLLs come from USD**:
+  the game exe links USDCore (`USDClasses`, `UnrealUSDWrapper`, `USDUtilities`) and USDImporter's runtime modules
+  (`USDSchemas`, `GeometryCacheUSD`, `USDStage`) (`Intermediate/.../Pawpocalypse.exe.rsp`); the game uses no USD. **Why**:
+  an engine update added FabLauncher (editor-only, enabled by default), which depends on USD; the trim had not run since.
+  **Fixed the same day**: `py tools/trim_game_plugins.py` (FabLauncher restricted to the Editor target; nothing else
+  changed): USD and Boost left the link and the receipt (`Binaries/Win64/Pawpocalypse.target`), the Development exe
+  295.9 -> 254.9 MB. TBB stays (the engine links it). Gated: `trim_game_plugins.py --check` (everyday). The next package
+  shows the archive's size.
+- **Shipping compiles** (first time, 2026-11-23: `Build.bat Pawpocalypse Win64 Shipping`, 178 s cold, exe 119.6 MB);
+  everyday `check_all` gate `UBT game build (Shipping)`, seen to fail on a planted Shipping-only `#error`. Not packaged
+  yet.
+- **`Send logs.bat`** (tested in a scratch archive, `PAW_LOGS_OUT`): this folder's and `%LOCALAPPDATA%`'s
+  `Pawpocalypse\Saved` (logs, crashes, settings, saves) and `dxdiag /t`, zipped to the desktop. It calls
+  `%SystemRoot%\System32\tar.exe` by path: a bare `tar` was Git's GNU tar, which read `C:` as a remote host and wrote nothing.
+
+The UAT command (also by hand, ~1-2 min warm on the dev PC):
 `RunUAT.bat BuildCookRun -project=<abs uproject> -noP4 -platform=Win64 -clientconfig=Development -build -cook -stage -pak
--archive -archivedirectory=<abs>/build/package -nodebuginfo -utf8output -unattended` (~1 min warm on the dev PC). The
+-archive -archivedirectory=<abs>/build/package -nodebuginfo -utf8output -unattended`. The
 game target is what a package compiles: everyday `check_all` builds it too (gate `UBT game build`, since (41)), because
 editor-only API in game-module code compiles in the editor and fails only here. Zip the archive WITHOUT
 `Pawpocalypse/Saved` (the bench's and the tour's shots and logs land there when they run on the package).
 
-UAT `BuildCookRun` wrapper `[KB U/19 §2]`:
+The plan for the wrapper `[KB U/19 §2]` (as built above, except: no `-prereqs` option yet, no zip, no Shipping gate):
 - `-Config Development|Shipping`, clean archive dir, no prereqs in the Steam depot (Steam installs the VC++ redist via its own
   install script; itch builds include `-prereqs`), `-nodebuginfo` with the `.pdb` copied to `Symbols/<time>-<config>/` locally.
 - **Refuses to run while a packaged copy is running** (a locked exe makes UAT keep the OLD exe and report success) or another UAT

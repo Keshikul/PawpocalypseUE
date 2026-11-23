@@ -629,13 +629,6 @@ namespace PawText
 
 	FText LanguageLabel(const FString& Code)
 	{
-		const std::string Utf8Code = TCHAR_TO_UTF8(*Code);
-		const Pc::PcLanguage* L = Pc::LanguageByCode(Utf8Code);
-		FString Marker = L ? TranslationIn(TableUi, TEXT("SETTINGS_language_draft"), UTF8_TO_TCHAR(L->Culture)) : FString();
-		if (Marker.IsEmpty())
-		{
-			Marker = Ui(TEXT("SETTINGS_language_draft")).ToString();
-		}
-		return Verbatim(UTF8_TO_TCHAR(Pc::LocalePickerLabel(Utf8Code, TCHAR_TO_UTF8(*Marker)).c_str()));
+		return Verbatim(UTF8_TO_TCHAR(Pc::LocalePickerLabel(TCHAR_TO_UTF8(*Code)).c_str()));
 	}
 }

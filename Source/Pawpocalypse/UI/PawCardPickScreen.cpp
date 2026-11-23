@@ -244,6 +244,10 @@ bool UPawCardFace::Initialize()
 		NewTextSlot->SetVerticalAlignment(VAlign_Center);
 	}
 	const bool bOk = Super::Initialize();
+	if (bOk && PawUi::ShouldWire(this))
+	{
+		PawUi::UseAtlasIcons(this); // the asset's saved icon brushes: the atlas's cells (one batch)
+	}
 	// The mouse's whole-card target, not a stop for the keys: Take is the card's one selectable control, so a pad does
 	// not land on the same card twice.
 	SetIsFocusable(false);

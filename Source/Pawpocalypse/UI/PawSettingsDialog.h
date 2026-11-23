@@ -18,7 +18,7 @@
 // The Output list: "Follow the system", the system's devices (UPawAudioSubsystem::OutputDeviceList), and the stored one if it
 // is gone (unplugged since it was saved); picking one plays there at once (the audio subsystem applies it).
 // The Language list (phase 7; _fill_language_option): "System", then every language with translations in use in its own
-// name, "(draft)" in its own words until reviewed (PawText::Languages, LanguageLabel). Picking one saves it and shows it
+// name, nothing beside it (D20; PawText::Languages, LanguageLabel). Picking one saves it and shows it
 // at once (UPawSettingsSubsystem::SetLanguage); every list is filled again in the new language. A click's pick waits one
 // tick: the list is refilled from outside its own selection callback.
 // The lists hold their words as strings (a combo box's options), so they follow a language only when filled again: while

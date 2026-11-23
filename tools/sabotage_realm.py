@@ -1301,8 +1301,8 @@ SABOTAGES = [
      '\tUPROPERTY()\n\tTObjectPtr<UTextBlock> StatusText;',
      'Pawpocalypse.UI.Title.MatchesGodot'),
     ('widgets_blueprint_never_wired', TITLE,
-     '\tif (bOk && PawUi::ShouldWire(this))\n\t{\n\t\tOnLayoutReady();',
-     '\tif (bOk && PawUi::BuildsInCode(this) && PawUi::ShouldWire(this))\n\t{\n\t\tOnLayoutReady();',
+     '\tif (bOk && PawUi::ShouldWire(this))\n\t{\n\t\tPawUi::UseAtlasIcons(this);',
+     '\tif (bOk && PawUi::BuildsInCode(this) && PawUi::ShouldWire(this))\n\t{\n\t\tPawUi::UseAtlasIcons(this);',
      'Pawpocalypse.UI.Title.Look'),
     ('widgets_button_label_lost', BUTTON,
      'if (Label && !Label->GetText().EqualTo(LabelText))',
@@ -2650,9 +2650,9 @@ SABOTAGES = [
      "\t\tFTextLocalizationManager::Get().WaitForAsyncTasks();\n\t\tFTextLocalizationManager::Get().RegisterPolyglotTextData(Held().Polyglot);\n\t\treturn bSet;\n",
      "\t\tFTextLocalizationManager::Get().WaitForAsyncTasks();\n\t\treturn bSet;\n",
      'Pawpocalypse.UI.Language.Translations'),
-    ('language_marker_in_the_shown_language', TEXTS,  # the "(draft)" in the language's own words
-     "\t\tFString Marker = L ? TranslationIn(TableUi, TEXT(\"SETTINGS_language_draft\"), UTF8_TO_TCHAR(L->Culture)) : FString();\n",
-     "\t\tFString Marker;\n",
+    ('language_label_is_the_code', TEXTS,  # each language in its own name (Locales.picker_label, D20)
+     "\t\treturn Verbatim(UTF8_TO_TCHAR(Pc::LocalePickerLabel(TCHAR_TO_UTF8(*Code)).c_str()));\n",
+     "\t\treturn Verbatim(Code);\n",
      'Pawpocalypse.UI.Language.Labels'),
     ('language_pick_not_saved', SETDLG,  # a pick goes through the settings (saved, applied)
      "\t\tS->SetLanguage(LanguageCodes[Index]);\n",
@@ -2777,6 +2777,40 @@ SABOTAGES = [
      '\t\treturn FText::FromStringTable(TableUi, Key);\n',
      '\t\treturn Verbatim(FText::FromStringTable(TableUi, Key).ToString());\n',
      'Pawpocalypse.UI.Language.Switch'),
+    # Q10 (2026-11-23): the frame cap behind another window.
+    ('background_cap_never', SETSUB,  # the focus loss never caps
+     '\tconst bool bWant = !bAppActive && BackgroundFps > 0;\n',
+     '\tconst bool bWant = false;\n',
+     'Pawpocalypse.UI.Settings.BackgroundCap'),
+    ('background_cap_kept_in_front', SETSUB,  # focus back, the background cap stays
+     '\telse if (Video.bBackground)\n',
+     '\telse if (false)\n',
+     'Pawpocalypse.UI.Settings.BackgroundCap'),
+    # Phase 8, draw calls (2026-11-23, HANDOFF-LOG (139)): the UI icons from one atlas page (one Slate batch).
+    ('atlas_icon_brush_own_texture', ICONS,  # IconBrush back on each icon's own texture
+     '\t\tUObject* Tex = IconCell(StemOrPath);\n',
+     '\t\tUObject* Tex = nullptr;\n',
+     'Pawpocalypse.UI.IconAtlas'),
+    ('atlas_cell_wrong_region', ICONS,  # a cell's region read across (u and v swapped)
+     '\tC->StartUV = FVector2D(UV.X, UV.Y);\n',
+     '\tC->StartUV = FVector2D(UV.Y, UV.X);\n',
+     'Pawpocalypse.UI.IconAtlas'),
+    ('atlas_hud_saved_icons_kept', HUD,  # the HUD asset's saved currency icons left on their own textures
+     '\t\tPawUi::UseAtlasIcons(this); // the asset\'s saved icon brushes: the atlas\'s cells (one batch)\n\t\tOnLayoutReady();\n',
+     '\t\tOnLayoutReady();\n',
+     'Pawpocalypse.UI.Widgets.IconsFromAtlas'),
+    ('atlas_button_plates_own_texture', BUTTON,  # a button's state plates left on their own textures
+     '\tif (Root && PawUi::ShouldWire(this))\n',
+     '\tif (Root && false)\n',
+     'Pawpocalypse.UI.Widgets.IconsFromAtlas'),
+    ('atlas_chrome_own_texture', UIKIT,  # PawUi::Chrome back on the plate's own texture
+     '\t\tAtlasBrush(B); // in the game, the plate\'s cell of the UI atlas: one Slate batch with the icons\n',
+     '',
+     'Pawpocalypse.UI.IconAtlas'),
+    ('atlas_prompt_glyph_own_texture', PROMPTS,  # a prompt's glyph back on its own texture
+     '\t\t\tB.SetResourceObject(Cell ? static_cast<UObject*>(Cell) : Tex);\n',
+     '\t\t\tB.SetResourceObject(Tex);\n',
+     'Pawpocalypse.UI.Widgets.IconsFromAtlas'),
 ]
 
 

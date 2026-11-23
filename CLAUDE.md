@@ -1,23 +1,20 @@
 # PAWPOCALYPSE (Unreal) - Project Instructions
 
 > Written 2026-10-28 at the start of the port. If anything here disagrees with the code or `Data/`, **the code is right and this
-> file is a bug**: fix it in the same pass. **This is a standalone game** (designer, 2026-11-10, D16: "This is a standalone
-> version. If godot has rules or mechanics that don't make sense we should change them. Do not port faults from godot.").
-> The **Godot game at `C:\Games\pawpocalypse` is the reference**: where this project and the Godot code disagree on a rule or
-> number, Godot is right, unless Godot's rule is a fault (a bug, an inconsistency, a rule that makes no sense), which is fixed
-> here instead of copied (standing rules, below). **The LOOK is the port's own (designer, 2026-11-07): "The unreal version
-> does not have to match godot, they can be different."** Since 2026-11-17 the look is **Sticker Box** (D18: "You don't have
-> to follow the current color or palette or ui. Just start fresh", then "Sticker box looks great"; it replaces "Plum
-> everywhere", D14). So is the player-facing TEXT since 2026-11-09 (D15: the port's own plain English, below). The look's
-> reference is the approved concept (Bestiary and UI Screens, linked in `docs/WORKLIST-STICKER-2026-11-17.md`, which also
-> holds the plan); the palette, the art generators (`tools/art`) and every look test are this project's own. The plum
-> restyle's pipeline (`docs/WORKLIST-RESTYLE-2026-11-07.md`) stays; its colours, chrome, fonts and drawings are being
-> replaced. Rules, numbers, behaviour and timing follow Godot, except its faults (D16).
+> file is a bug**: fix it in the same pass. **THIS IS THE GAME** (designer, 2026-11-23, D22: "Forget about godot. Treat this as
+> a new game. Godot is just a first try. This is the real version."). This project is the source of truth for every rule,
+> number, word and look. The Godot game at `C:\Games\pawpocalypse` was the first try: history only. Nothing is matched to it,
+> no gate reads it, no tool needs it (the Godot-reading tools below are marked history), and a rule is never changed to agree
+> with it. What came from it (Data/, the recorded fixtures under `Source/PawCore/Tests/Data/*_godot.tsv`, the translations) is
+> this game's own now. The look is **Sticker Box** (D18, 2026-11-17: the approved concepts, Bestiary and UI Screens, linked in
+> `docs/WORKLIST-STICKER-2026-11-17.md`); the player-facing text is plain English (D15, below). Older docs speak of Godot as
+> "the reference" and of "the port": since D22 read those as history.
 
 ## What this is
-A standalone recreation of Pawpocalypse (2D idle/incremental cat-sim, Godot 4.7.1, itch 0.2.5) in **Unreal Engine 5.8.3** (launcher build
-5.8.3-58210709), C++. Same game: rules, numbers, content, sounds, controls, languages, without Godot's faults (D16); its own look (Sticker Box, D18, 2026-11-17; before it the plum restyle, D14) and words (D15). Windows/Steam first, built to port to
-PlayStation and Xbox: keyboard/mouse AND gamepad from day one. Single player, no networking.
+Pawpocalypse, a 2D idle/incremental cat-sim, in **Unreal Engine 5.8.3** (launcher build 5.8.3-58210709), C++. Its first try was a
+Godot game (itch 0.2.5); this is the real version (D22). Its own look (Sticker Box, D18) and words (D15). **PC** (Q1, designer
+2026-11-23: Windows/Steam, the Steam Deck among PCs): keyboard/mouse AND gamepad from day one. Single player, no networking.
+Steam Next Fest (February 2027) ships the latest build of this game at the time (Q4). Version 0.MINOR.PATCH (D21).
 
 **Start every session with `docs/00-START-HERE.md`, then the newest entry of `docs/HANDOFF-LOG.md`; end every session that changed
 anything by adding an entry there** (where the project is, what happened, what is open, the exact next step). The handoff is docs 00-13 plus appendices A (content, generated), B (Godot
@@ -37,11 +34,9 @@ never project names or design decisions.
 - **Sandbox every automated run** (saves, settings, input remaps): the designer's own game must stay byte-identical.
 - **No Lumen, no ray tracing** (designer, 2026-10-28), and none of Nanite, VSM, distance fields, Substrate, auto exposure, bloom,
   motion blur: the game is flat and unlit (docs/03 §7, docs/04).
-- **Godot's faults are fixed here, never ported** (D16). A bug or an inconsistency is fixed as found; a change with a design
-  or balance trade-off is proposed to the designer (balance with `tools/pawsim.py` numbers) and made on a yes. Either way it
-  is made in this project only, never in the Godot repo, asserted by a test, and listed in doc 01 §5. Nothing else departs
-  from Godot (the look, D14 then D18, and the words, D15, are the port's own): every difference from Godot is either a port bug or a
-  listed change, never both.
+- **Bugs are fixed as found; a change with a design or balance trade-off is proposed to the designer** (balance with
+  `tools/pawsim.py` numbers, which read `Data/*.csv`) and made on a yes, asserted by a test, and recorded in doc 01 §2.
+  Never because Godot does it differently (D22).
 - **Player-facing text is plain and informative** (designer, 2026-11-09: "i do not want the text to be like a poem or any kind
   of language with character", "all the text should just be to the point informative information"): real numbers, not
   "increases crit"; one word per idea (the list: `VOCAB` in `tools/text_audit.py`; "increase", never "grows";
@@ -49,15 +44,14 @@ never project names or design decisions.
   The cat is still malevolent, never cute, in the art. **Player-facing text is short.**
   Designer, 2026-11-08: "make sure all text is simple and concise in the ui. Don't overexplain. Use short sentences."
   New or changed UI words are drafted for the designer first (they also cost the string's 20 translations).
-  The approved text lives here, not in Godot: `ST_UI` directly; for the tables generated from Godot (`ST_Data`, `ST_Tree`)
-  in `Data/TextOverrides.csv`, which the generators apply (Godot's translation gate needs every English string translated,
-  so the port does not change Godot's words).
+  The text: `ST_UI` and `ST_Tree` edited directly; `ST_Data` generated from `Data/*.csv` with `Data/TextOverrides.csv`
+  over it (`tools/gen_data_strings.py`). A changed line is translated again (`tools/loc_status.py`: stale, then --todo).
   Designer, 2026-11-08: no grudges and never an "unimpressed" cat, anywhere (they slipped through in Godot).
   Internal ids (`grudge_ledger`, `GRUDGE_PER_CARD`) stay: save keys and enum names are never renamed.
   "Prestige" is never used (it is Reawaken). Boba (the designer's cat) appears in menus only, never over the skill tree.
 
 ## Hard rules (docs/02 §14 has the full checklist)
-- Gameplay numbers live in `Data/*.csv` (or `Data/CodeConstants.csv`), never hardcoded; DataTables are generated from CSV, never
+- Gameplay numbers live in `Data/*.csv` (or `Data/CodeConstants.csv`: the game's own, edited here), never hardcoded; DataTables are generated from CSV, never
   edited.
 - All damage through `PcCombat`; additive and multiplicative brackets stay separate; anything priced off damage reads `PlayerDps()`.
 - **`double` for every economy/damage value; no `float` in PawCore** (one exception, 2026-11-05: `PcBackdrop`, which
@@ -79,8 +73,8 @@ never project names or design decisions.
 ## Build and tools (Windows; run batch files from PowerShell)
 ```
 "C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat" PawpocalypseEditor Win64 Development -Project="C:\Games\pawpocalypseUE\Pawpocalypse\Pawpocalypse.uproject" -WaitMutex
-py tools/export_godot_data.py --godot C:/Games/pawpocalypse --out Data --catalogue docs/appendix-a-content-catalogue.md   # + CodeConstants.csv from the reviewed Data/CodeConstantsMap.csv
-py tools/list_godot_code_constants.py --godot C:/Games/pawpocalypse --out docs/appendix-c-code-constants.md
+py tools/export_godot_data.py --godot C:/Games/pawpocalypse --out Data --catalogue docs/appendix-a-content-catalogue.md   # + CodeConstants.csv from the reviewed Data/CodeConstantsMap.csv   [HISTORY: reads Godot; D22]
+py tools/list_godot_code_constants.py --godot C:/Games/pawpocalypse --out docs/appendix-c-code-constants.md   [HISTORY: reads Godot; D22]
 py tools/gen_paw_rows.py                                                 # DataTable row structs from the Data/*.csv headers
 py tools/gen_paw_tokens.py                                               # UI/PawTokens.h, the colours, from tools/art/palette.py (+ PcBackdropTones.h, Tests/PcGodotLook.h)
 py tools/gen_fx_look.py [--check]                                        # Realm/PawFxLook.h: the aura's, strike paw's and crit's look (D3) from tools/art/fx_look.py
@@ -96,11 +90,11 @@ py tools/check_font_coverage.py [--self-test]                            # every
 py tools/gen_input_defaults.py [--check]                                 # Input/PawInputDefaults.h: Godot's input map (remapping's defaults)
 py tools/gen_data_strings.py                                             # ST_Data.csv: data names for the string tables
 py tools/import_data.py [--check | --self-test]                          # Data/*.csv -> DT_* (headless, editor closed) + parity
-py tools/make_port_map.py --godot C:/Games/pawpocalypse --out docs/appendix-b-godot-to-unreal-map.md
+py tools/make_port_map.py --godot C:/Games/pawpocalypse --out docs/appendix-b-godot-to-unreal-map.md   [HISTORY: reads Godot; D22]
 powershell -ExecutionPolicy Bypass -File tools\build_pawcore_tests.ps1   # PawCore L1 tests, plain MSVC, seconds (-Long: long suite)
 powershell -ExecutionPolicy Bypass -File tools\check_all.ps1             # every gate (-Full: + negative tests and long runs)
-py tools/make_godot_fixtures.py [--only tree] [--check]                  # Godot ground truth (scratch copy, sandboxed)
-py tools/godot_fixes.py [--self-test]                                   # the port's fixes to Godot's faults (D16), applied to that scratch copy only
+py tools/make_godot_fixtures.py [--only tree] [--check]                  # Godot ground truth (scratch copy, sandboxed)   [HISTORY: reads Godot; D22]
+py tools/godot_fixes.py [--self-test]                                   # the port's fixes to Godot's faults (D16), applied to that scratch copy only   [HISTORY: reads Godot; D22]
 py tools/econ_review.py [--proposal recommended | pass+inc0.5 ...] [--waits FILE]   # the economy review's numbers: pawsim + waves + buy logs, proposals in memory -> build/econ
 py tools/sabotage_pawcore.py [--only NAME]                               # one-line PawCore sabotages; each must be CAUGHT
 py tools/safe_mutate.py [--list | --self-test]                           # puts back any planted fault a dead run left in the tree (check_all's first gate)
@@ -108,19 +102,21 @@ py tools/run_automation.py [--no-build] [Pawpocalypse.Realm]             # engin
 py tools/bake_widgets.py --run [--graft "Class=add:Part;swap:Old>New"]  # Widget Blueprints for UI classes that have none (never over one); --graft puts NEW parts into an existing one (restyle:Part a part's look, restyle:Code>Asset when an unnamed part's auto-name differs (names:x / codenames:x list both), props:Part a piece's settings, slot:Part its place and tilt, text:Part a text's whole look, wrapat:Part a text's wrap width, remove:Part, wrap:Part>Wrapper moves the asset's part (children kept) into a new panel (wrap:Code=Asset>Wrapper when the auto-names differ); add: takes a panel with children; all or nothing); --textfloor raises texts under 16 px; --recolour / --refont migrate the assets' saved colours / fonts; --colours lists every colour they save, by widget, property and role (build/widget_colours.tsv)
 py tools/art/build_art.py [--check]                                     # the art generators -> SourceArt/svg (--check: = the committed SourceArt/svg)
 py tools/raster_svg.py [--check]                                        # SourceArt/svg -> png (the glyphs: 56 px; the cursors; the chrome and icons 1:1)
-py tools/pack_atlas.py [--check]                                        # the field's sprites and rig layers -> SourceArt/png/atlas (4 pages + field.csv)
-py tools/import_art.py --run [input|chrome|icons|atlas|floors]                       # SourceArt -> T_* textures, DA_FieldAtlas, the floors, headless (editor closed)
-py tools/export_audio.py [--check]                                      # Godot's sound table -> Data/Audio*.csv + the played files -> SourceAudio/
+py tools/pack_atlas.py [--check]                                        # the field's sprites and rig layers -> SourceArt/png/atlas (ONE 4096 page + field.csv: a page is a draw call per kind)
+py tools/pack_ui_atlas.py [--check]                                     # the 128 px UI icons -> SourceArt/png/ui_atlas (one 2048 page + ui.csv; import_art icons brings it in: one Slate batch for the icons)
+py tools/import_art.py --run [input|chrome|icons|atlas|floors]                       # SourceArt -> T_* textures, DA_FieldAtlas, DA_Icons (+ the UI atlas), the floors, headless (editor closed)
+py tools/export_audio.py [--check]                                      # Godot's sound table -> Data/Audio*.csv + the played files -> SourceAudio/   [HISTORY: reads Godot; D22]
 py tools/import_audio.py --run                                          # SourceAudio -> SW_* sounds + DA_AudioBank, headless (editor closed)
 py tools/create_input_assets.py --run                                    # IA_* / IMC_Pawpocalypse from Data/InputMap.csv (generated, never edited)
 py tools/sabotage_realm.py [--only NAME]                                 # game-module sabotages of the realm tests (UBT each, ~1 min)
 py tools/packaged_bench.py [--seconds 20] [--exec "paw.Rig 0"]            # L5: paw.Bench in the packaged build (build/package): frame gate (--exec: console commands first, an A/B)
+py tools/package.py [--config Shipping] [--no-gates] [--bump]           # the designer's word only: clean archive, UAT, symbols, audit, README + Send logs.bat, the L5 gates (--audit [DIR]: an existing package; --self-test)
 py tools/packaged_languages.py [--start ru]                             # L5: paw.Languages in the packaged build: every language offered, complete, shown, drawn (glyphs), Thai/CJK wrapped -> build/loc/package (sheet.png)
 py tools/godot_tour.py [--skip-godot] [--skip-ue] [--set biomes|fonts] [--res WxH] [--uiscale 1.5]   # the screenshot tour, both games -> build/tour/compare (opens windows)
 py tools/store_shots.py [--res 1920x1080] [--only NAME ...] [--culture de]   # the Steam screenshots: scripted scenes in the real game (paw.Do runs a cheat in order), sandboxed saves -> build/steam/shots[/<culture>] (opens a window)
 py tools/text_audit.py [--self-test | --banned]                         # player text over budget (short lines, short sentences), off-list words (VOCAB), banned words; drafts: the newest docs/TEXT-DRAFT-*.csv
 py tools/text_overrides.py [--self-test]                                # Data/TextOverrides.csv: the port's own English over Godot's (gen_data_strings / gen_tree_tables apply it)
-py tools/port_po.py [--check]                                           # Godot's .po translations -> Localization/Translations/<culture>/<table>.csv ("Key","Text","Source"); THE FILES ARE THE TRANSLATIONS: a run keeps every row in use (the port's own too) and fills only what Godot has
+py tools/port_po.py [--check]                                           # the translation files in their written form (no Godot since D22; --godot: the old carry-over) <- was: Godot's .po translations -> Localization/Translations/<culture>/<table>.csv ("Key","Text","Source"); THE FILES ARE THE TRANSLATIONS: a run keeps every row in use (the port's own too) and fills only what Godot has
 py tools/loc_lint.py [--self-test]                                     # the translations' wording rules: numbers kept, line breaks, nothing left in English, no mice for enemies, one percent style
 py tools/loc_status.py [--list | --todo | --apply WORK_FILE | --self-test]   # per culture: translated / missing / stale / broken; --todo: the work file build/loc/todo/<culture>.csv; --apply: its Translation column in, stamped with the English the translator saw (all or nothing)
 #   the game loads the translations at start (PawText::RegisterTranslations) and offers only complete languages; -PawDraftLanguages: unfinished ones too
@@ -140,13 +136,10 @@ py tools/trim_game_plugins.py                                            # rewri
 - `tools/check_all.ps1` is the one command that runs every gate (everyday set, ~6 min; `-Full` = nightly, ~10 h measured 2026-11-10). Run it before calling
   anything done: done is exit 0. Exit 2 means a gate was SKIPPED (an editor was open): not proven, not done. The engine gates
   run on the editor target it builds first; never on an older DLL. It builds the game target too (what a package compiles:
-  editor-only API passes the editor build and breaks only there). Porting a Godot manager follows the recipe in docs/09 §7: real Godot fixture, coverage asserted, sabotages seen
-  caught.
-- A Godot rule the port changes (D16) is changed here, never in the Godot repo: the port's code and its test assert the new
-  rule, and the Godot fixture it changes is made from Godot with the same fix (`tools/godot_fixes.py`: an exact
-  text replacement per finding, applied to `make_godot_fixtures.py`'s scratch copy only). Godot faults: doc 01 §5, and the same list
-  for the designer's Godot build (D12) in the Godot repo's `docs/pawpocalypse-port-findings.md` (the one Godot file the port
-  writes; left uncommitted).
+  editor-only API passes the editor build and breaks only there).
+- The recorded fixtures (`Source/PawCore/Tests/Data/*_godot.tsv`, recorded from the first try) are this game's expected
+  behaviour: a rule change edits the code, its test and the fixture rows it changes directly (never Godot, never
+  `tools/godot_fixes.py`). Never write to the Godot repo.
 
 ## Folders
 ```
@@ -154,7 +147,7 @@ Source/PawCore/            pure C++ rules + field sim, no engine headers; Tests/
 Source/Pawpocalypse/       game module: Core, Data, Realm, Render, UI, Input, Save, Audio, Platform, Dev
 Source/PawpocalypseEditor/ importers, validators, builders (editor only)
 Content/Pawpocalypse/      everything shipped (always cooked): Maps, Data, Art, Materials, Audio, Fonts, UI, Localization
-Data/                      CSV source of truth (exported from Godot until parity)
+Data/                      CSV source of truth (the game's own, edited here)
 SourceArt/, SourceAudio/   generated SVGs / rasters (png gitignored) / audio sources (LFS)
 tools/                     exporters, importers, pawsim, art generators (tools/art), check_all
 docs/                      the handoff

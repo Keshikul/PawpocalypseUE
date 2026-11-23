@@ -14,12 +14,14 @@ add its content root to +DirectoriesToNeverCook in Config/DefaultGame.ini (KB Un
 Check the result in the link response file Intermediate/Build/Win64/x64/Pawpocalypse/<Config>/Pawpocalypse.exe.rsp
 (phase 0: 34 plugin folders linked instead of 64). To use a restricted plugin in the game, remove it from the lists here.
 
-  py tools/trim_game_plugins.py [--engine "C:/Program Files/Epic Games/UE_5.8/Engine"]
+  py tools/trim_game_plugins.py [--engine "C:/Program Files/Epic Games/UE_5.8/Engine"] [--check]
+--check (everyday check_all): exit 1 when a run would change the .uproject (an engine update added a default plugin).
 """
 import argparse
 import json
 import os
 import re
+import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPROJECT = os.path.join(ROOT, "Pawpocalypse.uproject")
@@ -72,12 +74,30 @@ def editor_type_plugins(engine):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--engine", default="C:/Program Files/Epic Games/UE_5.8/Engine")
+    parser.add_argument("--check", action="store_true",
+                        help="exit 1 when the .uproject differs from what a run would write (an engine update added a "
+                             "default plugin: FabLauncher, found 2026-11-23, pulled USD, Boost and TBB into the game)")
     args = parser.parse_args()
 
     restricted = set(RUNTIME_UNUSED) | (set(editor_type_plugins(args.engine)) - KEEP_FOR_GAME)
     restricted -= set(GAME_PLUGINS) | set(EDITOR_PLUGINS)
 
     project = json.load(open(UPROJECT, encoding="utf-8-sig"))
+    if args.check:
+        want = ([(n, None) for n in GAME_PLUGINS] + [(n, ("Editor",)) for n in EDITOR_PLUGINS]
+                + [(n, ("Editor",)) for n in sorted(restricted, key=str.lower)])
+        have = [(p.get("Name"), tuple(p["TargetAllowList"]) if "TargetAllowList" in p else None)
+                for p in project.get("Plugins", []) if p.get("Enabled", True)]
+        missing = sorted(set(want) - set(have))
+        extra = sorted(set(have) - set(want))
+        for name, allow in missing:
+            print("trim_game_plugins: not in the .uproject as it should be: %s%s" % (name, " (Editor only)" if allow else ""))
+        for name, allow in extra:
+            print("trim_game_plugins: in the .uproject, not from this tool: %s%s" % (name, " (Editor only)" if allow else ""))
+        print("trim_game_plugins: %s (%d plugins restricted to the Editor target)" % (
+            "FAIL: run py tools/trim_game_plugins.py" if missing or extra else "PASS", len(restricted)))
+        return 1 if missing or extra else 0
+
     project["Plugins"] = (
         [{"Name": n, "Enabled": True} for n in GAME_PLUGINS]
         + [{"Name": n, "Enabled": True, "TargetAllowList": ["Editor"]} for n in EDITOR_PLUGINS]
@@ -89,4 +109,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

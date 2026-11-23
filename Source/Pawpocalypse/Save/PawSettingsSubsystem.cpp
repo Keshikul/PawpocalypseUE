@@ -25,6 +25,21 @@ const TCHAR* const UPawSettingsSubsystem::EntryName = TEXT("settings");
 namespace
 {
 	std::string Utf8(const FString& S) { return std::string(TCHAR_TO_UTF8(*S)); }
+
+	// Q10 (designer, 2026-11-23): an idle game is left running behind other windows for hours; it need not draw at full
+	// speed there. The fixed-step simulation keeps time exactly at any frame rate (PawRealmSim: up to 8 steps a frame).
+	TAutoConsoleVariable<int32> CVarBackgroundFps(TEXT("paw.BackgroundFps"), 30,
+		TEXT("The frame cap while the game's window is not active (unfocused or minimised); 0 = none. The player's own lower cap "
+			"is kept."), ECVF_Default);
+
+	// t.MaxFPS set at the priority it holds, or the game setting's when lower: a cap the command line set (the bench, a
+	// tour) is lowered and given back, not refused for its priority.
+	void SetFrameCap(IConsoleVariable* Cap, double Fps)
+	{
+		const uint32 Held = static_cast<uint32>(Cap->GetFlags()) & static_cast<uint32>(ECVF_SetByMask);
+		const uint32 By = FMath::Max<uint32>(Held, static_cast<uint32>(ECVF_SetByGameSetting));
+		Cap->Set(static_cast<float>(Fps), static_cast<EConsoleVariableFlags>(By));
+	}
 }
 
 void UPawSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -44,12 +59,28 @@ void UPawSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	{
 		StartupApply.Reset();
 		ApplyVideo();
+		// Started behind another window: in the background from the start.
+		if (FSlateApplication::IsInitialized() && !FSlateApplication::Get().IsActive())
+		{
+			OnActivationChanged(false);
+		}
 		return false;
 	}));
+	if (FSlateApplication::IsInitialized())
+	{
+		ActivationHandle = FSlateApplication::Get().OnApplicationActivationStateChanged().AddUObject(this,
+			&UPawSettingsSubsystem::OnActivationChanged);
+	}
 }
 
 void UPawSettingsSubsystem::Deinitialize()
 {
+	if (ActivationHandle.IsValid() && FSlateApplication::IsInitialized())
+	{
+		FSlateApplication::Get().OnApplicationActivationStateChanged().Remove(ActivationHandle);
+	}
+	ActivationHandle.Reset();
+	OnActivationChanged(true); // the cap given back
 	if (StartupApply.IsValid())
 	{
 		FTSTicker::GetCoreTicker().RemoveTicker(StartupApply);
@@ -139,6 +170,43 @@ bool UPawSettingsSubsystem::WindowMonitor(const FDisplayMetrics& Metrics, const 
 	return false;
 }
 
+void UPawSettingsSubsystem::OnActivationChanged(bool bActive)
+{
+	bAppActive = bActive;
+	ApplyBackgroundCap();
+}
+
+void UPawSettingsSubsystem::ApplyBackgroundCap()
+{
+	const int64 BackgroundFps = CVarBackgroundFps.GetValueOnGameThread();
+	const bool bWant = !bAppActive && BackgroundFps > 0;
+	IConsoleVariable* Cap = IConsoleManager::Get().FindConsoleVariable(TEXT("t.MaxFPS"));
+	const bool bMay = Cap && MayCapInBackground(GIsEditor, GEngine && GEngine->GameViewport);
+	if (bWant)
+	{
+		if (!Video.bBackground)
+		{
+			// The cap in force now: the one the engine holds (the player's, or the command line's).
+			Video.CapBefore = Cap ? FMath::RoundToInt64(Cap->GetFloat()) : 0;
+		}
+		Video.bBackground = true;
+		Video.BackgroundCap = Pc::BackgroundFrameCap(Video.CapBefore, BackgroundFps);
+		Video.bBackgroundToEngine = bMay;
+		if (bMay)
+		{
+			SetFrameCap(Cap, static_cast<double>(Video.BackgroundCap));
+		}
+	}
+	else if (Video.bBackground)
+	{
+		Video.bBackground = false;
+		if (bMay)
+		{
+			SetFrameCap(Cap, static_cast<double>(Video.CapBefore));
+		}
+	}
+}
+
 void UPawSettingsSubsystem::ApplyVideo()
 {
 	// apply_video(): V-Sync, the frame cap (max(cap, 0): a file's negative cap is no cap), then the window.
@@ -161,6 +229,13 @@ void UPawSettingsSubsystem::ApplyVideo()
 	if (IConsoleVariable* Cap = IConsoleManager::Get().FindConsoleVariable(TEXT("t.MaxFPS")))
 	{
 		Cap->Set(static_cast<float>(Video.MaxFps), ECVF_SetByGameSetting);
+		if (Video.bBackground)
+		{
+			// The player changed the cap while the window was behind (a settings file edited, a second instance): the
+			// new cap comes back with focus; the background cap follows it now.
+			Video.bBackground = false;
+			ApplyBackgroundCap();
+		}
 	}
 	if (bWindowFromCommandLine || !FSlateApplication::IsInitialized())
 	{

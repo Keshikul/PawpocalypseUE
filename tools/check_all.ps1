@@ -3,8 +3,8 @@
 #
 #   powershell -ExecutionPolicy Bypass -File tools\check_all.ps1          # the everyday set, a few minutes
 #   powershell -ExecutionPolicy Bypass -File tools\check_all.ps1 -Full    # the nightly: + every self-test, the long
-#                                                                        # suites, Godot fixture reproduction, the full
-#                                                                        # pawsim parity sweep, the realm sabotages (~10 h, 2026-11-06)
+#                                                                        # suites, the realm sabotages
+#                                                                        # (~10 h, 2026-11-06; the Godot gates retired 2026-11-23)
 #
 # Exit 0 = every gate RAN and passed; 1 = a gate failed; 2 = nothing failed but a gate was SKIPPED (an Unreal editor was
 # open): not proven, so not a pass (found by review 2026-11-04: a skipped L3 used to exit 0).
@@ -16,8 +16,8 @@
 # on disk, so an engine test without that build tests the code of the last build. A failed build fails every engine gate
 # after it instead of running them on stale binaries.
 #
-# Nothing here touches the designer's game: the Godot repo is only read (its git status is checked before and after),
-# every Godot run uses a scratch copy and a sandboxed APPDATA, nothing is committed, packaged or exported.
+# Nothing here touches the designer's game: nothing reads the Godot project (D22, 2026-11-23: the game is its own source;
+# Godot was a first try), nothing is committed, packaged or exported.
 param(
 	[switch]$Full
 )
@@ -26,7 +26,6 @@ $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $PSScriptRoot
 $Logs = Join-Path $Root 'build\check_all'
 New-Item -ItemType Directory -Force $Logs | Out-Null
-$Godot = 'C:\Games\pawpocalypse'
 $Results = New-Object System.Collections.ArrayList
 
 function Invoke-Gate([string]$Name, [string]$Command) {
@@ -42,8 +41,6 @@ function Invoke-Gate([string]$Name, [string]$Command) {
 	[void]$Results.Add([pscustomobject]@{ Gate = $Name; Verdict = $Verdict; Seconds = [int]$Watch.Elapsed.TotalSeconds; Log = $Log })
 }
 
-function Get-GodotStatus { (git -C $Godot status --porcelain) -join "`n" }
-$GodotBefore = Get-GodotStatus
 
 # --- the everyday set ---------------------------------------------------------------------------------------------
 # First: no planted fault left in the tree by a negative test that died (2026-11-13: a power cut mid-sabotage left a source
@@ -60,11 +57,11 @@ Invoke-Gate 'Sticker cast is the concept' 'node tools\art\sticker_record.js --ch
 Invoke-Gate 'art generators reproduce' 'py tools\art\build_art.py --check'
 Invoke-Gate 'art rasters reproduce' 'py tools\raster_svg.py --check'
 Invoke-Gate 'field atlas reproduces' 'py tools\pack_atlas.py --check'
+Invoke-Gate 'UI atlas reproduces' 'py tools\pack_ui_atlas.py --check'
 # The restyle's look spec on the field's drawings (R5, 2026-11-09): tokens only, one ink, flat, clear of every floor, eyes
 # that read at 56 px; KNOWN only shrinks. Its self-test plants one fault per rule (an off-palette fill must FAIL).
 Invoke-Gate 'look lint' 'py tools\art\look_lint.py'
 Invoke-Gate 'look lint self-test' 'py tools\art\look_lint.py --self-test'
-Invoke-Gate 'audio export reproduces' 'py tools\export_audio.py --check'
 Invoke-Gate 'font coverage' 'py tools\check_font_coverage.py'
 # The text rule's own test (2026-11-08): its budgets and banned words flag planted faults. `--banned`: no table says
 # "grudge", "unimpressed" or "prestige" (gated since 2026-11-09, when the designer's text pass renamed Grudge Ledger).
@@ -74,20 +71,24 @@ Invoke-Gate 'text audit self-test' 'py tools\text_audit.py --self-test'
 Invoke-Gate 'no banned words' 'py tools\text_audit.py --banned'
 Invoke-Gate 'text overrides self-test' 'py tools\text_overrides.py --self-test'
 Invoke-Gate 'text overrides agree' 'py tools\text_overrides.py --check'
-# Phase 7 (2026-11-19): Godot's translations carried over are current; the status tool tells stale from missing.
-Invoke-Gate 'translations carried over' 'py tools\port_po.py --check'
+# Phase 7 (2026-11-19): the translation files are in their written form (no row whose key is gone); the status tool
+# tells stale from missing. No Godot file is read (D22).
+Invoke-Gate 'translation files in form' 'py tools\port_po.py --check'
 Invoke-Gate 'loc status self-test' 'py tools\loc_status.py --self-test'
 # The wording review (2026-11-20): numbers kept, line breaks, nothing left in English, no mice for enemies (F55), the fixes
 # to Godot's translations (F53, F54), one percent style per language; its self-test plants each fault.
 Invoke-Gate 'translations lint' 'py tools\loc_lint.py'
 Invoke-Gate 'translations lint self-test' 'py tools\loc_lint.py --self-test'
+# Phase 8 (2026-11-23): the package audit's rules (tools/package.py: a Saved folder, a .pdb, content outside
+# /Game/Pawpocalypse, a map, a string table or translation, a cursor, the ICU data) each fail on a planted listing. The
+# packaging itself is the designer's word, never run here.
+Invoke-Gate 'package audit self-test' 'py tools\package.py --self-test'
+# The game target's plugin trim is current (2026-11-23): an engine update added FabLauncher (editor-only, enabled by
+# default), which pulled USD, Boost and TBB into the game until the trim ran again. Fails when a run would change the list.
+Invoke-Gate 'game plugins trimmed' 'py tools\trim_game_plugins.py --check'
 # Every sabotage's target still in its source (seconds, nothing built): a target a later slice rewrote otherwise stays unseen
 # until the nightly's sabotage gate refuses to start (2026-11-06: one stale since slice 3 cost a whole night's realm gate).
 Invoke-Gate 'sabotage targets current' 'py tools\sabotage_pawcore.py --list && py tools\sabotage_realm.py --list'
-# The port's fixes to Godot's code (D16, 2026-11-10: tools/godot_fixes.py, applied to the fixtures' scratch copy only): each
-# still finds its target in the Godot repo (read only), so a fix Godot's code moved under fails the day it happens; its
-# self-test refuses a stale target, a no-op and the repo itself.
-Invoke-Gate 'Godot fixes current' 'py tools\godot_fixes.py && py tools\godot_fixes.py --self-test'
 # --- the engine's own gates: a headless editor, so SKIP (not FAIL) while any Unreal editor is open -----------------
 # An Unreal process of this project (or naming none: it may be the designer's editor) blocks the engine gates; another
 # project's run does not (tools/unreal_procs.py). --wait, never one look: each gate starts the moment the last returns, and a
@@ -127,6 +128,10 @@ Invoke-EngineGate 'L3 Pawpocalypse.Audio' 'py tools\run_automation.py --no-build
 # builds in the editor and breaks only here (HANDOFF-LOG (41): two sessions of it went unseen until the packaged gate).
 Invoke-EngineGate 'UBT game build' ('"C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat" Pawpocalypse Win64 Development ' +
 	"-Project=`"$Root\Pawpocalypse.uproject`" -WaitMutex")
+# And in Shipping (2026-11-23, first compiled then): Shipping strips the console, check() and dev code, so a dev-only call
+# outside `#if !UE_BUILD_SHIPPING` breaks only here (KB U/19 §2). Incremental after the first build (~3 min cold).
+Invoke-EngineGate 'UBT game build (Shipping)' ('"C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat" Pawpocalypse Win64 Shipping ' +
+	"-Project=`"$Root\Pawpocalypse.uproject`" -WaitMutex")
 
 if ($Full) {
 	# --- every gate's own negative test ---------------------------------------------------------------------------
@@ -138,11 +143,9 @@ if ($Full) {
 	Invoke-Gate 'PawCore sabotage' 'py tools\sabotage_pawcore.py'
 	Invoke-EngineGate 'DataTable parity self-test' 'py tools\import_data.py --self-test' -NeedsBuild
 	# --- the long runs --------------------------------------------------------------------------------------------
-	Invoke-Gate 'Godot fixtures reproduce' 'py tools\make_godot_fixtures.py --check'
 	Invoke-Gate 'L1 long suite' 'powershell -ExecutionPolicy Bypass -File tools\build_pawcore_tests.ps1 -Long'
 	Invoke-Gate 'mirror 200k states' 'py tools\check_mirror.py --random 200000'
 	Invoke-Gate 'validator fuzz 30k' 'py tools\fuzz_validator.py --trials 30000 --seed 7'
-	Invoke-Gate 'pawsim parity sweep' 'py tools\check_pawsim_parity.py --workers 5'
 	# L4: the pad-only playthrough and the focus tour, in a real window (-game, ~2 min; sandboxed saves).
 	Invoke-EngineGate 'L4 pad-only playthrough' 'py tools\padplay_tour.py' -NeedsBuild
 	# The realm's engine tests, each sabotaged in the game module and seen to fail (UBT per sabotage: ~1 min each; the
@@ -150,9 +153,6 @@ if ($Full) {
 	Invoke-EngineGate 'Realm sabotage' 'py tools\sabotage_realm.py'
 }
 
-$GodotAfter = Get-GodotStatus
-$GodotVerdict = if ($GodotAfter -eq $GodotBefore) { 'PASS' } else { 'FAIL' }
-[void]$Results.Add([pscustomobject]@{ Gate = 'Godot repo untouched'; Verdict = $GodotVerdict; Seconds = 0; Log = '' })
 
 Write-Host ''
 $Results | Format-Table Gate, Verdict, Seconds, Log -AutoSize | Out-String -Width 200 | Write-Host

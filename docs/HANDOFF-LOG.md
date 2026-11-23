@@ -9,6 +9,221 @@ in whichever file holds it.
 
 ---
 
+## 2026-11-23 (140) - D22: this is the game (Godot a first try; no gate reads it); Q1/Q4/Q7/Q9 decided; the background frame cap (Q10); the chrome plates in the UI atlas: 46.8 draw calls, the bench PASSES (Q11)
+
+**Where the project is.** On (139) (uncommitted, as are (137)-(140); `a0161f1` is the last push). The designer answered the
+open questions: "Q1: pc. Q4: the latest unreal build we have at the time Q7: yes Q9: keep for now Q10: try to fix Q11: if cant
+fix increase limit. Forget about godot. Treat this as a new game. Godot is just a first try. This is the real version."
+
+**What happened.**
+- **D22 (doc 01 §2): this is the game.** CLAUDE.md's opening, doc 00, doc 11 (phase 9 is the designer's release sign-off),
+  the memory: Godot is history, never a reference. Every gate that read the Godot repo is retired: the L0 `data-export` rule
+  and the Godot generators' checks (`gen_pc_enums`, `gen_pc_data`, `gen_tree_tables`: PcEnums.h, PcDataRows.h,
+  PawTreeTables.h, PcTreeWording.h and ST_Tree.csv are now edited directly), `audio export reproduces`, `Godot fixes
+  current`, `Godot repo untouched`, and in `-Full` `Godot fixtures reproduce` and `pawsim parity sweep`. `pawsim` reads
+  `Data/*.csv` by default. The font check reads the game's own tables, translations and language table (`PcLocales.cpp`),
+  not Godot's .po and locales.gd. `port_po.py` writes the translation files with no Godot file (`--godot`: the old
+  carry-over), so `loc_status --apply` works without the Godot project; the gate is `translation files in form`. The
+  Godot-only tools stay in `tools/`, marked history in CLAUDE.md. The recorded fixtures (`*_godot.tsv`) are this game's
+  expected behaviour now: a rule change edits code, test and fixture rows directly.
+- **Q1 PC, Q4 Next Fest ships the latest Unreal build, Q7 the music licence kept, Q9 FXAA kept** (doc 01 §3).
+- **Q10, the background frame cap, built.** `Pc::BackgroundFrameCap` (30, or the player's lower cap; PawCore test);
+  `UPawSettingsSubsystem` on `OnApplicationActivationStateChanged` (and at start when the window is not active): remembers
+  `t.MaxFPS`, sets the cap at the priority the cvar holds (a `-ExecCmds` value has console priority), gives it back with
+  focus; `paw.BackgroundFps` (30; 0 = off). `Pawpocalypse.UI.Settings.BackgroundCap`. `paw.Bench` turns it off (a bench
+  window that opened behind the terminal would measure 30 fps) or, with `background`, measures it: **33.5 ms frames in the
+  package** behind another window (`t.MaxFPS=30`), the field full, the game thread's work per frame unchanged. No setting in
+  the menu (it would need new words, drafted first).
+- **Q11: fixed, the limit kept.** The 12 chrome plates joined the UI atlas (icons, glyphs and plates: 273 pictures, one 2048
+  page; a skyline packer, as shelves needed 2 pages). `PawUi::Chrome` and `PawUi::AtlasBrush` draw cells; the saved plates of
+  the pause menu, settings dialog, skill tree, job picker and victory are swapped too (`Pawpocalypse.UI.Widgets.
+  IconsFromAtlas` found them: it now walks borders and Common UI buttons' built styles); `UPawButton::
+  NativeOnCurrentTextStyleChanged` swaps the button state plates Common UI builds. **The frame: 46.8 draw calls (83.6 this
+  morning), `packaged_bench` PASS twice**; the UI 37.8, the scene 9. Cells are used only in the game and in the tests that
+  ask (`PawUi::SetAtlasForTest`): the editor and the baker draw the textures, so a transient cell is never saved into an
+  asset (found while doing this: the icon cells of (139) could have been, by a bake or a designer's save).
+- The frame now (packaged Development, 1280x800, field full): draws 46.8; frame 1.9-2.2 ms mean; render thread 1.05 ms;
+  GPU 0.38 ms; the game thread p99 3.9-4.0 ms in these runs (PASS; it swings run to run on this PC).
+- KB: U/09 §3 (plates, Common UI buttons' styles, cells kept out of the editor, skyline packing), U/15 §6 (the final count;
+  the background cap measured, the cvar's set priority), 2D/01 (the measured cap), the symptom index.
+
+**Proof.** `check_all` (everyday) exit 0, all 34 gates PASS, none reading the Godot repo (`build/check_all_20261123_d22_140.log`; again after the exe guard fix: `..._140b.log`, 34 PASS).
+L0 self-test: every plant CAUGHT (the generated plants now PawDataRows.h, PawTokens.h, PawFontSpec.h, PawFxLook.h, ST_Data.csv).
+Font coverage and its self-test PASS on the game's own files; `loc_status --self-test` PASS without Godot; `port_po --check` OK.
+Sabotages CAUGHT: `background_cap_ignores_players_cap` (PawCore), `background_cap_never`, `background_cap_kept_in_front`,
+`atlas_button_plates_own_texture`, `atlas_chrome_own_texture` (realm). Packaged: `packaged_bench` PASS (46.8; `build/drawcalls/plates_1`,
+`plates_2`), the `background` run 33.5 ms frames, `packaged_languages` PASS (23). Shipping: packaged, audit PASS (262.5 MB, exe 119.6). Its first try FAILed package.py's own exe guard: `check_all`'s Shipping build gate had built the same exe 16 s before the run, UAT found it up to date and archived it, older than the run though current; the guard now accepts the project's own up-to-date binary (same size and time, no newer source) and its self-test covers five cases (KB U/19 §2).
+
+### Open (the designer's)
+- Commit and push: (137)-(140) are uncommitted.
+- A menu switch for the background cap (new words: drafted first) if wanted; "mute when unfocused" (the KB's other idle-game rule).
+- Phase 8's rest: the size work (46.7 MB of debug layers staged), the packaged soak, the Deck pass, patch size, the PSO check,
+  the 73-90 ms hitch once per bench run, video memory (~+21 MB; the per-icon textures could stop loading).
+- The restyle's leftovers (S6 icons and card art, props, the title font, E3's rig) and the drafts waiting (Missing Art, the
+  text draft of 2026-11-18); the store page's Dutch and Danish (not yet).
+
+### Next step
+Phase 8: the size work and the packaged soak (`package.py`, then a whole game at 5x), then the Deck pass when hardware is at
+hand. Done is `check_all` exit 0.
+
+## 2026-11-23 (139) - The first packages (Development, Shipping); draw calls 83.6 -> 50.6 (renderer switches, one field atlas page, the UI icon atlas)
+
+**Where the project is.** On (138) (uncommitted, as is this entry; `a0161f1` is the last push). The designer: "Package. Also look
+into lowering our draw calls. What is the latest ms numbers? Also for characters etc are you using one master material with
+instances for each enemy? Or is everything it's own material? If so please create a master with instances".
+
+**What happened.**
+- **Packaged, both configurations** (`tools/package.py`, its first runs). Development: 439 MB (exe 255.0, paks 121.0), audit
+  PASS, `packaged_languages` PASS (23 languages), `packaged_bench` FAIL on draw calls only. Shipping: 262.4 MB (exe 119.6), audit
+  PASS. Both packaged again at the end with everything below (`build/package`, `build/package_shipping`).
+- **The materials question: already one master per kind, with instances.** No creature has a material of its own: every
+  enemy, kitten, the cat, the bosses, hats and props are cells of one sprite atlas, drawn by instanced quads with `M_Sprite`
+  (masked) / `M_SpriteSoft` (translucent) and one dynamic instance per atlas PAGE; which picture and tint is per-instance
+  custom data. Nothing was made per enemy (it would have cost draw calls, not saved them).
+- **Where the draw calls went** (ProfileGPU mid-bench, `Slate.ShowBatching`, the scene off; `build/drawcalls/`): 83.6 a frame
+  = the scene 23 (the sprites only 8: a depth prepass forced by DBuffer 4, occlusion queries 8, post 3) + the UI 60.5 (every
+  icon its own texture: one Slate batch each).
+- **Fixed, measured step by step on packages:**
+  - `r.DBuffer=False`, `r.AllowOcclusionQueries=False` (83.6 -> ~72), then `r.VirtualTextures=False` (the prepass was then
+    "Forced by VirtualTexture") and `r.EarlyZPass=0` (a prepass for the floor alone): the scene 23 -> 9 (base 2, translucency
+    4, post 3). `Pawpocalypse.Realm.Look.Atlas` asserts all four. `r.SeparateTranslucency 0` would save 1 more but blends
+    translucency straight into scene colour (exact-colour risk): not done.
+  - The field atlas on ONE 4096 page (`tools/pack_atlas.py` PAGE; 3 pages of 2048 before, each a draw per kind): base pass 4
+    -> 2. ~+5 MB video memory. `import_art.py` now removes a page texture the atlas no longer has before the editor starts
+    (a headless delete leaves the file). The Look test asserts one page.
+  - **The UI atlas**: `tools/pack_ui_atlas.py` packs the 196 icons of 128 px and the 65 input glyphs onto one 2048 page
+    (`T_Atlas_UI_0`); `import_art.py --run icons` imports it and writes every cell into `DA_Icons` (`AtlasPages`,
+    `AtlasNames`, `AtlasCellPage`, `AtlasUV`). `UPawUiCell` (a UObject on `ISlateTextureAtlasInterface`) is a region of
+    the page; `PawUi::IconBrush` and the prompts draw cells; `PawUi::UseAtlasIcons` swaps the brushes the Widget
+    Blueprints saved (Button, CardFace, HudScreen, MainMenu, ReawakenCeremony, Toast). The UI 60.5 -> 41.5. ~+16 MB video
+    memory (the per-icon textures stay referenced by `DA_Icons`: a later saving).
+  - New tests: `Pawpocalypse.UI.IconAtlas` (every 128 px icon and glyph in the atlas, the page's texels there byte for byte
+    its own texture's, the brush the cell, larger pictures their own textures, every icon on the HUD from the page) and
+    `Pawpocalypse.UI.Widgets.IconsFromAtlas` (every baked class, as its asset builds it: no image draws an icon texture the
+    atlas has). Everyday gate `UI atlas reproduces` (`pack_ui_atlas.py --check`).
+- **The frame now** (packaged Development, 1280x800, the field full; before -> after): draw calls 83.6 -> 50.5-50.7;
+  render thread 1.13 -> ~1.0 ms mean; GPU 0.42 -> 0.38 ms; the frame 1.4-2.8 ms mean, p99 2.4-4.3 (the game thread swings
+  1.4 to 2.8 ms between identical runs on this PC: noise, as before). The bench still FAILs: 50.6 >= 50 (and one run's game
+  thread p99 4.3 >= 4.0, another's 2.6).
+- Found on the way: naming the new test `Pawpocalypse.UI.Icons.Atlas` HID the old `Pawpocalypse.UI.Icons` from its filter
+  (it ran one test, the new one); renamed `Pawpocalypse.UI.IconAtlas`, both run (KB U/18 §2).
+- KB: U/15 §6 (ProfileGPU per pass; a flat 2D scene's overhead and the four switches; the UI atlas's effect), U/09 §3 (UI
+  icons from one atlas texture), 2D/02 §4.4 (one page over several), U/18 §2 (a child test name), U/24 rows, the symptom index.
+
+**Proof.** `check_all` (everyday) exit 0, all 37 gates PASS, `UI atlas reproduces` among them (`build/check_all_20261123_drawcalls_139b.log`; the first run FAILed one gate, `sabotage targets current`: `widgets_blueprint_never_wired` targeted the title's wiring block this change edited; retargeted, seen CAUGHT again). Sabotages: `atlas_icon_brush_own_texture`, `atlas_cell_wrong_region`, `atlas_hud_saved_icons_kept`,
+`atlas_prompt_glyph_own_texture` CAUGHT (the clean build passing); the texel check FAILed on one icon's cell planted a pixel
+right (`ui.csv`, safe_mutate, imported, then the clean csv imported again); `UI atlas reproduces` FAILed on one changed byte.
+The draw-call numbers: `build/drawcalls/<set>/<run>/` (logs with the ProfileGPU tables, bench reports, ShowBatching shots).
+
+### Open (the designer's)
+- **The chrome plates into the UI atlas** (the row plates, price chips, tab plates: one texture per plate style; some live in
+  the Common UI button styles' brushes): the frame under 50. Or Q11's other way, the field gated alone (it is 9).
+- Video memory: ~+21 MB in all (the UI page 16, the field page ~5). The per-icon textures could stop loading (soft references
+  in `DA_Icons`) to take back most of the 16.
+- Commit and push: (137), (138), (139) are uncommitted.
+- The store page's Dutch and Danish (not yet); from (135), toasts and the Unicorn ceremony's painted words in `Language.Switch`.
+
+### Next step
+The chrome plates into the UI atlas (`pack_ui_atlas.py` with the chrome PNGs, Box brushes on cells, the button styles' brushes
+swapped where the live style is built), then package and bench; done is the bench under 50 and `check_all` exit 0.
+
+## 2026-11-23 (138) - D20: no "(draft)" in the language lists; D21: the version is 0.MINOR.PATCH, from 0.1.0
+
+**Where the project is.** On (137) (uncommitted, as is this entry; `a0161f1` is the last push). The designer, answering
+(137)'s open questions: "Use minor type version numbers. drop the draft. Whats next?" Nothing was packaged (not asked).
+
+**What happened.**
+- **D20 (doc 01 §2): no "(draft)" beside a language.** `Pc::LocalePickerLabel(Code)` is the language's name in itself and
+  nothing else (`Pc::LocaleReviewed` and the marker argument gone); `PawText::LanguageLabel` with it. The line
+  `SETTINGS_language_draft` left `ST_UI.csv`, and `port_po.py` dropped it from all 22 translations (23 files, one row each,
+  nothing else changed; every language still complete, 836 / 836 lines). Godot keeps its rule, so the change is in
+  `tools/godot_fixes.py` (D20, on the fixture's scratch copy only) and the `locales` fixture was made again from Godot with
+  it: only the 20 label rows changed (`--only locales`, 30 s). The PawCore test proves the fixture carries the change (20
+  languages whose Godot "(draft)" exists, labelled without it); Settings > Language and the title's list assert "Deutsch",
+  Dutch and Danish their bare names.
+- **D21 (doc 01 §2): the version.** `Config/DefaultGame.ini` `ProjectVersion=0.1.0` (0.MINOR.PATCH): the title shows
+  "v0.1.0" (it showed the engine's default "v1.0.0.0"). `package.py --bump` raises PATCH for a build that leaves the PC;
+  MINOR by hand. `Pawpocalypse.UI.Title.Look` now asserts the line is "v" + the version and the version's form.
+- **A tool bug found by the new sabotage:** `sabotage_pawcore.py` read the test exe's output in the ANSI code page; a
+  failure that names a language in its own script ("繁體中文": the byte 0x81) failed to decode in the reader thread, so
+  `stdout` was `None` and the runner crashed on exactly the run that should say CAUGHT. Now UTF-8 with `errors="replace"`
+  (the realm runner and `run_automation.py` already were). Reproduced alone in a scratch script; KB U/17 §3.
+- Docs: doc 01 §2 (D20, D21), 00, 08, 10 §2, 11 (phases 7, 8), WORKLIST-LOC (§1, §2b, §2c's record).
+
+**Proof.** `check_all` (everyday) exit 0, all 36 gates PASS (`build/check_all_20261123_d20_138.log`). L1 211 / 211.
+Sabotages: `locales_draft_marker_back` (PawCore: "(draft)" put back for every language but English) CAUGHT;
+`language_label_is_the_code` (realm: the label is the code) CAUGHT by `Pawpocalypse.UI.Language.Labels`; the version
+planted back to 1.0.0.0 (`safe_mutate`, `DefaultGame.ini` restored byte for byte) FAILed `Pawpocalypse.UI.Title.Look`
+("the version is 0.MINOR.PATCH"). `port_po --check` OK, `loc_lint` PASS, `loc_status` 22 x 836 / 836.
+
+### Open (the designer's)
+- **Package?** `py tools/package.py` (Development: the audit, `packaged_languages.py`, `packaged_bench.py`), then
+  `--config Shipping`. The bench FAILs on draw calls (68.7 against 50) until Q11 is decided.
+- **Q11** (doc 01 §3): the draw-call budget. Recommendation: the field's own draw calls against 50, the HUD its own line.
+- The store page's Dutch and Danish (the designer: not yet).
+- From (135): toasts, the Unicorn ceremony's painted words and screens not built yet are not in `Language.Switch`.
+- (137) and (138) are uncommitted.
+
+### Next step
+On the designer's word: `py tools/package.py`, then `py tools/package.py --config Shipping`; then phase 8's size work,
+the packaged soak, the Deck pass. Done is `check_all` exit 0.
+
+## 2026-11-23 (137) - No native reads (decided); the headlines seen; the settings lists' ring fixed; phase 8 started (`package.py`, the plugin trim, Shipping compiles)
+
+**Where the project is.** (135) and (136) committed and pushed at the designer's word (`a0161f1`). The designer, after
+(136)'s sheet: "The text is good." Then: "Commit and push. Do whatever you can next. Native speakers will not be reviewing
+the text so skip that." This entry's work is uncommitted. Nothing was packaged (not asked).
+
+**What happened.**
+- **Decided: no native reads** (WORKLIST-LOC §1, doc 11, 00). The translations as they stand ship. Every language but English
+  still says "(draft)" in the language lists (Godot's rule, `Pc::LocaleReviewed`): **the designer's call** whether it stays.
+- **The shrunk headlines, for the designer's eye**: `build/loc/headlines/sheet.png` (the Reawaken ceremony, the victory and
+  Settings > Controls at 1280x800 and 150 % UI, in en, de, tr, nl, pl, vi, sv; the real game, `godot_tour.py` steps). Every
+  headline fits its box (WIEDERERWACHEN, YENİDEN UYANIYOR, OVERWINNING, ZWYCIĘSTWO, CHIẾN THẮNG, HANDKONTROLL).
+- **Found and fixed: the settings lists' ring sat off the lists in a windowed game** (the default). `UPawSettingsDialog::
+  NativePaint` drew a list's hover / focus ring (UI_FOCUS, Sticker Box's blue) at `GetCachedGeometry()`, which is DESKTOP
+  space; paint is window space. Right in fullscreen and in every headless test (window at 0,0); measured off by (+319,
+  +117) px in a centred 1280x800 window (over the dialog's edge and off the screen), one row low at 1920x1080. Now
+  `GetPaintSpaceGeometry()`: the rings hug the lists (shots in `build/tour/exp/`, before and after). **L0 `ui-rules`**: no
+  paint function draws with cached / tick-space geometry; its self-test plants the old line: CAUGHT. (A port bug, not a
+  Godot fault.) The stale "Butter" comment on `PawUi::FocusRing` corrected.
+- **Phase 8 started: `tools/package.py`** (doc 10 §2; not run: packaging is the designer's word). Refusals (an editor of this
+  project, a packaged copy, another UAT), the archive DELETED first, `--bump`, UAT, the exe newer than the run, the `.pdb`
+  kept in `build/symbols/`, the audit, README and `Send logs.bat` in the archive, the L5 gates (Development).
+  - The audit on the package made by hand (`--audit`, read only): FAIL on two stale `Saved` folders (an `Engine/Saved`
+    file from 2026-11-04: **the archive was never cleaned**, its README was still phase 4's "English only, no audio yet");
+    WARN 48.8 MB not needed (graphics debug layers; Boost). Self-test: 12 plants each CAUGHT by its own rule (everyday gate
+    `package audit self-test`).
+  - Its own bugs, found by testing it: the UAT guard matched its own PowerShell query (it would have refused every run;
+    now by process name, proved with a stand-in `AutomationTool.exe`); `Send logs.bat`'s bare `tar` was Git's GNU tar
+    ("Cannot connect to C:"), now `%SystemRoot%\System32\tar.exe` (tested in a scratch archive, `PAW_LOGS_OUT`).
+- **The plugin trim was stale**: an engine update added FabLauncher (editor-only, enabled by default), which pulled USD,
+  Boost and its DLLs into the game target. `py tools/trim_game_plugins.py` again (only FabLauncher added): USD and Boost
+  left the link and the receipt; the Development exe 295.9 -> 254.9 MB. New `--check` (everyday gate `game plugins
+  trimmed`), seen to FAIL on the stale `.uproject` first.
+- **Shipping compiles** (first time ever: 178 s cold, exe 119.6 MB). Everyday gate `UBT game build (Shipping)`, seen to fail
+  on a planted Shipping-only `#error` (safe_mutate; restored, then a clean build).
+- KB: U/19 §2 (a never-cleaned archive, auditing with UnrealPak -List), §3 (USD's Boost via FabLauncher, the trim's
+  result), §4 (`tar` in a batch file); U/09 §3 (cached vs paint geometry); two U/24 rows; the symptom index.
+
+**Proof.** `check_all` (everyday) exit 0, all 36 gates PASS, the three new ones among them (`build/check_all_20261123_phase8_137.log`). L0 self-test PASS with the new paint plant CAUGHT. The fix seen in the game: the ring at (108, 221)-(1156, 280) round the Language list in a 1280x800 window at 150 %, where it was at (428, 341) running off the screen; after a Down press, round Resolution at 1920x1080 and at 1280x800. `package.py --self-test` 12 CAUGHT; its audit FAILed the hand-made package on its two stale `Saved` folders. Trim `--check` FAIL before the re-run, PASS after. Shipping: FAIL on the plant, PASS clean.
+
+### Open (the designer's)
+- **Package?** `py tools/package.py` (Development: the audit and both L5 gates; the bench still FAILs on draw calls until
+  doc 01 Q11's budget is decided), then `--config Shipping`. Nothing was packaged this session.
+- **The version.** `ProjectVersion` is unset, so the title shows "v1.0.0.0" (`PawText`, the engine's default). Godot's
+  scheme is 0.MINOR.BUILD (0.0.x internal, 0.1.x reserved for the first public playtest; itch is 0.2.5): the Unreal
+  build's starting version is the designer's. `package.py --bump` refuses until it is set.
+- **"(draft)"** beside every translated language in the lists: keep it (Godot's rule) or drop it now that no native read
+  will come.
+- The headlines sheet (`build/loc/headlines/sheet.png`) for a look; the store page's Dutch and Danish (the designer: not
+  yet); Q11.
+- From (135): toasts, the Unicorn ceremony's painted words and screens not built yet are not in `Language.Switch`.
+
+### Next step
+On the designer's word: `py tools/package.py`, then `py tools/package.py --config Shipping`; then phase 8's size work (the
+debug layers, the archive's size after the trim) and the packaged soak. Done is `check_all` exit 0.
+
 ## 2026-11-23 (136) - Phase 7: every language in the package (`packaged_languages.py`); the ICU preset fixed
 
 **Where the project is.** On (135) (uncommitted; (134) committed and pushed, `0b5b17a`). The designer: "Do Packaged

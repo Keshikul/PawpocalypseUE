@@ -14,6 +14,7 @@
 #include "Framework/Text/SlateTextRun.h"
 #include "Input/PawInputDeviceSubsystem.h"
 #include "Save/PawSettingsSubsystem.h"
+#include "UI/PawIcons.h"
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
 #include "UI/PawUiKit.h"
@@ -182,7 +183,11 @@ void UPawPromptIcon::Refresh()
 		UTexture2D* Tex = Shown.Kind == PawGlyphs::EKind::Glyph ? PawGlyphs::Texture(Shown.Stem) : nullptr;
 		if (Tex)
 		{
-			Glyph->SetBrushFromTexture(Tex, false);
+			// The glyph's cell of the UI atlas when it has one: one Slate batch with the icons (phase 8, draw calls).
+			UPawUiCell* Cell = PawUi::IconCell(Shown.Stem);
+			FSlateBrush B = Glyph->GetBrush();
+			B.SetResourceObject(Cell ? static_cast<UObject*>(Cell) : Tex);
+			Glyph->SetBrush(B);
 			Glyph->SetDesiredSizeOverride(FVector2D(Px, Px));
 		}
 		Glyph->SetVisibility(Tex ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
@@ -398,7 +403,9 @@ const FSlateBrush* UPawPromptDecorator::BrushFor(const FString& Stem, int32 Px)
 	}
 	Textures.AddUnique(Tex);
 	TSharedPtr<FSlateBrush> Brush = MakeShared<FSlateBrush>();
-	Brush->SetResourceObject(Tex);
+	// The glyph's cell of the UI atlas when it has one (held by UPawIconCache): one Slate batch with the icons.
+	UPawUiCell* Cell = PawUi::IconCell(Stem);
+	Brush->SetResourceObject(Cell ? static_cast<UObject*>(Cell) : Tex);
 	Brush->ImageSize = FVector2D(Px, Px);
 	Brush->DrawAs = ESlateBrushDrawType::Image;
 	Brushes.Add(Key, Brush);

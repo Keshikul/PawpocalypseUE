@@ -16,6 +16,7 @@
 #include "Rendering/SlateRenderer.h"
 #include "Input/PawInputDeviceSubsystem.h"
 #include "Rendering/DrawElements.h"
+#include "Components/Button.h"
 #include "UI/PawIcons.h"
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
@@ -204,6 +205,10 @@ bool UPawButton::Initialize()
 		ApplySettings();
 		ApplyIcon();
 	}
+	if (bOk && PawUi::ShouldWire(this))
+	{
+		PawUi::UseAtlasIcons(this); // the asset's saved icon brushes: the atlas's cells (one batch)
+	}
 	return bOk;
 }
 
@@ -292,6 +297,27 @@ void UPawButton::ApplyLineLayout()
 		{
 			T->SetAutoWrapText(false);
 			T->SetWrapTextAt(Wrap);
+		}
+	}
+}
+
+void UPawButton::NativeOnCurrentTextStyleChanged()
+{
+	Super::NativeOnCurrentTextStyleChanged();
+	// Common UI builds the button's style from its style class (the plates' own textures) and has just applied it to the
+	// button it wraps the tree in (the tree's root): the same style, its plates the UI atlas's cells.
+	UButton* Root = WidgetTree ? Cast<UButton>(WidgetTree->RootWidget) : nullptr;
+	if (Root && PawUi::ShouldWire(this))
+	{
+		FButtonStyle Built = Root->GetStyle();
+		bool bChanged = false;
+		for (FSlateBrush* B : { &Built.Normal, &Built.Hovered, &Built.Pressed, &Built.Disabled })
+		{
+			bChanged |= PawUi::AtlasBrush(*B);
+		}
+		if (bChanged)
+		{
+			Root->SetStyle(Built);
 		}
 	}
 }

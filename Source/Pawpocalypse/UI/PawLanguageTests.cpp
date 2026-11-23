@@ -5,8 +5,8 @@
 //                                         it, a formatted line, a data name), Japanese; a line whose English changed shows
 //                                         the English until translated again (stale), and German again once it matches;
 //                                         English back.
-// Pawpocalypse.UI.Language.Labels        every language's picker label is Godot's (fixture `locales`: the native name and
-//                                         that language's own "(draft)" from Godot's .po files), Dutch's and Danish's own, and
+// Pawpocalypse.UI.Language.Labels        every language's picker label is Godot's (fixture `locales`, with D20: the native
+//                                         name alone, no "(draft)"), Dutch's and Danish's own, and
 //                                         the list is Godot's order with Dutch and Danish after Swedish.
 // Pawpocalypse.UI.Language.Loader        crafted files: a good row, a stale one, broken placeholders, no text, no such line,
 //                                         a line break; the counts (in use, left out, missing); which lines need words; only
@@ -98,10 +98,10 @@ bool FPawLanguageTranslationsTest::RunTest(const FString& Parameters)
 	Payout.Add(TEXT("n"), PawText::Count(3));
 	Payout.Add(TEXT("stardust"), PawText::Count(12));
 	TestEqual(TEXT("a line over two lines"), S(PawText::Ui(TEXT("CEREMONY_payout"), Payout)), FString(TEXT("Wiedererwachen 3\n+12 Sternenstaub")));
-	TestEqual(TEXT("the draft marker, as this language says it"), PawText::TranslationIn(PawText::TableUi, TEXT("SETTINGS_language_draft"), TEXT("de")),
-		FString(TEXT("(Entwurf)")));
+	TestEqual(TEXT("a line in German, in that culture"), PawText::TranslationIn(PawText::TableUi, TEXT("TAB_realms"), TEXT("de")),
+		FString(TEXT("Reiche")));
 	TestTrue(TEXT("Japanese shown"), PawText::ShowCulture(TEXT("ja")));
-	TestEqual(TEXT("a line in Japanese"), S(PawText::Ui(TEXT("SETTINGS_language_draft"))), FString(TEXT("（下訳）")));
+	TestEqual(TEXT("a line in Japanese"), S(PawText::Ui(TEXT("TAB_upgrades"))), FString(TEXT("強化")));
 
 	// A line whose English changed: the old translation is not shown (tools/loc_status.py lists it stale) until the English
 	// matches what it was translated from again.
@@ -132,7 +132,7 @@ bool FPawLanguageLabelsTest::RunTest(const FString& Parameters)
 {
 	PawText::RegisterTables();
 	PawText::RegisterTranslations();
-	// Godot's picker_label() for every language, as the fixture recorded it (its own "(draft)" from Godot's .po files).
+	// Godot's picker_label() for every language, as the fixture recorded it (with D20: the name alone, no "(draft)").
 	TArray<FString> Rows;
 	const FString Fixture = FPaths::ProjectDir() / TEXT("Source/PawCore/Tests/Data/locales_godot.tsv");
 	if (!TestTrue(TEXT("the locales fixture"), FFileHelper::LoadFileToStringArray(Rows, *Fixture)))
@@ -153,9 +153,9 @@ bool FPawLanguageLabelsTest::RunTest(const FString& Parameters)
 		}
 	}
 	TestEqual(TEXT("every language Godot has"), Labels, 21);
-	// The port's two (Godot had neither): each in its own name with its own "(draft)".
-	TestEqual(TEXT("Dutch's label"), S(PawText::LanguageLabel(TEXT("nl"))), FString(TEXT("Nederlands (concept)")));
-	TestEqual(TEXT("Danish's label"), S(PawText::LanguageLabel(TEXT("da"))), FString(TEXT("Dansk (udkast)")));
+	// The port's two (Godot had neither): each in its own name.
+	TestEqual(TEXT("Dutch's label"), S(PawText::LanguageLabel(TEXT("nl"))), FString(TEXT("Nederlands")));
+	TestEqual(TEXT("Danish's label"), S(PawText::LanguageLabel(TEXT("da"))), FString(TEXT("Dansk")));
 	// Every language is in use here, in Godot's order, Dutch and Danish after Swedish (PcLocales).
 	const int32 Sv = GodotOrder.IndexOfByKey(TEXT("sv"));
 	if (TestTrue(TEXT("Swedish in Godot's list"), Sv != INDEX_NONE))

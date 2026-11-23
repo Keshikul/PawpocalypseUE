@@ -4,10 +4,10 @@
     py tools/check_font_coverage.py --self-test  the gate must FAIL on two broken fonts (Thai sub-font gone; a Cyrillic
                                                  letter cut from the text face), and PASS on the real one
 
-The strings: English (Godot's messages.pot msgids and the port's string tables, Content/Pawpocalypse/Localization/Strings),
-every Godot locale/*.po msgstr, every line of the port's translation files (Content/Pawpocalypse/Localization/Translations/
-<culture>/*.csv, Text: the port's own translations since 2026-11-20, Dutch and Danish only there), and the language picker's
-names (locales.gd NATIVE_NAMES), shown in EVERY language. Each character (NFC, minus whitespace and
+The strings (the game's own files only, since 2026-11-23, D22: Godot was a first try): English (the string tables,
+Content/Pawpocalypse/Localization/Strings), every line of the translation files (Content/Pawpocalypse/Localization/
+Translations/<culture>/*.csv, Text), and the language picker's names (Source/PawCore/Private/PcLocales.cpp, each
+language's name in itself), shown in EVERY language. Each character (NFC, minus whitespace and
 controls) is resolved the way Slate resolves it (tools/fonts.py, the docstring): the culture's sub-fonts, the culture-less
 sub-fonts, the default typeface, the fallback. Both text weights are checked (the default typeface's faces).
 
@@ -27,33 +27,12 @@ from fontTools.ttLib import TTCollection, TTFont
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fonts  # noqa: E402
 
-GODOT = Path("C:/Games/pawpocalypse")
-LOCALE = GODOT / "locale"
-LOCALES_GD = GODOT / "scripts" / "systems" / "locales.gd"
+LOCALES_CPP = Path(__file__).resolve().parent.parent / "Source" / "PawCore" / "Private" / "PcLocales.cpp"
 ST = fonts.ROOT / "Content" / "Pawpocalypse" / "Localization" / "Strings"
 TRANS = fonts.ROOT / "Content" / "Pawpocalypse" / "Localization" / "Translations"
 
 
 # ---- the strings ----
-def po_strings(path, field):
-    out, cur, key = [], None, None
-    for line in path.read_text(encoding="utf-8").splitlines():
-        m = re.match(r'^(msgid|msgstr)\s+"(.*)"$', line)
-        if m:
-            if key == field and cur is not None:
-                out.append(cur)
-            key, cur = m.group(1), m.group(2)
-        elif line.startswith('"') and cur is not None:
-            cur += line[1:-1]
-        else:
-            if key == field and cur is not None:
-                out.append(cur)
-            key, cur = None, None
-    if key == field and cur is not None:
-        out.append(cur)
-    return [s.encode("utf-8").decode("unicode_escape").encode("latin-1").decode("utf-8") if "\\" in s else s for s in out]
-
-
 def chars_of(strings):
     cs = set()
     for s in strings:
@@ -65,40 +44,32 @@ def chars_of(strings):
 
 
 def native_names():
-    """The language picker's labels (locales.gd NATIVE_NAMES), each in its own language."""
-    text = LOCALES_GD.read_text(encoding="utf-8")
-    block = text[text.index("const NATIVE_NAMES"):]
-    block = block[:block.index("}")]
-    names = re.findall(r'^\s*"[A-Za-z_]+":\s*"([^"]+)",', block, re.M)
-    if len(names) < 21:
-        raise SystemExit("font coverage: read only %d language names from %s" % (len(names), LOCALES_GD))
+    """The language picker's labels (PcLocales.cpp's table: code, culture, the name in itself, Steam's name)."""
+    text = LOCALES_CPP.read_text(encoding="utf-8")
+    names = re.findall(r'\{ "[A-Za-z_]+", "[A-Za-z0-9-]+", "([^"]+)", "[a-z]+" \}', text)
+    if len(names) < 23:
+        raise SystemExit("font coverage: read only %d language names from %s" % (len(names), LOCALES_CPP))
     return names
 
 
 def corpus():
     """culture -> (its own characters, the picker's characters)."""
-    en = po_strings(LOCALE / "messages.pot", "msgid")
+    en = []
     for f in sorted(ST.glob("*.csv")):
         with f.open(encoding="utf-8") as fh:
             for row in csv.DictReader(fh):
                 en.append(row.get("SourceString") or "")
     picker = chars_of(native_names())
     out = {"en": (chars_of(en), picker)}
-    for po in sorted(LOCALE.glob("*.po")):
-        own = [s for s in po_strings(po, "msgstr") if s]
-        if not own:
-            raise SystemExit("font coverage: %s has no translations" % po.name)
-        out[fonts.culture(po.stem)] = (chars_of(own), picker)
-    # The port's translation files (2026-11-20: before, only Godot's .po were read, and a character new in the port's own
-    # lines was never checked). The folders are Unreal's cultures.
+    # The translation files; the folders are Unreal's cultures.
     for folder in sorted(p for p in TRANS.iterdir() if p.is_dir()):
         lines = []
         for f in sorted(folder.glob("*.csv")):
             with f.open(encoding="utf-8") as fh:
                 lines += [row.get("Text") or "" for row in csv.DictReader(fh)]
-        if lines:
-            had = out.get(folder.name, (set(), picker))[0]
-            out[folder.name] = (had | chars_of(lines), picker)
+        if not lines:
+            raise SystemExit("font coverage: %s has no translations" % folder.name)
+        out[folder.name] = (chars_of(lines), picker)
     return out
 
 

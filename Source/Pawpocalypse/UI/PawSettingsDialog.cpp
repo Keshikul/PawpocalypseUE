@@ -29,6 +29,7 @@
 #include "Rendering/DrawElements.h"
 #include "UI/PawUiConstants.h"
 #include "UI/PawUiKit.h"
+#include "UI/PawIcons.h"
 #include "UI/PawWidgets.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 
@@ -188,7 +189,10 @@ int32 UPawSettingsDialog::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		if (OptionShowsRing(List))
 		{
-			const FGeometry& G = List->GetCachedGeometry();
+			// Paint space (the window), never GetCachedGeometry (tick space: the DESKTOP): with it the ring sat off the list by
+			// the window's place on the desktop, in every windowed game (found 2026-11-23: +319, +117 px in a 1280x800 window).
+			// The lists were painted just above (Super::NativePaint), so this is this frame's geometry.
+			const FGeometry& G = List->GetPaintSpaceGeometry();
 			FSlateDrawElement::MakeBox(OutDrawElements, Layer + 1, G.ToPaintGeometry(G.GetLocalSize() + 2.0f * E, FSlateLayoutTransform(-E)), &Ring,
 				ESlateDrawEffect::None, Ring.GetTint(InWidgetStyle));
 		}
@@ -330,6 +334,7 @@ bool UPawSettingsDialog::Initialize()
 	const bool bOk = Super::Initialize();
 	if (bOk && PawUi::ShouldWire(this))
 	{
+		PawUi::UseAtlasIcons(this); // the asset's saved icon and plate brushes: the atlas's cells (one batch)
 		OnLayoutReady();
 	}
 	return bOk;

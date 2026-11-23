@@ -213,7 +213,8 @@ when its translation is complete (Godot: only loaded `.po` files, "so an unfinis
 `-PawDraftLanguages` offers the unfinished ones too, for review. The files are the translations: `port_po.py` keeps every
 row in use and fills only what Godot has; the port's own translations go in through `loc_status.py --apply` (a work file
 from `--todo`, stamped with the English the translator saw). All 22 translations complete 2026-11-20 (worklist §2c),
-each a draft until a native read.
+no native read will come (the designer, 2026-11-23: they ship as they are, HANDOFF-LOG (137)). Each language is listed in
+its own name alone, no "(draft)" (D20, HANDOFF-LOG (138); Godot adds one to every language but English).
 
 **A language changed while a screen is up (2026-11-23, worklist §2g).** String-table, formatted and joined text follows
 by itself (the engine redraws every widget on a culture change; KB U/20 §4). What a screen makes a string must be made

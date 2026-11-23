@@ -2792,9 +2792,13 @@ SABOTAGES = [
      "return Has(Available, L.Code) ? std::string(L.Code) : std::string(LocaleEnglish);",
      "return Has(Available, L.Code) ? std::string(L.Code) : std::string(L.Code);",
      "Locales: *", "0.01"),
-    ("locales_draft_on_english", "PcLocales.cpp",
-     "\t\treturn Code == LocaleEnglish;\n",
-     "\t\treturn Code == \"ja\";\n",
+    ("background_cap_ignores_players_cap", "PcSettings.cpp",  # Q10: the player's own lower cap is kept behind
+     "return Cap > 0 ? std::min(Cap, BackgroundFps) : BackgroundFps;",
+     "return BackgroundFps;",
+     "Settings: the frame cap in the background*", "0.01"),
+    ("locales_draft_marker_back", "PcLocales.cpp",  # D20: no "(draft)" beside a language
+     "\t\treturn LocaleNativeName(Code);\n\t}\n\n\tstd::string LocaleFromSystem",
+     "\t\treturn Code == LocaleEnglish ? LocaleNativeName(Code) : LocaleNativeName(Code) + \" (draft)\";\n\t}\n\n\tstd::string LocaleFromSystem",
      "Locales: *", "0.01"),
     ("locales_steam_under_a_chosen_language", "PcLocales.cpp",
      "if (Setting != LocaleSystem && Has(Available, Setting))",
@@ -2815,7 +2819,7 @@ def in_file_endings(text, s):
 
 
 def build():
-    r = subprocess.run(BUILD, capture_output=True, text=True)
+    r = subprocess.run(BUILD, capture_output=True, text=True, encoding="utf-8", errors="replace")
     return r.returncode == 0, r.stdout + r.stderr
 
 
@@ -2823,7 +2827,10 @@ def run(test_filter, scale):
     env = dict(os.environ)
     env["PAWCORE_LONG_SCALE"] = scale
     env["PAWCORE_DATA_DIR"] = str(ROOT / "Data")
-    r = subprocess.run([str(EXE), "--no-skip", "-tc=" + test_filter], capture_output=True, text=True, env=env)
+    # UTF-8 as the tests print it: a failure naming a language in its own script ("简体中文") is not cp1252, and the
+    # locale default left stdout None (the D20 sabotage, 2026-11-23).
+    r = subprocess.run([str(EXE), "--no-skip", "-tc=" + test_filter], capture_output=True, text=True, encoding="utf-8",
+                       errors="replace", env=env)
     ran = "test cases:      0" not in r.stdout and "test cases: 0" not in r.stdout
     return r.returncode, ran, r.stdout
 

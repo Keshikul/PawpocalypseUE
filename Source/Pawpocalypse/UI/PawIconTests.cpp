@@ -1,3 +1,7 @@
+// Pawpocalypse.UI.IconAtlas (phase 8, draw calls, 2026-11-23): every 128 px icon is a cell of the one UI atlas page and the
+// page's texels there are the icon's own (tools/pack_ui_atlas.py, import_art.py icons); IconBrush draws the cell, named as the
+// icon's texture; the larger pictures stay their own textures; every icon the HUD draws comes from the page (Slate batches by
+// texture: each icon texture was a draw call of its own).
 // Pawpocalypse.UI.Icons (phase 6 slice 5b): every icon Godot asks for by name (Art.texture: "ui_tab_%s", "achievement_%s",
 // the currencies, the quick buttons, the title's plates, the tick) or by a data row's icon_path resolves in DA_Icons; and the
 // HUD wears them where hud.gd does: the currencies, the wave line, the icon-only tabs and the open tab's pressed plate, the
@@ -5,6 +9,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS && WITH_EDITOR
 
+#include "Blueprint/WidgetTree.h"
 #include "Components/Image.h"
 #include "Core/PawGameSubsystem.h"
 #include "Engine/Engine.h"
@@ -20,8 +25,10 @@
 #include "Save/PawSaveStorage.h"
 #include "Save/PawSaveSubsystem.h"
 #include "UI/PawButton.h"
+#include "UI/PawGlyphs.h"
 #include "UI/PawHudScreen.h"
 #include "UI/PawIcons.h"
+#include "UI/PawUiKit.h"
 #include "UI/PawWidgets.h"
 
 namespace
@@ -298,6 +305,167 @@ bool FPawIconsTest::RunTest(const FString& Parameters)
 	H->OnQuitToTitle = [&bLeft]() { bLeft = true; };
 	H->PressQuickQuit();
 	TestTrue(TEXT("the quick quit goes to the title"), bLeft);
+	W.Close();
+	return true;
+}
+
+namespace
+{
+	// Every UImage under Root, into the user widgets it holds (a button's icon is in the button's own tree).
+	void ForEachImage(const UUserWidget* Root, TFunctionRef<void(const UImage&)> Visit, int32 Depth = 0)
+	{
+		if (!Root || !Root->WidgetTree || Depth > 16)
+		{
+			return;
+		}
+		Root->WidgetTree->ForEachWidget([&](UWidget* W)
+		{
+			if (const UImage* I = Cast<UImage>(W))
+			{
+				Visit(*I);
+			}
+			else if (const UUserWidget* U = Cast<UUserWidget>(W))
+			{
+				ForEachImage(U, Visit, Depth + 1);
+			}
+		});
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawIconAtlasTest, "Pawpocalypse.UI.IconAtlas", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawIconAtlasTest::RunTest(const FString& Parameters)
+{
+	using namespace PawUi;
+	// The game's way: the editor draws the textures (a transient cell must never be saved into an asset).
+	TestNull(TEXT("in the editor, no cells unless asked"), IconCell(TEXT("ui_tick")));
+	SetAtlasForTest(true);
+	ON_SCOPE_EXIT { SetAtlasForTest(false); };
+	const UPawIconSet* Set = Icons();
+	if (!TestNotNull(TEXT("DA_Icons (py tools/import_art.py --run icons)"), Set))
+	{
+		return true;
+	}
+	TestTrue(TEXT("a page and the UVs for every cell"), Set->AtlasCellPage.Num() == Set->AtlasNames.Num()
+		&& Set->AtlasUV.Num() == Set->AtlasNames.Num());
+	TestEqual(TEXT("one atlas page"), Set->AtlasPages.Num(), 1);
+	UTexture2D* Page = Set->AtlasPages.IsValidIndex(0) ? Set->AtlasPages[0].Get() : nullptr;
+	if (!TestNotNull(TEXT("the page imported (py tools/pack_ui_atlas.py, then import_art.py --run icons)"), Page))
+	{
+		return true;
+	}
+	const int64 PageW = Page->Source.GetSizeX(), PageH = Page->Source.GetSizeY();
+	TArray64<uint8> PageTexels;
+	if (!TestTrue(TEXT("the page's texels read, BGRA8"), Page->Source.GetMipData(PageTexels, 0)
+		&& Page->Source.GetFormat() == TSF_BGRA8 && PageTexels.Num() == PageW * PageH * 4))
+	{
+		return true;
+	}
+	int32 Small = 0, InAtlas = 0;
+	for (int32 I = 0; I < Set->Names.Num(); ++I)
+	{
+		const FString& Name = Set->Names[I];
+		UTexture2D* Tex = Set->Textures.IsValidIndex(I) ? Set->Textures[I].Get() : nullptr;
+		const bool bSmall = Tex && Tex->Source.GetSizeX() == 128 && Tex->Source.GetSizeY() == 128;
+		Small += bSmall ? 1 : 0;
+		const UPawUiCell* Cell = IconCell(Name);
+		const UObject* Drawn = IconBrush(Name, 24.0).GetResourceObject();
+		if (!bSmall)
+		{
+			TestTrue(FString::Printf(TEXT("%s: a larger picture, drawn from its own texture"), *Name), !Cell && Drawn == Tex);
+			continue;
+		}
+		const int32 A0 = Set->AtlasIndexOf(Name);
+		if (!TestTrue(FString::Printf(TEXT("%s: in the atlas"), *Name), A0 != INDEX_NONE && Set->AtlasCellPage[A0] == 0 && Cell))
+		{
+			continue;
+		}
+		++InAtlas;
+		const FVector4& UV = Set->AtlasUV[A0];
+		const FSlateAtlasData A = Cell->GetSlateAtlasData();
+		TestTrue(FString::Printf(TEXT("%s: the cell is its region of the page, 128 px"), *Name), A.AtlasTexture == Page
+			&& A.StartUV.Equals(FVector2D(UV.X, UV.Y), 1e-7) && A.SizeUV.Equals(FVector2D(UV.Z - UV.X, UV.W - UV.Y), 1e-7)
+			&& FVector2D(A.SizeUV.X * PageW, A.SizeUV.Y * PageH).Equals(FVector2D(128.0, 128.0), 0.01));
+		TestTrue(FString::Printf(TEXT("%s: the brush draws the cell, named as the icon's texture"), *Name), Drawn == Cell
+			&& Cell->GetName() == TEXT("T_") + Name);
+		// The page's texels in the cell are the icon's own, byte for byte.
+		TArray64<uint8> Own;
+		const int64 X0 = FMath::RoundToInt64(UV.X * PageW), Y0 = FMath::RoundToInt64(UV.Y * PageH);
+		bool bSame = Tex->Source.GetMipData(Own, 0) && Tex->Source.GetFormat() == TSF_BGRA8 && Own.Num() == 128 * 128 * 4
+			&& X0 >= 0 && Y0 >= 0 && X0 + 128 <= PageW && Y0 + 128 <= PageH;
+		for (int64 Row = 0; bSame && Row < 128; ++Row)
+		{
+			bSame = FMemory::Memcmp(PageTexels.GetData() + ((Y0 + Row) * PageW + X0) * 4, Own.GetData() + Row * 128 * 4, 128 * 4) == 0;
+		}
+		TestTrue(FString::Printf(TEXT("%s: the page's texels there are the icon's"), *Name), bSame);
+	}
+	TestTrue(TEXT("every 128 px icon is in the atlas"), Small > 150 && InAtlas == Small);
+	// The input glyphs (56 px, the prompts' keys and buttons) and the chrome plates (the nine-patches, any size): each
+	// cell the page's texels of its own texture, byte for byte.
+	int32 Glyphs = 0, Plates = 0;
+	for (int32 A0 = 0; A0 < Set->AtlasNames.Num(); ++A0)
+	{
+		const FString& Name = Set->AtlasNames[A0];
+		if (Set->IndexOf(Name) != INDEX_NONE)
+		{
+			continue; // an icon: above
+		}
+		const bool bGlyph = Name.StartsWith(TEXT("input_"));
+		Glyphs += bGlyph ? 1 : 0;
+		Plates += bGlyph ? 0 : 1;
+		UTexture2D* Tex = bGlyph ? PawGlyphs::Texture(Name) : LoadObject<UTexture2D>(nullptr,
+			*FString::Printf(TEXT("/Game/Pawpocalypse/Art/UI/Chrome/T_%s.T_%s"), *Name, *Name), nullptr, LOAD_NoWarn | LOAD_Quiet);
+		const UPawUiCell* Cell = IconCell(Name);
+		const FVector4& UV = Set->AtlasUV[A0];
+		const int64 X0 = FMath::RoundToInt64(UV.X * PageW), Y0 = FMath::RoundToInt64(UV.Y * PageH);
+		const int64 TW = Tex ? Tex->Source.GetSizeX() : 0, TH = Tex ? Tex->Source.GetSizeY() : 0;
+		TArray64<uint8> Own;
+		bool bSame = Tex && Cell && Cell->GetSlateAtlasData().AtlasTexture == Page && Tex->Source.GetMipData(Own, 0)
+			&& Tex->Source.GetFormat() == TSF_BGRA8 && Own.Num() == TW * TH * 4 && TW > 0 && X0 >= 0 && Y0 >= 0
+			&& X0 + TW <= PageW && Y0 + TH <= PageH
+			&& FMath::IsNearlyEqual((UV.Z - UV.X) * PageW, static_cast<double>(TW), 0.01) && FMath::IsNearlyEqual((UV.W - UV.Y) * PageH, static_cast<double>(TH), 0.01);
+		for (int64 Row = 0; bSame && Row < TH; ++Row)
+		{
+			bSame = FMemory::Memcmp(PageTexels.GetData() + ((Y0 + Row) * PageW + X0) * 4, Own.GetData() + Row * TW * 4, TW * 4) == 0;
+		}
+		TestTrue(FString::Printf(TEXT("%s: a %s, its cell the page's texels of its own texture"), *Name, bGlyph ? TEXT("glyph") : TEXT("plate")), bSame);
+	}
+	TestTrue(FString::Printf(TEXT("the glyphs are in the atlas (%d)"), Glyphs), Glyphs >= 60);
+	TestEqual(TEXT("every chrome plate is in the atlas"), Plates, static_cast<int32>(PawUi::EPawChrome::Count));
+	// PawUi::Chrome draws its plate's cell in the game.
+	const UPawUiCell* Panel = Cast<UPawUiCell>(PawUi::Chrome(PawUi::EPawChrome::Panel).GetResourceObject());
+	TestTrue(TEXT("the panel plate from the atlas, its nine-patch kept"), Panel && Panel->GetName() == TEXT("T_ui_panel")
+		&& PawUi::Chrome(PawUi::EPawChrome::Panel).DrawAs == ESlateBrushDrawType::Box);
+	TestNull(TEXT("no cell for a name with no art"), IconCell(TEXT("ui_tab_nothing")));
+
+	// The HUD on its Upgrades tab: every icon it draws comes from the page.
+	FIconWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return true;
+	}
+	int32 FromPage = 0;
+	TArray<FString> OwnTexture;
+	ForEachImage(W.Hud, [&](const UImage& I)
+	{
+		if (I.GetVisibility() == ESlateVisibility::Collapsed || I.GetVisibility() == ESlateVisibility::Hidden)
+		{
+			return;
+		}
+		const UObject* R = I.GetBrush().GetResourceObject();
+		if (const UPawUiCell* C = Cast<UPawUiCell>(R))
+		{
+			FromPage += C->Page == Page ? 1 : 0;
+		}
+		else if (R && R->GetName().StartsWith(TEXT("T_")) && IconCell(R->GetName().Mid(2)))
+		{
+			OwnTexture.Add(R->GetName());
+		}
+	});
+	TestTrue(FString::Printf(TEXT("the HUD's icons come from the atlas page (%d)"), FromPage), FromPage >= 20);
+	TestEqual(FString::Printf(TEXT("no HUD icon from its own texture when the atlas has it: %s"), *FString::Join(OwnTexture, TEXT(", "))),
+		OwnTexture.Num(), 0);
 	W.Close();
 	return true;
 }

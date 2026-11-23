@@ -227,12 +227,10 @@ def self_test_apply():
     expect("applied", unapplied(rows[:1] + rows[2:3], trans), [])
     expect("not applied", unapplied(rows[:2], trans), [("ST_UI", "B")])
 
-    # An apply into a copy of the German files: a new line, a Godot line replaced, a line stale on arrival; then a plain
-    # port_po run changes nothing (no row is ever lost to it).
-    godot = Path("C:/Games/pawpocalypse")
-    if not (godot / "locale" / "de.po").exists():
-        fails.append("no Godot repo at %s (port_po needs it)" % godot)
-    else:
+    # An apply into a copy of the German files: a new line, a line replaced, a line stale on arrival; then a plain
+    # port_po run changes nothing (no row is ever lost to it). No Godot file is read (D22).
+    godot = None
+    if True:
         real_out, real_trans, real_report = port_po.OUT, globals()["TRANS"], port_po.REPORT
         tmp = Path(tempfile.mkdtemp(prefix="loc_apply_"))
         try:
@@ -240,11 +238,8 @@ def self_test_apply():
             port_po.OUT, port_po.REPORT = tmp, tmp / "port_po.md"
             globals()["TRANS"] = tmp
             eng = english()
-            # The copy without the lines Godot has no translation for (German is complete since 2026-11-20): they are
-            # missing, and a port_po run cannot fill them.
-            _, report, _ = port_po.build(godot)
-            gaps = next(r[2] for r in report if r[0] == "de" and r[1] is None)
-            no_godot = {(t, k) for t, k, *_ in gaps[0] + gaps[1] + gaps[2]}
+            # The copy without three of its lines (German is complete since 2026-11-20): they are missing.
+            no_godot = {("ST_UI", k) for k in sorted(eng["ST_UI"])[:3]}
             for t in TABLES:
                 path = tmp / "de" / (t + ".csv")
                 keep = [(k, v[0], v[1]) for k, v in read_csv(path, "Key", ("Text", "Source")).items() if (t, k) not in no_godot]
@@ -267,7 +262,7 @@ def self_test_apply():
             expect("apply not kept", apply_rows("de", accepted, godot), [])
             after = status(eng, translations("de"))
             expect("new line translated", (new_t, new_k) in after["translated"], True)
-            expect("Godot's line replaced", translations("de")[old_t][old_k][0].startswith("EIGEN"), True)
+            expect("a translated line replaced", translations("de")[old_t][old_k][0].startswith("EIGEN"), True)
             expect("stale on arrival listed stale", [(t, k, o) for t, k, o, _ in after["stale"]], [(stale_t, stale_k, stale_e + " (old)")])
             expect("counts", (len(after["translated"]), len(after["missing"])), (len(s["translated"]) + 1, len(s["missing"]) - 2))
             files, _, _ = port_po.build(godot)
@@ -326,12 +321,12 @@ def main():
     ap.add_argument("--self-test", action="store_true")
     ap.add_argument("--todo", action="store_true", help="write build/loc/todo/<culture>.csv: what to translate, with context")
     ap.add_argument("--apply", metavar="WORK_FILE", help="a filled work file into the culture's files (culture: --culture or the file's name)")
-    ap.add_argument("--godot", default="C:/Games/pawpocalypse", help="Godot's repo (tools/port_po.py reads its .po files)")
+    ap.add_argument("--godot", default=None, help="Godot's repo, to carry its .po translations too (history: D22, none needed)")
     a = ap.parse_args()
     if a.self_test:
         return self_test()
     if a.apply:
-        return apply(Path(a.apply), a.culture, Path(a.godot))
+        return apply(Path(a.apply), a.culture, Path(a.godot) if a.godot else None)
     eng = english()
     if a.todo:
         return write_todo(eng, a.culture)

@@ -94,8 +94,7 @@ namespace PawText
 	// and multipliers (x5, x10) are gone ("x5", "{value} / {threshold}", "+" do not). And how many lines of the three tables do.
 	PAWPOCALYPSE_API bool NeedsWords(const FString& English);
 	PAWPOCALYPSE_API int32 LinesNeedingWords();
-	// A line's translation in one culture, whatever the game shows now ("" when it has none in use): the language picker's
-	// "(draft)" in each language's own words.
+	// A line's translation in one culture, whatever the game shows now ("" when it has none in use).
 	PAWPOCALYPSE_API FString TranslationIn(const FName Table, const FString& Key, const FString& Culture);
 	// The game's text in Culture ("en", the source, or a loaded culture): the engine's culture, and the translations
 	// registered again (they write their display strings for the culture current when registered). In the editor (the
@@ -108,8 +107,8 @@ namespace PawText
 	PAWPOCALYPSE_API bool ShowUnfinishedLanguages(); // -PawDraftLanguages on the command line (the designer's review, tours)
 	PAWPOCALYPSE_API void SetShowUnfinishedLanguagesForTest(bool bShow);
 	PAWPOCALYPSE_API TArray<FString> Languages(bool bUnfinishedToo = ShowUnfinishedLanguages());
-	// Locales.picker_label(): the language in its own name (never translated), then "(draft)" in that language's own words
-	// while nobody has reviewed it ("Deutsch (Entwurf)"); without that line, in the language shown now.
+	// Locales.picker_label(): the language in its own name (never translated: "Deutsch"), nothing beside it (D20, designer
+	// 2026-11-23: "drop the draft"; Godot adds its own "(draft)" to every language but English).
 	PAWPOCALYPSE_API FText LanguageLabel(const FString& Code);
 
 	// --- The pseudo-locale (phase 7's language pass, 2026-11-20; KB Unreal/20 §2) ---------------------------------------

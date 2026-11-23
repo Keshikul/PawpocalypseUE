@@ -44,11 +44,9 @@ namespace Pc
 	PAWCORE_API std::vector<std::string> LocalesAvailable(const std::set<std::string>& Loaded);
 	// native_name(): the language's name in itself; an unknown code is its own name.
 	PAWCORE_API std::string LocaleNativeName(const std::string& Code);
-	// REVIEWED: languages a native speaker has read through (Godot: English only). Everything else is a draft and says so.
-	PAWCORE_API bool LocaleReviewed(const std::string& Code);
-	// picker_label(): the name in itself, then that language's own word for "(draft)" while nobody has reviewed it.
-	// DraftMarker is the marker in THAT language (the game module looks it up in that language's translation).
-	PAWCORE_API std::string LocalePickerLabel(const std::string& Code, const std::string& DraftMarker);
+	// picker_label(): the name in itself, and nothing else. Godot adds its own word for "(draft)" to every language but
+	// English (REVIEWED); the port drops it (D20, designer 2026-11-23: "drop the draft"; no native read will come).
+	PAWCORE_API std::string LocalePickerLabel(const std::string& Code);
 	// from_system(): the OS locale ("de_DE", "pt-PT", "zh-Hant-TW", "es-419": '_' or '-') to an available code; else English.
 	PAWCORE_API std::string LocaleFromSystem(const std::string& OsLocale, const std::vector<std::string>& Available);
 	// from_steam(): Steam's language name ("brazilian", "latam") to an available code; else English.

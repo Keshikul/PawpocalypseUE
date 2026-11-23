@@ -157,7 +157,7 @@ to add; deleted with the spikes 2026-11-04: `git show 10c118e:tools/spikes/s3_ra
 | Creature / cat / weapon / hat atlas pages | sRGB, **BC7** (spike S3), mips ON with padding, filter Bilinear/Trilinear, **Never Stream**, texture group `World` or a custom `Sprites` group, LOD bias 0 | Drawn smaller than rasterised at 1080p; streaming blurs 2D |
 | Backdrop floors | Seamless tile textures, mips ON, Never Stream, wrap Repeat | The field grows with the aspect (up to 32:9): the floor must tile, not stretch. A test renders each biome at 16:9, 16:10, 21:9, 32:9 and checks for seams (Godot gated seams too) |
 | Props on backdrops | in the atlas, placed by the ported `BiomeBackdrop` layout code as static instances in their own Z band | |
-| UI icons, cards, tab icons, currency icons, glyphs | `UserInterface2D`, no mips, Never Stream, sized for 2x | Drawn 1:1 in UI |
+| UI icons, cards, tab icons, currency icons, glyphs | `UserInterface2D`, no mips, Never Stream, sized for 2x | Drawn 1:1 in UI; since 2026-11-23 the 128 px icons, the glyphs and the chrome plates are drawn from one atlas page in the game (`T_Atlas_UI_0`, `tools/pack_ui_atlas.py`, skyline-packed; cells in `DA_Icons`; the editor draws the textures): one Slate batch |
 | Hardware cursors | PNG under `Content/Slate/Cursors/`, staged | doc 05 §4 |
 
 - **Atlas cells padded and edge-extruded** by at least 2^(mip levels used) px (mip bleeding).

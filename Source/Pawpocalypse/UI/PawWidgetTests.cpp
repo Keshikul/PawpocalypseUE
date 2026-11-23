@@ -20,6 +20,7 @@
 #include "UI/PawGlyphs.h"
 #include "UI/PawUiAssets.h"
 #include "Components/Border.h"
+#include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/RichTextBlock.h"
 #include "UI/PawIcons.h"
@@ -315,6 +316,71 @@ bool FPawWidgetsTextFloorTest::RunTest(const FString& Parameters)
 			});
 		}
 	}
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawWidgetsIconsFromAtlasTest, "Pawpocalypse.UI.Widgets.IconsFromAtlas", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// Phase 8, draw calls (2026-11-23): Slate batches by texture, so an icon drawn from its own texture is a draw call of its own.
+// Every baked class, as its asset builds it (the saved brushes), live: no image (shown or not yet) draws an icon's own texture
+// when the UI atlas has the icon (PawUi::UseAtlasIcons after Super::Initialize; IconBrush for what code sets later).
+bool FPawWidgetsIconsFromAtlasTest::RunTest(const FString& Parameters)
+{
+	PawUi::SetAtlasForTest(true); // the game's way (the editor draws the textures)
+	ON_SCOPE_EXIT { PawUi::SetAtlasForTest(false); };
+	FWidgetsWorld W;
+	W.Open();
+	int32 Cells = 0;
+	TFunction<void(const UUserWidget*, const FString&, int32)> Walk = [&](const UUserWidget* U, const FString& Where, int32 Depth)
+	{
+		if (!U || !U->WidgetTree || Depth > 16)
+		{
+			return;
+		}
+		U->WidgetTree->ForEachWidget([&](UWidget* Part)
+		{
+			if (const UUserWidget* Piece = Cast<UUserWidget>(Part))
+			{
+				Walk(Piece, Where + TEXT("/") + Piece->GetName(), Depth + 1);
+				return;
+			}
+			// An image's picture, a border's plate, a button's four state plates (Common UI's built style).
+			TArray<const FSlateBrush*> Brushes;
+			if (const UImage* I = Cast<UImage>(Part))
+			{
+				Brushes.Add(&I->GetBrush());
+			}
+			else if (const UBorder* B = Cast<UBorder>(Part))
+			{
+				Brushes.Add(&B->Background);
+			}
+			else if (const UButton* Root = Cast<UButton>(Part))
+			{
+				const FButtonStyle& S = Root->GetStyle();
+				Brushes.Append({ &S.Normal, &S.Hovered, &S.Pressed, &S.Disabled });
+			}
+			for (const FSlateBrush* Brush : Brushes)
+			{
+				const UObject* R = Brush->GetResourceObject();
+				Cells += Cast<UPawUiCell>(R) ? 1 : 0;
+				const FString Stem = Cast<UTexture2D>(R) && R->GetName().StartsWith(TEXT("T_")) ? R->GetName().Mid(2) : FString();
+				if (!Stem.IsEmpty() && PawUi::IconCell(Stem))
+				{
+					AddError(FString::Printf(TEXT("%s/%s draws %s from its own texture; the atlas has it (PawUi::UseAtlasIcons)"),
+						*Where, *Part->GetName(), *R->GetName()));
+				}
+			}
+		});
+	};
+	for (UClass* Native : PawUi::BakedClasses())
+	{
+		if (Native->IsChildOf(UUserWidget::StaticClass()))
+		{
+			Walk(W.Make(PawUi::Resolve(Native)), PawUi::AssetNameFor(Native), 0);
+		}
+	}
+	TestTrue(FString::Printf(TEXT("the walk saw icons drawn from the atlas (%d)"), Cells), Cells > 10);
 	W.Close();
 	return true;
 }

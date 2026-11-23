@@ -192,6 +192,11 @@ FIXES = [
      "\tif lang == \"es\" and region != \"\" and region != \"ES\" and have.has(\"es_MX\"):\n\t\treturn \"es_MX\"\n"
      "\tfor code in have:\n\t\tif code == lang:\n\t\t\treturn code\n"
      "\tfor code in have:\n\t\tif code.begins_with(lang + \"_\"):\n\t\t\treturn code\n\treturn \"en\"\n"),
+    # D20 (designer, 2026-11-23: "drop the draft"; no native speaker will read the translations): the language lists show
+    # each language in its own name only, never "(draft)" beside it.
+    ("D20", "scripts/systems/locales.gd",
+     "\tif REVIEWED.has(code) or code == TEST_LOCALE:\n\t\treturn name\n\treturn \"%s %s\" % [name, draft_marker(code)]\n",
+     "\treturn name  # PORT CHANGE D20 (designer, 2026-11-23): no \"(draft)\" beside a language\n"),
 ]
 
 

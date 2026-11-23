@@ -238,6 +238,10 @@ r.DefaultFeature.LensFlare=False
 r.AntiAliasingMethod=1                    ; FXAA, chosen by spike S1 (doc 04 §10); no AA vs FXAA open as Q9 (doc 01)
 r.SkinCache.CompileShaders=False
 r.EarlyZPassOnlyMaterialMasking=False     ; 2026-11-09: masked layers at one depth drew black without it (doc 04 §4)
+r.DBuffer=False                           ; 2026-11-23: no decals; DBuffer forced a depth prepass (4 draws a frame)
+r.AllowOcclusionQueries=False             ; 2026-11-23: nothing in a flat field hides anything; the queries were 8 draws
+r.VirtualTextures=False                   ; 2026-11-23: no virtual textures; it kept the prepass (2 draws) (HANDOFF-LOG (139))
+r.EarlyZPass=0                            ; 2026-11-23: no prepass at all (it was the floor alone, 1 draw)
 
 [/Script/Engine.Engine]
 GameViewportClientClassName=/Script/CommonUI.CommonGameViewportClient

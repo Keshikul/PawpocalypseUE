@@ -124,6 +124,10 @@ bool UPawReawakenCeremony::Initialize()
 		}
 	}
 	const bool bOk = Super::Initialize();
+	if (bOk && PawUi::ShouldWire(this))
+	{
+		PawUi::UseAtlasIcons(this); // the asset's saved icon brushes: the atlas's cells (one batch)
+	}
 	// visible = false until play(). Not while baking: the asset keeps the layout drawn, so the designer sees it.
 	if (bOk && PawUi::ShouldWire(this))
 	{

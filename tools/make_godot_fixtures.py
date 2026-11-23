@@ -51,7 +51,8 @@ PawCore's L1 tests compare against what Godot itself computes, not against what 
            tweens stepped by custom_step: 16 runs at 4 sizes, presses at random frames -> Tests/Data/unicorn_godot.tsv
   locales  the real locales.gd recompiled with the system's language and the loaded .po files as probes: available(),
            from_system() over 85 OS locales and from_steam() over 28 Steam names, x 104 loaded sets; each language's
-           picker label with its own "(draft)" from Godot's .po files -> Tests/Data/locales_godot.tsv
+           picker label (its name alone: the port's D20) and its own "(draft)" from Godot's .po files
+           -> Tests/Data/locales_godot.tsv
   dock_repeat the real DockNavigator of the real HUD: hold-to-buy and the held row step, frame by frame on Godot's own action
            state, 600 sequences x 40 frames -> Tests/Data/dock_repeat_godot.tsv, dock_repeat_rows_godot.tsv
   juice    Godot's Tween easing (Tween.interpolate_value: linear, sine, quad, back, elastic x in, out, in_out, out_in) and the
@@ -218,7 +219,7 @@ def convert_locales(raw, path):
     """The locales rows as Godot wrote them (UTF-8 names), under a header."""
     rows = open(raw, encoding="utf-8").read().splitlines()
     with open(path, "w", encoding="utf-8", newline="\n") as f:
-        f.write("# Godot 4.7.1 Locales ground truth: the real scripts/systems/locales.gd (with the port's fix F52) recompiled with\n")
+        f.write("# Godot 4.7.1 Locales ground truth: the real scripts/systems/locales.gd (with the port's fix F52 and change D20) recompiled with\n")
         f.write("# the system's language and the loaded .po files as probes, generated %s by tools/godot_fixtures/locales_fixture.gd.\n" % GENERATED_ON)
         f.write("# avail <loaded> <> <available>; system <OS locale> <loaded> <from_system>; steam <name> <loaded> <from_steam>;\n")
         f.write("# label <code> <native_name> <picker_label> <draft_marker>. Lists comma-joined.\n")

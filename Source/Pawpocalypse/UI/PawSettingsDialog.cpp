@@ -416,12 +416,36 @@ void UPawSettingsDialog::NativeOnActivated()
 			R->SetPauseHold(PauseHolder, true);
 		}
 	}
+	if (UPawSettingsSubsystem* S = Settings(); S && !SettingsHandle.IsValid())
+	{
+		SettingsHandle = S->OnChanged.AddWeakLambda(this, [this]() { OnSettingsChanged(); });
+	}
 	Sync();
 	ShowSection();
 }
 
+FString UPawSettingsDialog::LanguageKey() const
+{
+	const UPawSettingsSubsystem* S = Settings();
+	return S ? FString(UTF8_TO_TCHAR(S->Get().Language.c_str())) + TEXT("|") + S->GetLanguageApplied().Culture : FString();
+}
+
+void UPawSettingsDialog::OnSettingsChanged()
+{
+	// language_changed: every list's words again (only a new language: a slider's change leaves the lists alone).
+	if (IsActivated() && LanguageKey() != ShownLanguage)
+	{
+		Sync();
+	}
+}
+
 void UPawSettingsDialog::NativeOnDeactivated()
 {
+	if (UPawSettingsSubsystem* S = Settings())
+	{
+		S->OnChanged.Remove(SettingsHandle);
+	}
+	SettingsHandle.Reset();
 	if (const UWorld* W = GetWorld())
 	{
 		if (UPawRealmSubsystem* R = W->GetSubsystem<UPawRealmSubsystem>())
@@ -533,6 +557,7 @@ void UPawSettingsDialog::Sync()
 	// _sync_from_settings(): every control from the stored value, firing nothing.
 	const UPawSettingsSubsystem* S = Settings();
 	const Pc::PcSettings P = S ? S->Get() : Pc::PcSettings();
+	ShownLanguage = LanguageKey();
 	Pc::SettingsDialogSync(Dialog, P);
 	RefreshVolumeLines();
 	FillOptions();
@@ -864,12 +889,12 @@ void UPawSettingsDialog::PickOutput(int32 Index)
 
 void UPawSettingsDialog::PickLanguage(int32 Index)
 {
-	// _on_language_selected(): SettingsManager.set_language(), then every list again in the new language (Godot refills the
-	// Language, Prompts and Dock lists on language_changed; here every list and line, the same as an open).
+	// _on_language_selected(): SettingsManager.set_language(); its change fills every list again in the new language
+	// (OnSettingsChanged; Godot refills the Language, Prompts and Dock lists on language_changed; here every list and line,
+	// the same as an open).
 	if (UPawSettingsSubsystem* S = Settings(); S && LanguageCodes.IsValidIndex(Index))
 	{
 		S->SetLanguage(LanguageCodes[Index]);
-		Sync();
 	}
 }
 

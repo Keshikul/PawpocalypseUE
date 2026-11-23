@@ -115,6 +115,7 @@ py tools/import_audio.py --run                                          # Source
 py tools/create_input_assets.py --run                                    # IA_* / IMC_Pawpocalypse from Data/InputMap.csv (generated, never edited)
 py tools/sabotage_realm.py [--only NAME]                                 # game-module sabotages of the realm tests (UBT each, ~1 min)
 py tools/packaged_bench.py [--seconds 20] [--exec "paw.Rig 0"]            # L5: paw.Bench in the packaged build (build/package): frame gate (--exec: console commands first, an A/B)
+py tools/packaged_languages.py [--start ru]                             # L5: paw.Languages in the packaged build: every language offered, complete, shown, drawn (glyphs), Thai/CJK wrapped -> build/loc/package (sheet.png)
 py tools/godot_tour.py [--skip-godot] [--skip-ue] [--set biomes|fonts] [--res WxH] [--uiscale 1.5]   # the screenshot tour, both games -> build/tour/compare (opens windows)
 py tools/store_shots.py [--res 1920x1080] [--only NAME ...] [--culture de]   # the Steam screenshots: scripted scenes in the real game (paw.Do runs a cheat in order), sandboxed saves -> build/steam/shots[/<culture>] (opens a window)
 py tools/text_audit.py [--self-test | --banned]                         # player text over budget (short lines, short sentences), off-list words (VOCAB), banned words; drafts: the newest docs/TEXT-DRAFT-*.csv

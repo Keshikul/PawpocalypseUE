@@ -224,6 +224,64 @@ then translate" (`docs/WORKLIST-NIGHT-2026-11-18.md`).
   skipped (16 lines, in every language; all clean once checked). Now whole words, on the English without its placeholders; the self-test plants a fault on such a line and on
   "Deratizátor" (shown MISSED with the old rule put back, CAUGHT with the new). F56 stays fixed (FIXED).
 
+## 2g. Built 2026-11-23 (HANDOFF-LOG (135)): a language changed while a screen is up
+
+- **The question** ((128)): text a screen makes a string once keeps the old language until the screen rebuilds (Godot
+  rebuilds every code-built string on `SettingsManager.language_changed`). String-table text, formatted text and joined
+  text follow a culture change by themselves (the engine invalidates every widget on the change; KB U/20 §4).
+- **The test, `Pawpocalypse.UI.Language.Switch`** (everyday, in `Pawpocalypse.UI`; ~2 min): the language pass's tour of
+  every screen (`TourScreens`, now with hooks) three times with the same steps: built in English and switched to German
+  at each screen and back; built in German and switched to English and back; built in English with German chosen before
+  the first screen. Every look must hold the words of the same screen built fresh in its language (a multiset: the texts
+  of the laid-out Slate tree, combo boxes and Slate-built keycaps included, and the tooltips;
+  `PawLayout::ArrangeWords`). The switch is the game's: the culture, then `UPawSettingsSubsystem::SetLanguage`.
+  `Saved/Layout/language_switch.txt` lists every difference.
+- **Found and fixed: the Settings dialog's lists.** A combo box holds its options as strings: Language ("System"),
+  Quality, Max FPS ("Unlimited"), Prompts, Dock side and Output ("Follow the system") kept the old language after a
+  change made outside the dialog. Not a bug a player could see today (only the dialog's own list changes the language
+  while it is up, and its pick filled every list again), but the dialog now hears the change as Godot's lists do
+  (`OnSettingsChanged`: every list again when the language setting or the language shown changed; a slider's change
+  leaves them alone), and its pick no longer fills them itself.
+- **Everything else already followed**: the title (all its layers and the language list), every dock page, the card
+  pick, the skill tree and its tooltips, the spend step, the pause menu, the three settings pages and the Controls panel,
+  the Reawaken ceremony, the job picker, the victory screen, the HUD in a boss fight (the boss panel: its own short tour
+  in the test, raised as `Layout.Boss` raises it).
+- **The test's own blind spots, found by its first runs**: reading only UMG text widgets missed the combo boxes (Slate
+  text); counting only parts in view gave 1,100 false differences on the tree (its map pans as it ticks); choosing the
+  tooltips "longest in this language" picked other nodes per language. All three fixed in the test.
+- **Sabotages** (`tools/sabotage_realm.py`, `switch_*`), all CAUGHT: the dialog deaf to the change, a prompt line deaf to
+  it (`UPawPromptText` makes its template a string with glyph markup), a tree caption made a string when the tree is
+  built, every `ST_UI` line made a string. Two first candidates MISSED and were replaced, for reasons that are not holes:
+  the title's own handler (with it off the title's words still follow: its hint is a prompt line, its status line
+  string-table text; what it alone remakes is the language list's plate and tick, held by `Title.Language`), and a dock
+  page title's `SetText` (it runs only at the bake: the Widget Blueprint holds the line, a string-table reference).
+
+## 2h. Built 2026-11-23 (HANDOFF-LOG (136)): every language in the package (step 3's packaging gate)
+
+- **The check, `py tools/packaged_languages.py`** (L5, on a package made when the designer asks): `paw.Languages`
+  (`Source/Pawpocalypse/Dev/PawLanguages.cpp`, development builds only) in the packaged Development build, on the title,
+  `-NoSave`, twice. Run 1 starts the game with `-culture=ru`: the language applied at start is Russian and the engine shows
+  it. Run 2 opens the title's language list as a player does and picks every language in it (`UPawMainMenu::PressLanguage`):
+  the list must offer every culture with a translation file (an incomplete one drops out: complete only, as Godot), and each
+  pick must be complete (no line missing or left out), current in the engine, every line of `ST_UI`, `ST_Data` and `ST_Tree`
+  showing its translation (851 lines), every character in the face `F_Paw` picks for it (no fallback, no empty box), and
+  Thai, Japanese and Chinese must break a line inside their words. A screenshot per language (the title with its list open)
+  and `build/loc/package/sheet.png`; reports and logs in `build/loc/package/`.
+- **Found: a package could show only 18 of the 23 languages.** The engine's default `InternationalizationPreset=English`
+  stages English ICU data alone: zh-Hans, zh-Hant, pt-BR, pt-PT and es-419 were refused by the engine (picked, the ticked row
+  moved and every word stayed in the language before: 748 to 823 lines each), and Thai never wrapped inside a sentence (no
+  break dictionary: 0 breaks in its longest line, 35 with it). The editor has the engine's full ICU data, so no editor test
+  could see it. **Fixed**: `InternationalizationPreset=All` (`Config/DefaultGame.ini`; ~23 MB more on disk, the only
+  preset with Russian, Polish and Thai), and the game logs a culture the engine refuses (`ApplyLanguage`).
+- **PASS on the package made with it: all 23 languages** (Thai 35 breaks; Chinese 8; Japanese 13; 0 characters without a
+  glyph in any language). Seen to fail: the English preset (above), and a package made with two planted faults
+  (`safe_mutate`): a character no face has in a German line (U+0F00: German FAIL, 1 character with no glyph) and an emptied
+  French line (French not offered: FAIL). L0 `packaging` keeps the preset and the staged folder in the ini between packages
+  (three plants caught).
+- Seen: the title and its language list in every language, from the package (`build/loc/package/sheet.png`). The designer,
+  2026-11-23: "The text is good." The shrunk headlines (§2d) are not in that sheet.
+- Open: the native reads. The Shipping configuration was not packaged (the ICU data is staged the same way).
+
 ## 3. Order
 
 1. **Carry Godot's translations over** (`tools/port_po.py`, doc 08 §4): gather the string tables headless, export PO per
@@ -234,7 +292,7 @@ then translate" (`docs/WORKLIST-NIGHT-2026-11-18.md`).
    (`build/steam/research/glossary.tsv`), the same terms as the existing translations; each needs a native read before a
    language ships.
 3. **`tools/loc_status.py` and its gate**: every shipped culture 100 % (or a reviewed exception list), placeholders
-   identical, stale lines listed.
+   identical, stale lines listed. DONE: `loc_status` (§2c); the packaging gate for the shipped languages (§2h, 2026-11-23).
 4. **The language menu** (the title's Language button waits for it), the pseudo-locale tour at 1280 x 800 and 150 % UI,
    font coverage (already a gate). DONE 2026-11-20: the menu (§2b), the tour as a test in every language and the
    pseudo-locale (§2d).

@@ -215,6 +215,14 @@ row in use and fills only what Godot has; the port's own translations go in thro
 from `--todo`, stamped with the English the translator saw). All 22 translations complete 2026-11-20 (worklist §2c),
 each a draft until a native read.
 
+**A language changed while a screen is up (2026-11-23, worklist §2g).** String-table, formatted and joined text follows
+by itself (the engine redraws every widget on a culture change; KB U/20 §4). What a screen makes a string must be made
+again on the change, as Godot does on `language_changed`: prompt lines (`UPawPromptText`, on the settings' change), the
+title's words (`UPawMainMenu::OnSettingsChanged`), the Settings dialog's lists (combo boxes hold strings:
+`UPawSettingsDialog::OnSettingsChanged`). Never set a string made from a string-table line on a widget that is not
+rebuilt: `Pawpocalypse.UI.Language.Switch` switches the language at every screen and compares it with the screen built
+fresh in that language.
+
 - **Unreal culture codes** differ from Godot's: `zh_Hans` -> `zh-Hans`, `zh_Hant` -> `zh-Hant`, `pt_BR` -> `pt-BR`, `es_MX` ->
   `es-419` (Steam's Latin American Spanish), `pt` -> `pt-PT`; Dutch `nl` and Danish `da` are the port's own. Mapped once, in
   `PcLocales.cpp` (and `port_po.py` for the files' folders).
@@ -223,6 +231,11 @@ each a draft until a native read.
   game rule in PawCore, its suffixes are translatable strings.
 - String tables are loose CSVs: register them at startup and **stage the folder** (`DirectoriesToAlwaysStageAsUFS`), or they are
   missing in packaged builds; an empty string-table CSV fails to import (needs the header and one row) `[KB U/20 §2]`.
+- **Every culture's ICU data is staged** (`InternationalizationPreset=All`, doc 10 §1; 2026-11-23, HANDOFF-LOG (136)): with
+  the engine's English data a package refused zh-Hans, zh-Hant, pt-BR, pt-PT and es-419 and never wrapped Thai. A culture the
+  engine refuses is logged (`UPawSettingsSubsystem::ApplyLanguage`: "the engine has no culture"). Proven in the package by
+  `py tools/packaged_languages.py` (every language picked on the title: shown, complete, every character drawn, Thai
+  broken inside its words) `[KB U/20 §5]`.
 - Fonts per culture: doc 07 §5.
 - **Store and Steam text**: achievement names per language for the Steamworks panel are generated from the string tables (the Godot
   plan did it from `.po`).

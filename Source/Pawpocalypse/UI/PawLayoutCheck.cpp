@@ -12,6 +12,8 @@
 #include "Misc/App.h"
 #include "Rendering/DrawElements.h"
 #include "Widgets/SWindow.h"
+#include "Widgets/Text/SRichTextBlock.h"
+#include "Widgets/Text/STextBlock.h"
 
 namespace
 {
@@ -148,8 +150,61 @@ namespace
 	}
 }
 
+namespace
+{
+	void WalkWords(const TSharedRef<SWidget>& S, const FGeometry& G, const TMap<const SWidget*, FName2>& Names, const FString& Path,
+		TArray<PawLayout::FWords>& Out)
+	{
+		const FName2* Name = Names.Find(&S.Get());
+		const FName Type = S->GetType();
+		const FString Here = Name ? Name->Path : Path + TEXT("/") + Type.ToString();
+		FString Says;
+		if (Type == TEXT("STextBlock"))
+		{
+			Says = StaticCastSharedRef<STextBlock>(S)->GetText().ToString();
+		}
+		else if (Type == TEXT("SRichTextBlock"))
+		{
+			Says = StaticCastSharedRef<SRichTextBlock>(S)->GetText().ToString();
+		}
+		Says.TrimStartAndEndInline();
+		if (!Says.IsEmpty())
+		{
+			Out.Add({ Here, Says });
+		}
+		if (Name && Name->Widget)
+		{
+			FString Tip = Name->Widget->GetToolTipText().ToString();
+			Tip.TrimStartAndEndInline();
+			if (!Tip.IsEmpty())
+			{
+				Out.Add({ Here + TEXT(" (tooltip)"), Tip });
+			}
+		}
+		FArrangedChildren Arranged(EVisibility::Visible);
+		S->ArrangeChildren(G, Arranged);
+		for (int32 I = 0; I < Arranged.Num(); ++I)
+		{
+			WalkWords(Arranged[I].Widget, Arranged[I].Geometry, Names, Name ? Name->Path : Path, Out);
+		}
+	}
+}
+
 namespace PawLayout
 {
+	TArray<FWords> ArrangeWords(UUserWidget* Widget, FVector2D Screen, float Scale, int32 Frames)
+	{
+		TArray<FWords> Out;
+		if (!Widget)
+		{
+			return Out;
+		}
+		const TSharedRef<SWidget> S = Widget->TakeWidget();
+		TMap<const SWidget*, FName2> Names;
+		ArrangeSlate(S, Names, Screen, Scale, Frames, [Widget](TMap<const SWidget*, FName2>& N) { Index(Widget, FString(), N); });
+		WalkWords(S, FGeometry::MakeRoot(Screen / Scale, FSlateLayoutTransform(Scale)), Names, FString(), Out);
+		return Out;
+	}
 
 	float GameScale(FVector2D Screen, float UiSize)
 	{

@@ -17,6 +17,11 @@
                 PawTokens.h (no FLinearColor(/FColor( literal, no FromHex/FromSRGBColor), no hard-coded player text
                 (FText::FromString, LOCTEXT, NSLOCTEXT; AsCultureInvariant only in PawText.cpp, for numbers); every string-
                 table key it names exists in ST_UI.csv, and every ST_UI key is named somewhere (docs/05 §7, docs/08 §4).
+  packaging     Config/DefaultGame.ini stages what a package needs to show every language: the ICU data of every culture
+                (InternationalizationPreset=All; the engine's English stages English alone and a package refuses zh-Hans,
+                zh-Hant, pt-BR, pt-PT, es-419 and never wraps Thai, measured 2026-11-23) and the loose string tables and
+                translations (+DirectoriesToAlwaysStageAsUFS Pawpocalypse/Localization). The proof is in a package
+                (tools/packaged_languages.py); this keeps the settings from going back without one.
   data-export   Data/*.csv is exactly what tools/export_godot_data.py exports from the Godot project today (until
                 parity Godot is the spec: a difference means someone edited a CSV, or Godot changed and nobody re-exported).
                 Covers Data/CodeConstants.csv too: the export fails when a Godot code constant has no row in the reviewed
@@ -45,6 +50,7 @@ UI_KEY = re.compile(r'TEXT\("((?:TAB|PAGE|SHOP|ZONE|WAVE|BOSS|REALMS|BAIT|REAWAK
 UI_COLOUR = re.compile(r"\bF(?:Linear)?Color\s*(?:\w+\s*)?[({]\s*[-+]?[\d.]|FromHex|FromSRGBColor")
 UI_TEXT = re.compile(r"FText::FromString\s*\(|\bLOCTEXT\s*\(|\bNSLOCTEXT\s*\(")
 GODOT = "C:/Games/pawpocalypse"
+GAME_INI = ROOT / "Config" / "DefaultGame.ini"
 STD_HEADERS = {
     "algorithm", "array", "cassert", "cctype", "cerrno", "charconv", "chrono", "cinttypes", "climits", "cmath", "cstddef",
     "cstdint", "cstdio", "cstdlib", "cstring", "fstream", "functional", "initializer_list", "iomanip", "ios", "iostream",
@@ -179,6 +185,29 @@ def check_ui(ui_dir, st_ui):
     return bad
 
 
+def check_packaging(ini):
+    """The packaging settings every language needs in a package (docs/10 §1, docs/08 §4)."""
+    section, values = None, {}
+    for raw in ini.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith(";"):
+            continue
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        if section == "/Script/UnrealEd.ProjectPackagingSettings" and "=" in line:
+            key, value = line.split("=", 1)
+            values.setdefault(key.strip(), []).append(value.strip())
+    bad = []
+    preset = values.get("InternationalizationPreset", [])
+    if preset[-1:] != ["All"]:
+        bad.append("InternationalizationPreset is %s, not All: a package would refuse zh-Hans, zh-Hant, pt-BR, pt-PT, es-419 "
+                   "and never wrap Thai" % (preset[-1] if preset else "the engine's English"))
+    if '(Path="Pawpocalypse/Localization")' not in values.get("+DirectoriesToAlwaysStageAsUFS", []):
+        bad.append("Pawpocalypse/Localization is not staged (+DirectoriesToAlwaysStageAsUFS): a package has no text")
+    return bad
+
+
 def check_data_export(data_dir):
     out = ROOT / "build" / "check_export"
     if out.exists():
@@ -202,7 +231,7 @@ def check_data_export(data_dir):
 def run_all(core, data_dir, skip_export):
     gates = [("no-float", lambda: check_no_float(core)), ("engine-free", lambda: check_engine_free(core)),
              ("test-guard", lambda: check_test_guard(core)), ("generated", check_generated),
-             ("ui-rules", lambda: check_ui(UI, ST_UI))]
+             ("ui-rules", lambda: check_ui(UI, ST_UI)), ("packaging", lambda: check_packaging(GAME_INI))]
     if not skip_export:
         gates.append(("data-export", lambda: check_data_export(data_dir)))
     results = {}
@@ -295,6 +324,20 @@ def self_test():
         f.write('"ZONE_never_named","Nobody says this",""\n')
     caught["ui-rules: unused key"] = bool(check_ui(u, s))
     shutil.rmtree(ui_copy, ignore_errors=True)
+
+    # The packaging settings, each planted in a scratch copy of DefaultGame.ini.
+    ini_copy = ROOT / "build" / "static_selftest_ini"
+    ini_copy.mkdir(parents=True, exist_ok=True)
+    ini = ini_copy / "DefaultGame.ini"
+    real = GAME_INI.read_text(encoding="utf-8")
+    assert not check_packaging(GAME_INI), "the real DefaultGame.ini fails"
+    ini.write_text(real.replace("InternationalizationPreset=All", "InternationalizationPreset=English"), encoding="utf-8")
+    caught["packaging: English ICU data"] = bool(check_packaging(ini))
+    ini.write_text("\n".join(l for l in real.splitlines() if not l.startswith("InternationalizationPreset")), encoding="utf-8")
+    caught["packaging: no preset (the engine's English)"] = bool(check_packaging(ini))
+    ini.write_text(real.replace('+DirectoriesToAlwaysStageAsUFS=(Path="Pawpocalypse/Localization")', ""), encoding="utf-8")
+    caught["packaging: translations not staged"] = bool(check_packaging(ini))
+    shutil.rmtree(ini_copy, ignore_errors=True)
 
     data_copy = ROOT / "build" / "static_selftest_data"
     if data_copy.exists():

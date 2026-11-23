@@ -21,6 +21,13 @@
   with `UnrealPak <Pawpocalypse-Windows.utoc> -List`.
   String tables and hardware cursors staged as UFS `[KB U/19 §1]` (as built: `Pawpocalypse/Localization` and `Pawpocalypse/UI/Cursors`,
   the paw cursors' loose PNGs; the cursor in a packaged build is still to check).
+- **Every language's ICU data: `InternationalizationPreset=All`** (2026-11-23, HANDOFF-LOG (136)). The engine's default,
+  `English`, stages English ICU data alone: measured in a package, zh-Hans, zh-Hant, pt-BR, pt-PT and es-419 could not be
+  chosen (picked, the words stayed in the language before) and Thai never wrapped inside a sentence (no break dictionary);
+  the editor, with the engine's full data, showed none of it. `All` is the only preset with Russian, Polish and Thai: ~23 MB
+  more on disk (ICU 64: 27 MB against 4.2). `CulturesToStage` stays the engine's `en`: the translations are polyglot text,
+  not `.locres`, and every language showed its words without it. Gates: L0 `packaging` (the ini), L5
+  `py tools/packaged_languages.py` (the package) `[KB U/20 §5]`.
 - **Phase 6 content and the restyle, packaged once** (2026-11-10, HANDOFF-LOG (85), `build/package`): the field atlas (4 BC7
   pages with R5's rig layers), the 12 floors, 53 sounds (28.9 MB of OGG; the music looping SoundWaves), the fonts, the
   generated materials and the procedural meshes (the ProceduralMeshComponent plugin is enabled for the game target). All under

@@ -9,6 +9,98 @@ in whichever file holds it.
 
 ---
 
+## 2026-11-23 (136) - Phase 7: every language in the package (`packaged_languages.py`); the ICU preset fixed
+
+**Where the project is.** On (135) (uncommitted; (134) committed and pushed, `0b5b17a`). The designer: "Do Packaged
+language check": (135)'s second choice, with the word to package. This entry's work is uncommitted, like (135)'s.
+
+**What happened** (`docs/WORKLIST-LOC-2026-11-18.md` §2h).
+- **The check, `py tools/packaged_languages.py`** (L5): `paw.Languages` (`Source/Pawpocalypse/Dev/PawLanguages.cpp`, new,
+  development builds only) in the packaged Development build, on the title, `-NoSave`, twice. Run 1: started with
+  `-culture=ru`, the start language applied and shown. Run 2: the title's language list opened and every language picked
+  in it as a player picks it: offered (every culture with a translation file), complete, current in the engine, every line
+  of the three string tables showing its translation (851), every character in the face `F_Paw` picks for it, and Thai /
+  Japanese / Chinese breaking a line inside their words. A screenshot per language; `build/loc/package/sheet.png`.
+- **Found: the package could show 18 of the 23 languages.** The project had no ICU setting, so the engine's default
+  `InternationalizationPreset=English` staged English ICU data alone. zh-Hans, zh-Hant, pt-BR, pt-PT and es-419 were
+  refused by the engine: picked, the row was ticked and every word stayed in the language before (748-823 lines each).
+  Thai never wrapped inside a sentence (no break dictionary: 0 breaks in its longest line). The editor has the engine's
+  full ICU data, so no editor test could see either.
+- **Fixed**: `InternationalizationPreset=All` in `Config/DefaultGame.ini` (the only preset with Russian, Polish and Thai; ~23
+  MB more on disk, ICU 64: 27 MB against 4.2). `UPawSettingsSubsystem::ApplyLanguage` now logs a culture the engine refuses.
+  `CulturesToStage` stays `en` (polyglot text, no `.locres`: not needed, measured).
+- **L0 `packaging`** (new, in `check_pawcore_static.py`, everyday): the ini keeps the preset and the staged Localization folder,
+  so neither can go back between packages; its self-test plants three faults.
+- Knowledge base: U/20 §5 (the presets measured in a package, the packaged test's method) and a dated note under §3's
+  `[Docs]` packaging line; a U/24 row; the symptom index and both indexes.
+
+**Proof.** The English-preset package: FAIL (the five cultures refused, Thai 0 breaks;
+`build/packaged_languages_20261123_before.log`). With `All`: PASS, 23 languages (Thai 35 breaks, Chinese 8, Japanese 13; 0
+characters without a glyph; `_after.log`). A package made with two planted faults (`safe_mutate`, files restored): a
+character no face has in a German line (U+0F00) CAUGHT, an emptied French line CAUGHT (French not offered), the other 21
+still ok. Then a clean package again: PASS, 23 languages (`_final.log`; `build/package` is this one). L0 self-test: 24 plants CAUGHT (the three `packaging` ones among them), the real sources PASS. `check_all` (everyday) exit 0, every gate PASS (`build/check_all_20261123_pkglang136.log`; L0 `packaging` PASS).
+
+### Open
+- Seen and approved: the title and its language list in every language, from the package (`build/loc/package/sheet.png`).
+  The designer, 2026-11-23: "The text is good."
+- The native reads (review sheets); the designer's eye on the shrunk headlines (the Reawaken ceremony's, the victory's, the
+  controls table's column heads: not in that sheet); the store page's Dutch and Danish.
+- Not packaged: Shipping (the ICU data is staged the same way). The package in `build/package` (git-ignored) is today's.
+- From (135): toasts, the Unicorn ceremony's painted words and screens not built yet are not in `Language.Switch`.
+
+### Next step
+The native reads' review sheets (one per language: every line, the English beside it, a fix column `--apply` takes back;
+needs no decision). Done is `check_all` exit 0.
+
+## 2026-11-23 (135) - Phase 7: a language changed while a screen is up (`Language.Switch`); the Settings lists follow
+
+**Where the project is.** On (134) (committed and pushed, `0b5b17a`). The designer: "read handoff. what's next?", then
+"do option 3": (134)'s third choice, the string-built text check. This entry's work is uncommitted.
+
+**What happened** (`docs/WORKLIST-LOC-2026-11-18.md` §2g).
+- **The test, `Pawpocalypse.UI.Language.Switch`** (everyday, in `Pawpocalypse.UI`, ~2 min). The language pass's tour of
+  every screen (`TourScreens` in `PawLayoutTests.cpp`, now with hooks; `Layout.Languages` and `.PseudoLocale` unchanged),
+  plus the HUD in a boss fight, three times with the same steps: built in English and switched to German at each screen
+  and back; built in German and switched to English and back; built in English with German chosen before the first
+  screen. Every look must hold the words of the same screen built fresh in its language, as a multiset: the text of every
+  laid-out Slate text block and rich text, in view or not, and every tooltip (`PawLayout::ArrangeWords`, new). The switch
+  is the game's: the culture, then `UPawSettingsSubsystem::SetLanguage` (OnChanged). Differences go to
+  `Saved/Layout/language_switch.txt`.
+- **Found: the Settings dialog's lists.** Combo boxes hold strings, so Language ("System"), Quality, Max FPS
+  ("Unlimited"), Prompts, Dock side and Output ("Follow the system") kept the old language after a change made outside the
+  dialog. A player could not see it (only the dialog's own Language list changes the language while it is up, and its
+  pick refilled every list), but the dialog now hears the change as Godot's lists hear `language_changed`:
+  `UPawSettingsDialog::OnSettingsChanged` fills every list again when the language setting or the language shown changed
+  (a slider's change leaves them alone); `PickLanguage` no longer fills them itself.
+- **Everything else already followed**: the title (every layer, the language list), every dock page, the card pick, the
+  tree and its tooltips, the spend step, pause, the three settings pages and the Controls panel, the ceremony, the job
+  picker, the victory screen, the boss panel. String-table, formatted and joined text follows by itself; prompt lines
+  remake their markup on the settings' change.
+- **The test's own blind spots, found on its first runs and closed**: UMG text widgets alone missed the combo boxes (now
+  the Slate tree); parts in view alone gave 1,100 false differences on the tree (its map pans as it ticks); "the longest
+  tooltips in this language" picked other nodes per language (fixed nodes when hooked).
+- Knowledge base: U/20 §4 (what follows a culture change by itself, `UComboBoxString`, the test method), a U/24 row, the
+  symptom index and both indexes.
+
+**Proof.** `Language.Switch` PASS (it failed first on the six lists, as above). Sabotages `switch_*` all CAUGHT: the
+dialog deaf to the change, a prompt line deaf to it, a tree caption made a string, every `ST_UI` line made a string. Two
+first candidates MISSED and were replaced, neither a hole: the title's own handler (its words follow without it: the hint
+is a prompt line, the status line string-table text; its plate and tick are `Title.Language`'s, which catches
+`title_language_words_not_remade`), and a dock page title's `SetText` (it runs only at the bake: the asset holds the
+line). `Pawpocalypse.UI.Settings` 10 PASS. `check_all` (everyday) exit 0, every gate PASS
+(`build/check_all_20261123_switch135.log`; `Pawpocalypse.UI` 109 tests).
+
+### Open
+- (134)'s list stands, less this item: the native reads (review sheets), the packaged check of the shipped languages
+  (needs the word to package), the designer's eye on the shrunk headlines and the language list, the store page's Dutch
+  and Danish.
+- Not covered by the test: toasts (made per event), the Unicorn ceremony's painted words (read from the string table on
+  every paint), screens not built yet (the Reawaken banner, the tutorial).
+
+### Next step
+The designer's call: the native reads' review sheets (needs no decision), or the packaged language check (needs the word
+to package). Done is `check_all` exit 0.
+
 ## 2026-11-21 (134) - Handoff: phase 7 where (133) left it; what is uncommitted; the choices waiting
 
 **Where the project is.** Committed and pushed through (128) (`56a5a4e`). (129)-(133) are uncommitted: the title's

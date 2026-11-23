@@ -6,6 +6,8 @@
 #include "Framework/Application/SlateApplication.h"
 #include "GenericPlatform/GenericApplication.h"
 #include "HAL/IConsoleManager.h"
+#include "Internationalization/Culture.h"
+#include "Internationalization/Internationalization.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "HAL/PlatformMisc.h"
@@ -227,7 +229,13 @@ void UPawSettingsSubsystem::ApplyLanguage()
 	Language.bToEngine = !GIsEditor;
 	if (Language.bToEngine)
 	{
-		PawText::ShowCulture(Language.Culture);
+		// A culture ICU has no data for is refused and the words stay as they were (a package staged without the
+		// language's ICU data: InternationalizationPreset, docs/10 §1; paw.Languages checks every one in the package).
+		if (!PawText::ShowCulture(Language.Culture))
+		{
+			UE_LOG(LogPaw, Error, TEXT("Settings: the engine has no culture '%s' (its ICU data not staged?); the words stay in '%s'"),
+				*Language.Culture, *FInternationalization::Get().GetCurrentLanguage()->GetName());
+		}
 		UE_LOG(LogPaw, Log, TEXT("Settings: language %s (%s)"), *Language.Code, *Language.Culture);
 	}
 }

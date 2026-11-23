@@ -56,6 +56,16 @@ namespace PawLayout
 	// The same for a bare widget tree, no user widget around it (the detector's own test: UUserWidget is abstract).
 	TArray<FPart> ArrangeTree(UWidgetTree* Tree, FVector2D Screen, float Scale, int32 Frames = 2);
 
+	// What a laid-out screen says (phase 7, 2026-11-23: Pawpocalypse.UI.Language.Switch): every Slate text block and rich
+	// text the layout reaches, in view or not, whether a UMG part owns it or not (a combo box's choice, a keycap drawn in
+	// Slate), and every UMG part's tooltip. Path: the text's own part, else its nearest named part's path and its Slate type.
+	struct FWords
+	{
+		FString Path;
+		FString Words;
+	};
+	TArray<FWords> ArrangeWords(UUserWidget* Widget, FVector2D Screen, float Scale, int32 Frames = 2);
+
 	const FPart* Find(const TArray<FPart>& Parts, const FString& Path);
 	// Every listed part whose path starts with Prefix.
 	TArray<const FPart*> FindAll(const TArray<FPart>& Parts, const FString& Prefix);

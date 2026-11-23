@@ -324,8 +324,10 @@ languages' rules (`PcLocales`, fixture `locales`), Settings > Language and the t
 only), `loc_status --apply`, **all 22 translations complete** (837 lines each; drafts until a native read; ICU plurals
 not needed: a count follows a colon in cs/pl/ru/uk), **the language pass** ((131): every screen with words in every
 language and the pseudo-locale at 1280x800 and 150% UI, no text past its box: `Pawpocalypse.UI.Layout.Languages`,
-`.PseudoLocale`, everyday). To do: a native read per language, a packaging gate for the shipped languages, the store
-page's Dutch and Danish.
+`.PseudoLocale`, everyday); **a language changed while a screen is up** ((135): every screen's words follow, the Settings
+dialog's lists made to; `Pawpocalypse.UI.Language.Switch`, everyday); **every language in the package** ((136):
+`tools/packaged_languages.py`, L5; the engine's English ICU preset refused 5 languages and left Thai unwrapped, now
+`InternationalizationPreset=All`: 23 languages PASS). To do: a native read per language, the store page's Dutch and Danish.
 
 ## Phase 8 - hardening and packaging
 

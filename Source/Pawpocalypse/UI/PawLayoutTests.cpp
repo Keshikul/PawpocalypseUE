@@ -40,6 +40,7 @@
 #include "Blueprint/WidgetTree.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Components/RichTextBlock.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Components/TextWidgetTypes.h"
@@ -538,8 +539,16 @@ namespace
 		W.Disk->Put(UPawSaveSubsystem::SlotName(Slot), TArray<uint8>(reinterpret_cast<const uint8*>(File.data()), static_cast<int32>(File.size())));
 	}
 
-	// Every screen with words, in the language shown now.
-	void TourScreens(FAutomationTestBase& T, const FString& Culture, FMisses& M)
+	// What a tour does besides its own checks (Pawpocalypse.UI.Language.Switch): Opened, once the game and the HUD are up
+	// (before the first screen); Screen, at every screen in place of the fit check (a screen that did not open: nullptr).
+	struct FTourHooks
+	{
+		TFunction<void(FLayoutWorld&)> Opened;
+		TFunction<void(FLayoutWorld&, UUserWidget*, const FString&)> Screen;
+	};
+
+	// Every screen with words, in the language shown now. Without hooks, each one's texts are held to their boxes (M).
+	void TourScreens(FAutomationTestBase& T, const FString& Culture, FMisses& M, const FTourHooks* Hooks = nullptr)
 	{
 		FLayoutWorld W;
 		if (!W.Open(T))
@@ -547,6 +556,21 @@ namespace
 			W.Close();
 			return;
 		}
+		if (Hooks && Hooks->Opened)
+		{
+			Hooks->Opened(W);
+		}
+		auto Visit = [&](UUserWidget* Shown, const FString& Screen)
+		{
+			if (Hooks && Hooks->Screen)
+			{
+				Hooks->Screen(W, Shown, Screen);
+			}
+			else
+			{
+				M.Check(Shown, Culture, Screen);
+			}
+		};
 		const Pc::PcGameData& D = W.Game->Data();
 		Pc::PcProgress& P = W.Game->Progress();
 
@@ -557,31 +581,31 @@ namespace
 		if (UPawMainMenu* Menu = CreateWidget<UPawMainMenu>(W.GI, PawUi::Resolve<UPawMainMenu>()))
 		{
 			Menu->Refresh();
-			M.Check(Menu, Culture, TEXT("title"));
+			Visit(Menu, TEXT("title"));
 			Menu->PressCluster(2);
-			M.Check(Menu, Culture, TEXT("title, language list"));
+			Visit(Menu, TEXT("title, language list"));
 			Menu->CloseLanguageMenu();
 			Menu->PressLoad();
-			M.Check(Menu, Culture, TEXT("title, slots"));
+			Visit(Menu, TEXT("title, slots"));
 			Menu->PressDelete(0);
-			M.Check(Menu, Culture, TEXT("title, delete prompt"));
+			Visit(Menu, TEXT("title, delete prompt"));
 			Menu->PressConfirmNo();
 			Menu->PressSlotsBack();
 			Menu->PressLeaderboard();
-			M.Check(Menu, Culture, TEXT("title, leaderboard"));
+			Visit(Menu, TEXT("title, leaderboard"));
 			Menu->PressClose();
 			Menu->PressCredits();
-			M.Check(Menu, Culture, TEXT("title, credits"));
+			Visit(Menu, TEXT("title, credits"));
 			Menu->PressClose();
 			Menu->PressExit();
-			M.Check(Menu, Culture, TEXT("title, quit prompt"));
+			Visit(Menu, TEXT("title, quit prompt"));
 			Menu->PressConfirmNo();
 		}
 
 		// The dock, fresh (the kitten rows locked), then with a run under way: every page.
 		W.Hud->SelectTab(Pc::PcDockTab::Upgrades);
 		W.Hud->RefreshNow();
-		M.Check(W.Hud, Culture, TEXT("dock, upgrades (new game)"));
+		Visit(W.Hud, TEXT("dock, upgrades (new game)"));
 		Pc::CheatUnlockAllTiers(D, P);
 		P.Catnip = 1e12; // a run worth Reawakening (the flow tests' amount): the Reawaken below reaches the spend step
 		P.LifetimeCatnipEver = 1e12;
@@ -615,7 +639,7 @@ namespace
 		{
 			W.Hud->SelectTab(Tabs[I]);
 			W.Hud->RefreshNow();
-			M.Check(W.Hud, Culture, FString::Printf(TEXT("dock, %s"), TabNames[I]));
+			Visit(W.Hud, FString::Printf(TEXT("dock, %s"), TabNames[I]));
 		}
 		W.Hud->SelectTab(Pc::PcDockTab::Upgrades);
 
@@ -630,7 +654,7 @@ namespace
 			P.Hand = Hand;
 			P.CatchesLevel = 4;
 			W.Hud->Pump(0.0);
-			M.Check(W.Hud->GetCardPick(), Culture, FString::Printf(TEXT("card pick, %s"), UTF8_TO_TCHAR(Hand.front().c_str())));
+			Visit(W.Hud->GetCardPick(), FString::Printf(TEXT("card pick, %s"), UTF8_TO_TCHAR(Hand.front().c_str())));
 		}
 		// Out of the pick the player's way (a take closes it): left open, it holds back the Reawaken's spend step below.
 		for (int32 I = 0; I < 10 && W.Hud->IsCardPickUp(); ++I)
@@ -663,18 +687,26 @@ namespace
 				}
 				Longest.Add({ Len, UTF8_TO_TCHAR(Id.c_str()) });
 			}
-			Longest.Sort([](const TPair<int32, FString>& A, const TPair<int32, FString>& B) { return A.Key > B.Key; });
-			M.Check(Tree, Culture, TEXT("tree"));
+			if (Hooks)
+			{
+				// The same nodes in every language: the switch test compares a screen in one language with it in another.
+				Longest.Sort([](const TPair<int32, FString>& A, const TPair<int32, FString>& B) { return A.Value < B.Value; });
+			}
+			else
+			{
+				Longest.Sort([](const TPair<int32, FString>& A, const TPair<int32, FString>& B) { return A.Key > B.Key; });
+			}
+			Visit(Tree, TEXT("tree"));
 			for (int32 I = 0; I < FMath::Min(4, Longest.Num()); ++I)
 			{
 				Tree->NodeFocused(Longest[I].Value);
-				M.Check(Tree, Culture, FString::Printf(TEXT("tree, tip %s"), *Longest[I].Value));
+				Visit(Tree, FString::Printf(TEXT("tree, tip %s"), *Longest[I].Value));
 			}
 			Tree->PressClose();
 		}
 		else
 		{
-			M.Check(nullptr, Culture, TEXT("tree"));
+			Visit(nullptr, TEXT("tree"));
 		}
 
 		// The pause menu: its page, the armed main menu, the slots page. A frame on: the tree held the field this one.
@@ -683,17 +715,17 @@ namespace
 		if (W.Hud->OpenPauseMenu())
 		{
 			UPawPauseMenu* Pause = W.Hud->GetPauseMenu();
-			M.Check(Pause, Culture, TEXT("pause"));
+			Visit(Pause, TEXT("pause"));
 			Pause->PressMainMenu();
-			M.Check(Pause, Culture, TEXT("pause, armed"));
+			Visit(Pause, TEXT("pause, armed"));
 			Pause->PressSave();
-			M.Check(Pause, Culture, TEXT("pause, slots"));
+			Visit(Pause, TEXT("pause, slots"));
 			Pause->PressSlotsBack();
 			Pause->PressContinue();
 		}
 		else
 		{
-			M.Check(nullptr, Culture, TEXT("pause"));
+			Visit(nullptr, TEXT("pause"));
 		}
 
 		// Settings: each section.
@@ -704,7 +736,7 @@ namespace
 			for (int32 I = 0; I < 3; ++I)
 			{
 				S->PressSection(Sections[I]);
-				M.Check(S, Culture, FString::Printf(TEXT("settings, %s"), SectionNames[I]));
+				Visit(S, FString::Printf(TEXT("settings, %s"), SectionNames[I]));
 			}
 			S->PressClose();
 		}
@@ -721,7 +753,7 @@ namespace
 		{
 			W.Hud->Pump(1.0 / 60.0);
 		}
-		M.Check(W.Hud->GetCeremony(), Culture, TEXT("ceremony"));
+		Visit(W.Hud->GetCeremony(), TEXT("ceremony"));
 		for (int32 I = 0; I < 400 && W.Hud->GetCeremony() && W.Hud->GetCeremony()->IsPlaying(); ++I)
 		{
 			W.Hud->Pump(1.0 / 60.0);
@@ -729,12 +761,12 @@ namespace
 		W.Hud->Pump(1.0 / 60.0);
 		if (UPawSkillTreeScreen* Tree = W.Hud->GetSkillTree(); Tree && Tree->IsActivated() && Tree->IsSpendMode())
 		{
-			M.Check(Tree, Culture, TEXT("spend step"));
+			Visit(Tree, TEXT("spend step"));
 			Tree->PressClose();
-			M.Check(Tree, Culture, TEXT("spend step, armed"));
+			Visit(Tree, TEXT("spend step, armed"));
 			Tree->PressClose();
 			W.Hud->Pump(1.0 / 60.0);
-			M.Check(W.Hud->GetJobPicker(), Culture, TEXT("job picker"));
+			Visit(W.Hud->GetJobPicker(), TEXT("job picker"));
 		}
 		else
 		{
@@ -748,7 +780,7 @@ namespace
 
 		// The ending.
 		W.Hud->ShowVictory(5025.0);
-		M.Check(W.Hud->GetVictory(), Culture, TEXT("victory"));
+		Visit(W.Hud->GetVictory(), TEXT("victory"));
 		W.Close();
 	}
 
@@ -890,6 +922,233 @@ bool FPawLayoutTextMissesTest::RunTest(const FString& Parameters)
 		Why(TEXT("Clipped")).StartsWith(TEXT("cut sideways")));
 	TestTrue(TEXT("a text that fits passes (") + Why(TEXT("Fits")) + TEXT(")"), Why(TEXT("Fits")).IsEmpty());
 	TestEqual(TEXT("nothing else is seen"), Misses.Num(), 2);
+	return true;
+}
+
+// Pawpocalypse.UI.Language.Switch: the language changed while a screen is up (phase 7, 2026-11-23). Godot rebuilds every
+// code-built string on SettingsManager.language_changed (hud.gd, skill_tree_ui.gd, main_menu.gd, settings_dialog.gd,
+// controls_panel.gd, prompt_label.gd); string-table text follows a culture change by itself here, words a screen turned into
+// a plain string do not. The tour three times, the same steps each time; at every screen the language is changed to the
+// other one and back, as the game changes it (the culture shown, then the setting saved and announced, OnChanged):
+//   fresh en   built in English; at each screen: English, German live, English again
+//   fresh de   built in German; at each screen: German, English live, German again
+//   late de    built in English, German chosen once the HUD is up (before the first screen), then as fresh de
+// The tour's screens, then the HUD in a boss fight (its own short tour). Every look must say what the screen built fresh in
+// its language says (fresh en's and fresh de's first looks): the words of every laid-out Slate text (a combo box's choice
+// too) and every tooltip, in view or not, compared as a multiset (a list rebuilt on the change names its rows anew).
+// Writes Saved/Layout/language_switch.txt. Sabotages: tools/sabotage_realm.py `switch_*`.
+
+namespace
+{
+	struct FSwitchLook
+	{
+		FString Run;
+		FString Screen;
+		FString Step;
+		FString Culture;
+		TArray<TPair<FString, FString>> Words; // the part's path, what it says
+	};
+
+	// Every laid-out text's words, in view or not (the tree's map pans as it ticks: what it scrolls past is still the screen's
+	// text), UMG's or Slate's own (a combo box's choice), and the tooltips.
+	TArray<TPair<FString, FString>> ShownWords(UUserWidget* W)
+	{
+		TArray<TPair<FString, FString>> Out;
+		for (const PawLayout::FWords& Words : PawLayout::ArrangeWords(W, Tight.Screen, Tight.Scale()))
+		{
+			Out.Add({ Words.Path, Words.Words });
+		}
+		return Out;
+	}
+
+	// As the game changes it: UPawSettingsSubsystem::SetLanguage shows the culture (never in the editor: the test shows it,
+	// as Title.Language does), saves the setting and broadcasts OnChanged. English and German: Godot's code is the culture.
+	void ShowLanguage(FLayoutWorld& W, const FString& Code)
+	{
+		PawText::ShowCulture(Code);
+		W.Settings->SetLanguage(Code);
+	}
+
+	// The HUD in a boss fight (the boss panel; not on the language pass's tour), raised as Layout.Boss raises it.
+	void TourBoss(FAutomationTestBase& T, const FTourHooks& Hooks)
+	{
+		FLayoutWorld W;
+		if (!W.Open(T))
+		{
+			W.Close();
+			return;
+		}
+		if (Hooks.Opened)
+		{
+			Hooks.Opened(W);
+		}
+		const Pc::PcGameData& D = W.Game->Data();
+		Pc::PcProgress& P = W.Game->Progress();
+		const int32 BossIndex = static_cast<int32>(Pc::RealmIndex(D, D.Code.BossRealms.front()));
+		const Pc::PcBoss* Boss = D.FindBoss(D.Tiers[static_cast<size_t>(BossIndex)].BossData);
+		Pc::CheatUnlockAllTiers(D, P);
+		bool bUp = Boss && W.Realm->Travel(BossIndex);
+		if (bUp)
+		{
+			P.BaitKillsByBiome[P.CurrentBiomeId] += Pc::BaitShortfall(D, P, *Boss) * Boss->KillsPerBait;
+			P.Catnip = 1e15;
+			bUp = W.Realm->SummonBoss();
+			W.Realm->AdvanceFrame(FPawRealmSim::Step);
+			W.Hud->Pump(1.0);
+		}
+		Hooks.Screen(W, bUp && W.Hud->IsBossPanelVisible() ? W.Hud : nullptr, TEXT("boss fight"));
+		W.Close();
+	}
+
+	TMap<FString, int32> Counted(const TArray<TPair<FString, FString>>& Words)
+	{
+		TMap<FString, int32> Out;
+		for (const TPair<FString, FString>& P : Words)
+		{
+			++Out.FindOrAdd(P.Value);
+		}
+		return Out;
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawLanguageSwitchTest, "Pawpocalypse.UI.Language.Switch", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawLanguageSwitchTest::RunTest(const FString& Parameters)
+{
+	PawText::RegisterTables();
+	PawText::RegisterTranslations();
+	const FCultureShown Restore;
+	TestTrue(TEXT("German is complete (offered to players)"), PawText::Languages(false).Contains(TEXT("de")));
+
+	TArray<FSwitchLook> Looks;
+	TArray<FString> Fails;
+	struct FRun
+	{
+		const TCHAR* Name;
+		const TCHAR* Built;  // the language the game starts in
+		const TCHAR* Chosen; // the language chosen once the HUD is up
+		const TCHAR* Other;  // the one each screen is switched to and back from
+	};
+	const FRun Runs[] = {
+		{ TEXT("fresh en"), TEXT("en"), TEXT("en"), TEXT("de") },
+		{ TEXT("fresh de"), TEXT("de"), TEXT("de"), TEXT("en") },
+		{ TEXT("late de"), TEXT("en"), TEXT("de"), TEXT("en") },
+	};
+	for (const FRun& Run : Runs)
+	{
+		PawText::ShowCulture(Run.Built);
+		FTourHooks Hooks;
+		Hooks.Opened = [&Run](FLayoutWorld& W) { ShowLanguage(W, Run.Chosen); };
+		Hooks.Screen = [&](FLayoutWorld& W, UUserWidget* Shown, const FString& Screen)
+		{
+			if (!Shown)
+			{
+				Fails.Add(FString::Printf(TEXT("%s\t%s\tthe screen did not open"), Run.Name, *Screen));
+				return;
+			}
+			Looks.Add({ Run.Name, Screen, TEXT("first"), Run.Chosen, ShownWords(Shown) });
+			ShowLanguage(W, Run.Other);
+			Looks.Add({ Run.Name, Screen, TEXT("switched"), Run.Other, ShownWords(Shown) });
+			ShowLanguage(W, Run.Chosen);
+			Looks.Add({ Run.Name, Screen, TEXT("back"), Run.Chosen, ShownWords(Shown) });
+		};
+		FMisses M;
+		TourScreens(*this, Run.Name, M, &Hooks);
+		TourBoss(*this, Hooks);
+		for (const FString& Line : M.Lines)
+		{
+			Fails.Add(FString::Printf(TEXT("%s\t%s"), Run.Name, *Line));
+		}
+	}
+
+	// The references: each screen built fresh in each language, its first look.
+	TMap<FString, const FSwitchLook*> Fresh;
+	TArray<FString> Screens;
+	for (const FSwitchLook& L : Looks)
+	{
+		if (L.Step == TEXT("first") && L.Run == TEXT("fresh ") + L.Culture)
+		{
+			Fresh.Add(L.Culture + TEXT("|") + L.Screen, &L);
+			if (L.Culture == TEXT("en"))
+			{
+				Screens.Add(L.Screen);
+			}
+		}
+	}
+	TestTrue(FString::Printf(TEXT("the tour saw the screens (%d)"), Screens.Num()), Screens.Num() >= 20);
+
+	// Not a pass by seeing nothing: every screen has words, and German ones.
+	int32 Compared = 0;
+	for (const FString& Screen : Screens)
+	{
+		const FSwitchLook* const* En = Fresh.Find(TEXT("en|") + Screen);
+		const FSwitchLook* const* De = Fresh.Find(TEXT("de|") + Screen);
+		if (!TestTrue(FString::Printf(TEXT("%s: built in both languages"), *Screen), En && De))
+		{
+			continue;
+		}
+		TestTrue(FString::Printf(TEXT("%s: has words"), *Screen), (*En)->Words.Num() > 0);
+		TestFalse(FString::Printf(TEXT("%s: says something else in German"), *Screen), Counted((*En)->Words).OrderIndependentCompareEqual(Counted((*De)->Words)));
+	}
+
+	// Every look against the screen built fresh in its language.
+	TArray<FString> Lines;
+	for (const FSwitchLook& L : Looks)
+	{
+		const FSwitchLook* const* Ref = Fresh.Find(L.Culture + TEXT("|") + L.Screen);
+		if (!Ref || *Ref == &L)
+		{
+			if (!Ref)
+			{
+				Lines.Add(FString::Printf(TEXT("%s\t%s\t%s\t%s\t-\tno screen built fresh in %s to compare with"), *L.Run, *L.Screen, *L.Step, *L.Culture, *L.Culture));
+			}
+			continue;
+		}
+		++Compared;
+		TMap<FString, int32> Want = Counted((*Ref)->Words);
+		TMap<FString, int32> Seen = Counted(L.Words);
+		for (const TPair<FString, FString>& P : L.Words)
+		{
+			int32* Left = Want.Find(P.Value);
+			if (Left && *Left > 0)
+			{
+				--*Left;
+			}
+			else
+			{
+				Lines.Add(FString::Printf(TEXT("%s\t%s\t%s\t%s\t%s\tshows \"%s\""), *L.Run, *L.Screen, *L.Step, *L.Culture, *P.Key,
+					*P.Value.Replace(TEXT("\n"), TEXT("\\n"))));
+			}
+		}
+		for (const TPair<FString, FString>& P : (*Ref)->Words)
+		{
+			int32* Has = Seen.Find(P.Value);
+			if (Has && *Has > 0)
+			{
+				--*Has;
+			}
+			else
+			{
+				Lines.Add(FString::Printf(TEXT("%s\t%s\t%s\t%s\t%s\tlacks \"%s\" (built fresh)"), *L.Run, *L.Screen, *L.Step, *L.Culture, *P.Key,
+					*P.Value.Replace(TEXT("\n"), TEXT("\\n"))));
+			}
+		}
+	}
+	TestTrue(FString::Printf(TEXT("looks compared (%d)"), Compared), Compared >= 5 * Screens.Num());
+
+	const FString File = FPaths::ProjectSavedDir() / TEXT("Layout") / TEXT("language_switch.txt");
+	FFileHelper::SaveStringToFile(TEXT("run\tscreen\tstep\tculture\tpart\twhat\n") + FString::Join(Fails, TEXT("\n")) + (Fails.IsEmpty() ? TEXT("") : TEXT("\n"))
+		+ FString::Join(Lines, TEXT("\n")) + TEXT("\n"), *File, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
+	for (int32 I = 0; I < FMath::Min(10, Fails.Num()); ++I)
+	{
+		AddError(Fails[I]);
+	}
+	for (int32 I = 0; I < FMath::Min(25, Lines.Num()); ++I)
+	{
+		AddError(Lines[I]);
+	}
+	TestEqual(TEXT("screens that did not open"), Fails.Num(), 0);
+	TestEqual(TEXT("words that did not follow the language (Saved/Layout/language_switch.txt)"), Lines.Num(), 0);
 	return true;
 }
 

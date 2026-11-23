@@ -94,7 +94,11 @@ The full plan with session prompts is [11-roadmap.md](11-roadmap.md).
   HANDOFF-LOG (130)); the language pass: no text past its box in any language or the pseudo-locale at 1280 x 800 and
   150 % UI (`Pawpocalypse.UI.Layout.Languages`, `.PseudoLocale`; HANDOFF-LOG (131)); the wording review (122 lines fixed,
   F55, the `loc_lint` gate; HANDOFF-LOG (132)); every line read for meaning (96 more fixed, F56; HANDOFF-LOG (133)).
-  Next: the native reads, a packaging gate for the shipped languages.
+  **2026-11-23**: a language changed while a screen is up: every screen's words follow it, the Settings dialog's lists
+  made to (`Pawpocalypse.UI.Language.Switch`, everyday; HANDOFF-LOG (135)). Every language in a package
+  (`py tools/packaged_languages.py`): the engine's English ICU data refused zh-Hans, zh-Hant, pt-BR, pt-PT and es-419 and
+  left Thai unwrapped; `InternationalizationPreset=All` now, all 23 PASS in the package (HANDOFF-LOG (136)).
+  Next: the native reads.
 
 **The Sticker Box restyle (D18, 2026-11-17).** The designer replaced the plum look: every enemy and boss (Bestiary) and
 every UI screen (UI Screens) were drawn as concepts and approved before any Unreal change. The plan, the look spec and the
@@ -126,7 +130,7 @@ status; doc 09 §7 the gates as they are today.
 | 5 Pad and keyboard | **Work done** 2026-11-05 (42)-(49): Godot's input map as data, every screen on it, devices, glyphs and prompts, remapping and the Controls page, keys by position on any layout, the dock's held keys, the paw cursors, the pad-only playthrough. Waiting for the designer: hand-checks on real pads and a real AZERTY keyboard |
 | 6 Presentation | Slices 1-5d and 6a **done** 2026-11-05/07 (50)-(63): the field's art and atlas, the backdrops, the effects, the sound, the chrome, the icons, the motion, the rainbows and the tree's sky, the Unicorn ceremony. **The restyle (D14) runs before 6b-6d** (the Reawaken banner, Boba, the tutorial: `WORKLIST-SLICE6-2026-11-07.md`) |
 | The restyle (D14) | `WORKLIST-RESTYLE-2026-11-07.md`. **R0-R4 done** (65)-(70): the port's own palette (`tools/art/palette.py`), Plum ink, M PLUS Rounded 1c (`F_Paw`), plum chrome with Deep Plum edges and one solid shadow, Butter focus, the 16 px text floor, every screen fits at 150 % UI; the plain text (D15) (71)-(72). **R5 drawn** (73)-(90): D3 (aura, strike paw, crits), the look lint (everyday), the faces, the anatomy pass with one colour per character, the rig (moving wings and legs), the props. Waiting: the bosses, the imp, the rig's motion, the cat's pale coats, the draw-call budget (doc 01 Q11). R6, R7 to come |
-| 7 Localisation | **Started** 2026-11-19 (125): Godot's 20 translations carried over (`port_po.py`, `loc_status.py`); 2026-11-20 (128)-(130): loaded at run time, the languages' rules (`PcLocales`), Settings > Language, the title's language list, `--apply`, all 22 translations complete (drafts); (131): the language pass; (132), (133): the wording review and every line read (218 lines fixed, F55, F56, the `loc_lint` gate); (134): the handoff. Next: native reads, a packaging gate for the shipped languages (`docs/WORKLIST-LOC-2026-11-18.md`). The fonts were done early in R2 |
+| 7 Localisation | **Started** 2026-11-19 (125): Godot's 20 translations carried over (`port_po.py`, `loc_status.py`); 2026-11-20 (128)-(130): loaded at run time, the languages' rules (`PcLocales`), Settings > Language, the title's language list, `--apply`, all 22 translations complete (drafts); (131): the language pass; (132), (133): the wording review and every line read (218 lines fixed, F55, F56, the `loc_lint` gate); (134): the handoff; (135): a language changed while a screen is up (`Language.Switch`); (136): every language in the package (`packaged_languages.py`; the ICU preset fixed). Next: native reads (`docs/WORKLIST-LOC-2026-11-18.md`). The fonts were done early in R2 |
 | 8-9 | Hardening and packaging, parity sign-off: not started |
 
 - **Git**: committed and pushed through HANDOFF-LOG (134) (2026-11-21, at the designer's request: the title's language

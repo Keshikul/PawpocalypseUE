@@ -2756,6 +2756,27 @@ SABOTAGES = [
      '\t\tBlurb->SetWrapTextAt(CardInner - 4.0f);\n',
      '\t\tBlurb->SetWrapTextAt(CardInner);\n',
      'Pawpocalypse.UI.Layout.Languages'),
+    # Phase 7 (2026-11-23): the language changed while a screen is up (Godot: language_changed rebuilds every code-built
+    # string). Every screen of the tour must say what it says built fresh in the new language.
+    ('switch_dialog_deaf', SETDLG,  # the dialog's lists (strings in a combo box) filled again on a language change
+     '\tif (IsActivated() && LanguageKey() != ShownLanguage)\n',
+     '\tif (false && IsActivated() && LanguageKey() != ShownLanguage)\n',
+     'Pawpocalypse.UI.Language.Switch'),
+    ('switch_prompts_deaf', PROMPTS,  # a prompt line (its template made a string with glyph markup) made again
+     '\t\t\tSettingsHandle = D->OnControlsChanged.AddWeakLambda(Widget, [Widget]() { Widget->Refresh(); });\n',
+     '\t\t\t(void)SettingsHandle;\n',
+     'Pawpocalypse.UI.Language.Switch'),
+    # (The title's own handler is held by Title.Language, title_language_words_not_remade: with it off the title's words
+    # still follow, its hint being a prompt line and its status line string-table text; what it alone remakes is the
+    # language list's plate and tick, not words. A dock page title's SetText runs only at the bake: the asset holds it.)
+    ('switch_tree_caption_frozen', TREE,  # a node's caption made a string when the tree is built (how a port loses it)
+     '\t\tCap->SetText(PawText::TreeLabel(Utf8(Id)));\n',
+     '\t\tCap->SetText(PawText::Verbatim(PawText::TreeLabel(Utf8(Id)).ToString()));\n',
+     'Pawpocalypse.UI.Language.Switch'),
+    ('switch_every_line_frozen', TEXTS,  # every ST_UI line made a string: only what a screen rebuilds follows
+     '\t\treturn FText::FromStringTable(TableUi, Key);\n',
+     '\t\treturn Verbatim(FText::FromStringTable(TableUi, Key).ToString());\n',
+     'Pawpocalypse.UI.Language.Switch'),
 ]
 
 

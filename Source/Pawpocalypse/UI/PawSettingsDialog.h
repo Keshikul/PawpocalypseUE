@@ -21,6 +21,9 @@
 // name, "(draft)" in its own words until reviewed (PawText::Languages, LanguageLabel). Picking one saves it and shows it
 // at once (UPawSettingsSubsystem::SetLanguage); every list is filled again in the new language. A click's pick waits one
 // tick: the list is refilled from outside its own selection callback.
+// The lists hold their words as strings (a combo box's options), so they follow a language only when filled again: while
+// the dialog is up it hears every settings change (OnChanged) and fills them again when the language changed, whoever
+// changed it (Godot: its lists hear SettingsManager.language_changed). Pawpocalypse.UI.Language.Switch.
 
 #include "CoreMinimal.h"
 #include "CommonActivatableWidget.h"
@@ -113,6 +116,9 @@ protected:
 private:
 	void OnLayoutReady();
 	void Sync();
+	// The language setting and the language shown, as one key: the lists were filled for ShownLanguage.
+	FString LanguageKey() const;
+	void OnSettingsChanged();
 	void FillOptions();
 	void ShowSection();
 	void FocusPage();
@@ -229,5 +235,7 @@ private:
 	TArray<FString> OutputDevices; // the Output list's devices by name, in its order
 	TArray<FString> LanguageCodes; // the Language list's settings values, in its order: "system", then the languages
 	bool bSyncing = false;         // the controls are being set from the settings: no change is the player's
+	FString ShownLanguage;         // LanguageKey() when the lists were last filled
+	FDelegateHandle SettingsHandle; // OnChanged, while the dialog is up
 	TArray<UWidget*> Wired;
 };

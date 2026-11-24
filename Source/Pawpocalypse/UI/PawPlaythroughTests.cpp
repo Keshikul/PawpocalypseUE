@@ -35,6 +35,7 @@
 #include "UI/PawReawakenCeremony.h"
 #include "UI/PawRootLayout.h"
 #include "UI/PawSkillTreeScreen.h"
+#include "UI/PawUnicornCeremony.h"
 #include "UI/PawVictoryScreen.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 
@@ -405,6 +406,16 @@ bool FPawPlaythroughTest::RunTest(const FString& Parameters)
 	}();
 
 	// --- out: the job (when one is held), then the starting biome -------------------------------------------------------
+	// The Unicorn bought above plays over the tree: a player waits it out (Close does nothing under it; this test used to
+	// close the tree mid-ceremony, which left the ceremony unfinished and the tree refusing every purchase after it).
+	if (UPawUnicornCeremony* Unicorn = Tree->GetUnicorn())
+	{
+		for (int32 Frame = 0; Frame < 600 && Unicorn->IsPlaying(); ++Frame)
+		{
+			Unicorn->StepFor(1.0 / 60.0);
+		}
+	}
+	TestFalse(TEXT("out: the Unicorn's ceremony has ended"), Tree->IsCeremonyPlaying());
 	const int64 Where = Pc::ReawakenTravelIndex(D, P);
 	Tree->PressClose();
 	Tree->PressClose();

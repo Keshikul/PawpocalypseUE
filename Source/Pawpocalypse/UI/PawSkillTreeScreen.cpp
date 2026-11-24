@@ -1183,6 +1183,13 @@ bool UPawSkillTreeScreen::PressNode(const FString& Id)
 
 void UPawSkillTreeScreen::PressClose()
 {
+	// Nothing closes the tree out from under the Unicorn (the keys skip it instead; it takes every click). It ticks with the
+	// tree: closed mid-ceremony it never finished, and the tree refused every purchase after it (the soak's driver did this,
+	// 2026-11-24).
+	if (IsCeremonyPlaying())
+	{
+		return;
+	}
 	// ALWAYS asks after a Reawaken (designer 2026-10-01): leaving starts the next run.
 	if (bSpendMode && !bConfirmLeaving)
 	{

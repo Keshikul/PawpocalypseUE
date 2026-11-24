@@ -73,6 +73,10 @@ namespace
 		bool bBackground = false; // measure behind another window (the background cap on)
 		double Warmup = 0.0, Measured = 0.0;
 		bool bMeasuring = false, bShot = false, bDone = false;
+		// The worst measured frame, and when: seconds into the measure, and the frames since the screenshot was asked for
+		// (-1 before it). Its cause: the bench's own screenshot (a frame or two after the ask), or the game.
+		double WorstMs = 0.0, WorstAt = 0.0;
+		int32 FramesSinceShot = -1, WorstSinceShot = -1;
 		int32 QuitIn = -1;
 		int64 MinLive = MAX_int64, DrawMismatches = 0, ShadowMismatches = 0, FloorMismatches = 0;
 		int64 HeldFrames = 0; // measured frames the field was held (a screen up): a held field measures nothing
@@ -198,10 +202,18 @@ namespace
 			ShadowMismatches += R && R->DrawnCount(EPawLayer::Shadows) == static_cast<int32>(F.LiveCount() + F.AwakeKittens()) + 1 ? 0 : 1;
 			FloorMismatches += R && R->DrawnCount(EPawLayer::Floor) == 1 ? 0 : 1;
 
+			if (DeltaSeconds * 1000.0 > WorstMs)
+			{
+				WorstMs = DeltaSeconds * 1000.0;
+				WorstAt = Measured;
+				WorstSinceShot = FramesSinceShot;
+			}
+			FramesSinceShot += FramesSinceShot >= 0 ? 1 : 0;
 			Measured += DeltaSeconds;
 			if (!bShot && Measured > Seconds * 0.5)
 			{
 				bShot = true;
+				FramesSinceShot = 0;
 				FScreenshotRequest::RequestScreenshot(FPaths::ProjectSavedDir() / TEXT("PawBench/bench.png"), true, false);
 			}
 			if (Measured >= Seconds)
@@ -261,6 +273,8 @@ namespace
 			const UPawSpriteRenderer* Sprites = View.GetRenderer();
 			Out.Add(FString::Printf(TEXT("debughud=%d pool(bodies)=%d drawn(bodies)=%d"), Overlay ? Overlay->GetInt() : -1,
 				Sprites ? Sprites->PoolSize(EPawLayer::Bodies) : -1, Sprites ? Sprites->DrawnCount(EPawLayer::Bodies) : -1));
+			Out.Add(FString::Printf(TEXT("worst frame %.1f ms at %.2f s of the measure, %s"), WorstMs, WorstAt,
+				WorstSinceShot < 0 ? TEXT("before the screenshot") : *FString::Printf(TEXT("%d frame(s) after the screenshot was asked for"), WorstSinceShot)));
 			// Q10's background cap as the run had it (the `background` run: on, and what t.MaxFPS was set to).
 			{
 				UWorld* W = GameWorld();

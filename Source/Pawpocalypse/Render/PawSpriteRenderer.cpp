@@ -7,6 +7,7 @@
 #include "Materials/MaterialInterface.h"
 #include "Render/PawSpriteAtlas.h"
 #include "ProceduralMeshComponent.h"
+#include "Render/PawFillMesh.h"
 #include "Render/PawFxCanvas.h"
 #include "Engine/Texture2D.h"
 
@@ -336,7 +337,9 @@ void UPawSpriteRenderer::SetBackdropFill(const TArray<FVector2D>& Points, const 
 	}
 	if (!Fill)
 	{
-		Fill = NewObject<UProceduralMeshComponent>(GetOwner(), TEXT("BackdropFill"));
+		// Its material named before it draws, so its pipeline state is precached as the realm appears (UPawFillMeshComponent).
+		Fill = NewObject<UPawFillMeshComponent>(GetOwner(), TEXT("BackdropFill"));
+		Fill->SetMaterial(0, FillMaterial);
 		Fill->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		Fill->SetCastShadow(false);
 		Fill->SetTranslucentSortPriority(FillPriority);
@@ -373,7 +376,8 @@ void UPawSpriteRenderer::SetFx(EPawFxBand Band, const FPawFxCanvas& Canvas, UMat
 		static const TCHAR* Names[] = { TEXT("FxGround"), TEXT("FxUnder"), TEXT("FxOver") };
 		for (int32 I = 0; I < static_cast<int32>(EPawFxBand::Count); ++I)
 		{
-			UProceduralMeshComponent* M = NewObject<UProceduralMeshComponent>(GetOwner(), Names[I]);
+			UPawFillMeshComponent* M = NewObject<UPawFillMeshComponent>(GetOwner(), Names[I]);
+			M->SetMaterial(0, FxMaterial); // named before the band's first effect: precached as the realm appears
 			M->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			M->SetCastShadow(false);
 			M->SetTranslucentSortPriority(FxBandPriority[I]);
@@ -383,7 +387,7 @@ void UPawSpriteRenderer::SetFx(EPawFxBand Band, const FPawFxCanvas& Canvas, UMat
 			FxMeshes.Add(M);
 		}
 	}
-	UProceduralMeshComponent* M = FxMeshes[B];
+	UPawFillMeshComponent* M = FxMeshes[B];
 	FxTris[B] = Canvas.Indices.Num() / 3;
 	if (Canvas.IsEmpty() || !FxMaterial)
 	{
@@ -412,6 +416,20 @@ void UPawSpriteRenderer::SetFx(EPawFxBand Band, const FPawFxCanvas& Canvas, UMat
 	M->CreateMeshSection(0, Verts, Canvas.Indices, Normals, TArray<FVector2D>(), Canvas.Colors, TArray<FProcMeshTangent>(), false);
 	M->SetMaterial(0, FxMaterial);
 	FxFull[B] = true;
+}
+
+TArray<UPrimitiveComponent*> UPawSpriteRenderer::FillMeshesForTest() const
+{
+	TArray<UPrimitiveComponent*> Out;
+	if (Fill)
+	{
+		Out.Add(Fill);
+	}
+	for (UPawFillMeshComponent* M : FxMeshes)
+	{
+		Out.Add(M);
+	}
+	return Out;
 }
 
 const TArray<FPawSprite>& UPawSpriteRenderer::LastSprites(EPawLayer Layer) const

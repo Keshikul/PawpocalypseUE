@@ -38,6 +38,7 @@ VFX = "Realm/PawVfx.cpp"
 AUDIO = "Audio/PawAudioSubsystem.cpp"
 REALMSUB = "Realm/PawRealmSubsystem.cpp"
 RENDER_H = "Render/PawSpriteRenderer.h"
+FILLMESH = "Render/PawFillMesh.cpp"
 HUD = "UI/PawHudScreen.cpp"
 BUTTON = "UI/PawButton.cpp"
 ICONS = "UI/PawIcons.cpp"
@@ -2082,6 +2083,10 @@ SABOTAGES = [
      'if (!bSpendMode || !G || !G->IsDataReady() || IsCeremonyPlaying())',
      'if (!bSpendMode || !G || !G->IsDataReady())',
      'Pawpocalypse.UI.Unicorn.Plays'),
+    ('unicorn_tree_closes_under_it', TREE,  # closed mid-ceremony, it never ended and the tree refused every purchase (2026-11-24)
+     '\tif (IsCeremonyPlaying())\n\t{\n\t\treturn;\n\t}\n\t// ALWAYS asks after a Reawaken',
+     '\t// ALWAYS asks after a Reawaken',
+     'Pawpocalypse.UI.Unicorn.Plays'),
     ('unicorn_lets_clicks_through', UNICORN,
      '\tSetVisibility(ESlateVisibility::Visible);\n\tSetKeyboardFocus();',
      '\tSetVisibility(ESlateVisibility::HitTestInvisible);\n\tSetKeyboardFocus();',
@@ -2811,6 +2816,20 @@ SABOTAGES = [
      '\t\t\tB.SetResourceObject(Cell ? static_cast<UObject*>(Cell) : Tex);\n',
      '\t\t\tB.SetResourceObject(Tex);\n',
      'Pawpocalypse.UI.Widgets.IconsFromAtlas'),
+    # Phase 8, the PSO check (2026-11-24, HANDOFF-LOG (142)): the backdrop's and the effects' meshes name their material for
+    # PSO precaching (UE 5.8's procedural mesh names none: the packaged game compiled M_BackdropFill at its first draw).
+    ('pso_fill_mesh_names_nothing', FILLMESH,  # the precache list left empty, as the engine's procedural mesh
+     '\t\tAddMaterialInterfacePSOPrecacheParamsToList(Entry, OutParams);\n',
+     '',
+     'Pawpocalypse.Realm.View'),
+    ('pso_fill_mesh_sections_only', FILLMESH,  # a material set before the first section not named
+     '\tconst int32 Count = FMath::Max(GetNumMaterials(), GetNumOverrideMaterials());\n',
+     '\tconst int32 Count = GetNumMaterials();\n',
+     'Pawpocalypse.Realm.View'),
+    ('pso_fx_band_named_late', RENDER,  # a band's material named at its first effect, not as it is made
+     "\t\t\tM->SetMaterial(0, FxMaterial); // named before the band's first effect: precached as the realm appears\n",
+     '',
+     'Pawpocalypse.Realm.View'),
 ]
 
 

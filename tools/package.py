@@ -20,9 +20,12 @@ The run, in order:
      than the run's start, or (UAT found it up to date: check_all's Shipping build minutes before, 2026-11-23) the very
      binary in Binaries/Win64 (same size and time) with no file under Source/ and no .uproject newer than it.
   5. The .pdb kept beside its exe in build/symbols/<stamp>-<config>/ (the archive has none: -nodebuginfo), for crash dumps.
+     Then the archive trimmed of what the engine stages that this game never loads (NOT_NEEDED: the D3D12 and Vulkan debug
+     layers, UAT's manifests, a plugin's Boost; 2026-11-23: 46.7 MB of a Development package, 5.4 of a Shipping one).
   6. The audit (below): FAIL stops here.
   7. README.txt and "Send logs.bat" written into the archive (KB U/19 §4).
-  8. Development: the packaged gates, `packaged_languages.py` and `packaged_bench.py` (their reports in build/). Shipping
+  8. Development: the packaged gates, `packaged_languages.py`, `packaged_bench.py` and `packaged_pso.py --route bench` (the
+     PSO validation over one full field; the whole-game route is run by hand) (their reports in build/). Shipping
      has no console: no gate runs in it yet.
 
 The audit (also --audit): the archive's files, the IoStore container's packages (UnrealPak -List) and the pak's loose files.
@@ -30,8 +33,8 @@ The audit (also --audit): the archive's files, the IoStore container's packages 
         a map other than L_Title / L_Realm (in Shipping; Development may carry test maps); either map missing; a string table
         or a culture's translation file missing (every culture folder of Content/Pawpocalypse/Localization/Translations);
         a paw cursor missing; ICU data without Thai's dictionary or zh-Hant (the English preset: HANDOFF-LOG (136)); no exe.
-  WARN  files a game does not need that the engine stages (graphics debug layers, a plugin's Boost / TBB): listed with
-        their size, for the size work (docs/11 phase 8), not failed.
+  FAIL  ... and a file the trim (step 5) removes left in the archive (the D3D12 / Vulkan debug layers, UAT's manifests,
+        a plugin's Boost: the game never loads them).
 Exit 0 = PASS; 1 = FAIL; 2 = refused or no package.
 """
 import argparse
@@ -129,7 +132,7 @@ def audit(files, packages, loose, config, cultures, cursors):
             fail.append("ICU data without %s (InternationalizationPreset is not All?)" % f.rsplit("/", 1)[1])
     extra = [(p, s) for p, s in sorted(norm.items()) if any(fnmatch.fnmatch(p, pat) for pat in NOT_NEEDED)]
     if extra:
-        warn.append("staged, not needed by this game: %d files, %.1f MB (%s)" % (
+        fail.append("staged, not needed by this game (the trim removes them): %d files, %.1f MB (%s)" % (
             len(extra), sum(s for _, s in extra) / 1e6, ", ".join(sorted({p.rsplit("/", 1)[-1].split("-")[0].split("_")[0]
                                                                          for p, _ in extra}))))
     return fail, warn
@@ -204,7 +207,7 @@ def self_test():
 
     def clean(config):
         files = {EXES[config]: 100, "Pawpocalypse/Content/Paks/Pawpocalypse-Windows.utoc": 10, "Pawpocalypse.exe": 5,
-                 "Pawpocalypse/Binaries/Win64/D3D12/x64/d3d12SDKLayers.dll": 7}
+                 "Pawpocalypse/Binaries/Win64/D3D12/x64/D3D12Core.dll": 7}
         packages = sorted(MAPS) + ["Pawpocalypse/Content/Pawpocalypse/Data/DT_Cards.uasset",
                                    "Pawpocalypse/Content/ShaderArchive-Pawpocalypse-PCD3D_SM6-PCD3D_SM6.ushaderbytecode",
                                    "Engine/Content/EngineMaterials/DefaultMaterial.uasset"]
@@ -233,12 +236,14 @@ def self_test():
         "a cursor not staged": ("cursor not staged", "Development", lambda f, p, l: l.remove("Pawpocalypse/Content/Pawpocalypse/UI/Cursors/ui_cursor_paw_closed.png")),
         "the English ICU preset (no Thai dictionary)": ("without thaidict", "Development", lambda f, p, l: l.remove(ICU_NEEDED[0])),
         "the English ICU preset (no zh-Hant)": ("without zh_Hant", "Development", lambda f, p, l: l.remove(ICU_NEEDED[1])),
+        "a debug layer left in the archive": ("not needed by this game", "Shipping",
+            lambda f, p, l: f.__setitem__("Pawpocalypse/Binaries/Win64/D3D12/x64/d3d12SDKLayers.dll", 7)),
     }
     ok = True
     for config in ("Development", "Shipping"):
         fail, warn = audit(*clean(config), config, cultures, cursors)
-        good = not fail and any("not needed" in w for w in warn)
-        print("%s  clean %s listing passes (the debug layer only warned)" % ("PASS" if good else "FAIL", config))
+        good = not fail
+        print("%s  clean %s listing passes" % ("PASS" if good else "FAIL", config))
         ok &= good
     fail, _ = plant("Development", lambda f, p, l: p.append("Pawpocalypse/Content/Pawpocalypse/Maps/L_Test.umap"))
     print("%s  a test map in Development is only warned" % ("PASS" if not fail else "FAIL"))
@@ -256,8 +261,30 @@ def self_test():
     good = parsed == ["Pawpocalypse/Content/Pawpocalypse/Maps/L_Title.umap", "Engine/Config/Base.ini"]
     print("%s  the listing's paths read (shader code skipped)" % ("PASS" if good else "FAIL"))
     ok &= good
-    # The exe guard (step 4): an exe UAT linked now; the up-to-date binary it copied; a stale one; another file.
+    # The trim (step 5) on a scratch archive: the debug layers and manifests go (and the folder they empty), the rest stays.
     import tempfile
+    tmp = tempfile.mkdtemp(prefix="pkg_trim_")
+    try:
+        made = {"Engine/Binaries/ThirdParty/Vulkan/Win64/VkLayer_khronos_validation.dll": True,
+                "Engine/Binaries/ThirdParty/Vulkan/Win64/VkLayer_khronos_validation.json": True,
+                "Pawpocalypse/Binaries/Win64/D3D12/x64/d3d12SDKLayers.dll": True,
+                "Manifest_NonUFSFiles_Win64.txt": True,
+                "Pawpocalypse/Binaries/Win64/D3D12/x64/D3D12Core.dll": False,
+                "Pawpocalypse/Binaries/Win64/Pawpocalypse.exe": False}
+        for rel in made:
+            path = os.path.join(tmp, "Windows", *rel.split("/"))
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "wb") as h:
+                h.write(b"x")
+        n, _ = trim_archive(tmp)
+        left = {rel for rel in made if os.path.exists(os.path.join(tmp, "Windows", *rel.split("/")))}
+        good = n == 4 and left == {r for r, gone in made.items() if not gone} \
+            and not os.path.exists(os.path.join(tmp, "Windows", "Engine", "Binaries", "ThirdParty", "Vulkan"))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    print("%s  the trim: the debug layers and the manifest gone, the game's files kept" % ("PASS" if good else "FAIL"))
+    ok &= good
+    # The exe guard (step 4): an exe UAT linked now; the up-to-date binary it copied; a stale one; another file.
     tmp = tempfile.mkdtemp(prefix="pkg_exe_")
     try:
         arch, built, src = (os.path.join(tmp, n) for n in ("archived.exe", "built.exe", "a.cpp"))
@@ -287,6 +314,25 @@ def self_test():
 
 
 # --- the run -----------------------------------------------------------------------------------------------------------
+
+def trim_archive(archive):
+    """Removes from the archive's Windows folder every file NOT_NEEDED matches, and the folders it empties. Returns
+    (files, bytes) removed."""
+    root = os.path.join(archive, "Windows")
+    n, size = 0, 0
+    for base, _dirs, files in os.walk(root):
+        for f in files:
+            path = os.path.join(base, f)
+            rel = os.path.relpath(path, root).replace(os.sep, "/")
+            if any(fnmatch.fnmatch(rel, pat) for pat in NOT_NEEDED):
+                size += os.path.getsize(path)
+                os.remove(path)
+                n += 1
+    for base, dirs, files in sorted(os.walk(root), key=lambda w: -len(w[0])):
+        if base != root and not os.listdir(base):
+            os.rmdir(base)
+    return n, size
+
 
 def exe_current(archived, built, start, sources):
     """Whether the archived exe is this source's build (see the docstring, step 4). sources: the files a newer one of which
@@ -445,6 +491,8 @@ def package(config, gates, bump):
         print("package: symbols -> %s" % symbols)
     else:
         print("package: no %s beside the build (crash dumps of this build will have no symbols)" % PDBS[config])
+    n, size = trim_archive(archive)
+    print("package: trimmed %d files, %.1f MB the game never loads (debug layers, manifests)" % (n, size / 1e6))
     if run_audit(archive, config) != 0:
         return 1
     write_tester_files(archive, config, version)
@@ -452,8 +500,9 @@ def package(config, gates, bump):
         print("package: no packaged gates run (%s)" % ("--no-gates" if not gates else "Shipping has no console"))
         return 0
     results = {}
-    for name, tool in (("languages", "packaged_languages.py"), ("bench", "packaged_bench.py")):
-        r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", tool), "--build", archive])
+    for name, tool, extra in (("languages", "packaged_languages.py", []), ("bench", "packaged_bench.py", []),
+                              ("pso", "packaged_pso.py", ["--route", "bench"])):
+        r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", tool), "--build", archive] + extra)
         results[name] = r.returncode
     for name, rc in results.items():
         print("package: gate %s %s" % (name, "PASS" if rc == 0 else "FAIL (exit %d)" % rc))

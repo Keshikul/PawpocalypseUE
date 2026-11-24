@@ -31,7 +31,7 @@
 | L2 Simulator checks | `pawsim` invariants (`verify_pawsim.py`), `check_sims.py`, **mirror** (pawsim vs PawCore CLI) | seconds | data/rule changes |
 | L3 Engine automation tests `Pawpocalypse.*` (this doc's older `Paw.*` names are the same tests) | `UnrealEditor-Cmd ... -ExecCmds="Automation RunTests Pawpocalypse.;Quit" -TestExit="Automation Test Queue Empty" -nullrhi -unattended` | minutes | every C++ change |
 | L4 Tours | `-game -RenderOffscreen` screenshot tour, pad tour, mouse tour (real Slate events) | minutes | UI/input changes |
-| L5 Packaged gates | the same tests/tours against a packaged Development build. **Built so far (2026-11-01)**: `py tools/packaged_bench.py [--exec "cmd"]` runs `paw.Bench` (Dev/PawBench.cpp) in the packaged build on L_Realm at 1280x800, vsync and cap off: the field filled to the live cap, 20 s measured (game thread p99 < 4 ms, draw calls < 50, counted for the WHOLE frame; render thread and GPU reported), what is drawn checked against what is live every frame (a rigged mouse's body layer counts as its body), the field materials and the quad loaded, a screenshot; verdict `PAW_BENCH PASS/FAIL`, exit code. Seen to fail: L_Realm uncooked (no verdict). PASS 2026-11-04 (34.6 draw calls); FAIL 2026-11-10 (68.7: §7.3). **Every language in the package** (2026-11-23): `py tools/packaged_languages.py` runs `paw.Languages` (Dev/PawLanguages.cpp) on the title twice, `-NoSave`: started with `-culture=ru` (the start language applied and shown), then every language picked in the title's own list: offered (every culture with a translation file), complete, current in the engine, every line of the three string tables showing its translation, every character in the face F_Paw picks for it, Thai / Japanese / Chinese breaking inside their words; a screenshot each and `build/loc/package/sheet.png`. Seen to fail: the engine's English ICU preset (5 cultures refused, Thai unbroken), a planted character no face has, a planted missing line. PASS 2026-11-23, 23 languages (HANDOFF-LOG (136)) | ~5-10 min (package ~1-3 min warm, bench ~30 s) | end of phase, before release |
+| L5 Packaged gates | the same tests/tours against a packaged Development build. **Built so far (2026-11-01)**: `py tools/packaged_bench.py [--exec "cmd"]` runs `paw.Bench` (Dev/PawBench.cpp) in the packaged build on L_Realm at 1280x800, vsync and cap off: the field filled to the live cap, 20 s measured (game thread p99 < 4 ms, draw calls < 50, counted for the WHOLE frame; render thread and GPU reported), what is drawn checked against what is live every frame (a rigged mouse's body layer counts as its body), the field materials and the quad loaded, a screenshot; verdict `PAW_BENCH PASS/FAIL`, exit code. Seen to fail: L_Realm uncooked (no verdict). PASS 2026-11-04 (34.6 draw calls); FAIL 2026-11-10 (68.7: §7.3). **Since 2026-11-24 (HANDOFF-LOG (142)) up to three runs, the game thread judged on the BEST** (its p99 moved 2.8-6.8 ms between runs of one package on this PC: every part of the game thread slower together, the CPU's clock nearly the same, a 60 fps cap no steadier; interference only slows a run), every other check in every run; stops at the first clean run (`--self-test`, everyday). **The PSO check** (2026-11-24): `py tools/packaged_pso.py [--route soak|bench]` runs a route with `r.PSOPrecache.Validation=2` and fails when one of this game's materials is compiled at its first draw (`Missed`); the engine's materials, `Too Late` and the global shaders are noted (`--self-test`, everyday; the bench route among package.py's gates). **Every language in the package** (2026-11-23): `py tools/packaged_languages.py` runs `paw.Languages` (Dev/PawLanguages.cpp) on the title twice, `-NoSave`: started with `-culture=ru` (the start language applied and shown), then every language picked in the title's own list: offered (every culture with a translation file), complete, current in the engine, every line of the three string tables showing its translation, every character in the face F_Paw picks for it, Thai / Japanese / Chinese breaking inside their words; a screenshot each and `build/loc/package/sheet.png`. Seen to fail: the engine's English ICU preset (5 cultures refused, Thai unbroken), a planted character no face has, a planted missing line. PASS 2026-11-23, 23 languages (HANDOFF-LOG (136)) | ~5-10 min (package ~1-3 min warm, bench ~30 s) | end of phase, before release |
 | L6 Soak | packaged build plays the whole game at 5x (pace) and 20x (stability), plus a headless PawCore soak at 1000x | 30-150 min | weekly, before release |
 
 ## 3. The 19 Godot gates, mapped
@@ -76,6 +76,29 @@
 
 ## 5. The soak (Godot `tools/soak.sh` + `ci/soak.gd`)
 
+**As built (2026-11-23, HANDOFF-LOG (141))**: `paw.Soak [game-minutes] [speed]` (`Source/Pawpocalypse/Dev/PawSoak.cpp`, dev
+builds) and `py tools/packaged_soak.py [--speed 5|20] [--minutes 240]` (the packaged Development build, `-NoSave`, L_Realm).
+The player it plays, through the UI's own presses: the cat on the nearest enemy; every 0.5 s each Upgrades row that is not
+locked; a dealt hand's first card; the job picker's first job; every 2 s the deepest open biome on the Realms page
+(`Pc::RealmRow`, then `PressRealm`) and the Bait when `Pc::BaitButton` allows; the Reawaken as soon as `Pc::CanReawaken`
+(pawsim's v4 player), the tree's spend step buying every node `JumpToAffordable` finds (waiting out the Unicorn ceremony:
+since (143)), then leaving; Claim all every 10
+s; the game's own auto-travel switched on. The dock stays on Upgrades (a page shown for a moment has not rebuilt its rows
+by the next press). It stops at the first final-boss clear (`FinalBossSeconds`) and FAILs on no victory by the limit, any
+Error line, the field held 30 s by a screen it does not answer, or (since (143)) the tree refusing a purchase it offered.
+Report: per game minute the biome, Catnip, Stardust, Reawakens, the live enemies, the kills, the wave, their mean HP in
+paw hits, the aura's DPS, the boss's HP left, the frame (p50/p99/max), memory and the UObject count; the build (tree,
+upgrades, cards, job, what the cat puts out) at every Reawaken, every boss and the end; the Stardust left unspent; at the end every Error and Warning line (first 30), the
+presses, the frame percentiles, the 10 worst frames with what was happening, memory and objects start -> end, steps
+dropped. 20x needs the frame uncapped (the simulation catches up 8 steps of 1/60 s a frame: at 60 fps it can run 8x).
+**Every soak before (143) played with its tree frozen from Unlock Unicorn on** (bought around the 6th of 12 Reawakens): the
+driver read the press the tree refuses mid-ceremony as "nothing left" and closed the tree under the ceremony, which ticks
+with the tree and so never ended; 17-23 tree levels a game, ~20 million Stardust unspent; the wins at 169.7-191.5 game
+minutes and the one loss were that crippled cat's luck. Fixed (HANDOFF-LOG (143)): two 20x runs in the editor build won at
+89.2 and 96.1 game minutes (247-271 tree levels). The soak paces its presses in REAL seconds (Upgrades every 0.5 s = 10
+game seconds at 20x, 2.5 at 5x): one more reason to trust 5x for pace.
+What follows is the plan as written.
+
 - A dev-only `UPawSoakDriver` (packaged Development build, `-Soak -Minutes=150 -Speed=5`) plays through the UI's own rules: aims
   the real cat (virtual cursor), buys through the shop API the buttons call, takes cards, summons bosses with Bait when the Realms
   page would allow it, travels only through `IsBiomeUnlocked()`, Reawakens, buys tree nodes. **It asks what the UI would allow; it
@@ -97,7 +120,7 @@
 
 ## 7. What exists today (updated 2026-11-10)
 
-`powershell -ExecutionPolicy Bypass -File tools\check_all.ps1` runs the **everyday set** (34 gates, ~10 min, counted 2026-11-23 (140): +4 that day, `package audit self-test`, `game plugins trimmed`, `UBT game build (Shipping)`, `UI atlas reproduces`; -3 retired with D22, `audio export reproduces`, `Godot fixes current`, `Godot repo untouched`; `translations carried over` renamed `translation files in form`) and `-Full` the
+`powershell -ExecutionPolicy Bypass -File tools\check_all.ps1` runs the **everyday set** (37 gates, ~10 min, counted 2026-11-24 (142): + `bench verdict self-test`, `pso check self-test`; (141): + `steam delta self-test`; 2026-11-23 (140): +4 that day, `package audit self-test`, `game plugins trimmed`, `UBT game build (Shipping)`, `UI atlas reproduces`; -3 retired with D22, `audio export reproduces`, `Godot fixes current`, `Godot repo untouched`; `translations carried over` renamed `translation files in form`) and `-Full` the
 **nightly** (42 gates, ~10 h; +1 each on 2026-11-13: `no mutant left in place`, `safe-mutate self-test`). The history of each count is in the HANDOFF-LOG entries named below.
 
 - **Last everyday run 2026-11-13, on the `if` audit's fixes 1-4** (`build/check_all_20261113_fix4.log`, HANDOFF-LOG (105)):

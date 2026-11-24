@@ -185,6 +185,10 @@ bool FPawUnicornPlaysTest::RunTest(const FString& Parameters)
 	const std::string Next = Pc::CheapestAffordableBranch(W.Game->Data(), W.P());
 	TestFalse(TEXT("the tree buys nothing mid-fiesta"), !Next.empty() && Tree->PressNode(UTF8_TO_TCHAR(Next.c_str())));
 	TestEqual(TEXT("(no level moved)"), Levels(), Before);
+	// Close cannot close the tree out from under it (closed, it never ticked to its end and the tree refused every purchase).
+	Tree->PressClose();
+	Tree->PressClose();
+	TestTrue(TEXT("Close leaves the tree up mid-fiesta"), Tree->IsActivated() && Tree->IsSpendMode() && C->IsPlaying());
 	W.Step(C, 0.3);
 	TestFalse(TEXT("a key before 0.6 s does not skip"), C->Input(Pc::PcUnicornInput::KeyDown));
 	W.Step(C, 0.4);

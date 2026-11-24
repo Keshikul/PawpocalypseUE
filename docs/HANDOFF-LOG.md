@@ -9,6 +9,181 @@ in whichever file holds it.
 
 ---
 
+## 2026-11-24 (143) - The soak's failed run explained: its tree froze at the Unicorn in every soak; fixed, it wins at 89-96 game minutes
+
+**Where the project is.** (141), (142) and this entry are uncommitted (`847a05f` is the last push). Nothing was packaged:
+the packaged soak still carries the old driver until the next package (the designer's word); the runs below are the editor
+build with `-game` (`UnrealEditor.exe Pawpocalypse.uproject /Game/Pawpocalypse/Maps/L_Realm -game -NoSave ... -ExecCmds=
+"r.VSync 0,t.MaxFPS 0,paw.Soak 240 20"`, the soak's report in the log's PAW_SOAK lines, copied to `build/soak/editor_*.txt`).
+
+**What happened.** The designer: "Look into soak" (the 20x run of (142) that did not win).
+- **What the failed run showed**: from tier 8 on its field sat at the 320-enemy cap for 30-40 game minutes at a time with
+  almost no Catnip coming in; boss fights took 25 and 36 game minutes (the passing run: 9 and 4); the final boss, up at
+  198.2, was never beaten. The soak sits its cat on the boss, and the paw strikes the boss only when no enemy is in its reach
+  (`PcField.cpp` `StrikeOnce`, by design: "the boss is the thing that does not wander off"), so a cat too weak to clear the
+  crowd hit the boss with its aura alone. Both 20x runs, the 5x run and today's ended with ~20 million Stardust unspent
+  after only 17-23 tree levels in 12 visits to the tree (yesterday's trial versions: 44-87).
+- **The soak report now says why** (`Dev/PawSoak.cpp`): each game minute the kills, the wave, the live enemies' mean HP in
+  paw hits, the aura's DPS, the boss's HP left; the build (tree, upgrades, cards, job, paw / aura / kitten output) at every
+  Reawaken, every boss and the end; a boss gone with the HP it had left; the Stardust unspent at the end.
+- **The cause: the driver froze the tree at the Unicorn.** Buying Unlock Unicorn (2,500 Stardust, around the 6th of 12
+  Reawakens) plays the Unicorn ceremony over the tree; `PressNode` refuses while it plays. The driver read that refusal as
+  "nothing left to buy" and pressed Close twice. The ceremony steps in its `NativeTick`, which runs only while the tree is
+  shown, so it never ended; the tree screen is pooled by the Menu stack, so every later spend step opened with the ceremony
+  still "playing", the first press was refused again and the driver left again: **no tree purchase for the rest of the
+  game** (instrumented run with the old driver: the same 15 nodes from Reawaken 6 to the end, 34,300 then 145,000 Stardust
+  unbought; it still won, at 191.5). Wins and the loss were that crippled cat's luck with cards.
+- **A player cannot reach it**: the ceremony is the tree's last child, Visible (it takes every click, the Close button
+  included) and the tree's `NativeOnPreviewKeyDown` hands every key to it. Only the dev drivers call `PressClose()`
+  directly (the soak; `paw.Leave` in `PawShot.cpp`, whose Unicorn scene waits 4.6 s, past the 3.75 s ceremony).
+- **Fixed, both sides.** The soak waits while `IsCeremonyPlaying()`, leaves only when `JumpToAffordable` finds nothing, and
+  FAILs if the tree refuses a purchase it offered (a game fault, reported with the node). The game: `PressClose()` refuses
+  while the ceremony plays (the rule the keys already had), so no code path can wedge it; `Pawpocalypse.UI.Unicorn.Plays`
+  asserts Close leaves the tree up mid-fiesta; sabotage `unicorn_tree_closes_under_it` CAUGHT. `Pawpocalypse.UI.Playthrough`
+  did the same thing as the soak (it buys every node, the Unicorn included, then presses Close twice): the first `check_all`
+  after the guard FAILED it (the tree stayed up); it now steps the ceremony to its end before leaving and asserts it ended.
+- **With the tree working** (editor build, 20x, `-NoSave`): **won at 89.2 game minutes** (6.0 real; 12 Reawakens, 271 tree
+  levels, 7 jobs, every boss beaten in about a game minute) and **96.1** (11 Reawakens, 247 levels, 7 jobs); 0 Error / 0
+  Warning lines, 0 refusals, never held. Before: 169.7 (5x), 176.3, 191.5 and one loss. Worst frame still the tree's first
+  spend step (125-127 ms in the editor build).
+- **For the designer (not a balance claim)**: the soak's player now finishes in 89-96 game minutes; pawsim's v4 player
+  takes 161. The soak buys every tree node it can at once, Reawakens when suggested and fights every boss on the spot; why
+  the two differ is not measured. The 5x pace run with the fixed driver is not run (`docs/09` §5: "trust 5x for pace"; the
+  soak paces its presses in real seconds, 10 game seconds between Upgrades passes at 20x).
+
+**Proof.** `check_all` (everyday) exit 0, all 37 gates PASS (`build/check_all_20261124_143.log`; the run before it FAILED
+`L3 Pawpocalypse.UI` on the Playthrough test, above). `run_automation Pawpocalypse.UI.Unicorn` PASS (2),
+`Pawpocalypse.UI.Playthrough` PASS;
+`sabotage_realm --only unicorn_tree_closes_under_it` CAUGHT, the clean build passes; safe_mutate: no mutation left. Soak
+reports: `build/soak/editor_*_a.txt` (old driver, instrumented), `_b`, `_c` (fixed).
+
+### Open (the designer's)
+- **Package** (confirms the PSO fix of (142) and puts the fixed soak driver in the packaged soak), then `packaged_soak.py`
+  at 5x (the pace) and 20x.
+- The pace gap: the soak at 89-96 game minutes against pawsim's 161 (a design question; measure the 5x run first).
+- Commit and push (141), (142), (143).
+- Still from (142): the tree's ~112-127 ms first open, the 4 engine PSOs at first use, the Deck pass (no Deck).
+
+### Next step
+On the designer's word: `py tools/package.py`, then `py tools/packaged_pso.py` and `py tools/packaged_soak.py --speed 5`.
+Done is `check_all` exit 0.
+
+## 2026-11-24 (142) - D23 (global invalidation off); the bench judges the best of three; the PSO check: M_BackdropFill fixed
+
+**Where the project is.** (141) and this entry are uncommitted (`847a05f` is the last push). Nothing was packaged: the PSO
+fix is proven by an automation test and three sabotages, and waits for the next package (the designer's word) to be seen in
+the packaged validation.
+
+**What happened.**
+- **D23**: Slate global invalidation stays off (the designer, after the re-measure in (141): "I feel like our game is cheap
+  enough. Keep it off for now."). Doc 01.
+- **The bench's game thread, made a stable gate** (the designer: "Do the test fix"). The planned median of three FAILED in
+  practice: three runs 3.66, 6.16, 5.47 ms. Measured why: every part of the game thread slower together in the slow runs
+  (the field's drawing 0.43 -> 0.94 ms with the same field), the CPU's effective clock nearly the same (121-132 % of base,
+  typeperf, `build/bench_clock`), a 60 fps cap no steadier (p99 2.97-4.32); a Ryzen 5 7600 (no efficiency cores), nothing
+  else running. Across 12 uncapped runs of one package p99 2.77-6.75, 5 over 4 ms: a median of three fails ~38 % of the
+  time at that rate. **Now**: up to three runs, the game thread on the BEST (interference only slows a run; ~7 % at that
+  rate, and one run when the first is clean), every other check in every run (`tools/packaged_bench.py`, `--self-test`
+  12 cases + the game's reason wording; 6 planted faults CAUGHT; everyday gate `bench verdict self-test`). Run on the
+  package: PASS on the first run (3.29 ms).
+- **The PSO check** (`tools/packaged_pso.py`; KB U/12 §6): a route with `r.PSOPrecache.Validation=2`, the log read for
+  `PSO PRECACHING MISS` blocks and the engine's `Encountered a new ... PSO` lines, each placed at start-up / play / exit;
+  FAIL on a `Missed` of one of this game's materials. Never `-clearPSODriverCache` (read in the 5.8.3 source: on NVIDIA it
+  deletes every file of the driver's shader cache folders, which every game on the PC shares). Self-test 9 checks, 7
+  planted faults CAUGHT; everyday gate `pso check self-test`; its bench route is now one of `package.py`'s gates.
+  **Run over a whole game (the soak at 20x) on today's package**: ONE of this game's materials missed, **M_BackdropFill**
+  (ShadersOnly, FLocalVertexFactory, TranslucencyAfterDOF, "Material not precached yet") at the realm's first frame: the
+  backdrop's patches and the effects bands are `UProceduralMeshComponent`s, which in 5.8 name no material for precaching
+  (no `CollectPSOPrecacheData`), so its pipeline state was compiled at the first draw. The sprites, floor and the rest:
+  precached. Engine global shaders: 7 at start-up, **4 at first use mid-play** (game minute 3.4, and the same 4 at the end
+  of every bench run: something the engine draws the first time; under 10 ms with this PC's warm driver cache), noted.
+  **Fixed**: `Render/PawFillMesh.h/.cpp`, `UPawFillMeshComponent` names each material with the local vertex factory; the
+  renderer makes the backdrop's mesh and the three bands with it and names their material as they are made (the bands
+  drew nothing until their first effect). `Pawpocalypse.Realm.View` asserts all four meshes name M_BackdropFill with
+  FLocalVertexFactory; sabotages `pso_fill_mesh_names_nothing`, `pso_fill_mesh_sections_only`, `pso_fx_band_named_late`
+  CAUGHT, the clean build passes.
+- **The soak with the validation on did not win**: the final boss up at game minute 198.2 and still up at 240 (the passing
+  20x run: up at 154.4, beaten at 176.3); 18 tree nodes bought against 23, 5 Baits against 6; 0 errors, 0 warnings, memory
+  flat. The validation touches only rendering, so it reads as the soak player's luck, not the change: but one failed
+  whole-game run in three needs a look (the bot's boss fight, or a late-game balance edge). Not investigated.
+- **The worst frame of the soak, 112 ms, is the skill tree's first spend step** (game minute 8.0; also ~111 ms in (141)'s
+  20x run): no PSO compiled near it, so the tree screen built the first time. Noted, not investigated.
+
+**Proof.** `check_all` (everyday) exit 0, all 37 gates PASS (`build/check_all_20261124_142.log`). `packaged_bench.py --self-test`, `packaged_pso.py --self-test`,
+`package.py --self-test` PASS; their planted faults CAUGHT (scratch scripts, through safe_mutate; no mutation left).
+`run_automation Pawpocalypse.Realm.View` PASS; `sabotage_realm --only` the three PSO sabotages: all CAUGHT, clean PASS.
+
+### Open (the designer's)
+- **Package** to confirm the PSO fix (package.py's gates now include the PSO bench route; then the whole-game route by hand).
+- Commit and push (141), (142).
+- The 20x soak that did not win (investigate the final boss stretch); the tree's 112 ms first open; the 4 engine PSOs at
+  first use (their cost on a cold driver cache is unmeasured: the clean-machine check of doc 10 §7).
+- No Deck (the designer has none): the Deck-class pass stays open.
+
+### Next step
+On the designer's word: `py tools/package.py`, then `py tools/packaged_pso.py` (whole game): expect no `Missed` of this game's
+materials. Done is `check_all` exit 0.
+
+## 2026-11-24 (141) - Phase 8's exit tests: the whole-game soak PASSES in the package (5x, 20x); a one-number patch is 1.2 MiB; the package trimmed by 46.7 MB
+
+**Where the project is.** (137)-(140) committed and pushed at the designer's word (`847a05f`, "Commit and push. Do the next
+steps"). This entry's work is uncommitted.
+
+**What happened.**
+- **The soak, built and run.** `paw.Soak [game-minutes] [speed]` (`Source/Pawpocalypse/Dev/PawSoak.cpp`, dev builds) plays a
+  whole game through the UI's own presses (doc 09 §5 "as built"); `tools/packaged_soak.py` runs it in the packaged
+  Development build (`-NoSave`). **PASS at 5x** (won at game minute 169.7, 34 real minutes) **and 20x** (176.3, 11.4 real):
+  12 Reawakens, 5 bosses, **0 Error and 0 Warning lines**, never held by an unknown screen, memory flat (1,002 -> 1,015 MB
+  peak at 5x), the UObject count flat; frame p99 17.7 ms at 5x (60 fps cap), 18.4 ms at 20x (uncapped). pawsim's v4
+  player takes 161 minutes. Reports: `build/soak/*.txt`.
+  - Three faults of the driver found by running it (KB U/18 §6): it Reawakened whenever the button ALLOWED it (after the
+    first Reawaken from 1 Stardust: an early cash-out, the player's choice), 14 times in an hour: **seen by the designer**
+    ("Your test is reawakening at 1 startdust as soon and reawaken is a avaliable is that by design?"); now only when the
+    game SUGGESTS it (`Pc::IsReawakenSuggested`), each payout logged. Its cat hunted the nearest regular enemy, so every
+    boss fight was lost to the clock; now the boss while one is up. Switching tabs to press another page's button left
+    the Upgrades rows stale; now the dock stays on Upgrades and the soak asks the core rules the pages use
+    (`Pc::CanReawaken`, `Pc::BaitButton`, `Pc::RealmRow`). Also: the locked look is not `disabled`; 20x needs the frame
+    uncapped (8 catch-up steps of 1/60 s a frame: 8x at 60 fps); Git Bash rewrote `/Game/...` (launch from PowerShell).
+  - One **0.5 s stall** in the 5x run at game minute 144, with an audio buffer underrun logged at the same moment (the
+    whole process stood still); not in the 20x run on the same build; no game work logged around it. To watch.
+- **The archive trimmed** (`package.py` step 5): the D3D12 / Vulkan debug layers and UAT's manifests removed after staging;
+  Development 439.1 -> 392.5 MB, Shipping 262.5 -> 257.0 MB; the audit now FAILS if one is left; the trimmed build passes
+  `packaged_languages` and `packaged_bench`. Self-test: a planted debug layer CAUGHT; the trim on a scratch archive.
+- **Patch size measured** (`tools/steam_delta.py`, 1 MiB chunks at fixed offsets as SteamPipe; self-test, everyday gate):
+  one balance number changed (Attack Speed's base cost 9 -> 10, through safe_mutate, reimported, packaged; the CSV and
+  `DT_UpgradeData` restored, parity checked) = **1.20 MiB**: one chunk of the 77 MiB `.ucas` and the `.utoc`; every other
+  file byte-identical between the two runs. Default settings kept (doc 10 §3).
+- **The bench's one 73-90 ms frame is its own screenshot**: it now reports its worst frame's time and its distance from the
+  screenshot request (1 frame after, each run).
+- **The game thread's p99 straddles its 4 ms budget on this PC**: 3.48, 3.69, 4.25, 5.16 ms on the same package today
+  (2.6-4.3 yesterday): the bench flips between PASS and FAIL on it. Not attributed to a change.
+- KB: U/18 §6 (the soak's lessons), U/19 §3 (the patch measured; strip the debug layers), the symptom index.
+
+**Proof.** `check_all` (everyday) exit 0, all 35 gates PASS (`build/check_all_20261124_141.log`). Packaged soaks PASS (5x, 20x).
+Development packaged clean afterwards: audit PASS, `packaged_languages` PASS (23), `packaged_bench` 46.7 draws, game thread p99
+5.16 (FAIL), then three re-runs 4.25 (FAIL), 3.48, 3.69 (PASS). Shipping: audit PASS, 257.0 MB. `package.py --self-test` and
+`steam_delta.py --self-test` PASS.
+
+### Open (the designer's)
+- **The game thread's budget**: 4 ms p99 on this PC is inside the run-to-run noise. Choices: judge the median of three runs;
+  cap the bench at a player's frame; or cut the game thread (Slate global invalidation measured 2026-11-10: p99 4.39 ->
+  3.34 ms; it needs every animated widget checked, a day's work).
+  - **Re-measured 2026-11-24** (the designer: "Remeasure. I feel like maybe we shouldn't do that."): this package, 6 runs
+    each, off/on interleaved, no other engine running, the cvar's state read back from each log (`build/bench_gi/summary.md`):
+    game thread mean 2.06 -> 1.48 ms (median), **p99 3.58 -> 2.48** (off 3.03-6.75, 2 of 6 FAIL; on 2.36-2.77, 6 of 6
+    PASS); draws 46.8 and GPU 0.38 ms both ways. Not switched on: the designer's call. Widgets that paint from their own
+    tick and never invalidate (would freeze with it on): the pounce clock, the rainbow bar and frame, the tree's sky, the
+    garden, the Reawaken ceremony; also painting their own: the button, the settings dialog, the tree (it invalidates).
+  - **Decided 2026-11-24 (designer): keep it off** ("I feel like our game is cheap enough. Keep it off for now."; doc 01
+    D23). Still open: the bench's game-thread p99 flips PASS/FAIL on this PC (judge the median of three runs, or a
+    budget with room).
+- Commit and push (141).
+- The Deck-class pass (hardware); the PSO check; the 0.5 s stall if it comes back.
+
+### Next step
+The PSO check (first-use shader compiles in a fresh package: the soak's log and `r.PSOPrecache` stats), then the game-thread
+question above. Done is `check_all` exit 0.
+
 ## 2026-11-23 (140) - D22: this is the game (Godot a first try; no gate reads it); Q1/Q4/Q7/Q9 decided; the background frame cap (Q10); the chrome plates in the UI atlas: 46.8 draw calls, the bench PASSES (Q11)
 
 **Where the project is.** On (139) (uncommitted, as are (137)-(140); `a0161f1` is the last push). The designer answered the

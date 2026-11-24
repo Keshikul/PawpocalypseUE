@@ -117,6 +117,16 @@ The full plan with session prompts is [11-roadmap.md](11-roadmap.md).
 - **2026-11-23, D22 and the designer's answers** (HANDOFF-LOG (140)): this is the game, Godot a first try (no gate or tool
   reads it); PC; Next Fest ships the latest build; the music kept; FXAA kept. The chrome plates in the UI atlas: **46.8 draw
   calls, the bench PASSES**. The background frame cap built (30 fps behind another window, measured).
+- **2026-11-24, phase 8's exit tests** (HANDOFF-LOG (141)): the whole-game soak PASSES in the package at 5x and 20x (won,
+  0 errors, 0 warnings, memory flat); a one-number balance patch is 1.2 MiB on Steam; the package trimmed by 46.7 MB.
+  Left in phase 8: the Deck-class pass (needs the hardware), the PSO check.
+- **2026-11-24, the bench and the PSO check** (HANDOFF-LOG (142)): Slate global invalidation stays off (D23); the bench judges
+  up to three runs, the game thread on the best (one run flipped it); the PSO check (`tools/packaged_pso.py`) found one of
+  this game's materials compiled at first draw (M_BackdropFill), fixed in code, to confirm on the next package. Left: the Deck
+  pass (no Deck), one 20x soak that did not win in 240 game minutes.
+- **2026-11-24, the soak's frozen tree** (HANDOFF-LOG (143)): every soak so far closed the skill tree under the Unicorn
+  ceremony, which then never ended, and the tree refused every purchase for the rest of the game (the driver's fault; no
+  player can close it then, and now no code can either). Fixed: the soak wins at 89-96 game minutes (pawsim's player: 161).
 
 **The Sticker Box restyle (D18, 2026-11-17).** The designer replaced the plum look: every enemy and boss (Bestiary) and
 every UI screen (UI Screens) were drawn as concepts and approved before any Unreal change. The plan, the look spec and the
@@ -152,7 +162,8 @@ status; doc 09 §7 the gates as they are today.
 | 8 Hardening and packaging | **Started** 2026-11-23 (137): `tools/package.py` (clean archive, audit, README and Send logs, the L5 gates; not run yet: the designer's word to package), the plugin trim current again (`--check` gated). Next: its first run |
 | 9 | Parity sign-off: not started |
 
-- **Git**: committed and pushed through HANDOFF-LOG (136) (2026-11-23, `a0161f1`, at the designer's request: a language
+- **Git**: committed and pushed through HANDOFF-LOG (140) (2026-11-23, `847a05f`, at the designer's request: the first
+  packages, draw calls 83.6 -> 46.8, the background cap, D20-D22). Before that, through (136) (`a0161f1`: a language
   changed while a screen is up, every language in the package). Before that, through (134) (2026-11-21: the title's language
   list, the 22 translations, the language pass, the wording reviews and `loc_lint`). Before that, through (128)
   (2026-11-20, `56a5a4e`: the Sticker Box restyle in the game, the Steam page, phase 7 started); through (108) (2026-11-17: the `if`

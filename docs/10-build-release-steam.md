@@ -43,8 +43,11 @@ L5 tool (the plan said `package.ps1`). `py tools/package.py [--config Developmen
 refuses while an editor of this project, a packaged copy or another UAT runs; DELETES the archive first (Development
 `build/package`, Shipping `build/package_shipping`); `--bump` raises ProjectVersion's last number (the scheme: 0.MINOR.PATCH
 from 0.1.0, the designer 2026-11-23, "Use minor type version numbers"; MINOR by hand; a package for the gates is not bumped); UAT `BuildCookRun` (the command below); the
-archived exe must be newer than the run; the `.pdb` and exe kept in `build/symbols/<stamp>-<config>/`; the audit; README
-and `Send logs.bat` written into the archive; in Development the L5 gates (`packaged_languages.py`, `packaged_bench.py`).
+archived exe must be this source's build; the `.pdb` and exe kept in `build/symbols/<stamp>-<config>/`; the archive TRIMMED
+of the D3D12 / Vulkan debug layers and UAT's manifests (2026-11-24: 46.7 MB of a Development package, 5.4 of a Shipping
+one; the audit fails if one is left); the audit; README
+and `Send logs.bat` written into the archive; in Development the L5 gates (`packaged_languages.py`, `packaged_bench.py`,
+`packaged_pso.py --route bench`: the PSO validation over one full field, 2026-11-24).
 `--audit [ARCHIVE]` audits a package already made (read only; `build/package_audit_<config>.txt`: sizes, every archive
 file, package and loose file). `--self-test` (everyday `check_all`, gate `package audit self-test`) plants each fault.
 - **The audit** FAILs on: a `Saved` folder or a `.pdb` in the archive; a `/Game` package outside `/Game/Pawpocalypse`
@@ -92,6 +95,14 @@ The plan for the wrapper `[KB U/19 §2]` (as built above, except: no `-prereqs` 
 
 ## 3. Patch size on Steam (verify in phase 8)
 
+**Measured 2026-11-24 (HANDOFF-LOG (141), `tools/steam_delta.py`: 1 MiB chunks at fixed offsets, as SteamPipe cuts them)**:
+two Development packages from the same source, the second with ONE balance number changed (Attack Speed's base cost
+9 -> 10, `Data/UpgradeData.csv`, reimported): **1.20 MiB to send** (uncompressed; SteamPipe compresses chunks): one chunk
+of `Pawpocalypse-Windows.ucas` (77.4 MiB) and its `.utoc` (0.2 MiB). Every other file byte-identical across the two
+runs, the exe and the shader library included: the cook is deterministic and the IoStore container does not shift on a
+small change, with the default settings (no padding alignment set, IoStore on, no chunking). Nothing to change for
+now; re-measure after an engine upgrade or a big content change. The plan below stays the fallback.
+
 - SteamPipe diffs files in ~1 MiB chunks at fixed offsets; inserted bytes shift everything after them `[KB G/04 §1]`.
 - **Valve's SteamPipe docs: some Unreal versions pad assets inside pak files in a way that bloats updates; Valve suggests a
   padding alignment of 1 MiB (1048576)** via the pak parameters in the Windows platform automation script, after which pak
@@ -138,6 +149,8 @@ saves through `ISaveGameSystem`; achievements/trophies through `IPawPlatform`; s
 
 Pinned commit; Shipping + For Distribution; compile all Blueprints; all gates L0-L5 green; cooked asset audit (Asset Audit with the
 cooked filter); pak listing audit (no never-ship content); colour gate on the packaged build; PSO precaching validated
-(`stat psoprecache`) and a first-run hitch check with `-clearPSODriverCache` on a clean machine without Unreal or Visual Studio
+(`py tools/packaged_pso.py`, the whole-game route: no `Missed` of this game's materials; 2026-11-24, HANDOFF-LOG (142)) and a
+first-run hitch check with `-clearPSODriverCache` on a clean machine without Unreal or Visual Studio (NOT on a working PC: on
+NVIDIA it deletes the driver's shader cache every game on the machine shares, `WindowsD3D12Device.cpp`)
 `[KB U/12 §6]`; soak at 5x for the whole game; save-version bump in the same commit as any save-meaning change; a rollback build
 kept; beta branch on Steam first `[KB S/03]`.

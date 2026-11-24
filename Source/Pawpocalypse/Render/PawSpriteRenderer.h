@@ -10,7 +10,8 @@ class UMaterialInstanceDynamic;
 class UMaterialInterface;
 class UPawSpriteAtlas;
 class FPawFxCanvas;
-class UProceduralMeshComponent;
+class UPawFillMeshComponent;
+class UPrimitiveComponent;
 class UStaticMesh;
 class UTexture2D;
 
@@ -108,6 +109,9 @@ public:
 	// How many times a band's mesh section was cleared or created (the tests): each one rebuilds the mesh's collision body and
 	// its scene proxy (UProceduralMeshComponent: UpdateCollision + MarkRenderStateDirty).
 	int32 FxSectionRebuilds() const { return FxRebuilds; }
+	// The backdrop's mesh and the effects bands' meshes made so far (the tests: each names its material for PSO precaching,
+	// UPawFillMeshComponent).
+	TArray<UPrimitiveComponent*> FillMeshesForTest() const;
 	// The world Z of the Ground and Under bands (between the floor's props and the bodies).
 	static constexpr double GroundFxZ = 15.0;
 	static constexpr double UnderFxZ = 25.0;
@@ -163,9 +167,9 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInterface> FlatFloorMaterial;
 	UPROPERTY(Transient)
-	TObjectPtr<UProceduralMeshComponent> Fill;
+	TObjectPtr<UPawFillMeshComponent> Fill;
 	UPROPERTY(Transient)
-	TArray<TObjectPtr<UProceduralMeshComponent>> FxMeshes;
+	TArray<TObjectPtr<UPawFillMeshComponent>> FxMeshes;
 	int32 FxTris[static_cast<int32>(EPawFxBand::Count)] = {};
 	int32 FxRebuilds = 0;
 	bool FxFull[static_cast<int32>(EPawFxBand::Count)] = {}; // a band's mesh holds a section

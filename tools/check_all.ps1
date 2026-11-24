@@ -83,6 +83,14 @@ Invoke-Gate 'translations lint self-test' 'py tools\loc_lint.py --self-test'
 # /Game/Pawpocalypse, a map, a string table or translation, a cursor, the ICU data) each fail on a planted listing. The
 # packaging itself is the designer's word, never run here.
 Invoke-Gate 'package audit self-test' 'py tools\package.py --self-test'
+Invoke-Gate 'steam delta self-test' 'py tools\steam_delta.py --self-test'
+# The packaged bench makes up to three runs (2026-11-24): the game thread on the best (one run's p99 moved 2.8-6.8 ms on the
+# same package; interference only slows a run), every other check in every run; the self-test plants each case and the
+# game's reason wording.
+Invoke-Gate 'bench verdict self-test' 'py tools\packaged_bench.py --self-test'
+# The PSO check's reading of a validation log (2026-11-24): a miss of one of this game's materials fails, the engine's
+# materials and global shaders are noted; each event placed in time. The run itself needs a package (package.py's gates).
+Invoke-Gate 'pso check self-test' 'py tools\packaged_pso.py --self-test'
 # The game target's plugin trim is current (2026-11-23): an engine update added FabLauncher (editor-only, enabled by
 # default), which pulled USD, Boost and TBB into the game until the trim ran again. Fails when a run would change the list.
 Invoke-Gate 'game plugins trimmed' 'py tools\trim_game_plugins.py --check'

@@ -109,8 +109,10 @@ py tools/export_audio.py [--check]                                      # Godot'
 py tools/import_audio.py --run                                          # SourceAudio -> SW_* sounds + DA_AudioBank, headless (editor closed)
 py tools/create_input_assets.py --run                                    # IA_* / IMC_Pawpocalypse from Data/InputMap.csv (generated, never edited)
 py tools/sabotage_realm.py [--only NAME]                                 # game-module sabotages of the realm tests (UBT each, ~1 min)
-py tools/packaged_bench.py [--seconds 20] [--exec "paw.Rig 0"]            # L5: paw.Bench in the packaged build (build/package): frame gate (--exec: console commands first, an A/B)
+py tools/packaged_bench.py [--seconds 20] [--runs 3] [--exec "paw.Rig 0"] # L5: paw.Bench in the packaged build (build/package): frame gate, up to 3 runs, the game thread on the best (--runs 1 --exec: an A/B)
 py tools/package.py [--config Shipping] [--no-gates] [--bump]           # the designer's word only: clean archive, UAT, symbols, audit, README + Send logs.bat, the L5 gates (--audit [DIR]: an existing package; --self-test)
+py tools/packaged_soak.py [--speed 5|20] [--minutes 240]                # L6: paw.Soak in the packaged build: a whole game through the UI's presses -> build/soak (PASS: won, no Error, no stall)
+py tools/packaged_pso.py [--route soak|bench] [--log FILE]               # the PSO check: PSO precache validation along a route -> build/pso/report.txt (FAIL: one of this game's materials compiled at first draw); never clears the driver cache
 py tools/packaged_languages.py [--start ru]                             # L5: paw.Languages in the packaged build: every language offered, complete, shown, drawn (glyphs), Thai/CJK wrapped -> build/loc/package (sheet.png)
 py tools/godot_tour.py [--skip-godot] [--skip-ue] [--set biomes|fonts] [--res WxH] [--uiscale 1.5]   # the screenshot tour, both games -> build/tour/compare (opens windows)
 py tools/store_shots.py [--res 1920x1080] [--only NAME ...] [--culture de]   # the Steam screenshots: scripted scenes in the real game (paw.Do runs a cheat in order), sandboxed saves -> build/steam/shots[/<culture>] (opens a window)

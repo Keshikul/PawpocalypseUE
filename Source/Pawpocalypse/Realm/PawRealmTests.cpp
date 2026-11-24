@@ -26,7 +26,9 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "HAL/PlatformTime.h"
+#include "LocalVertexFactory.h"
 #include "Materials/MaterialInterface.h"
+#include "PSOPrecache.h"
 #include "Realm/PawFieldLook.h"
 #include "Render/PawSpriteAtlas.h"
 #include "Audio/PawAudioSubsystem.h"
@@ -722,6 +724,29 @@ bool FPawRealmViewTest::RunTest(const FString& Parameters)
 		View->RunFrame(0.0);
 		View->RunFrame(0.0);
 		TestEqual(TEXT("an unchanged biome is not laid out again"), View->BackdropBuilds(), Builds);
+		// The PSO check (HANDOFF-LOG (142)): the backdrop's mesh and the effects bands name the material they draw, so the
+		// engine compiles its pipeline state ahead of time. UE 5.8's UProceduralMeshComponent names nothing: the packaged game
+		// compiled M_BackdropFill's at the realm's first frame (tools/packaged_pso.py). The bands are named from the start,
+		// before their first effect (two of them have drawn nothing in this test).
+		{
+			const TArray<UPrimitiveComponent*> Meshes = R->FillMeshesForTest();
+			TestEqual(TEXT("the backdrop's mesh and the three effects bands"), Meshes.Num(), 4);
+			for (UPrimitiveComponent* Mesh : Meshes)
+			{
+				FMaterialInterfacePSOPrecacheParamsList List;
+				if (Mesh)
+				{
+					Mesh->CollectPSOPrecacheData(FPSOPrecacheParams(), List);
+				}
+				const bool bNamed = List.ContainsByPredicate([FillMaterial](const FMaterialInterfacePSOPrecacheParams& E)
+				{
+					return E.MaterialInterface == FillMaterial && E.VertexFactoryDataList.ContainsByPredicate(
+						[](const FPSOPrecacheVertexFactoryData& V) { return V.VertexFactoryType == &FLocalVertexFactory::StaticType; });
+				});
+				TestTrue(FString::Printf(TEXT("%s names M_BackdropFill with the local vertex factory for precaching"),
+					Mesh ? *Mesh->GetName() : TEXT("(none)")), bNamed);
+			}
+		}
 		TestEqual(TEXT("an empty field draws the cat and its kittens only"), R->DrawnCount(EPawLayer::Bodies),
 			static_cast<int32>(F.AwakeKittens()) + 1);
 		UE_LOG(LogPaw, Display, TEXT("PAW_VIEW_TRAVEL worst %.3f ms"), WorstTravel);

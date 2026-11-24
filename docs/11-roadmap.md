@@ -345,7 +345,19 @@ self-test and the plugin trim's `--check` in everyday `check_all`. The trim re-r
 pulled USD, Boost and TBB into the game). The version 0.1.0 (D21, (138)). **First packages 2026-11-23 ((139)): Development and
 Shipping, audits PASS, languages PASS; draw calls 83.6 -> 50.6 (renderer switches, one field atlas page, the UI icon atlas)**.
 **(140): the chrome plates in the UI atlas too: 46.8 draw calls, the bench PASSES; the background frame cap (Q10, 30 fps
-behind another window: 33.5 ms frames measured); D22 (no Godot anywhere in the gates)**. To do: the size
+behind another window: 33.5 ms frames measured); D22 (no Godot anywhere in the gates)**. **(141), 2026-11-24: the soak
+built (`paw.Soak`, `tools/packaged_soak.py`) and PASSED in the package at 5x (won at game minute 169.7, 34 real min) and
+20x (176.3, 11.4 min): 0 Error and 0 Warning lines, memory flat (1.0 GB); the archive trimmed of the debug layers
+(Development 439 -> 392.5 MB, Shipping -5.4 MB); a one-number patch measured at 1.2 MiB; the bench's one 73-90 ms frame
+is its own screenshot.** **(142), 2026-11-24: the bench judges up to three runs, the game thread on the best (it flipped on
+one run); the PSO check built (`tools/packaged_pso.py`) and run over a whole game: ONE of this game's materials compiled at its
+first draw, M_BackdropFill (the procedural mesh names no material for precaching in 5.8), fixed in code
+(`UPawFillMeshComponent`; `Pawpocalypse.Realm.View`, 3 sabotages CAUGHT), to be confirmed on the next package; 4 engine
+global-shader PSOs at first use mid-play (noted); D23 (Slate global invalidation stays off).** Left: the Deck-class pass (no
+hardware: the designer has no Deck), the fix confirmed in a package, one 0.5 s whole-process stall in the 5x soak to watch,
+one 20x soak that did not win in 240 game minutes ((142); explained in (143): the soak's tree was frozen from the Unicorn
+on in every soak so far, its driver's fault; fixed, two 20x runs in the editor build won at 89.2 and 96.1 game minutes; the
+packaged soak with the fixed driver waits for the next package). Was: the size
 work, the soak, the Deck pass, chunking and patch size, the PSO check.
 
 ## Phase 9 - release sign-off (was: parity sign-off; D22, 2026-11-23: Godot was a first try, nothing to be at parity with)

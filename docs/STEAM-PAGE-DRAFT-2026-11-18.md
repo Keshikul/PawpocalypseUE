@@ -102,9 +102,22 @@ From the 11 comparable pages (`build/steam/research/media.tsv`; each file's own 
   9-10.5 s, 1.5-3.0 MB: hunt, aura, pounce, boss, realms, rider), the same six as GIFs (780 px, 6-7.5 s, under 8 MB) and a
   57 s trailer (1920 x 1080, 60 fps, the first try's CC0 score). **The GIFs and clips have no text** (designer, 2026-11-25:
   "Make sure there is no text in gifs"): they are recorded without a single widget, the field drawn alone. Only the trailer
-  shows the HUD (the dock, the cards, the tree, the ceremonies). Drive: `Promotional/Steam/2026-11-25`.
+  shows the HUD (the dock, the cards, the tree, the ceremonies). Drive: `Promotional/Steam/gifs`, `screenshots`, `trailer`.
+- **The store set keeps GIFs only** (designer, 2026-11-25: "for store asset gifs we only need gif formats", "for store
+  assets only photoshop and png formats"): the webm/mp4 clips, the screenshots' JPG copies and the contact sheets were
+  deleted from Drive; the GIFs are uploaded and Steam converts them. `store_clips.py` still renders the clips into
+  `build/steam/clips/steam`; they are not carried to Drive. The trailer stays a video.
 - The 9 screenshots are 1920 x 1080 (Steam's minimum is 1280 x 720; all comparable pages use 1920 x 1080); retaken
   2026-11-25 after the restyles of (120)-(126).
+
+## Store images (the key art): 2026-11-25
+
+The designer, 2026-11-25 (with the first try's capsule): "This is the logo that i want. It's from back in godot. Also the capsule layout and colors. Can you change everything according to that?" The 13 store, library and event images are now the first try's key art (`py tools/store_art.py`; Drive `Promotional/Steam/store-images/key-art/upload`, the layers in `source/`, a PSD of each in `psd/`), replacing the Sticker Box set of 2026-11-18 (in Drive's `_Archive`):
+- **The art is AI-generated** (Gemini, 2026-11-03: the capsule, its square and 9:16 versions, the background, the character on green screen; the logo cut out of the capsule). **The logo is drawn lettering: there is no font.**
+- **The layout**: the logo across the top (cream letters, a dark brown outline, a paw print at each end), the cat on the unicorn in the middle on its rainbow, the hooded crowd left, the armed kittens right, a purple sky over a green field. Main capsule and event cover cut from the 16:9; vertical and library capsules from the 9:16; the icons (the cat's face) from the square; header, library header, event header and library hero (no text) put together from the layers; the small capsule is the lettering alone, readable at 120x45; the library logo is the logo alone, transparent.
+- The trailer's end card carries this logo (re-cut 2026-11-25).
+- **A second set from the game's own art** (the designer, 2026-11-25: "recreate the store images using our in game enemies and player"): `py tools/store_art_game.py`, Drive `Steam/store-images/game-art/upload` (a PSD of each in `psd/`). The key art's layout with the game's cast (the stage-4 rider posed leaping from its own drawing, the enemies, the kitten army), its sky and rainbow painted, the Boogaloo logo: **no AI art**, and it shows the game's real characters (Steam asks that store art reflect the game). Which set goes up is the designer's pick.
+- **It is not the game's look**: the game is Sticker Box (D18), and the key art's crowd (hooded figures, ghosts, pigs, kittens with guns and knives) is not in the game. Steam asks that store art reflect the game; the screenshots and GIFs show the game as it is.
 
 ## Tags (Steam counts the first 20; the first 5 weigh most)
 
@@ -141,6 +154,7 @@ file per language for review.
   > The game's art is drawn by code. AI tools helped write that code.
   > AI tools helped make the look, its concept art and the translations.
   > The design and every final decision are the developer's.
+- **The store art and logo are AI-generated (2026-11-25, above)**: the disclosure the designer writes should say so (the draft above predates them).
 - Open: the music (launch plan decision 4).
 
 ## System requirements (to measure, not to guess)
@@ -172,6 +186,6 @@ Confirm each with a measured build before the page goes public.
 Answered 2026-11-18: the text approved; length off; tags approved; the AI disclosure is the designer's to write;
 languages: the most-used Steam languages, all translated, changes retranslated alone. Still open:
 1. The store translations: a native speaker's read each before upload.
-2. The clips: recorded 2026-11-25 (above). Which clip goes under which About block is the designer's pick (the About
-   blocks name hunt, upgrades, cards, boss, evolve, reawaken and tree; the text-free clips cover hunt, boss, the aura,
+2. The GIFs: recorded 2026-11-25 (above). Which GIF goes under which About block is the designer's pick (the About
+   blocks name hunt, upgrades, cards, boss, evolve, reawaken and tree; the text-free GIFs cover hunt, boss, the aura,
    Pounce, the realms and the rider; upgrades, cards and the tree exist only with the HUD, in the trailer).

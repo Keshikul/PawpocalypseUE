@@ -8,6 +8,169 @@ in whichever file holds it.
 
 ---
 
+## 2026-11-25 (153) - Layered PSDs for every store image and the logos; Drive cleaned to its final layout
+
+**Where the project is.** As (152), plus this entry's work, uncommitted. The designer: "Make psd. Also clean up the
+drive. We don't need any of the previous ones delete them. Make a final clean folder structure"; asked, they kept BOTH
+store sets and BOTH logos. No package was made.
+
+**What happened.**
+- **PSDs**: new `tools/store_psd.py` (`Layers`: named RGBA layers that flatten to the PNG; `save_psd` through psd-tools,
+  installed with pip, each layer cropped to its pixels; `psd_matches` reads the PSD back and compares its composite with
+  the PNG). `store_art_game.py` and `store_art.py` draw every step on its own layer and write `psd/<name>.psd` with
+  `--psd`. Game-art PSDs: 12 layers (sky and field, grass and flowers, rainbow arc, glow, enemies, kitten army, purple
+  mist, rainbow trail, hero glow, rider, sparkles, logo), all 13 read back within 0.36 of 255 of their PNG. Key-art PSDs:
+  3 layers where the image is put together (background, cat on the unicorn, logo), 1 where Gemini drew it whole. The logo
+  recreation: 7 layers (`make_psd.py` in its source). Gemini's logo: one layer.
+- **Drive, final layout** (`Promotional/README.md` draws it): `Steam/store-images/{game-art,key-art}/{upload,psd,checks}`
+  (+ `key-art/source`), `Steam/screenshots`, `gifs`, `trailer`, `text` (description + localization), `Steam/README.md`;
+  `Logo/gemini`, `Logo/recreated`; `Fonts`, `Research`. **Deleted** (Drive's trash, 30 days): `_Archive` (1.1 GB: the old
+  Steam kits, Sticker Box store art, logo and icons, the 2026-11-19 screenshots, the first try's trailer, itch and
+  PlayStation sets; the key art's layers had been copied out first), the duplicate `Icon/` (byte-identical to the key-art
+  set's icons), the phase-4 build zip, the dated `Steam/2026-11-25` folder. 603 MB remain.
+- **Paths**: `store_art.py` reads `Steam/store-images/key-art/source`; `store_art_game.py` and `store_clips.py` (the
+  trailer's end card) read `Logo/gemini`. CLAUDE.md, doc 00, STEAM-PAGE-DRAFT, FONTS-AND-COLORS and LOGO-RECIPE follow.
+
+**Proof.** Every PSD read back and compared with its PNG (the tools fail otherwise); the Drive copy of the game-art set
+byte-identical to a fresh build; the three tools run against the new paths. `check_all` (everyday) exit 0, all 37 gates
+PASS (`build/check_all_20261125_153.log`). psd-tools recorded in doc 07 §1 (the designer: "Install psd tool"; it was
+installed already).
+
+### Open (the designer's)
+- Which store set goes up (game art or key art).
+- As (152).
+
+### Next step
+As (152).
+
+## 2026-11-25 (152) - The store images drawn again from the game's own art, posed after the key art
+
+**Where the project is.** As (151), plus this entry's work, uncommitted. The designer: "I would also like you to recreate
+the store images using our in game enemies amd player. Pose the main character of you can using in game assets or redo
+them. Try to get as close as you can to the concept images using your art skills and our assets". No package was made.
+
+**What happened.**
+- **New `tools/store_art_game.py`**: the 13 Steam images at Steam's sizes in the key art's layout, every creature the
+  game's own drawing (SourceArt/svg rasterised with resvg, each with its white die-cut rim, pack_atlas's rule by a
+  distance transform):
+  - **the hero posed**: the stage-4 rider's SVG re-built with its legs turned about their hips (a leap), the mount tilted
+    nose-up 12 degrees and mirrored to face right, the stage-4 lance over the cat's shoulder. The parts are found by their
+    place in the drawing and asserted (a redrawn rider stops the tool);
+  - the left crowd: 24 kinds of enemy, sized by their `sprite_target_px`, mirrored to face the hero, back rows smaller and
+    higher, the fliers in the sky under the logo; the right crowd: the kitten with the cat's swords and lances, the jobs'
+    hats, a few golden;
+  - painted: the purple sky with swirls over the sage field, the rainbow arc (the mane's colours plus green and violet),
+    the rainbow trail, the glow and sparkles; the field's grass, flowers and leaves from the props;
+  - the logo: the Boogaloo recreation (`--logo original` for the key art's); the small capsule its lettering alone; the
+    icons the standing cat's face before a rainbow. **No AI art in this set.**
+- **The designer's first notes** ("remove the white background from the enemies", "make the purple darker and more feathered towards the bottom"): the enemies drawn without their die-cut rim (`ENEMY_RIM`); the sky `#24163A` to `#4E3670` with darker swirls. Then ("Make the purple reach further down in a feathered way. Also the enemies on the right should not have a white background"): the kittens, their weapons and hats without the rim too (`KITTEN_RIM`; the rider keeps its rim); the purple fades into the field over 45% of the height (smoothstep) instead of a hard horizon. Then ("The purple should be over the enemies so they are darkened when they are in the purple mist. So the player poppes out more"): `mist()` lays the sky's colour over both crowds, as thick as the sky is purple (62% at most, a little cloudy), before the trail, the rider and the logo are drawn.
+- **Drive**: `Promotional/Steam/2026-11-25/game-art/upload` (13) and `checks/` beside the key-art set (kept); the READMEs.
+- Docs: CLAUDE.md (the tool), STEAM-PAGE-DRAFT (the second set).
+
+**Proof.** Every image at Steam's size (the tool fails otherwise); the sheet, the main and vertical capsules at full size,
+the small capsule at 120x45 looked at. `check_all` (everyday) exit 0, all 37 gates PASS
+(`build/check_all_20261125_152.log`; it ran on the tool before the designer's three notes, which changed only
+`tools/store_art_game.py`, a file no gate reads).
+
+### Open (the designer's)
+- Which set goes up: the key art (AI, its own style) or the game's art (no AI, the game's look).
+- As (151).
+
+### Next step
+The designer's pick of the store set; then as (148).
+
+## 2026-11-25 (151) - The key-art logo recreated: Boogaloo, the measured colours and settings
+
+**Where the project is.** As (150); nothing in the repo changed but this entry. The designer: "i want you to try and
+recreate the logo.use your art skills.i want to know what font and color and settings to use to create a very similar
+logo". No package was made.
+
+**What happened.**
+- **Taken apart** (the original `logo.png`, 3840 x 576): cream fill `#FCE7C2` to `#F6DAAB` with a 3 px light rim
+  `#FFF3D6`; a 3 px ink line `#1A0000`; a ~27 px outline `#3C1616`; a hard shadow `#2A0C0C` 7 px down, 2 right; toasted
+  dabs `#E3A970` / `#B97A4C` on the bottom 15% of each letter; the word warped (top straight, bottom curving up: the middle
+  letters 82% of the ends' height); paw prints 232 px, tilted 18 degrees outwards.
+- **The font, measured**: 58 OFL fonts (and their variable weights / widths) drawn letter by letter against the original's
+  letter shapes (height-normalised overlap): **Boogaloo 0.763** (0.765 fattened by 2% of the height), Chicle 0.740,
+  Francois One 0.724, Denk One 0.687, Chewy 0.683. No font is exact: the lettering is drawn.
+- **Recreated** with Boogaloo and those settings (a scratch renderer, now `Logo/recreated/source/`): silhouette overlap with
+  the original 0.76; side by side in `compare.png`.
+- **Drive**: `Logo/recreated/` (the recreation, transparent and on purple; `compare.png`; `lineup.png` of 11 fonts;
+  `recipe_card.png`; `LOGO-RECIPE.md`: the colours, the settings as Photoshop steps); `Fonts/Boogaloo-Regular.ttf` +
+  `OFL-Boogaloo.txt`; the README and FONTS-AND-COLORS point to them.
+
+### Open (the designer's)
+- Two Photoshop steps are given as starting points to adjust by eye (the warp's bend; whether the drop shadow follows the
+  strokes): the recipe says what to measure.
+- As (150).
+
+### Next step
+As (150).
+
+## 2026-11-25 (150) - D26: the store art, logo and icons are the first try's key art
+
+**Where the project is.** As (149), plus this entry's work, uncommitted (on `phase8-pace-media-bosses`). The designer,
+with the first try's capsule: "This is the logo that i want. It's from back in godot. Also the capsule layout and colors.
+Can you change everything according to that? Maybe godot project has more info on the font etc." No package was made.
+
+**What happened.**
+- **What the first try had** (read only, `C:\Games\pawpocalypse\build\ps_store\README.md`, its session handoff): the capsule
+  is AI art (Gemini, 2026-11-03): the full 16:9 capsule, a square and a 9:16 version, the background with no title or
+  character, the character on green screen keyed to a transparent layer, the logo cut out of the capsule. **No font**: the
+  lettering is drawn. The layers were in Drive's `_Archive/PlayStation_2026-11-03_placeholders`; copied as PNG to
+  `Promotional/Steam/2026-11-25/source`.
+- **New `tools/store_art.py`**: the 13 store, library and event images at Steam's sizes from those layers, in the
+  capsule's layout (main capsule and event cover from the 16:9; vertical and library capsules from the 9:16; the icons,
+  the cat's face, from the square; header, library header, event header and the library hero, no text, put together from
+  the layers; the small capsule the lettering alone, readable at 120x45, checked; the library logo the logo alone,
+  transparent) -> `build/steam/store_art` (PNG; `checks/`: the small capsule at 120x45 and 184x69, a sheet).
+- **Drive**: the 13 in `Steam/2026-11-25/upload` (+ `checks/`); `Logo/` (`library_logo.png` 1280 wide, `logo_3840.png`)
+  and `Icon/` (184 and 256) replaced; the Sticker Box store set (`Steam/2026-11-18`), logo and icons moved to `_Archive`
+  (nothing deleted); the trailer re-cut from the takes with the new logo on its end card (57.2 s, copied over the old);
+  the READMEs, the archive's README and FONTS-AND-COLORS (the logo's and the art's colours, measured) updated.
+- Docs: doc 01 D26; STEAM-PAGE-DRAFT (a store-images section; the AI disclosure must now cover the store art); CLAUDE.md
+  (the tool).
+
+**Proof.** Every image at Steam's size (the tool fails otherwise); the set's sheet and the small capsule at 120x45 looked at;
+the trailer's end card looked at. `check_all` (everyday) exit 0, all 37 gates PASS (`build/check_all_20261125_150.log`).
+
+### Open (the designer's)
+- **The game's title screen still draws the Sticker Box name** (Nunito, butter yellow); the key art's logo is not in the
+  game. Putting it there is a UI change (an image in place of a localised text; tests); on the word.
+- The key art is not the game's look and shows a crowd the game does not have (hooded figures, ghosts, pigs, armed
+  kittens); Steam asks that store art reflect the game. The designer's call.
+- The AI disclosure (the designer writes it) must cover the store art and logo.
+- As (149).
+
+### Next step
+The designer's answer on the title screen's logo; then as (148).
+
+## 2026-11-25 (149) - Committed and pushed on a branch; the Drive store set cut to PNG and GIF
+
+**Where the project is.** (144)-(148) committed as `5c6e591` on the new branch `phase8-pace-media-bosses`, pushed
+(the designer: "Commit and push"; master is still `8e773dc`: fast-forward it on the word). This entry and the Steam
+draft's two lines are uncommitted. No package was made.
+
+**What happened.**
+- **The latest build**: Drive's `Builds/Pawpocalypse-2026-11-24-soak.zip` is the newest package there is ((144)'s
+  Development package, the one in `build/package`); it is older than D24, the claim fix of (145), StepDelta and D25.
+  No package was made since; a new one needs the designer's word.
+- **Drive's store set: images PNG (or Photoshop), animations GIF only** (designer: "for store asset gifs we only need gif
+  formats. If there are any other formats please delete them. Also for store assets only photoshop and png formats").
+  Deleted (36 files, in Drive's trash for 30 days): the 12 webm/mp4 clips, the 13 JPG contact sheets, the 9
+  screenshots' `_1920.jpg` copies, the app icon's two JPGs (`Icon/`, `Steam/2026-11-18/upload/`). The PNG app icon
+  (184 px) copied into `upload/` so it still holds 13 images. Kept: the trailer (the video the designer asked for), the
+  READMEs and `shots.txt`, the HTML render sources, `_Archive` and `Research` (not the store set). Both READMEs updated.
+- Docs: STEAM-PAGE-DRAFT (the media section, open item 2).
+
+### Open (the designer's)
+- Master: fast-forward to the branch, or a pull request.
+- Steam's community icon upload may want a JPG: make it from `app_icon.png` then, not stored.
+- As (148).
+
+### Next step
+As (148).
+
 ## 2026-11-25 (148) - The bosses drawn bigger than the cat (D25)
 
 **Where the project is.** As (147), plus this entry's work, uncommitted. The designer: "Please make the bosses larger.

@@ -34,7 +34,10 @@ text face, it is history; the pipeline, the tools and the gates it describes are
 | Fonts | `assets/fonts`: Noto Sans CJK Medium `.ttc`, Noto Sans Thai, the Latin face, OFL texts | | Noto copied; the Latin face replaced by M PLUS Rounded 1c (D14), then by Nunito (D18); all in `SourceArt/fonts` with their OFL texts. §5, doc 05 §7 |
 | Credits | `assets/audio/CREDITS.md` | | Copied; in-game credits screen |
 
-`resvg_py` 0.5.0 and Pillow 12.3 are already installed on this machine (the Godot pipeline uses them).
+`resvg_py` 0.5.0 and Pillow 12.3 are already installed on this machine (the Godot pipeline uses them). The store art's
+PSDs (`tools/store_art.py --psd`, `tools/store_art_game.py --psd`, through `tools/store_psd.py`) need **psd-tools**
+(1.27.0 here, 2026-11-25): `py -m pip install psd-tools` on a new machine; the PNGs need only Pillow, numpy, scipy and
+resvg_py.
 
 ## 2. Rasterising (decided; sizes set by spike S3)
 

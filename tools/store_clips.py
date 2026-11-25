@@ -205,7 +205,7 @@ TRAILER = [
 DROP_BAR = 26
 START_BAR = DROP_BAR - sum(b for _t, _s, b in TRAILER[:3])
 END_BARS = 3
-LOGO = Path("G:/My Drive/Games/Pawpocalypse/Promotional/Logo/library_logo.png")
+LOGO = Path("G:/My Drive/Games/Pawpocalypse/Promotional/Logo/gemini/library_logo.png")
 
 
 def run(cmd, **kw):

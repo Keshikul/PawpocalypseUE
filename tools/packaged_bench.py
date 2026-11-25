@@ -11,12 +11,15 @@ median of three (fails ~38 % at that rate). Interference only ever slows a run, 
 game's own cost: the budget passes when ANY run is under it, read from each run's own verdict (the budget stays in
 PawBench.cpp alone). Runs stop at the first run that passes everything. Every other check (draw calls, the field full, the
 drawing cooked, ...) must pass in EVERY run made. `--runs 1` for a quick look or an A/B with `--exec`.
+`--no-budget`: the game thread's p99 reported, not judged (every other check still is): the PSO check's route, one run
+with the validation on, whose frame time is not its question (2026-11-24, HANDOFF-LOG (144): 0 misses, yet the check
+FAILED on a 4.6 ms p99 minutes after the bench gate had PASSED the same package).
 
 The build's own Saved folder is cleared before each run (the last run's report, screenshot and log are left there); each
 run's report, log and screenshot are also copied to build/bench/run<N>/.
 
     py tools/packaged_bench.py [--build build/package] [--seconds 20] [--res 1280x800] [--runs 3] [--exec "cmd,cmd"]
-                               [--arg=-ini:Engine:[ConsoleVariables]:name=value ...] [--self-test]
+                               [--arg=-ini:Engine:[ConsoleVariables]:name=value ...] [--no-budget] [--self-test]
 Exit 0 = PASS; 1 = FAIL or a run with no verdict; 2 = no packaged build, or a packaged copy is already running.
 """
 import argparse
@@ -74,13 +77,19 @@ def verdict_of(lines):
     return verdicts[-1] if verdicts else None
 
 
-def clean_pass(lines):
-    """A run that passed everything: no more runs needed."""
-    return verdict_of(lines) == "PASS"
+def clean_pass(lines, budget=True):
+    """A run that passed everything judged (budget False: the game thread's budget is not): no more runs needed."""
+    v = verdict_of(lines)
+    if v == "PASS":
+        return True
+    if budget or not v or not v.startswith("FAIL"):
+        return False
+    return all(r.strip().startswith(GAME_THREAD) for r in v[4:].split(";") if r.strip())
 
 
-def judge(runs):
-    """runs: one list of PAW_BENCH lines per run. Returns (passed, [summary lines])."""
+def judge(runs, budget=True):
+    """runs: one list of PAW_BENCH lines per run; budget False (--no-budget): the game thread's p99 reported, not judged.
+    Returns (passed, [summary lines])."""
     out, others, over, p99s = [], [], 0, []
     for i, lines in enumerate(runs, 1):
         v = verdict_of(lines)
@@ -98,9 +107,10 @@ def judge(runs):
         out.append("run %d: %s (game thread p99 %s ms)" % (i, "PASS" if not reasons else "FAIL " + "; ".join(reasons),
                                                             "%.3f" % p99 if p99 is not None else "?"))
     best = min(p99s) if p99s else None
-    gt_ok = over < len(runs)  # no runs: 0 < 0, a FAIL
+    gt_ok = (over < len(runs)) if budget else bool(runs)  # no runs: a FAIL either way
     out.append("game thread p99 best %s ms of %d run(s); over its budget in %d: %s" % (
-        "%.3f" % best if best is not None else "?", len(runs), over, "PASS" if gt_ok else "FAIL"))
+        "%.3f" % best if best is not None else "?", len(runs), over,
+        ("PASS" if gt_ok else "FAIL") if budget else "reported, not judged (--no-budget)"))
     for o in others:
         out.append("FAIL " + o)
     return gt_ok and not others, out
@@ -130,6 +140,22 @@ def self_test():
         good = got == want
         ok &= good
         print("%s  %s" % ("PASS" if good else "FAIL (judged %s)" % got, name))
+    no_budget = [
+        ("--no-budget: one run over the budget: PASS (reported)", [run(4.6)], True),
+        ("--no-budget: draw calls over: FAIL (every other check still judged)", [run(4.6, ["51.0 draw calls >= 50"])], False),
+        ("--no-budget: a run with no verdict: FAIL", [run(3.0, verdict=False)], False),
+        ("--no-budget: no runs: FAIL", [], False),
+    ]
+    for name, runs, want in no_budget:
+        got, _ = judge(runs, budget=False)
+        good = got == want
+        ok &= good
+        print("%s  %s" % ("PASS" if good else "FAIL (judged %s)" % got, name))
+    for name, lines, want in [("--no-budget: stops after a game-thread miss alone", run(4.4), True),
+                              ("--no-budget: goes on after another failure", run(4.4, ["51.0 draw calls >= 50"]), False)]:
+        good = clean_pass(lines, budget=False) == want
+        ok &= good
+        print("%s  %s" % ("PASS" if good else "FAIL", name))
     stops = [("stops after a clean run", run(3.0), True), ("goes on after a game-thread miss", run(4.4), False),
              ("goes on after another failure", run(3.0, ["51.0 draw calls >= 50"]), False),
              ("goes on after no verdict", run(3.0, verdict=False), False)]
@@ -155,6 +181,7 @@ def main():
     ap.add_argument("--timeout", type=float, default=300.0)
     ap.add_argument("--exec", default="", help="console commands run before the bench, comma-separated (e.g. paw.Rig 0)")
     ap.add_argument("--arg", action="append", help="an extra command-line argument (--arg=-ini:...), repeatable")
+    ap.add_argument("--no-budget", action="store_true", help="the game thread's p99 reported, not judged (the PSO check's route)")
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args()
     if args.self_test:
@@ -179,9 +206,9 @@ def main():
         for line in lines:
             print(line)
         runs.append(lines)
-        if clean_pass(lines):
+        if clean_pass(lines, not args.no_budget):
             break
-    passed, summary = judge(runs)
+    passed, summary = judge(runs, not args.no_budget)
     print("---")
     for line in summary:
         print(line)

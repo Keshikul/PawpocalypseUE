@@ -171,7 +171,7 @@ span lines (`SHOP_kitten_power_locked`, tested); a written `\n` is a line break 
 
 **The port's own English (2026-11-09).** The designer's text pass (plain, informative, real numbers, one word per idea;
 CLAUDE.md) changed 279 English lines. `ST_UI` holds its own; the generated tables take theirs from `Data/TextOverrides.csv`
-(`table, key, text, godot, note`; `tools/text_overrides.py`): `gen_data_strings.py` and `gen_tree_tables.py` write `text` and
+(`table, key, text, godot, note`; `tools/text_overrides.py`): `gen_data_strings.py` writes `text` (and `gen_tree_tables.py` did, until D22: `ST_Tree` is edited by hand since) and
 fail when a key is not generated, Godot's English is no longer `godot` (review the line), or the `{tokens}` differ.
 Godot's words are not changed: its `loc` gate needs every English string translated in every shipped language. The tree
 text test (`PcTreeTextTests`) still compares against Godot's wording through the `godot` column. **For `port_po.py`**: a

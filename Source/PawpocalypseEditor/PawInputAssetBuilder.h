@@ -1,6 +1,6 @@
 #pragma once
 
-// The input assets (docs/05 §3), GENERATED from Data/InputMap.csv (Godot's input map; tools/export_input_map.py) and never
+// The input assets (docs/05 §3), GENERATED from Data/InputMap.csv (the input map, this game's own since D22) and never
 // edited by hand, like the DataTables: one Enhanced Input action IA_<Action> per Godot action under
 // /Game/Pawpocalypse/Input/Actions, and one mapping context IMC_Pawpocalypse holding every event (Godot keeps every action live
 // at once; one context does the same). An action with a stick or trigger event is Axis1D (its events read through

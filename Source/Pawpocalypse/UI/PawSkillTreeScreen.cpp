@@ -1,4 +1,5 @@
 #include "UI/PawSkillTreeScreen.h"
+#include "UI/PawUiTime.h"
 #include "UI/PawUiMemory.h"
 
 #include "UI/PawIcons.h"
@@ -379,6 +380,7 @@ void UPawTreeNode::SetLook(PcTreeNodeState InState, const FLinearColor& Trunk, b
 void UPawTreeNode::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	if (bShine)
 	{
 		// An unbought unlock you can buy now shines (self_modulate to SHINE_COLOR and back).
@@ -1312,6 +1314,7 @@ void UPawSkillTreeScreen::NativeOnDeactivated()
 void UPawSkillTreeScreen::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	SetViewSize(FVector2D(Geometry.GetLocalSize()));
 	Juice.Tick(DeltaSeconds);
 	// The halos breathe; the rainbow turns; the pulse breathes.

@@ -28,13 +28,23 @@ SAVES = OUT / "saves"
 # Every level up deals a card hand and holds the game until a card is taken (the first run, 2026-11-18: six of nine shots
 # were a hand, and the Reawaken never started). CLEAR takes whatever hands are open (paw.Take with none open does nothing).
 CLEAR = ["paw.Take", "paw.Wait 10"] * 10
+# paw.Row n presses Pc::ShopRowOrder()[n] (PcHud.cpp: 5 is Aura Radius, counted while hidden): Paw Damage x4, Attack Speed x2
+# (its cap on a fresh game), Spawn Rate (7) x3, Kitten Count (8) x1.
+STARTER = ["paw.Row 0", "paw.Wait 2"] * 4 + ["paw.Row 1", "paw.Wait 2"] * 2 + ["paw.Row 7", "paw.Wait 2"] * 3 + ["paw.Row 8", "paw.Wait 2"]
+# What the first Reawaken's Stardust buys in the tree shot (each one level; every one open after one Reawaken).
+TREE_BUYS = ["claws", "claws", "claws", "instinct", "instinct", "instinct", "fortune", "fortune", "unlock_aura", "aura_damage",
+             "aura_damage", "aura_reach", "unlock_pounce", "unlock_overkill", "swarm_logic", "vitality", "vitality", "reputation",
+             "legacy", "unlock_snare", "funnel", "deadweight"]
 
 # (name, what it shows, the steps before the shot). The cat sits where the dock leaves the field clear. The boss comes
 # first, on a fresh game: the unlock cheat marks every boss beaten, and a beaten boss is not summoned again (the
 # third run, 2026-11-18); at full strength the cat would kill it the frame it arrives.
 SCENES = [
-    ("01_backyard_hunt", "the first realm: the paw on a crowd, the Upgrades tab open",
-     ["paw.Do paw.Cheat.Catnip 2500", "paw.Tab 1", "paw.Cat 760 560", "paw.Wait 720"] + CLEAR + ["paw.Wait 10"]),
+    # 2026-11-25: a few levels bought through the rows (paw.Row, as a click does) and the field filled at 5x, so the first
+    # realm reads as a game under way (the plain 12 s wait left a sparse field and every row at Lv 0).
+    ("01_backyard_hunt", "the first realm: the paw on a crowd, a few upgrades bought, the Upgrades tab open",
+     ["paw.Do paw.Cheat.Catnip 2500", "paw.Tab 1"] + STARTER + ["paw.Cat 760 560", "paw.Do paw.Cheat.Speed 5", "paw.Wait 480",
+      "paw.Do paw.Cheat.Speed 1", "paw.Wait 60"] + CLEAR + ["paw.Wait 10"]),
     # The boss arrives about where the other scenes park the cat (2026-11-18: the cat stood on the Tyrant), so here the
     # cat waits low on the left.
     ("02_park_boss", "the Park Tyrant called with Bait (paw.Boss travels to the first boss realm on a fresh game)",
@@ -48,8 +58,10 @@ SCENES = [
      CLEAR + ["paw.Tab 3", "paw.Wait 40"] + CLEAR + ["paw.Wait 10"]),
     ("06_reawaken", "the Reawaken ceremony",
      CLEAR + ["paw.Tab 1", "paw.Reawaken jobs", "paw.Wait 30"]),
-    ("07_skill_tree", "the skill tree (the spend step)",
-     ["paw.Wait 120"]),
+    # 2026-11-25: a few nodes bought and the view zoomed in (paw.Zoom), so the nodes and their names can be read (fitted,
+    # the whole tree drew its nodes too small to read at 1920x1080).
+    ("07_skill_tree", "the skill tree (the spend step): a few nodes bought, zoomed in",
+     ["paw.Wait 120"] + [s for b in TREE_BUYS for s in ("paw.Buy %s" % b, "paw.Wait 6")] + ["paw.Zoom 0.4", "paw.Wait 40"]),
     ("08_unicorn", "the Unicorn bought: the cat climbs on",
      ["paw.Do paw.Cheat.Stardust 100000", "paw.Buy unlock_unicorn", "paw.Wait 96"]),
     ("09_mythic_rider", "a late realm on the unicorn after a Reawaken (the upgrades reset: few level ups)",

@@ -1184,8 +1184,15 @@ bool FPawHudAchievementsTest::RunTest(const FString& Parameters)
 
 	// One Claim pays exactly once.
 	const double Before = P.Stardust;
+	// The reward raises the Stardust EVER granted, which the damage multiplier reads: the field fights with the new one at
+	// once, not from the next purchase (review 2026-11-24: PressClaim left the field's stats as they were).
+	const double MultBefore = W.Realm->GetSim().Field.Stats.ReawakenMultiplier;
 	W.Hud->PressClaim(0);
 	TestEqual(TEXT("the Stardust landed"), P.Stardust, Before + A.StardustReward);
+	TestTrue(TEXT("the field's damage multiplier rose with the claim"),
+		A.StardustReward <= 0.0 || W.Realm->GetSim().Field.Stats.ReawakenMultiplier > MultBefore);
+	TestEqual(TEXT("and equals the rules' own for the new total"), W.Realm->GetSim().Field.Stats.ReawakenMultiplier,
+		Pc::ReawakenMultiplier(D.Reawaken, P.StardustGrantedEver));
 	W.Hud->PressClaim(0);
 	TestEqual(TEXT("a second press pays nothing"), P.Stardust, Before + A.StardustReward);
 	TestFalse(TEXT("its Claim is gone"), Shown(W.Hud->GetClaimButton(0)));
@@ -1195,8 +1202,11 @@ bool FPawHudAchievementsTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("the Stardust readout follows"), S(W.Hud->GetStardustText()), S(PawText::Amount(P.Stardust)));
 
 	// Claim all takes the rest, once; the page settles.
+	const double MultBeforeAll = W.Realm->GetSim().Field.Stats.ReawakenMultiplier;
 	W.Hud->PressClaimAll();
 	TestEqual(TEXT("Claim all paid the rest"), P.Stardust, Before + Both);
+	TestTrue(TEXT("Claim all raised the field's damage multiplier too"),
+		B.StardustReward <= 0.0 || W.Realm->GetSim().Field.Stats.ReawakenMultiplier > MultBeforeAll);
 	W.Hud->PressClaimAll();
 	TestEqual(TEXT("and nothing more"), P.Stardust, Before + Both);
 	TestFalse(TEXT("Claim all goes"), Shown(W.Hud->GetClaimAllButton()));

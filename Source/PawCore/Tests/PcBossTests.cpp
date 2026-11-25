@@ -32,6 +32,20 @@ namespace
 		{
 			std::vector<std::string> Errors;
 			REQUIRE(Pc::LoadGameData(DataDir(), Data, Errors));
+			// The fixture was recorded with each boss's HP as it was then (D17 E6, 2026-11-12). The rules it proves (the
+			// shield, Shield Pierce, the phases, heals, the kill) read that HP as the number the operations start from, so
+			// the test holds the recorded numbers: a rule change still fails here, a balance change does not (D24,
+			// 2026-11-24, raised the shipping HP x2.7 to x5.7 and failed every row of this file before).
+			const std::map<std::string, double> RecordedHp = { { "park_tyrant", 6.96301e+06 },
+				{ "rival_champion", 7.42958e+09 }, { "void_god", 5.51618e+11 }, { "factory_foreman", 6.42004e+13 },
+				{ "litter_king", 1.12268e+15 } };
+			REQUIRE(Data.Bosses.size() == RecordedHp.size());
+			for (Pc::PcBoss& Boss : Data.Bosses)
+			{
+				const auto It = RecordedHp.find(Boss.Id);
+				REQUIRE_MESSAGE(It != RecordedHp.end(), "a boss the fixture never recorded: " << Boss.Id);
+				Boss.TotalHp = It->second;
+			}
 			bLoaded = true;
 		}
 		return Data;

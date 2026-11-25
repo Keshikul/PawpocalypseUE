@@ -79,7 +79,10 @@ namespace
 	constexpr double ZoneRingWidth = 3.0;
 	// boss_telegraph.gd
 	constexpr int32 TelegraphSegments = 72;
-	constexpr double TelegraphRadius = 104.0, TelegraphWidth = 7.0, WarningSec = 0.8, PulseMinHz = 3.0, PulseMaxHz = 11.0;
+	// The ring's radius is 0.45 of the boss's drawn size (its 256 px art x BossScale), so it keeps hugging the body when the
+	// boss is drawn bigger (D25; Godot's 104 px was for the x0.9 boss).
+	constexpr double TelegraphRadius = 0.45 * 256.0 * PawLook::BossScale;
+	constexpr double TelegraphWidth = 7.0, WarningSec = 0.8, PulseMinHz = 3.0, PulseMaxHz = 11.0;
 	const FColorG OpenColor(1.0f, 0.82f, 0.32f, 1.0f);
 	const FColorG ShieldedColor(0.45f, 0.85f, 1.0f, 1.0f);
 	const FColorG TrackColor(1.0f, 1.0f, 1.0f, 0.10f);

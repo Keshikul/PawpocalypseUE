@@ -1,6 +1,6 @@
 #pragma once
 
-// Godot's input map as the port holds it (docs/05 §3): Data/InputMap.csv (tools/export_input_map.py, one row per Godot event)
+// The input map (docs/05 §3): Data/InputMap.csv (exported from the first try's input map; edited by hand since D22, one row per event)
 // and the names of the assets made from it (PawpocalypseEditor UPawInputAssetBuilder): IA_<Action> per Godot action, one
 // mapping context IMC_Pawpocalypse. The builder and the tests read the CSV through this, so both agree on every name.
 

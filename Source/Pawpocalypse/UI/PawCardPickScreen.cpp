@@ -1,4 +1,5 @@
 #include "UI/PawCardPickScreen.h"
+#include "UI/PawUiTime.h"
 
 #include "UI/PawIcons.h"
 
@@ -379,6 +380,7 @@ void UPawCardFace::StepLift(double DeltaSeconds)
 void UPawCardFace::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	StepLift(DeltaSeconds);
 }
 
@@ -693,6 +695,7 @@ void UPawCardPickScreen::NativeOnDeactivated()
 void UPawCardPickScreen::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	AdvanceClock(DeltaSeconds);
 }
 

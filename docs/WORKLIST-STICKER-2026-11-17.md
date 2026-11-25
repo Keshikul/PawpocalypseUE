@@ -1,7 +1,9 @@
 # The Sticker Box restyle (plan, 2026-11-17): D18
 
-**Status (2026-11-18, HANDOFF-LOG (110)):** S1 done; S2's text half done; **S5 landed** (every character, the floors).
-Next: S3 (the chrome) and S6 (icons, cards), the seven hats, F_PawTitle on E1's answer. (2026-11-17: S0 done, the plan and the decision recorded.)
+**Status (2026-11-24, HANDOFF-LOG (145)):** S0, S1, S2's text half (Nunito), S3 (the chrome), S4 (every screen as the UI
+concept draws it, HANDOFF-LOG (111)-(124)) and S5 (every character, the floors) done. **Left**: S2's title face (Fredoka,
+F_PawTitle, E1), S6 (the card art and the skill / achievement icons: drafts waiting since (127)), the props, the rig
+(E3), S7 (the sign-off tour, `tools/screen_tour.py`). (Was, 2026-11-18, (110): S1, S2's text half and S5 done.)
 It replaces the plum restyle's look (D14, `WORKLIST-RESTYLE-2026-11-07.md`): that worklist's pipeline, tools and gates stay;
 its colours, chrome, fonts and drawings are what this one changes.
 
@@ -316,7 +318,7 @@ it), then `check_all` (the restyle worklist's recipe).
 ## 5. Checking against the concept
 
 The concept pages render headless (Edge `--headless --screenshot`), so a screen of the game and the same screen of the concept
-can be laid side by side at the same size: `godot_tour.py`'s Unreal half for the game, the artifact's HTML for the concept.
+can be laid side by side at the same size: `tools/screen_tour.py` for the game (was `godot_tour.py`'s Unreal half), the artifact's HTML for the concept.
 
 ## 6. Risks
 

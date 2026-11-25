@@ -166,7 +166,7 @@ exactly by `M_BackdropFill`, translucent, Godot's painter's order kept by primit
 masked, Z 3 + 0.004 per place in Godot's draw order). Laid out again on a travel or a resize, with the effects budget of
 that moment (as Godot: a settings change shows from the next one). The title's garden (biome "menu", dancing) is the same
 layout painted in Slate by `UPawGarden` over the title's paper floor (doc 05). Seen side by side with Godot in all 12
-biomes and the title (`py tools/godot_tour.py --set biomes`): the same props, patches and puddles in the same places.
+biomes and the title (`py tools/godot_tour.py --set biomes`; since 2026-11-24 `tools/screen_tour.py --set biomes`, this game alone): the same props, patches and puddles in the same places.
 **Spike S2 (§10) chose this renderer**: 13 draw calls for 774 items, game thread 0.6 ms, worst-case GPU 5.15 ms at 1280x800.
 
 ### 5.2 Rejected: Paper2D components per entity

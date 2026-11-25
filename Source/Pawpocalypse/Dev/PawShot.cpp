@@ -23,15 +23,42 @@
 //   paw.Buy <branch>         in the spend step, press a node as a click does (the Unicorn's ceremony tour, phase 6)
 //   paw.FontSheet <culture>  the font check (restyle R2): the culture made current, and over the screen the lines of
 //                            Saved/PawShots/fontsheet_<culture>.txt (UTF-8) in F_Paw, bone on plum: the first in Black, the rest
-//                            in the text weight; `paw.FontSheet off` takes it away (tools/godot_tour.py --set fonts)
+//                            in the text weight; `paw.FontSheet off` takes it away (tools/screen_tour.py --set fonts)
 //   paw.Fx                   one of each effect round the cat: a burst, a slam, a swipe and a crit swipe, a beam, shards
 //                            (the effect looks, phase 6 slice 3; the effects setting decides as in play)
 //   paw.Fx look              the restyle's aura and strike (D3), held still for a shot: the field held, the aura owned, three
 //                            swipes stepped to 25 %, 50 % (a crit) and 75 % of their sweep (a swipe lasts 0.24 s, shorter than
 //                            the queue's beat); the first swipe from the cat. The field stays held (a dev shot; restart to play on).
 // e.g. -ExecCmds="paw.Cheat.Catnip 300,paw.Tab 3,paw.Shot realms,paw.Tab 2,paw.Shot reawaken quit"
+//
+// Clips (the store's GIFs, clips and trailer: tools/store_clips.py, 2026-11-25). Run the game with -UseFixedTimeStep -FPS=60:
+// every frame is then 1/60 s of game time however long its file takes to write, so the frames play back at real speed.
+//   paw.Clip <name> <frames> [ui] [append]  record this many frames, one BMP each, into Saved/PawClips/<name>/f_00000.bmp ... while the
+//                                  queue goes on (the steps after it play during the take). Without `ui` the field alone: no
+//                                  widget, so no text (FScreenshotRequest's bShowUI); `ui`: the screen as the player sees it;
+//                                  `append`: on after the take's last frame (a montage: set up, record, set up, record)
+//   paw.Steer hunt|boss|off [px/s] the cat steered as a hand moves a mouse: eased toward the thickest crowd near it (hunt) or
+//                                  the boss (boss), at most px/s (default 1100); the cursor and pad are not sampled meanwhile
+//   paw.Pounce                     one Pounce press (down two frames, then up; the field fires on the press edge)
+//   paw.Quit                       quit once the clip being recorded has every frame on disk
+//   paw.AutoPick                   the tree's Auto Card owned and switched on: level ups take a card without holding the field
+//                                  (a take without the widgets would otherwise stand still under a hand nobody sees)
+//   paw.Camera <zoom>              the field's camera punched in this much (1 = the whole field, as the game draws it) and
+//                                  easing after the cat, held inside the field; rendered, not cropped, so a close-up is as
+//                                  sharp as the wide view
+//   paw.Row <n>                    press row n (0-based) of the open dock page, as a click does (Upgrades: buy one)
+//   paw.Ever <stardust>            the Stardust ever granted raised to this (the Reawaken multiplier: a cat that kills a boss in
+//                                  seconds, for a take that shows the kill)
+//   paw.Own <branch> [level]       a skill tree node owned at this level (default 1), the field's stats rebuilt (a take's aura)
+//   paw.Zoom <delta>               the skill tree's zoom about the view's centre, as the wheel does (+0.3: closer)
+//   paw.Dock off                   the playfield the whole window wide, as if there were no dock (a take without the widgets:
+//                                  enemies, the cat and the kittens use the strip the dock covers); until the window's size changes
 
+#include <algorithm>
+
+#include "Camera/CameraComponent.h"
 #include "Containers/Ticker.h"
+#include "HAL/FileManager.h"
 #include "Core/PawLog.h"
 #include "Core/PawPlayerController.h"
 #include "Engine/Engine.h"
@@ -97,6 +124,17 @@ namespace
 		Buy,
 		FontSheet,
 		Do,
+		Clip,
+		Steer,
+		Pounce,
+		Quit,
+		Dock,
+		Zoom,
+		AutoPick,
+		Own,
+		Row,
+		Ever,
+		Camera,
 	};
 	struct FStep
 	{
@@ -118,6 +156,244 @@ namespace
 	int32 GQuitIn = -1;
 	FTSTicker::FDelegateHandle GHandle;
 	TSharedPtr<SWidget> GFontSheet;
+
+	// The take being recorded (paw.Clip) and the hand on the cat (paw.Steer, paw.Pounce).
+	struct FClip
+	{
+		FString Dir;
+		int32 Left = 0;
+		int32 Index = 0;
+		bool bUi = false;
+	};
+	FClip GClip;
+	enum class ESteerMode
+	{
+		Off,
+		Hunt,
+		Boss,
+	};
+	ESteerMode GSteer = ESteerMode::Off;
+	double GSteerSpeed = 1100.0;
+	FVector2D GSteerPos = FVector2D::ZeroVector, GSteerVel = FVector2D::ZeroVector, GSteerGoal = FVector2D::ZeroVector;
+	int32 GSteerGoalIndex = -1;
+	int32 GRetargetIn = 0;
+	bool bSteerStarted = false;
+	int32 GPounceFrames = 0;
+	bool bPounceWasHeld = false;
+	double GCamZoom = 1.0;
+	bool bCamSet = false;
+	FVector2D GCamPos = FVector2D::ZeroVector;
+
+	UPawRealmSubsystem* RealmNow()
+	{
+		UWorld* World = GEngine && GEngine->GameViewport ? GEngine->GameViewport->GetWorld() : nullptr;
+		return World ? World->GetSubsystem<UPawRealmSubsystem>() : nullptr;
+	}
+
+	// The view samples the cursor and the pad every frame and would overwrite the steered cat and the held Pounce.
+	void SampleInput(bool bOn)
+	{
+		UWorld* World = GEngine && GEngine->GameViewport ? GEngine->GameViewport->GetWorld() : nullptr;
+		for (TActorIterator<APawRealmView> It(World); It; ++It)
+		{
+			It->bSampleInput = bOn;
+		}
+	}
+
+	// One frame of the take: the file numbered by the frame, the widgets in it only when asked. BMP, not PNG: the engine
+	// writes by the extension (FImageUtils::SaveImageByExtension), and PNG's compression is what holds a take to ~3 frames a
+	// second; tools/store_clips.py packs each take losslessly and deletes the frames.
+	void RecordFrame()
+	{
+		if (GClip.Left <= 0)
+		{
+			return;
+		}
+		const FString Path = GClip.Dir / FString::Printf(TEXT("f_%05d.bmp"), GClip.Index++);
+		FScreenshotRequest::RequestScreenshot(Path, GClip.bUi, false);
+		if (--GClip.Left == 0)
+		{
+			UE_LOG(LogPaw, Display, TEXT("PAW_CLIP done %s (%d frames)"), *GClip.Dir, GClip.Index);
+		}
+	}
+
+	// The goal a player's hand would pick: the live enemy with the most others round it, nearer ones first.
+	int32 PickGoal(const Pc::PcField& F)
+	{
+		int32 Best = -1;
+		double BestScore = -1.0;
+		for (const int32 S : F.Live)
+		{
+			const size_t I = static_cast<size_t>(S);
+			int32 Near = 0;
+			for (const int32 T : F.Live)
+			{
+				const size_t J = static_cast<size_t>(T);
+				if ((F.X[J] - F.X[I]) * (F.X[J] - F.X[I]) + (F.Y[J] - F.Y[I]) * (F.Y[J] - F.Y[I]) < 170.0 * 170.0)
+				{
+					++Near;
+				}
+			}
+			const double Dist = FMath::Sqrt((F.X[I] - GSteerPos.X) * (F.X[I] - GSteerPos.X) + (F.Y[I] - GSteerPos.Y) * (F.Y[I] - GSteerPos.Y));
+			const double Score = Near / (1.0 + Dist / 380.0);
+			if (Score > BestScore)
+			{
+				BestScore = Score;
+				Best = S;
+			}
+		}
+		return Best;
+	}
+
+	// The punch-in. Measured 2026-11-25 (5.8.3): an ortho camera COMPONENT moved off its actor in X/Y does not pan: with the
+	// automatic ortho planes on (the default), FSceneViewProjectionData::UpdateOrthoPlanes moves the view's origin onto the
+	// camera's owner (ViewOrigin += CameraToViewTarget), so the view stays centred on the actor (the zoom takes, the pan
+	// never does); and fixed planes (near 0, far 2000) dropped the cat's body (KB 2D/02: such planes clip above about Z 100).
+	// So the punch-in is a rig of its own, built as the realm view's camera is (a root on the field's plane, the camera 1000
+	// above it looking down, the same post-process: exact colours), with the auto planes left on, and the RIG is moved: the
+	// engine centres the view on it. The auto planes shrink with the ortho width, and at 2x the cat's body (the highest
+	// band) was cut while its shadow drew; the rig's planes are shifted toward the camera (measured at 2x: shift 0 cut it,
+	// -300 and -800 drew everything, +300 drew nothing). Every sprite, the floor and the effects are world
+	// geometry, so the close-up renders at the window's full resolution. The view stays inside the field: no edge of nothing.
+	TWeakObjectPtr<AActor> GCamRig;
+
+	void CameraFrame(double Dt)
+	{
+		if (!bCamSet)
+		{
+			return;
+		}
+		UPawRealmSubsystem* R = RealmNow();
+		UWorld* World = GEngine && GEngine->GameViewport ? GEngine->GameViewport->GetWorld() : nullptr;
+		APawRealmView* View = nullptr;
+		for (TActorIterator<APawRealmView> It(World); It && !View; ++It)
+		{
+			View = *It;
+		}
+		UCameraComponent* Game = View ? View->FindComponentByClass<UCameraComponent>() : nullptr;
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		if (!R || !R->IsRunning() || !Game || !PC)
+		{
+			return;
+		}
+		if (!GCamRig.IsValid())
+		{
+			AActor* Rig = World->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity);
+			USceneComponent* Root = NewObject<USceneComponent>(Rig, TEXT("Root"));
+			Root->SetMobility(EComponentMobility::Movable);
+			Rig->SetRootComponent(Root);
+			Root->RegisterComponent();
+			UCameraComponent* Cam = NewObject<UCameraComponent>(Rig, TEXT("Camera"));
+			Cam->SetupAttachment(Root);
+			Cam->SetRelativeLocationAndRotation(Game->GetRelativeLocation(), Game->GetRelativeRotation());
+			Cam->SetProjectionMode(Game->ProjectionMode);
+			Cam->bOverrideAspectRatioAxisConstraint = Game->bOverrideAspectRatioAxisConstraint;
+			Cam->SetAspectRatioAxisConstraint(Game->AspectRatioAxisConstraint);
+			Cam->SetConstraintAspectRatio(Game->bConstrainAspectRatio);
+			Cam->PostProcessSettings = Game->PostProcessSettings;
+			Cam->PostProcessBlendWeight = Game->PostProcessBlendWeight;
+			Cam->AutoPlaneShift = -600.0f;
+			Cam->RegisterComponent();
+			GCamRig = Rig;
+		}
+		AActor* Rig = GCamRig.Get();
+		UCameraComponent* Cam = Rig->FindComponentByClass<UCameraComponent>();
+		const double H = APawRealmView::LogicalHeight;
+		const double W = View->GetLogicalWidth();
+		const double Zoom = FMath::Max(GCamZoom, 1.0);
+		const double HalfW = W * 0.5 / Zoom, HalfH = H * 0.5 / Zoom;
+		const Pc::PcField& F = R->GetSim().Field;
+		const FVector2D Goal(FMath::Clamp(F.CatX, HalfW, W - HalfW), FMath::Clamp(F.CatY, HalfH, H - HalfH));
+		GCamPos = GCamPos.IsZero() ? Goal : GCamPos + (Goal - GCamPos) * (1.0 - FMath::Exp(-Dt * 2.5));
+		Cam->SetOrthoWidth(static_cast<float>(Game->OrthoWidth / Zoom));
+		// Field (x right, y down) -> world (screen up = +X, screen right = +Y), the field's centre at the view's origin
+		// (UPawSpriteRenderer::FieldToWorld).
+		Rig->SetActorLocation(View->GetActorLocation() + FVector(H * 0.5 - GCamPos.Y, GCamPos.X - W * 0.5, 0.0));
+		if (PC->GetViewTarget() != Rig)
+		{
+			PC->SetViewTarget(Rig);
+		}
+	}
+
+	// A hand on a mouse: a critically damped spring toward the goal, its speed capped, so the cat eases in and out of each
+	// crowd instead of snapping to it (the cat IS the cursor: the field puts it wherever the input says).
+	void SteerFrame(double Dt)
+	{
+		UPawRealmSubsystem* R = RealmNow();
+		if (!R || !R->IsRunning())
+		{
+			return;
+		}
+		if (GPounceFrames > 0)
+		{
+			R->SetPounceDown(true);
+			--GPounceFrames;
+			bPounceWasHeld = true;
+		}
+		else if (bPounceWasHeld)
+		{
+			R->SetPounceDown(false);
+			bPounceWasHeld = false;
+		}
+		if (GSteer == ESteerMode::Off)
+		{
+			return;
+		}
+		const Pc::PcField& F = R->GetSim().Field;
+		// Once a game second: what the take shows (staging a take is tuning how strong the cat is against the field).
+		static int32 FieldLogIn = 0;
+		if (--FieldLogIn <= 0)
+		{
+			FieldLogIn = 60;
+			UPawGameSubsystem* G = R->GetGame();
+			UE_LOG(LogPaw, Display, TEXT("PAW_FIELD live %d kills %lld boss %s %.4g"), static_cast<int32>(F.Live.size()),
+				G ? static_cast<long long>(G->Progress().LifetimeKills) : -1LL, F.bBossUp ? TEXT("up") : TEXT("-"), F.BossHp);
+		}
+		if (!bSteerStarted)
+		{
+			bSteerStarted = true;
+			GSteerPos = FVector2D(F.CatX, F.CatY);
+			GSteerVel = FVector2D::ZeroVector;
+			GSteerGoal = GSteerPos;
+			GSteerGoalIndex = -1;
+			GRetargetIn = 0;
+		}
+		if (GSteer == ESteerMode::Boss && F.bBossUp)
+		{
+			// Beside the boss, not on it: a cat sitting on the boss hid it for the whole fight (2026-11-25).
+			GSteerGoal = FVector2D(F.BossX - 95.0, F.BossY + 30.0);
+		}
+		else
+		{
+			const bool bGoalAlive = GSteerGoalIndex >= 0 && std::find(F.Live.begin(), F.Live.end(), GSteerGoalIndex) != F.Live.end();
+			if (bGoalAlive)
+			{
+				const size_t I = static_cast<size_t>(GSteerGoalIndex);
+				GSteerGoal = FVector2D(F.X[I], F.Y[I]);
+			}
+			if (!bGoalAlive || --GRetargetIn <= 0 || FVector2D::Distance(GSteerGoal, GSteerPos) < 24.0)
+			{
+				GSteerGoalIndex = PickGoal(F);
+				GRetargetIn = 24;
+				if (GSteerGoalIndex >= 0)
+				{
+					const size_t I = static_cast<size_t>(GSteerGoalIndex);
+					GSteerGoal = FVector2D(F.X[I], F.Y[I]);
+				}
+			}
+		}
+		GSteerGoal.X = FMath::Clamp(GSteerGoal.X, F.Bounds.X + 40.0, F.Bounds.X + F.Bounds.W - 40.0);
+		GSteerGoal.Y = FMath::Clamp(GSteerGoal.Y, F.Bounds.Y + 40.0, F.Bounds.Y + F.Bounds.H - 40.0);
+		constexpr double K = 38.0;
+		const double C = 2.0 * FMath::Sqrt(K);
+		GSteerVel += (K * (GSteerGoal - GSteerPos) - C * GSteerVel) * Dt;
+		if (GSteerVel.Size() > GSteerSpeed)
+		{
+			GSteerVel = GSteerVel.GetSafeNormal() * GSteerSpeed;
+		}
+		GSteerPos += GSteerVel * Dt;
+		R->SetCat(GSteerPos.X, GSteerPos.Y);
+	}
 
 	void ShowFontSheet(const FString& Culture)
 	{
@@ -171,8 +447,11 @@ namespace
 		return PC ? PC->GetHud() : nullptr;
 	}
 
-	bool Tick(float)
+	bool Tick(float DeltaTime)
 	{
+		RecordFrame();
+		SteerFrame(DeltaTime);
+		CameraFrame(DeltaTime);
 		if (GQuitIn >= 0)
 		{
 			if (GQuitIn-- == 0)
@@ -188,9 +467,152 @@ namespace
 		const FStep Step = GQueue[0];
 		GQueue.RemoveAt(0);
 		GFramesLeft = 30;
+		// Every step in the log (a take that never starts is then plain to see); paw.Quit's wait for the take, once.
+		if (Step.Kind != EStep::Quit || GClip.Left <= 0 || !Step.bQuit)
+		{
+			UE_LOG(LogPaw, Display, TEXT("PAW_STEP frame %llu: %d %s%s (%d left)"), static_cast<unsigned long long>(GFrameCounter), static_cast<int32>(Step.Kind), *Step.Name, *Step.Press, GQueue.Num());
+		}
 		if (Step.Kind == EStep::Wait)
 		{
 			GFramesLeft = FMath::Max(0, Step.Frames);
+			return true;
+		}
+		if (Step.Kind == EStep::Clip)
+		{
+			// The steps after it are the take's action: no beat before the next one.
+			const FString Dir = FPaths::ProjectSavedDir() / TEXT("PawClips") / Step.Name;
+			if (!Step.bJobs || Dir != GClip.Dir)
+			{
+				IFileManager::Get().DeleteDirectory(*Dir, false, true); // never an old take's frames among the new
+				IFileManager::Get().MakeDirectory(*Dir, true);
+				GClip.Index = 0;
+			}
+			GClip.Dir = Dir;
+			GClip.Left = FMath::Max(1, Step.Frames);
+			GClip.bUi = Step.bSpend;
+			GFramesLeft = 0;
+			UE_LOG(LogPaw, Display, TEXT("PAW_CLIP start %s (%d frames%s)"), *GClip.Dir, GClip.Left, GClip.bUi ? TEXT(", the widgets too") : TEXT(""));
+			return true;
+		}
+		if (Step.Kind == EStep::Steer)
+		{
+			GSteer = Step.Press == TEXT("hunt") ? ESteerMode::Hunt : Step.Press == TEXT("boss") ? ESteerMode::Boss : ESteerMode::Off;
+			GSteerSpeed = Step.X > 0.0 ? Step.X : 1100.0;
+			bSteerStarted = false;
+			if (GSteer != ESteerMode::Off)
+			{
+				if (UWorld* World = GEngine && GEngine->GameViewport ? GEngine->GameViewport->GetWorld() : nullptr)
+				{
+					if (UPawInputDeviceSubsystem* Device = World->GetGameInstance()->GetSubsystem<UPawInputDeviceSubsystem>())
+					{
+						Device->ClaimStick(); // when the view samples again, the stick holds the cat where the hand left it
+					}
+				}
+			}
+			SampleInput(GSteer == ESteerMode::Off);
+			GFramesLeft = 0;
+			return true;
+		}
+		if (Step.Kind == EStep::Pounce)
+		{
+			SampleInput(false); // the view would let go of the press on its next frame
+			GPounceFrames = 2;
+			GFramesLeft = 0;
+			return true;
+		}
+		if (Step.Kind == EStep::Row)
+		{
+			if (UPawHudScreen* H = Hud())
+			{
+				H->PressRow(Step.Arg);
+			}
+			else
+			{
+				UE_LOG(LogPaw, Warning, TEXT("paw.Row: no HUD"));
+			}
+			return true;
+		}
+		if (Step.Kind == EStep::Camera)
+		{
+			GCamZoom = FMath::Max(Step.X, 1.0);
+			bCamSet = true;
+			SampleInput(false); // the view would take the view target back every frame it samples
+			GCamPos = FVector2D::ZeroVector; // the first frame starts on the cat
+			return true;
+		}
+		if (Step.Kind == EStep::Ever)
+		{
+			UPawRealmSubsystem* R = RealmNow();
+			UPawGameSubsystem* G = R ? R->GetGame() : nullptr;
+			if (!G || !G->IsDataReady())
+			{
+				UE_LOG(LogPaw, Warning, TEXT("paw.Ever: no realm"));
+				return true;
+			}
+			G->Progress().StardustGrantedEver = FMath::Max(G->Progress().StardustGrantedEver, Step.X);
+			R->OnProgressChanged(false);
+			return true;
+		}
+		if (Step.Kind == EStep::Own)
+		{
+			UPawRealmSubsystem* R = RealmNow();
+			UPawGameSubsystem* G = R ? R->GetGame() : nullptr;
+			if (!G || !G->IsDataReady())
+			{
+				UE_LOG(LogPaw, Warning, TEXT("paw.Own: no realm"));
+				return true;
+			}
+			G->Progress().BranchLevels[TCHAR_TO_UTF8(*Step.Press)] = FMath::Max(Step.Arg, 1);
+			R->OnProgressChanged(true);
+			return true;
+		}
+		if (Step.Kind == EStep::AutoPick)
+		{
+			UPawRealmSubsystem* R = RealmNow();
+			UPawGameSubsystem* G = R ? R->GetGame() : nullptr;
+			if (!G || !G->IsDataReady())
+			{
+				UE_LOG(LogPaw, Warning, TEXT("paw.AutoPick: no realm"));
+				return true;
+			}
+			int64_t& Level = G->Progress().BranchLevels["auto_card"];
+			Level = FMath::Max<int64_t>(Level, 1);
+			R->SetAutoPick(true);
+			return true;
+		}
+		if (Step.Kind == EStep::Zoom)
+		{
+			UPawHudScreen* H = Hud();
+			if (UPawSkillTreeScreen* Tree = H ? H->GetSkillTree() : nullptr; Tree && Tree->IsActivated())
+			{
+				Tree->ZoomBy(Step.X);
+			}
+			else
+			{
+				UE_LOG(LogPaw, Warning, TEXT("paw.Zoom: no tree up"));
+			}
+			return true;
+		}
+		if (Step.Kind == EStep::Dock)
+		{
+			// The HUD reports its dock only when the window's size changes (UPawHudScreen::ReportDockForSize).
+			if (UPawRealmSubsystem* R = RealmNow())
+			{
+				R->SetDock(Pc::PcRect{}, false);
+			}
+			return true;
+		}
+		if (Step.Kind == EStep::Quit)
+		{
+			if (GClip.Left > 0)
+			{
+				FStep Again = Step;
+				Again.bQuit = true; // logged once
+				GQueue.Insert(Again, 0); // the take is still being written
+				GFramesLeft = 0;
+				return true;
+			}
+			GQuitIn = 30; // let the last file land
 			return true;
 		}
 		if (Step.Kind == EStep::FontSheet)
@@ -693,6 +1115,117 @@ namespace
 		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
 		{
 			GetMutableDefault<UUserInterfaceSettings>()->ApplicationScale = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 1.0f;
+		}));
+
+	FAutoConsoleCommand ClipCommand(TEXT("paw.Clip"), TEXT("paw.Clip <name> <frames> [ui]: record frames to Saved/PawClips/<name>/ (no widgets unless ui; queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Clip;
+			Step.Name = Args.Num() > 0 ? Args[0] : TEXT("clip");
+			Step.Frames = Args.Num() > 1 ? FCString::Atoi(*Args[1]) : 600;
+			Step.bSpend = Args.Contains(TEXT("ui"));
+			Step.bJobs = Args.Contains(TEXT("append"));
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand SteerCommand(TEXT("paw.Steer"), TEXT("paw.Steer hunt|boss|off [px/s]: steer the cat as a hand would (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Steer;
+			Step.Press = Args.Num() > 0 ? Args[0] : FString(TEXT("hunt"));
+			Step.X = Args.Num() > 1 ? FCString::Atod(*Args[1]) : 0.0;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand PounceCommand(TEXT("paw.Pounce"), TEXT("paw.Pounce: one Pounce press (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>&)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Pounce;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand RowCommand(TEXT("paw.Row"), TEXT("paw.Row <n>: press a row of the open dock page (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Row;
+			Step.Arg = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : 0;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand CameraCommand(TEXT("paw.Camera"), TEXT("paw.Camera <zoom>: the field's camera punched in, after the cat (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Camera;
+			Step.X = Args.Num() > 0 ? FCString::Atod(*Args[0]) : 1.6;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand EverCommand(TEXT("paw.Ever"), TEXT("paw.Ever <stardust>: the Stardust ever granted raised to this (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Ever;
+			Step.X = Args.Num() > 0 ? FCString::Atod(*Args[0]) : 1e6;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand OwnCommand(TEXT("paw.Own"), TEXT("paw.Own <branch> [level]: a tree node owned, the field's stats rebuilt (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Own;
+			Step.Press = Args.Num() > 0 ? Args[0] : FString(TEXT("unlock_aura"));
+			Step.Arg = Args.Num() > 1 ? FCString::Atoi(*Args[1]) : 1;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand AutoPickCommand(TEXT("paw.AutoPick"), TEXT("paw.AutoPick: Auto Card owned and on (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>&)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::AutoPick;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand ZoomCommand(TEXT("paw.Zoom"), TEXT("paw.Zoom <delta>: the skill tree's zoom (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Zoom;
+			Step.X = Args.Num() > 0 ? FCString::Atod(*Args[0]) : 0.3;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand DockCommand(TEXT("paw.Dock"), TEXT("paw.Dock off: the playfield the whole window wide (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>&)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Dock;
+			Queue(Step);
+		}));
+
+	FAutoConsoleCommand QuitCommand(TEXT("paw.Quit"), TEXT("paw.Quit: quit once the clip being recorded is on disk (queued with paw.Shot)."),
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>&)
+		{
+			FStep Step;
+			Step.bShot = false;
+			Step.Kind = EStep::Quit;
+			Queue(Step);
 		}));
 
 	FAutoConsoleCommand TabCommand(TEXT("paw.Tab"), TEXT("paw.Tab <1-6>: open a dock tab on the HUD (queued with paw.Shot)."),

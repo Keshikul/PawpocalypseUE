@@ -41,7 +41,7 @@ namespace PawInput
 		{
 			if (C == INDEX_NONE)
 			{
-				Error = TEXT("InputMap.csv: a column is missing (re-export: py tools/export_godot_data.py)");
+				Error = TEXT("InputMap.csv: a column is missing (Data/InputMap.csv's header)");
 				return false;
 			}
 		}

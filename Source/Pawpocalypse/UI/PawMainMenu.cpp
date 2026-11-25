@@ -1,4 +1,5 @@
 #include "UI/PawMainMenu.h"
+#include "UI/PawUiTime.h"
 
 #include "Audio/PawAudioSubsystem.h"
 #include "Input/PawInputMap.h"
@@ -1376,6 +1377,7 @@ void UPawMainMenu::StepSwell(double DeltaSeconds)
 void UPawMainMenu::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	StepSwell(DeltaSeconds);
 	Juice.Tick(DeltaSeconds);
 }

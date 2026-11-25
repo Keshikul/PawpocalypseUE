@@ -102,7 +102,7 @@ SHADOW = shadow_img()
 
 
 def font(px, black=False):
-    name = "MPLUSRounded1c-Black.ttf" if black else "MPLUSRounded1c-ExtraBold.ttf"
+    name = "Nunito-Black.ttf" if black else "Nunito-Bold.ttf"  # the game's faces since D18 (M PLUS Black removed 2026-11-24)
     return ImageFont.truetype(str(ROOT / "SourceArt" / "fonts" / name), int(px * SS))
 
 

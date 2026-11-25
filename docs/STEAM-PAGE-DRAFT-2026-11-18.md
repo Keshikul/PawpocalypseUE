@@ -8,8 +8,8 @@
 >
 > It replaces the Godot repo's `docs/store/pawpocalypse-steam-page.md` (2026-10-03). That draft was written in a voice
 > ("Then it gets out of hand.", "It poops rainbows. They hurt.") before the designer asked for plain text, and three of its
-> numbers are out of date: 16 kinds of enemy (now 39 drawings), 41 achievements (now 39), 6 to 10 hours (now about 2 h
-> for a fast player since D17).
+> numbers are out of date: 16 kinds of enemy (now 39 drawings), 41 achievements (now 39), 6 to 10 hours (about 2 h for a
+> fast player after D17; about 3 h since D24, 2026-11-24).
 
 ## Version 3 (2026-11-18): signed off
 
@@ -96,10 +96,15 @@ From the 11 comparable pages (`build/steam/research/media.tsv`; each file's own 
 - **Shapes:** 16:9 gameplay (1170 x 658, 614 x 336) and wide strips (616 x 160 to 616 x 258, 780 x 250, 1170 x 244).
 - **Sizes (webm):** 50 KB to 1 MB for clips up to 780 px; 0.7 to 2.7 MB for 1170 px gameplay; one 8 MB outlier.
 - **Ours, recommended:** 1170 x 658 gameplay loops, 6 to 12 s (Steam's maximum is 12 s), under 3 MB each, webm and mp4;
-  heading strips 1170 x 244 if the headings become pictures. **None exist in the new look yet:** the clips and GIFs in
-  Drive (`Promotional/Steam/clips`, `gifs`, 2026-11-03) show the old Godot look. Recording needs a screen recorder
-  (ffmpeg), still the designer's call.
-- The 9 screenshots are 1920 x 1080 (Steam's minimum is 1280 x 720; all comparable pages use 1920 x 1080).
+  heading strips 1170 x 244 if the headings become pictures.
+- **Recorded 2026-11-25 (HANDOFF-LOG (147))** in the real game, frame by frame, by `py tools/store_clips.py` (no screen
+  recorder: the game writes each frame, ffmpeg from Python's `imageio-ffmpeg` encodes): six clips as webm + mp4 (1170 x 658,
+  9-10.5 s, 1.5-3.0 MB: hunt, aura, pounce, boss, realms, rider), the same six as GIFs (780 px, 6-7.5 s, under 8 MB) and a
+  57 s trailer (1920 x 1080, 60 fps, the first try's CC0 score). **The GIFs and clips have no text** (designer, 2026-11-25:
+  "Make sure there is no text in gifs"): they are recorded without a single widget, the field drawn alone. Only the trailer
+  shows the HUD (the dock, the cards, the tree, the ceremonies). Drive: `Promotional/Steam/2026-11-25`.
+- The 9 screenshots are 1920 x 1080 (Steam's minimum is 1280 x 720; all comparable pages use 1920 x 1080); retaken
+  2026-11-25 after the restyles of (120)-(126).
 
 ## Tags (Steam counts the first 20; the first 5 weigh most)
 
@@ -167,5 +172,6 @@ Confirm each with a measured build before the page goes public.
 Answered 2026-11-18: the text approved; length off; tags approved; the AI disclosure is the designer's to write;
 languages: the most-used Steam languages, all translated, changes retranslated alone. Still open:
 1. The store translations: a native speaker's read each before upload.
-2. The clips: recorded in the new look (1170 x 658, at most 12 s, under 3 MB). Recording needs a screen recorder
-   (ffmpeg); installing one is the designer's call.
+2. The clips: recorded 2026-11-25 (above). Which clip goes under which About block is the designer's pick (the About
+   blocks name hunt, upgrades, cards, boss, evolve, reawaken and tree; the text-free clips cover hunt, boss, the aura,
+   Pounce, the realms and the rider; upgrades, cards and the tree exist only with the HUD, in the trailer).

@@ -20,7 +20,6 @@ namespace PawFontSpec
 		{ TEXT("FF_Nunito_Bold"), TEXT("Nunito-Bold.ttf"), TEXT("LazyLoad") },
 		{ TEXT("FF_Nunito_Black"), TEXT("Nunito-Black.ttf"), TEXT("LazyLoad") },
 		{ TEXT("FF_MPlusRounded1c_ExtraBold"), TEXT("MPLUSRounded1c-ExtraBold.ttf"), TEXT("LazyLoad") },
-		{ TEXT("FF_MPlusRounded1c_Black"), TEXT("MPLUSRounded1c-Black.ttf"), TEXT("LazyLoad") },
 		{ TEXT("FF_NotoSansCJK_Medium"), TEXT("NotoSansCJK-Medium.ttc"), TEXT("LazyLoad") },
 		{ TEXT("FF_NotoSansThai_Medium"), TEXT("NotoSansThai-Medium.ttf"), TEXT("LazyLoad") },
 	};

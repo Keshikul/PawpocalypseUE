@@ -57,7 +57,10 @@ namespace PawLook
 	constexpr double HaloRings[3][2] = { { 0.78, 0.10 }, { 0.62, 0.13 }, { 0.46, 0.16 } }; // radius share of KittenPx, alpha
 
 	// boss.gd / boss.tscn
-	constexpr double BossScale = 0.9;         // the scene's Visual.scale over the SVG's own size
+	// A boss's drawn size over its SVG's own (every boss is 256 px art). D25 (designer, 2026-11-25: "make the bosses larger.
+	// They should be bigger than we are"): x0.9 (Godot's boss.tscn, 230 px) left the Park Tyrant no bigger than the 175 px cat;
+	// x1.4 (358 px) draws the smallest boss twice the cat's width. tools/pack_atlas.py reads this line (the cells' resolution).
+	constexpr double BossScale = 1.4;
 	constexpr double TwitchInterval = 0.09;
 	constexpr double TwitchIdlePx = 2.0;
 	constexpr double TwitchAngryPx = 11.0;

@@ -137,7 +137,7 @@ then translate" (`docs/WORKLIST-NIGHT-2026-11-18.md`).
 - **The pseudo-locale** (`PawText::Pseudo`, `SetPseudoLocale`, `-PseudoLoc` on the command line for the tours): every
   string table's English rewritten in place, each letter accented (Latin-1, which every face of `F_Paw` has),
   `{placeholders}` and multipliers kept, about 40 % more in words of up to six letters (one long padding word could never
-  wrap), bracketed. Names never translated (the logo, Boba, Discord, the pad brands) stay. `godot_tour.py --culture X`
+  wrap), bracketed. Names never translated (the logo, Boba, Discord, the pad brands) stay. `screen_tour.py --culture X` (was `godot_tour.py`)
   (or `pseudo`) shoots the real game in a language.
 - **Found and fixed** (the first run: 594 texts in 23 languages, 30 in the pseudo-locale; most in English too):
   - At 150 % UI the screen is 720 tall: the **Reawaken ceremony**'s title went off the top and its payout off the bottom,

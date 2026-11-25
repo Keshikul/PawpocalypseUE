@@ -918,7 +918,7 @@ FACE = "today"
 
 
 # --- BOSSES CARRY MORE DETAIL (designer, 2026-11-09: "make bosses more detailed than the rest because they will be larger
-# in size"): a boss is drawn at 256 x 0.9 = 230 px, three to four times an enemy, so each gets a second level of drawing
+# in size"): a boss is drawn at 256 x 0.9 = 230 px (358 px since D25, 2026-11-25), three to four times an enemy, so each gets a second level of drawing
 # that an enemy at 64 px could not hold. REDONE 2026-11-10 (designer: "Redo bosses"): the first drafts were enemies with
 # extra lines; each boss is now a POSE and a presence, its two cues kept.
 

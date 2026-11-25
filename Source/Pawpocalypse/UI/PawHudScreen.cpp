@@ -1,4 +1,5 @@
 #include "UI/PawHudScreen.h"
+#include "UI/PawUiTime.h"
 
 #include "Audio/PawAudioSubsystem.h"
 #include "Blueprint/WidgetTree.h"
@@ -1623,6 +1624,7 @@ UPawGameSubsystem* UPawHudScreen::Game() const
 void UPawHudScreen::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	ReportDockForSize(FVector2D(Geometry.GetLocalSize()));
 	PlaceBossPanel();
 	Pump(DeltaSeconds);
@@ -2892,8 +2894,16 @@ void UPawHudScreen::PressClaim(int32 Index)
 	{
 		return;
 	}
-	// Taking a reward moves Stardust, which the Reawaken page and the status row report: everything refreshes.
-	Pc::ClaimAchievement(G->Data(), G->Progress(), G->Data().Achievements[static_cast<size_t>(Index)].Id);
+	// Taking a reward moves Stardust, which the Reawaken page and the status row report: everything refreshes. It also
+	// raises the Stardust EVER granted, which the damage multiplier reads, so the field's stats are rebuilt now, not at the
+	// next purchase (review 2026-11-24: the field fought on with the old multiplier, +18 % short early on).
+	if (Pc::ClaimAchievement(G->Data(), G->Progress(), G->Data().Achievements[static_cast<size_t>(Index)].Id) > 0.0)
+	{
+		if (UPawRealmSubsystem* R = Realm())
+		{
+			R->OnProgressChanged(false);
+		}
+	}
 	RefreshNow();
 	if (IsActivated() && ClaimButtons.IsValidIndex(Index) && ClaimButtons[Index]->GetVisibility() == ESlateVisibility::Collapsed)
 	{
@@ -2912,7 +2922,14 @@ void UPawHudScreen::PressClaimAll()
 	{
 		return;
 	}
-	Pc::ClaimAllAchievements(G->Data(), G->Progress());
+	// The rewards raise the damage multiplier: the field's stats rebuilt now (as PressClaim).
+	if (Pc::ClaimAllAchievements(G->Data(), G->Progress()) > 0.0)
+	{
+		if (UPawRealmSubsystem* R = Realm())
+		{
+			R->OnProgressChanged(false);
+		}
+	}
 	RefreshNow();
 	if (IsActivated())
 	{

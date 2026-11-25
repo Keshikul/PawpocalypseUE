@@ -1,4 +1,5 @@
 #include "UI/PawUnicornCeremony.h"
+#include "UI/PawUiTime.h"
 
 #include "Audio/PawAudioSubsystem.h"
 #include "Engine/Font.h"
@@ -114,6 +115,7 @@ void UPawUnicornCeremony::StepFor(double Dt)
 void UPawUnicornCeremony::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	StepFor(DeltaSeconds);
 }
 

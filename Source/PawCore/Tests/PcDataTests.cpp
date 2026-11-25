@@ -157,7 +157,20 @@ TEST_CASE("Spot values match the CSV text")
 	CHECK(Anvil->Parent == "job_blacksmith");
 	const Pc::PcBoss* Foreman = D.FindBoss("factory_foreman");
 	REQUIRE(Foreman);
-	CHECK(Foreman->TotalHp == 6.42004e+13); // D17 E6 (2026-11-12): x31, re-priced for the new damage curve
+	CHECK(Foreman->TotalHp == 2.05441e+14); // D17 E6 (2026-11-12): x31, re-priced for the new damage curve; D24 (2026-11-24): x3.2
+	// D24 (the designer, 2026-11-24: "2h 55m: 2x Bait + tougher bosses"): twice the kills a Bait, each boss's HP raised so
+	// its first fight at Bait-ready still lasts 1.5-3 min (tools/econ_review.py: the game 113 -> 175 min of pawsim time).
+	const struct { const char* Id; double Hp; int64_t KillsPerBait; } D24[] = { { "park_tyrant", 3.96892e+07, 480 },
+		{ "rival_champion", 2.60035e+10, 1622 }, { "void_god", 2.70293e+12, 3000 }, { "factory_foreman", 2.05441e+14, 4400 },
+		{ "litter_king", 3.03124e+15, 5600 } };
+	for (const auto& Want : D24)
+	{
+		CAPTURE(Want.Id);
+		const Pc::PcBoss* Boss = D.FindBoss(Want.Id);
+		REQUIRE(Boss);
+		CHECK(Boss->TotalHp == Want.Hp);
+		CHECK(Boss->KillsPerBait == Want.KillsPerBait);
+	}
 	CHECK(Foreman->PhaseHpThresholds == std::vector<double>{ 0.75, 0.50, 0.25 });
 	CHECK(D.Combat.BasePawDamage == 4.0);
 	CHECK(D.Combat.ShredMaxStacks == 10);

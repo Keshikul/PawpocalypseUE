@@ -1,4 +1,5 @@
 #include "UI/PawRainbow.h"
+#include "UI/PawUiTime.h"
 
 #include "Blueprint/WidgetTree.h"
 #include "Components/ProgressBar.h"
@@ -55,6 +56,7 @@ void UPawRainbowBar::SetValue(double InValue)
 void UPawRainbowBar::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	StepFor(DeltaSeconds, FVector2D(Geometry.GetLocalSize()));
 }
 
@@ -100,6 +102,7 @@ bool UPawRainbowFrame::IsShown() const
 void UPawRainbowFrame::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	StepFor(DeltaSeconds);
 }
 

@@ -6,7 +6,10 @@ Runs the packaged Development build with PSO precache validation on (`-ini:Engin
 the cvar is read-only, and validation exists only in a packaged non-Shipping build, KB U/12 §6) along a route:
     --route soak (default): the whole game at 20x through tools/packaged_soak.py (every biome, boss, screen and effect the
                             soak meets; ~12 min)
-    --route bench:          one full field through tools/packaged_bench.py --runs 1 (~30 s)
+    --route bench:          one full field through tools/packaged_bench.py --runs 1 --no-budget (~30 s; its frame time
+                            reported, not judged: the frame gate is the bench's own, best of three, run before this in
+                            package.py; one run with the validation on FAILED this check on a 4.6 ms p99 with 0 misses,
+                            HANDOFF-LOG (144))
 then reads the build's log:
   - each `PSO PRECACHING MISS` block: its state (Missed / Too Late), type, material, vertex factory and pass;
   - each `Encountered a new graphics|compute PSO: N (PSOPrecacheState: Missed)` line: the engine's global shaders (Slate,
@@ -113,6 +116,15 @@ def judge(misses, news, ours, route_ok=True):
     return passed, out
 
 
+def route_cmd(route, build):
+    """-> (command, the log it leaves). The bench route judges everything but the game thread's budget (--no-budget)."""
+    if route == "soak":
+        return ([sys.executable, os.path.join(ROOT, "tools", "packaged_soak.py"), "--build", build, "--speed", "20", "--arg=" + VALIDATION],
+                os.path.join(build, "Windows", "Pawpocalypse", "Saved", "Logs", "Pawpocalypse.log"))
+    return ([sys.executable, os.path.join(ROOT, "tools", "packaged_bench.py"), "--build", build, "--runs", "1", "--no-budget",
+             "--arg=" + VALIDATION], os.path.join(ROOT, "build", "bench", "run1", "Pawpocalypse.log"))
+
+
 def self_test():
     def block(stamp, state, mat, typ="ShadersOnly", vf="FLocalVertexFactory", pass_="TranslucencyAfterDOF"):
         return ("[%s][  1]LogEngine: \n\nPSO PRECACHING MISS:\n\tType:\t\t\t\t\t%s\n\tPSOPrecachingState:\t\t%s\n\tMaterial:\t\t\t\t%s\n"
@@ -152,6 +164,10 @@ def self_test():
     good = len(misses) == 1 and "MeshPassName" not in misses[0]
     ok &= good
     print("%s  a miss block ends at the next log line (no other message's fields read into it)" % ("PASS" if good else "FAIL %s" % misses))
+    cmd, _ = route_cmd("bench", "B")
+    good = "--no-budget" in cmd and VALIDATION in " ".join(cmd)
+    ok &= good
+    print("%s  the bench route runs with the validation on and its frame budget not judged (--no-budget)" % ("PASS" if good else "FAIL %s" % cmd))
     real = project_materials()
     good = {"M_BackdropFill", "M_Sprite"} <= real
     ok &= good
@@ -173,12 +189,7 @@ def main():
     if args.log:
         log = args.log
     else:
-        if args.route == "soak":
-            cmd = [sys.executable, os.path.join(ROOT, "tools", "packaged_soak.py"), "--build", args.build, "--speed", "20", "--arg=" + VALIDATION]
-            log = os.path.join(args.build, "Windows", "Pawpocalypse", "Saved", "Logs", "Pawpocalypse.log")
-        else:
-            cmd = [sys.executable, os.path.join(ROOT, "tools", "packaged_bench.py"), "--build", args.build, "--runs", "1", "--arg=" + VALIDATION]
-            log = os.path.join(ROOT, "build", "bench", "run1", "Pawpocalypse.log")
+        cmd, log = route_cmd(args.route, args.build)
         print("packaged_pso: the %s route with PSO validation on" % args.route, flush=True)
         r = subprocess.run(cmd)
         if r.returncode == 2:

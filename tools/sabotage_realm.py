@@ -619,13 +619,13 @@ SABOTAGES = [
      'const bool bShow = !Text.IsEmpty();',
      'const bool bShow = false;',
      'Pawpocalypse.UI.Hud.Catches'),
-    ('hud_awards_claim_pays_every_press', HUD,
-     'Pc::ClaimAchievement(G->Data(), G->Progress(), G->Data().Achievements[static_cast<size_t>(Index)].Id);',
-     'G->Progress().Stardust += G->Data().Achievements[static_cast<size_t>(Index)].StardustReward;',
+    ('hud_awards_claim_pays_every_press', HUD,  # retargeted 2026-11-24: the claim now also rebuilds the field's stats
+     'Pc::ClaimAchievement(G->Data(), G->Progress(), G->Data().Achievements[static_cast<size_t>(Index)].Id) > 0.0',
+     '(G->Progress().Stardust += G->Data().Achievements[static_cast<size_t>(Index)].StardustReward) > 0.0',
      'Pawpocalypse.UI.Hud.Achievements'),
-    ('hud_awards_claim_all_dead', HUD,
-     'Pc::ClaimAllAchievements(G->Data(), G->Progress());',
-     '(void)0;',
+    ('hud_awards_claim_all_dead', HUD,  # retargeted 2026-11-24 (as above)
+     'Pc::ClaimAllAchievements(G->Data(), G->Progress()) > 0.0',
+     'false',
      'Pawpocalypse.UI.Hud.Achievements'),
     ('hud_awards_claim_hidden', HUD,
      'SetShown(Claim, S.bClaimable, ESlateVisibility::Visible);',
@@ -2083,6 +2083,18 @@ SABOTAGES = [
      'if (!bSpendMode || !G || !G->IsDataReady() || IsCeremonyPlaying())',
      'if (!bSpendMode || !G || !G->IsDataReady())',
      'Pawpocalypse.UI.Unicorn.Plays'),
+    # The review of 2026-11-24 (HANDOFF-LOG (145)): a claimed reward raises the Stardust EVER granted, which the damage
+    # multiplier reads; the field's stats were left as they were until the next purchase.
+    ('claim_leaves_field_stats', HUD,
+     '\tif (Pc::ClaimAchievement(G->Data(), G->Progress(), G->Data().Achievements[static_cast<size_t>(Index)].Id) > 0.0)\n'
+     '\t{\n\t\tif (UPawRealmSubsystem* R = Realm())\n\t\t{\n\t\t\tR->OnProgressChanged(false);\n\t\t}\n\t}\n',
+     '\tPc::ClaimAchievement(G->Data(), G->Progress(), G->Data().Achievements[static_cast<size_t>(Index)].Id);\n',
+     'Pawpocalypse.UI.Hud.Achievements'),
+    ('claim_all_leaves_field_stats', HUD,
+     '\tif (Pc::ClaimAllAchievements(G->Data(), G->Progress()) > 0.0)\n'
+     '\t{\n\t\tif (UPawRealmSubsystem* R = Realm())\n\t\t{\n\t\t\tR->OnProgressChanged(false);\n\t\t}\n\t}\n',
+     '\tPc::ClaimAllAchievements(G->Data(), G->Progress());\n',
+     'Pawpocalypse.UI.Hud.Achievements'),
     ('unicorn_tree_closes_under_it', TREE,  # closed mid-ceremony, it never ended and the tree refused every purchase (2026-11-24)
      '\tif (IsCeremonyPlaying())\n\t{\n\t\treturn;\n\t}\n\t// ALWAYS asks after a Reawaken',
      '\t// ALWAYS asks after a Reawaken',
@@ -2830,6 +2842,15 @@ SABOTAGES = [
      "\t\t\tM->SetMaterial(0, FxMaterial); // named before the band's first effect: precached as the realm appears\n",
      '',
      'Pawpocalypse.Realm.View'),
+    # UI/PawUiTime.cpp (2026-11-25): under a fixed step a widget steps by that step, once per engine frame.
+    ('stepdelta_real_time', "UI/PawUiTime.cpp",  # Slate's real delta in a recording: every UI motion 4-6x fast
+     '\tif (!FApp::UseFixedTimeStep())\n',
+     '\tif (true)\n',
+     'Pawpocalypse.UI.StepDelta'),
+    ('stepdelta_every_paint', "UI/PawUiTime.cpp",  # a screenshot's second paint steps again: the ceremonies twice as fast
+     '\tif (Last == GFrameCounter)\n',
+     '\tif (false)\n',
+     'Pawpocalypse.UI.StepDelta'),
 ]
 
 

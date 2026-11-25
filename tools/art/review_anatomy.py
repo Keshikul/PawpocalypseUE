@@ -54,7 +54,7 @@ def floor_name(tier: int) -> str:
     return "tier %d" % tier
 
 
-BOSS_SCALE = 0.9           # boss.tscn: its drawing at the SVG's own size (256) x 0.9 (pack_atlas.BOSS_SCALE)
+BOSS_SCALE = 1.4           # PawLook::BossScale (D25; Godot's boss.tscn 0.9): its drawing at the SVG's own size (256) x 1.4
 ADD_PX = 15.0 * 1.5 * 2.0  # boss_add.gd: RADIUS x 1.5, a diameter
 
 
@@ -63,7 +63,7 @@ def folder_of(stem: str) -> str:
 
 
 def size_of(stem: str) -> float:
-    """The size the game draws the drawing at, 1080p (an enemy's sprite_target_px; a boss's 256 x 0.9; an add's 45)."""
+    """The size the game draws the drawing at, 1080p (an enemy's sprite_target_px; a boss's 256 x BOSS_SCALE; an add's 45)."""
     if stem == "boss_add":
         return ADD_PX
     if stem.startswith("boss_"):

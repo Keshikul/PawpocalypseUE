@@ -13,6 +13,8 @@
 >
 > **§9 (the night of 2026-11-12): the tree price pass**, the one goal D17 left open, measured as a proposal (doc 01 Q13).
 >
+> **§10 (2026-11-24): D24, the pace slowed** at the designer's word ("The pace seems to be too fast. Slow it down.").
+>
 > **A proposal. Nothing is built and nothing in `Data/` changed.** Every number below comes from `tools/econ_review.py`
 > (pawsim on `Data/*.csv`, the player who Reawakens as soon as the gate opens, plus the game's waves, plus a log of every
 > buy, tree level and Reawaken; proposals are applied in memory). Each change is the designer's call (D16: a change with a
@@ -238,3 +240,41 @@ its boss falls. The stand-in players change the Reawaken gate itself, not only w
 
 **On a yes**: the five prices through `tools/godot_fixes.py` (as E6), the Godot fixtures made again, the tree's price
 labels checked at 900,000 in every language, and the `price:` lever added to `tools/econ_review.py`.
+
+## 10. D24 (2026-11-24): the pace slowed
+
+The designer, after the package's 5x soak won at 113.6 game minutes: "The pace seems to be too fast. Slow it down." The
+game as built (D17, D19) measured 113 min in `tools/econ_review.py`, the length D17 chose; the soak agreed to a tenth.
+Every lever below measured in memory on that economy (`build/econ/pace_*.json`; the player who buys at once and
+Reawakens as soon as allowed):
+
+| Lever | Game | Reawakens | Waits over 3 min | Longest wait | Nothing new | First fights |
+|---|---|---|---|---|---|---|
+| today (D17, D19) | 113 min | 13 | 4 % | 4.0 min | 14.7 min | 89-171 s |
+| Catnip gates x3 (`gates3`) | 122 | 13 | 6 % | 4.2 | 14.4 | 89-154 s |
+| Reawaken gate +350 % (`gate3.5`) | 121 | 11 | 11 % | 4.4 | 17.1 | 101-440 s |
+| boss HP x2 (`hpall2`) | 137 | 14 | 10 % | 4.2 | 18.0 | 184-335 s |
+| 1.5x kills a Bait (`bait1.5`) | 143 | 14 | 11 % | 4.0 | 18.0 | 36-71 s |
+| half the Stardust (`coef0.0625`) | 149 | 13 | 17 % | 4.3 | 29.1 | 258-406 s |
+| Catnip exponent 0.35 (`inc0.35`) | 152 | 13 | 20 % | 6.6 | 25.5 | 112-399 s |
+| **2x kills a Bait (`bait2`)** | **167** | 14 | **8 %** | 5.1 | 18.0 | 16-62 s |
+| **2x Bait, boss HP x5.7 / x3.5 / x4.9 / x3.2 / x2.7** | **175** | 14 | 12 % | 5.6 | 17.2 | 91-186 s |
+| Catnip exponent 0.25 (`inc0.25`) | 203 | 13 | 41 % | 9.3 | 31.7 | 136-716 s |
+| 3x kills a Bait (`bait3`) | 236 | 14 | 26 % | 8.8 | 39.3 | 9-14 s |
+
+Only more kills a Bait lengthens the game inside D17's goals: it lengthens the frontier, where every buy is still new.
+Slowing income (Stardust, the Catnip multiplier) lengthens the re-climbs, which is the waiting D17 removed. Twice the Bait
+alone makes the cat outgrow each boss before its Bait is ready (fights of 16-62 s), so the HP of each boss was raised to
+put its first fight back at E6's 1.5-3 min. **The designer chose "2h 55m: 2x Bait + tougher bosses" (D24)**, knowing it
+passes D17's waiting goals slightly (12 % against 10 %, 5.6 min against 5). Built the same day (`Data/BossData.csv`:
+`kills_per_bait` x2, `total_hp` x those factors); `py tools/econ_review.py` on the built data: 175 min, 14 Reawakens.
+
+**The soak on D24** (editor build, 5x, `build/soak/editor_20261124_214341_d24_5x.txt`): **won at 175.1 game minutes**
+(35.1 real; 13 Reawakens, 279 tree levels, 0 refused, 0 Error / 0 Warning lines; worst frame the tree's first spend step,
+122.8 ms; no stall), matching econ_review's 175. **But its first Park Tyrant fight timed out**: it Reawakened at game minute
+47.9 holding its 40 Bait (D17 E2 keeps them), came back and summoned at 50.9 with a fresh run's cat (~10,000 DPS), took
+the boss to 40 % in the 300 s limit and lost the Bait: the rematch came at 90.4, 35 game minutes later (D17's HP fell to
+the same cat). econ_review prices a fight at the moment the Bait is ready, not after a Reawaken. Measured in memory: the
+Park Tyrant at x3.0 of D17's HP instead of x5.7 (`hp3x0.526` on today's data) leaves the game at 175 min with the same
+waits, its first fight 47 s at Bait-ready; the soak's fresh cat would have won in about 260-270 s of its 300. The
+designer's call.

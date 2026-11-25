@@ -1,4 +1,5 @@
 #include "UI/PawTreeSky.h"
+#include "UI/PawUiTime.h"
 
 #include "Engine/GameInstance.h"
 #include "Render/PawFxCanvas.h"
@@ -43,6 +44,7 @@ void UPawTreeSky::LayOutFor(const FVector2D& Size)
 void UPawTreeSky::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	const FVector2D Size(Geometry.GetLocalSize());
 	if (Size.X > 0.0 && Size.Y > 0.0)
 	{

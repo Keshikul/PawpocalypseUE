@@ -8,10 +8,8 @@
                 exception is Private/PawCoreModule.cpp, the Unreal module glue.
   test-guard    every .cpp under Tests/ is wrapped in `#if defined(PAWCORE_STANDALONE_TESTS)` or `PAWCORE_SIM_CLI`
                 (UBT compiles every .cpp in the module folder; an unguarded test would land in the game).
-  generated     PcEnums.h and PcDataRows.h are exactly what tools/gen_pc_enums.py / gen_pc_data.py write (`--check`), the
-                game's Data/PawDataRows.h what tools/gen_paw_rows.py writes, UI/PawTokens.h what tools/gen_paw_tokens.py
-                writes (the Godot palette), ST_Data.csv what tools/gen_data_strings.py writes (the data names) and
-                ST_Tree.csv / PcTreeWording.h / PawTreeTables.h what tools/gen_tree_tables.py writes (skill_tree_ui.gd),
+  generated     the game's Data/PawDataRows.h is what tools/gen_paw_rows.py writes, UI/PawTokens.h what tools/gen_paw_tokens.py
+                writes (the palette), ST_Data.csv what tools/gen_data_strings.py writes (the data names) and
                 Realm/PawFxLook.h what tools/gen_fx_look.py writes (the field effects' look, restyle D3).
   ui-rules      the game's UI code (Source/Pawpocalypse/UI, tests excepted) holds no colour value but the generated
                 PawTokens.h (no FLinearColor(/FColor( literal, no FromHex/FromSRGBColor), no hard-coded player text

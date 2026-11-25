@@ -8,8 +8,8 @@ Reads SourceArt/svg (tools/art/build_art.py) and Data/*.csv; writes SourceArt/pn
 WHICH SPRITES, AND HOW BIG. Each is rasterised SQUARE at 2x the largest size Godot draws it on a 1080p screen, rounded up to 4
 (spike S3). Every drawing is a square SVG fitted by its longest edge, so the drawn size is one number:
   - each enemy texture: the largest EnemyData.sprite_target_px using it, x 1.03 (the breathing pulse, SpriteLiveliness);
-  - each boss: its SVG's own size x 0.9 (boss.tscn's Visual scale; boss.gd never refits it); boss_generic is the scene's
-    default; boss_add at RADIUS 15 x 1.5 x 2 (boss_add.gd _draw);
+  - each boss: its SVG's own size x PawLook::BossScale (Realm/PawFieldLook.h, read from there: 1.4 since D25; Godot's
+    boss.tscn was 0.9); boss_generic is the scene's default; boss_add at RADIUS 15 x 1.5 x 2 (boss_add.gd _draw);
   - the cat's stages: Player.SPRITE_TARGET_PX 175 x 1.16 (the hop's crouch widens it by HOP_SQUASH 0.16); the weapons
     (WEAPON_WIDTH_FRACTION 0.405) and the hats (HAT_WIDTH_FRACTION 0.62) of that cat, x 1.16 too;
   - the kitten: Kitten.SPRITE_TARGET_PX 96 x 1.03;
@@ -51,7 +51,14 @@ PULSE = 1.03          # SpriteLiveliness.PULSE_AMPLITUDE
 CAT_PX = 175.0        # Player.SPRITE_TARGET_PX
 CAT_SQUASH = 1.16     # 1 + Player.HOP_SQUASH: the crouch's width
 KITTEN_PX = 96.0      # Kitten.SPRITE_TARGET_PX
-BOSS_SCALE = 0.9      # boss.tscn Visual.scale
+def boss_scale() -> float:
+    """PawLook::BossScale, the boss's drawn size over its SVG's (Realm/PawFieldLook.h: one number, never two)."""
+    import re
+    text = (ROOT / "Source" / "Pawpocalypse" / "Realm" / "PawFieldLook.h").read_text(encoding="utf-8")
+    return float(re.search(r"constexpr double BossScale = ([\d.]+);", text).group(1))
+
+
+BOSS_SCALE = boss_scale()
 ADD_PX = 15.0 * 1.5 * 2.0  # BossAdd.RADIUS x 1.5, a diameter
 WEAPON_FRACTION = 0.559    # PawFieldLook.h WeaponWidthMounted (D18: the lance is the wider; sticker_art.py --overlays)
 HAT_FRACTION = 0.849       # PawFieldLook.h HatWidth (the standing hat is the wider)

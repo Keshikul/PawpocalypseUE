@@ -764,7 +764,7 @@ void APawRealmView::DrawCreatures()
 		Out.AddSprite(EPawLayer::Bodies, B);
 	}
 
-	// The boss (Boss: its drawing at its own size x 0.9, z 0 after the pool, the twitch on the sprite, the shield tint).
+	// The boss (Boss: its drawing at its own size x BossScale (1.4, D25), z 0 after the pool, the twitch on the sprite, the shield tint).
 	if (F.bBossUp && F.TierIndex >= 0 && static_cast<size_t>(F.TierIndex) < D.Tiers.size())
 	{
 		if (const Pc::PcBoss* Boss = D.FindBoss(D.Tiers[static_cast<size_t>(F.TierIndex)].BossData))

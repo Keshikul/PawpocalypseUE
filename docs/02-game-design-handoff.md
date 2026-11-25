@@ -2,10 +2,9 @@
 
 > Consolidated on 2026-10-28 from the Godot project's `pawpocalypse.md` (its standing rules, re-checked against
 > code 2026-09-30), `docs/pawpocalypse-gdd.md` v9 (2026-10-01/02), `docs/pawpocalypse-technical-design-doc.md`, the
-> autoloads and `/data`. The numbers live in `Data/*.csv` and [appendix A](appendix-a-content-catalogue.md); this
-> doc says what they MEAN and which rules may never break. **Every "never" here has a measured incident behind it in
-> the Godot history.** When porting a system, read its section here, then the Godot code (appendix B), then write
-> the C++.
+> autoloads and `/data`. The numbers live in `Data/*.csv`; this doc says what they MEAN and which rules may never
+> break. **Every "never" here has a measured incident behind it in the Godot history.** Since D22 (2026-11-23) this
+> doc and the code are the rules: Godot is history, a rule is changed here (on the designer's yes) and in the code.
 
 ---
 
@@ -27,6 +26,10 @@
   Reawakens; the 5x soak of a build: ~10h game time, 10 Reawakens. Never tune toward a number of hours; the fix for
   length is content. **Since D17 (2026-11-12)**, the designer's "shorter denser game": ~1h 52m of pawsim time with waves
   (`tools/econ_review.py`), 13 Reawakens; about half of the old length was re-climbing to where the last run ended.
+  **Since D24 (2026-11-24)** the designer asked for a slower pace ("The pace seems to be too fast. Slow it down.") and
+  chose it from measured options: ~2h 55m of pawsim time with waves, 14 Reawakens (twice the kills a Bait, tougher
+  bosses; doc 01 D24). The 5x soak plays like pawsim's player (113.6 game minutes against 113 before D24); a person is
+  slower.
 - **Pillars**: escalating absurdity with serious systems; semi-active (kittens hunt alone, but aiming, Pounce timing
   and Bait beat idling); a line, not a treadmill (it ends); readable power (every buy should be NOTICEABLE, ~8%+ of
   income); no offline progress (removed 2026-09-10, a decision, not a gap).
@@ -81,7 +84,7 @@ re-spread so stage 7 stays x128).
 
 ### 3.1 Enemies
 
-59 enemies (appendix A). Fields: `hp`, `reward_catnip`, `movement`, signature shields, flee/seek, speed, lifetime,
+59 enemies (`Data/EnemyData.csv`). Fields: `hp`, `reward_catnip`, `movement`, signature shields, flee/seek, speed, lifetime,
 sparkle, size.
 
 - **`reward_catnip = 0.0433 x hp`** for every enemy (`CATNIP_PER_HP`). v1 let rewards grow x1.35/tier against HP
@@ -143,7 +146,7 @@ sparkle, size.
 - **Bosses** live in `GameState.BOSS_REALMS = [tier_3, tier_6, tier_8, tier_11, tier_12]`, **the progression ladder**:
   every other progression number derives from that list, never from a tier number. There are no boss arenas.
 - **Bait**: a boss comes out when you hold **40 Bait** (`bait_required`; dropped by kills in its own biome every
-  `kills_per_bait` 240 / 811 / 1,500 / 2,200 / 2,800) **and pay its Catnip price** (`bait_cost_catnip`), charged per
+  `kills_per_bait` 480 / 1,622 / 3,000 / 4,400 / 5,600 since D24, twice D17's) **and pay its Catnip price** (`bait_cost_catnip`), charged per
   summon including rematches. The 40 never changes: the player gets faster against a fixed yardstick. The kills toward
   it are their own bank (`bait_kills_by_biome`), and **a Reawaken keeps the Bait earned and spent** (D17 E2; the wave
   bank, which used to carry it, still resets). Bait is on the
@@ -154,7 +157,7 @@ sparkle, size.
   gone, the player stays where they are (tier_controller.gd `_check_boss_time_limit()`, read 2026-11-03; this line once said
   it also sent the player back a biome and switched auto-travel off, which the Godot code does not do). A refused summon must not eat the bait
   (a real bug). **The Bait opens the gate; boss HP sets how long the FIRST fight lasts at the moment its Bait is
-  ready** (D17 E6: 89-171 s in `tools/econ_review.py`, which records it). Never tune boss HP by watching the sim's fight
+  ready** (D17 E6: 89-171 s in `tools/econ_review.py`, which records it; D24 raised the HP with the Bait: 91-186 s). Never tune boss HP by watching the sim's fight
   duration: the sim engages at its earliest winnable moment, a player when the Bait is ready.
 - **`bosses_defeated` (biome id -> bool) is the ledger.** Keys stay biome ids forever (re-keying un-clears saves).
 

@@ -1,52 +1,52 @@
 # 06 - Data pipeline and the simulator
 
 > KB: `Unreal/05-data-driven-design.md` (CSV as source of truth, DataTables, ids, parity tests), `Unreal/17` (headless Python),
-> `Godot/03` §4 (simulators that parse the real data, the mirror gate). Godot: `tools/pawsim.py` (2,762 lines), `pawsim2.py`,
-> `tools/shop_step.py`, `ci/check_resources.gd`, `ci/check_mirror.gd`.
+> `Godot/03` §4 (simulators that parse the real data, the mirror gate). **Since D22 (2026-11-23) `Data/*.csv` is this game's
+> own and edited here**; the exporter from the Godot project and every tool that read it were deleted 2026-11-24 (HANDOFF-LOG
+> (145)). Sections below that describe them are kept as the record of how the data came to be.
 
 ## 1. The flow
 
 ```
-Godot /data/*.tres  --(tools/export_godot_data.py, while both projects exist)-->  Data/*.csv   (SOURCE OF TRUTH in this repo)
-                                                                                   |        |
-                         tools/import_data.py (headless editor, editor closed)  <--+        +--> tools/pawsim.py (re-pointed)
-                                   |                                                         +--> PawCore CLI (pawcore_sim.exe)
-                         Content/Pawpocalypse/Data/DT_*.uasset (committed, LFS)                      |
-                                   |                                                         mirror test: same fixture, diff outputs
-                         FPawDataAdapter -> PcData (+ the shared validator) at startup
+Data/*.csv   (SOURCE OF TRUTH, edited by hand; exported once from the first try's /data, 2026-10-28)
+     |        |
+     |        +--> tools/pawsim.py, tools/econ_review.py (the balance numbers)
+     |        +--> PawCore CLI (pawcore_sim.exe) -- mirror test: same fixture, diff outputs
+tools/import_data.py (headless editor, editor closed)
+     |
+Content/Pawpocalypse/Data/DT_*.uasset (committed, LFS)
+     |
+FPawDataAdapter -> PcData (+ the shared validator) at startup
 ```
 
 - **CSV is edited, DataTables are generated.** Never edit a `DT_*` in the editor. A parity test fails if any DataTable differs
   from its CSV ("edited the CSV, forgot the import") `[KB U/05 §2]`.
 - Loose CSVs are not packaged: the game reads the DataTables; only tools read the CSVs.
 
-## 2. The exporter (`tools/export_godot_data.py`)
+## 2. Editing `Data/` (and the exporter it came from)
 
-Already run on 2026-10-28: **266 resources in 11 classes** (41 achievements, 5 bosses, 28 cards, 1 combat constants, 59 enemies,
+**Today**: edit the CSV, run `py tools/import_data.py --run` (editor closed), and a balance change is measured with
+`tools/econ_review.py` first and made on the designer's yes (CLAUDE.md). A new column also needs `tools/gen_paw_rows.py`
+and its field in `PcDataRows.h` (edited by hand since D22).
+
+**History.** The exporter (`tools/export_godot_data.py`, deleted 2026-11-24) ran on 2026-10-28: **266 resources in 11 classes** (41 achievements, 5 bosses, 28 cards, 1 combat constants, 59 enemies,
 7 evolution stages, 10 jobs, 1 Reawaken constants, 87 skill nodes, 12 biomes, 15 shop lines), every enum written by NAME, 0
-unknown enum values (since F2, 2026-11-03: 264 resources, 39 achievements). Re-run it whenever the Godot `/data` changes while the Godot game is still the reference:
+unknown enum values (since F2, 2026-11-03: 264 resources, 39 achievements).
 
-```
-py tools/export_godot_data.py --godot C:/Games/pawpocalypse --out Data --catalogue docs/appendix-a-content-catalogue.md
-git diff Data/        # every change is a design change made in Godot: review it like one
-```
-
-Conventions it writes (keep them for hand edits after the Godot project is retired):
-- first column `id`, lower-case; `_godot_file` last (provenance; drop the column when Godot is retired);
+Conventions it wrote, kept for hand edits:
+- first column `id`, lower-case; `_godot_file` last (provenance; it also orders the deck and the achievement roster, see §4,
+  so it stays until that order has another home);
 - lists joined with `;`, dictionaries as compact JSON (`extra_effects`), colours as `r;g;b;a`;
 - a reference to another resource is that resource's `id` (`spawn_pool`, `golden_enemy`, `boss_data`);
 - asset paths are still Godot `res://assets/art/...svg`: the importer maps them to visual-definition ids (doc 07 §4).
 
-**The port's own numbers (D16)**: since 2026-11-12 (F3, Patience's ladder) a number the port changes in Godot's data is an
-exact text replacement in `tools/godot_fixes.py`, which the exporter applies to each `.tres` it reads (`fixed_read`), so a
-re-export writes the port's number, never Godot's, and L0's data-export gate still holds. Never edit such a cell in
-`Data/` by hand (the gate fails), and never in the Godot repo. pawsim's `.tres` loader applies the same list.
+From D16 to D22 (2026-11-12 to 2026-11-23) a number changed here was a text replacement in `tools/godot_fixes.py`, applied
+by the exporter, so `Data/` still equalled a fresh export; D22 retired that (the CSVs are edited directly) and the file was
+deleted 2026-11-24.
 
-**After Godot is retired** the CSVs are edited directly; the exporter is deleted.
-
-It also writes **`Data/InputMap.csv`** (since 2026-11-04, `tools/export_input_map.py`): Godot's input map from
-`project.godot [input]`, one row per event, Godot's codes beside the Unreal keys (doc 05 §3). It is not a DataTable (both
-generators skip it): `tools/create_input_assets.py` makes the Enhanced Input assets from it.
+**`Data/InputMap.csv`** (2026-11-04, exported from the first try's `project.godot [input]`; edited by hand since D22): one
+row per event, the first try's codes beside the Unreal keys (doc 05 §3). It is not a DataTable: `tools/create_input_assets.py`
+makes the Enhanced Input assets from it, `tools/gen_input_defaults.py` the remapping's defaults.
 
 ## 3. Enums: by NAME, append-only meaning
 
@@ -75,17 +75,16 @@ CSV headers (L0 checks it is current), with the list `PawDataTables()` (CSV name
   across builds `[KB U/05 §3]`.
 - Player-facing columns (`display_name`, `description`, `requirement_text`) are NOT read as text by the game: they are the
   English source for string tables keyed by id (`ITM_card_bloodlust_name`), doc 08 §4. The CSV keeps them for review.
-- `AudioEvents.csv` / `AudioMusic.csv` (phase 6 slice 4): written by the exporter (`tools/export_audio.py`), NOT DataTables
-  (`NOT_TABLES`): `tools/import_audio.py` builds `DA_AudioBank` from them (doc 07 §6).
-- Still to come: a test that loads every table in a COOKED build and finds
-  every row by id (phase 8 packaged gates; the FName case trap shows only there).
+- `AudioEvents.csv` / `AudioMusic.csv` (phase 6 slice 4; exported from the first try's sound table, edited by hand since
+  D22), NOT DataTables (`NOT_TABLES`): `tools/import_audio.py` builds `DA_AudioBank` from them (doc 07 §6).
+- A COOKED build reads every table: the packaged soak (`tools/packaged_soak.py`) plays a whole game on them, and
+  `packaged_languages` shows every data name; there is no separate find-every-row-by-id gate.
 - Every type is registered with the Asset Manager or lives under the always-cooked root `/Game/Pawpocalypse` (doc 10 §1).
 
-## 5. Constants that live in code (appendix C)
+## 5. Constants that lived in the first try's code
 
-The Godot game keeps **580 numeric/colour constants and numeric `@export` defaults in scripts** (569 on 2026-10-29; the
-save fixes F26-F33 added 11), not in `/data`
-([appendix C](appendix-c-code-constants.md), regenerated by `tools/list_godot_code_constants.py`). Some are gameplay rules
+The Godot game kept **580 numeric/colour constants and numeric `@export` defaults in scripts** (569 on 2026-10-29; the
+save fixes F26-F33 added 11), not in `/data` (listed then in appendix C, deleted with its generator 2026-11-24). Some are gameplay rules
 (`LEVEL_COST_BASE` 24, `LEVEL_COST_GROWTH` 1.68, `BASE_HAND_SIZE` 3, `MAX_WAVE` 64, `MAX_LIVE_ENEMIES` 320,
 `MAX_GOLDEN_CHANCE` 0.35, `CROWD_THRESHOLD` 40, `LEVY_EVERY` 100, `INFESTATION_*`, `FENCE_MAX_KILLS` ...); most are presentation
 (sizes, colours, effect timings).
@@ -102,18 +101,16 @@ save fixes F26-F33 added 11), not in `/data`
   Kitten, Enemy, Player), `presentation` (313), `data` (89: data classes' field defaults, generated into `PcDataRows.h`),
   `palette` (66), `input` (21), `save` (25), `dev` (3), `audio` (2). Borderline calls carry a note (e.g. `ANVIL_ECHO_REACH`
   is the drawn swipe's reach, `MAX_SPLASH_BEAMS_PER_FRAME` caps beams drawn, not the spill).
-- `Data/CodeConstants.csv` (`id, value, reason, godot_name`) is GENERATED from it by `tools/export_code_constants.py`, which
-  `tools/export_godot_data.py` runs, so the L0 data-export gate covers it: the values and the Godot reasons are read from the
-  Godot code, and the export FAILS on a Godot constant with no map row, a mapped constant that is gone, a doubled id, a value that
-  is not a number or a list, or a literal that does not occur exactly once. Values are written in shortest round-trip form
-  (`1.0 / 60.0` -> `0.016666666666666666`).
+- `Data/CodeConstants.csv` (`id, value, reason, godot_name`) was generated from the map and the Godot code until D22
+  (`tools/export_code_constants.py`, deleted 2026-11-24); since then it is edited by hand like every CSV. Values in shortest
+  round-trip form (`1.0 / 60.0` -> `0.016666666666666666`). The map stays as the record of where each constant went.
 - PawCore reads it into `PcGameData::Code` (`PcCodeConstants`, `PcConstants.h`): every field needs exactly one row and every row
   a field, integers must be integers (tested, and the loader's checks are sabotaged). Functions that read a constant take the
   data (`EvolutionStage(D, P)`, `CatchesForLevel(D, Level)`, `CurrentWave(D, Tier, Kills)`...). The validator checks them
   (`code.stage_ladder`: stage count = bosses + 2, the mount within it; `code.range`: positive, golden < 1, XP growth > 1,
   epsilon a rounding allowance, Last Stand under Swarm Logic, Second Helping's biome exists).
-- pawsim with `--data csv` reads `max_golden_chance` and the Catches curve (`card_level_cost_*`, unless `--catches-*` sweeps
-  them) from the same file; with `--data tres` it keeps its hand copies, as the Godot pawsim did.
+- pawsim reads `max_golden_chance` and the Catches curve (`card_level_cost_*`, unless `--catches-*` sweeps them) from the
+  same file (`--data csv`, the only source since 2026-11-24).
 - **Presentation** constants go into the C++ class that owns them, with the Godot "why" comment (phases 2 and 6).
 
 ## 6. Economy invariants (Godot `check_resources`, ported into the shared validator)
@@ -139,8 +136,8 @@ before it is trusted (the Godot rule: "a gate that has never failed has never be
   1 re-points its loader from `.tres` parsing to `Data/*.csv` (one function, `load_*`), with no rule changes, and proves the
   numbers did not move: run the Godot-parsing pawsim and the CSV-parsing pawsim side by side; the full-game report must be
   byte-identical.
-- **Done 2026-10-28**: `tools/pawsim.py` reads `Data/*.csv`; `tools/check_pawsim_parity.py` proved the CSV pawsim and the
-  `.tres` pawsim byte-identical over 90 settings (~110 min), and its `--self-test` shows a 1 % HP change in a CSV is caught.
+- **Done 2026-10-28**: `tools/pawsim.py` reads `Data/*.csv`; a parity sweep (`check_pawsim_parity.py`, deleted 2026-11-24
+  with the `.tres` loader's source) proved the CSV pawsim and the `.tres` pawsim byte-identical over 90 settings.
 - **pawsim cannot price Legacy** (its utility is a rate) and bundles the Unicorn with its best child; `--autotune` fits noise.
   These limits carry over.
 - **A rule that changes what the player can reach is taught to pawsim in the same commit** (Godot rule, kept).
@@ -154,7 +151,9 @@ before it is trusted (the Godot rule: "a gate that has never failed has never be
   `tools/econ_review.py` (the economy review, `docs/ECONOMY-REVIEW-2026-11-12.md`) adds waves on top of pawsim exactly as
   PawCore derives them, logs every shop buy, tree level and Reawaken, and applies proposals IN MEMORY (`--proposal`, `Data/`
   never written). With waves the game before D17 was 406 min against pawsim's 403; D17's is 112 min against pawsim's 163
-  (without waves). It is a measuring tool, not a gate.
+  (without waves); D24's (2026-11-24) 175 min. **Compare the game with econ_review, never with plain pawsim**: the 5x
+  soak matched econ_review's 113 min to a tenth (2026-11-24), while pawsim without waves said 164. It is a measuring
+  tool, not a gate.
 
 ## 8. The mirror test (Godot `check_mirror`, now stronger)
 
@@ -178,12 +177,13 @@ Known divergence, recorded rather than hidden: the game's `get_kitten_count()` r
 `kitten_count()` clamps to the line's cap. The shop never sells past the cap, so they agree on every reachable state; the random
 states keep the kitten line inside its cap (`tools/check_mirror.py`, with the measurement).
 
-The ground truth below pawsim is Godot itself: `tools/make_godot_fixtures.py` runs the real `Amounts.short`,
-`CombatResolver`, `GameState._rebuild_stats()`, the `GameState` economy, `CardManager` and `SkillTreeManager` (since phase 6
-also presentation scripts: the juice, the rainbow pieces, the Unicorn ceremony; the full list in doc 00) in a scratch copy
-of the project (sandboxed APPDATA, the Godot repo's `git status` checked before and after) and writes the fixtures the L1 tests
-compare against (`--check` proves they reproduce byte for byte). pawsim does not model the cards or the tree's buy rules, so
-for those the Godot fixture is the only oracle. A Godot fix (doc 01 §5; the designer's list is the Godot repo's `docs/pawpocalypse-port-findings.md`) means: fix Godot, `--only <fixture>`, re-run the tests.
+Below pawsim are the **recorded fixtures** (`Source/PawCore/Tests/Data/*_godot.tsv`, and the long suite's full ones in
+`build/*_godot_full.tsv`, 158 MB, untracked: keep them): rows recorded from the first try's real code (`Amounts.short`,
+`CombatResolver`, `GameState`, `CardManager`, `SkillTreeManager`, the presentation scripts) by `make_godot_fixtures.py`,
+deleted 2026-11-24. Since D22 they are this game's expected behaviour: a rule change edits the code, its test and the rows
+it changes, by hand. A test that proves a RULE holds the numbers its fixture was recorded with, so a balance change does
+not fail it (`PcBossTests.cpp` holds the boss HP of 2026-11-12 since D24). pawsim does not model the cards or the tree's
+buy rules, so for those the fixtures are the only oracle.
 
 ## 9. Headless import
 

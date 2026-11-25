@@ -47,7 +47,8 @@ archived exe must be this source's build; the `.pdb` and exe kept in `build/symb
 of the D3D12 / Vulkan debug layers and UAT's manifests (2026-11-24: 46.7 MB of a Development package, 5.4 of a Shipping
 one; the audit fails if one is left); the audit; README
 and `Send logs.bat` written into the archive; in Development the L5 gates (`packaged_languages.py`, `packaged_bench.py`,
-`packaged_pso.py --route bench`: the PSO validation over one full field, 2026-11-24).
+`packaged_pso.py --route bench`: the PSO validation over one full field, 2026-11-24; its frame time reported, not
+judged, since (144): the frame gate is the bench's own).
 `--audit [ARCHIVE]` audits a package already made (read only; `build/package_audit_<config>.txt`: sizes, every archive
 file, package and loose file). `--self-test` (everyday `check_all`, gate `package audit self-test`) plants each fault.
 - **The audit** FAILs on: a `Saved` folder or a `.pdb` in the archive; a `/Game` package outside `/Game/Pawpocalypse`

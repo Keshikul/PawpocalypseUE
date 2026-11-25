@@ -8,7 +8,7 @@
 class UTexture2D;
 
 // One sprite in an atlas page (docs/07 §2): where it is, in UVs, and the size Godot's texture had (the SVG's own size, or the
-// PNG's), which the game fits by (the boss is drawn at its native size x 0.9, the shadow keeps its aspect).
+// PNG's), which the game fits by (the boss is drawn at its native size x PawLook::BossScale, the shadow keeps its aspect).
 USTRUCT(BlueprintType)
 struct PAWPOCALYPSE_API FPawAtlasCell
 {

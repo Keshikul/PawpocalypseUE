@@ -342,6 +342,13 @@ def eye_px56(text: str) -> float:
 _DISPLAY = {}
 
 
+def boss_scale() -> float:
+    """PawLook::BossScale (Source/Pawpocalypse/Realm/PawFieldLook.h), as tools/pack_atlas.py reads it."""
+    import re
+    text = (ROOT / "Source" / "Pawpocalypse" / "Realm" / "PawFieldLook.h").read_text(encoding="utf-8")
+    return float(re.search(r"constexpr double BossScale = ([\d.]+);", text).group(1))
+
+
 def display_px(stem: str) -> float:
     """The smallest size the game draws a drawing at, in px (tools/pack_atlas.py's sizes, without its pulse and squash)."""
     if not _DISPLAY:
@@ -349,8 +356,8 @@ def display_px(stem: str) -> float:
             s = pathlib.PurePosixPath(r["texture_path"]).stem
             _DISPLAY[s] = min(_DISPLAY.get(s, 1e9), float(r["sprite_target_px"]))
         for r in csv.DictReader(open(ROOT / "Data" / "BossData.csv", newline="", encoding="utf-8")):
-            _DISPLAY[pathlib.PurePosixPath(r["texture_path"]).stem] = 256.0 * 0.9     # boss.tscn Visual.scale
-        _DISPLAY.update({"boss_generic": 256.0 * 0.9, "boss_add": 45.0, "kitten_basic": 96.0, "player_cat_base": 175.0})
+            _DISPLAY[pathlib.PurePosixPath(r["texture_path"]).stem] = 256.0 * boss_scale()  # PawLook::BossScale
+        _DISPLAY.update({"boss_generic": 256.0 * boss_scale(), "boss_add": 45.0, "kitten_basic": 96.0, "player_cat_base": 175.0})
         _DISPLAY.update({"player_cat_stage_%d" % i: 175.0 for i in range(1, 8)})
     return _DISPLAY.get(stem, float(EYE_PX))
 

@@ -1,4 +1,5 @@
 #include "UI/PawPounceClock.h"
+#include "UI/PawUiTime.h"
 
 #include "UI/PawIcons.h"
 
@@ -49,6 +50,7 @@ void UPawPounceClock::SetFraction(double Value)
 void UPawPounceClock::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	if (IsReady())
 	{
 		Clock = FMath::Fmod(Clock + DeltaSeconds, 1.0 / PawUi::PounceReadyHz);

@@ -1,4 +1,5 @@
 #include "UI/PawJobPicker.h"
+#include "UI/PawUiTime.h"
 
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
@@ -325,6 +326,7 @@ void UPawJobPicker::NativeOnDeactivated()
 void UPawJobPicker::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	AdvanceClock(DeltaSeconds);
 	StepLook();
 }

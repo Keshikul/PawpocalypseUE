@@ -37,7 +37,6 @@ FACES = {
     "FF_Nunito_Bold": ("Nunito-Bold.ttf", "LazyLoad"),
     "FF_Nunito_Black": ("Nunito-Black.ttf", "LazyLoad"),
     "FF_MPlusRounded1c_ExtraBold": ("MPLUSRounded1c-ExtraBold.ttf", "LazyLoad"),
-    "FF_MPlusRounded1c_Black": ("MPLUSRounded1c-Black.ttf", "LazyLoad"),
     "FF_NotoSansCJK_Medium": ("NotoSansCJK-Medium.ttc", "LazyLoad"),
     "FF_NotoSansThai_Medium": ("NotoSansThai-Medium.ttf", "LazyLoad"),
 }
@@ -60,7 +59,8 @@ HAN = [(0x2E80, 0x2FDF), (0x3000, 0x303F), (0x3400, 0x4DBF), (0x4E00, 0x9FFF), (
 THAI = [(0x0E00, 0x0E7F)]
 KANA = [(0x3040, 0x30FF), (0x31F0, 0x31FF)]
 
-# DEFAULT_FACES as a sub-font's face: the default typeface's own faces, name by name (Japanese keeps M PLUS's two weights).
+# DEFAULT_FACES as a sub-font's face: the default typeface's own faces, name by name. (Japanese is on M PLUS ExtraBold alone;
+# M PLUS Black, plum's title face, was used by nothing after D18 and left the table 2026-11-24.)
 DEFAULT_FACES = None
 
 # Sub-fonts, in order: (name, cultures ';'-joined or "" for every language, ranges, face (asset, sub-face index) or

@@ -34,14 +34,13 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Copied from the Godot project (tools/pawsim.py at 350b2f5) for the port (docs/06 §7). It reads THIS game's Data/*.csv (the
-# default since 2026-11-23, D22: the game is its own source; Godot was a first try). The old .tres loader (--data tres)
-# reads the Godot project read-only at PAWSIM_GODOT_ROOT: history only, nothing depends on it.
+# Copied from the first try's pawsim (Godot, tools/pawsim.py at 350b2f5) for this game (docs/06 §7). It reads THIS game's
+# Data/*.csv, the only source since 2026-11-24 (D22: the game is its own source). The .tres loader that read the Godot
+# project went with tools/godot_fixes.py; REPO_ROOT / DATA_DIR and parse_tres below are its leftovers (the csv rows keep
+# its shape: `_godot_file` paths sort the rows as the .tres glob did).
 import os
 REPO_ROOT = Path(os.environ.get("PAWSIM_GODOT_ROOT", "C:/Games/pawpocalypse"))
 DATA_DIR = REPO_ROOT / "data"
-# The .tres are read as the port fixes them (tools/godot_fixes.py, D16; F3, 2026-11-12, the first change to Godot's DATA),
-# as the exporter wrote Data/*.csv: the parity sweep compares like with like.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Simulation resolution. 1.0s is plenty — every rate in the game is per-second
@@ -2862,8 +2861,9 @@ def main() -> int:
     ap.add_argument("--autotune-iterations", type=int, default=25)
     ap.add_argument("--autotune-damping", type=float, default=0.5)
     ap.add_argument("--verbose", action="store_true")
-    ap.add_argument("--data", choices=["tres", "csv"], default="csv",
-                    help="tres: the Godot project's /data (read-only, PAWSIM_GODOT_ROOT); csv: this repo's Data/*.csv")
+    # Only csv since 2026-11-24 (D22 clean-up): the .tres loader read the Godot project through tools/godot_fixes.py, which
+    # is gone. parse_tres and the .tres readers below are that loader's, kept only as the csv rows' shape.
+    ap.add_argument("--data", choices=["csv"], default="csv", help="csv: this repo's Data/*.csv (the only source)")
     args = ap.parse_args()
 
     global FIX_F1, FIX_F2, FIX_F3, LEGACY_MYSTIQUE_GATE, TUNE, ADD_LEAK_FRACTION

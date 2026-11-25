@@ -2,7 +2,22 @@
 
 > A phase is done when its **exit criteria** are met and written down with evidence (test counts, measurements, screenshots),
 > not when its code exists. Estimates are in agent working sessions (one focused session of a few hours), from the Godot
-> project's pace; treat them as ranges. The Godot game keeps shipping throughout (D12).
+> project's pace; treat them as ranges. (Written when the Godot game was to keep shipping until parity, D12; since D22,
+> 2026-11-23, this is the game and phase 9 is the designer's release sign-off.)
+
+## Status (2026-11-24, HANDOFF-LOG (145))
+
+| Phase | State | What is left |
+|---|---|---|
+| 0-4 | **Done** (2026-10-28 to 2026-11-04) | |
+| 5 Pad and keyboard | **Done** (2026-11-05) | the designer's hand-checks on real pads (Steam Input) and an AZERTY keyboard |
+| 6 Presentation | **Done but slice 6's last three** | **6b the first-Reawaken banner, 6c Boba's photo and cameo, 6d the tutorial (eleven cues): not built** ([WORKLIST-SLICE6](WORKLIST-SLICE6-2026-11-07.md)); the exit tours |
+| The look (D18) | S0-S5 done | S6 (card art, skill and achievement icons: drafts since (127)), the props, the title face (E1), the rig (E3), S7 sign-off |
+| 7 Localisation | **Done** (2026-11-23) | native reads declined (D20); the store page's Dutch and Danish |
+| 8 Hardening and packaging | **Done but the Deck pass** (2026-11-24) | the Deck-class pass (no hardware); the 5x soak's whole-process stall (seen twice); the owed nightly `-Full` |
+| 9 Release sign-off | Not started | the designer plays the game (175 min of pawsim time since D24) and signs it off |
+
+The sections below are the plan as written, with each phase's progress notes; the status above is current.
 
 ## Overview
 
@@ -17,7 +32,7 @@
 | 6 | Presentation: all art, backdrops, VFX, audio, ceremonies, Boba, tutorial, UI motion | 4-6 | 2, 3 |
 | 7 | Localisation: string tables, 20 languages carried over, fonts | 2-3 | 3-6 |
 | 8 | Gates, soak, performance (Deck), packaging, patch-size measurement | 3-4 | all |
-| 9 | Parity sign-off and the designer's playtest | 1-2 + playtest | all |
+| 9 | Release sign-off: the designer's playtest (was: parity sign-off, until D22) | 1-2 + playtest | all |
 | | **Total** | **~32-46 sessions** | |
 
 ## Phase 0 - setup and spikes
@@ -260,7 +275,7 @@ visual definition assets (doc 07 §4: the look reads the data's CSV columns and 
 `UPawVisualDefinition` waits until a slice needs it). **Slice 2 DONE** (HANDOFF-LOG (51)): PawCore `PcBackdrop` exact against
 the real biome_backdrop.gd (fixture `backdrop`), the floors (`T_backdrop_tier_N`, `M_Floor`), the patches and puddles (one
 procedural mesh, `M_BackdropFill`), the props in the atlas, the title's garden (`UPawGarden`); the biome tour beside Godot
-(`py tools/godot_tour.py --set biomes`). The seam test across aspects is the generator's own (`build_art.py --check`) plus
+(`py tools/godot_tour.py --set biomes`; now `tools/screen_tour.py`). The seam test across aspects is the generator's own (`build_art.py --check`) plus
 the exact layout at 4:3 to 32:9 in the fixture. **Slice 3 DONE** (HANDOFF-LOG (52)): the effects (`FPawFxCanvas`, `FPawVfx`; doc 04
 §7 as built), the Lone Hunter's halo and the golden sparkle owed from slice 1 included; `Pawpocalypse.Realm.Vfx.*`; F39.
 **Slice 4 DONE** (HANDOFF-LOG (53)): the sound (doc 07 §6 as built; `Pawpocalypse.Audio.*`; F40); open from it:
@@ -352,12 +367,14 @@ built (`paw.Soak`, `tools/packaged_soak.py`) and PASSED in the package at 5x (wo
 is its own screenshot.** **(142), 2026-11-24: the bench judges up to three runs, the game thread on the best (it flipped on
 one run); the PSO check built (`tools/packaged_pso.py`) and run over a whole game: ONE of this game's materials compiled at its
 first draw, M_BackdropFill (the procedural mesh names no material for precaching in 5.8), fixed in code
-(`UPawFillMeshComponent`; `Pawpocalypse.Realm.View`, 3 sabotages CAUGHT), to be confirmed on the next package; 4 engine
+(`UPawFillMeshComponent`; `Pawpocalypse.Realm.View`, 3 sabotages CAUGHT), confirmed in the package of (144): 0 of this
+game's materials missed over a whole game; 4 engine
 global-shader PSOs at first use mid-play (noted); D23 (Slate global invalidation stays off).** Left: the Deck-class pass (no
-hardware: the designer has no Deck), the fix confirmed in a package, one 0.5 s whole-process stall in the 5x soak to watch,
+hardware: the designer has no Deck), the whole-process stall of the 5x soaks (0.5 s in (141), 1.06 s in (144); never in
+a 20x run; to re-run on an idle PC, a stall watchdog would name it),
 one 20x soak that did not win in 240 game minutes ((142); explained in (143): the soak's tree was frozen from the Unicorn
-on in every soak so far, its driver's fault; fixed, two 20x runs in the editor build won at 89.2 and 96.1 game minutes; the
-packaged soak with the fixed driver waits for the next package). Was: the size
+on in every soak so far, its driver's fault; fixed, two 20x runs in the editor build won at 89.2 and 96.1 game minutes;
+(144): in the package 5x won at 113.6, 20x at 93.7; pawsim's player takes 161, a pace question). Was: the size
 work, the soak, the Deck pass, chunking and patch size, the PSO check.
 
 ## Phase 9 - release sign-off (was: parity sign-off; D22, 2026-11-23: Godot was a first try, nothing to be at parity with)

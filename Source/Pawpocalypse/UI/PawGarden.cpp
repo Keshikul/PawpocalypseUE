@@ -1,4 +1,5 @@
 #include "UI/PawGarden.h"
+#include "UI/PawUiTime.h"
 
 #include "Engine/GameInstance.h"
 #include "Engine/Texture2D.h"
@@ -100,6 +101,7 @@ void UPawGarden::Relayout(const FVector2D& Size)
 void UPawGarden::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
+	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	Clock += DeltaSeconds;
 	const FVector2D Size(Geometry.GetLocalSize());
 	if (Size.X > 0.0 && Size.Y > 0.0)

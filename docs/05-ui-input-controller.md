@@ -577,6 +577,11 @@ ceremonies, the tutorial overlay (`HitTestInvisible`, never focusable), cheat ov
 
 ## 7. Look: tokens, brushes, fonts
 
+> **Since D18 (2026-11-17/19) the look is Sticker Box** (doc 07 §0, WORKLIST-STICKER §2): card-stock panels with an ink
+> edge and a hard shadow, ink `#2A2131`, the yellow primary button, a blue focus ring, Nunito. The mechanisms below
+> (generated tokens, rounded brushes, the chrome atlas, `F_Paw`, the 16 px text floor) are current; the plum colour names
+> and M PLUS as the text face are history (D14).
+
 - **`PawTokens.h`** generated (as built: `tools/gen_paw_tokens.py` from `tools/art/palette.py` since R0, 2026-11-07; before that Godot's `palette.gd`) (colours, the UI panel/button/text/focus colours, radii, frame width,
   font sizes). Screens never hold a hex value; a test greps for `FLinearColor(` / `FColor(` literals outside the generated header.
 - **Panels and buttons are `FSlateRoundedBoxBrush`**s with an outline where Godot draws a `StyleBoxFlat` (Godot's: cream `#FFF9E3`, 3 px `#1A1A1A`, radius 6-8;
@@ -654,8 +659,8 @@ ceremonies, the tutorial overlay (`HitTestInvisible`, never focusable), cheat ov
   cat `player_cat_stage_4` from `DA_FieldAtlas`, mirrored, turned about the middle of its foot). Tests
   `Pawpocalypse.UI.Unicorn.*`, L1 `Unicorn` and `Tween`.
 - A widget kit (panel, row, price label with currency icon, badge, bar, tab button) keeps screens short.
-- **Fonts** (as built, restyle R2, 2026-11-07; doc 07 §5): one composite `F_Paw`: M PLUS Rounded 1c (ExtraBold text,
-  Black titles and numbers through `PawUi::Heavy`) with Noto Sans CJK Medium (the `.ttc` is ONE face asset, its faces
+- **Fonts** (as built, restyle R2, 2026-11-07; Nunito since D18; doc 07 §5): one composite `F_Paw`: Nunito (Bold text,
+  Black titles and numbers through `PawUi::Heavy`; M PLUS Rounded 1c ExtraBold for Japanese) with Noto Sans CJK Medium (the `.ttc` is ONE face asset, its faces
   picked by sub-face index: no split) and Noto Sans Thai Medium as sub-fonts per culture and script `[KB U/09 §5]`.
   It is UMG's default font (`[SlateStyle] DefaultFontName`), so no widget names a font (L0 forbids engine fonts in UI
   code). Static faces only (Slate has no variable fonts). Licences: OFL, the texts in `SourceArt/fonts`.

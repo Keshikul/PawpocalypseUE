@@ -26,31 +26,35 @@ namespace
 bool FPawPlatformSaveStorage::Exists(const FString& Name)
 {
 	ISaveGameSystem* S = SaveSystem();
-	return S && S->DoesSaveGameExist(*Name, UserIndex);
+	return S && S->DoesSaveGameExist(*Entry(Name), UserIndex);
 }
 
 bool FPawPlatformSaveStorage::Read(const FString& Name, TArray<uint8>& Out)
 {
 	ISaveGameSystem* S = SaveSystem();
-	return S && S->LoadGame(false, *Name, UserIndex, Out);
+	return S && S->LoadGame(false, *Entry(Name), UserIndex, Out);
 }
 
 bool FPawPlatformSaveStorage::Write(const FString& Name, const TArray<uint8>& Data)
 {
 	ISaveGameSystem* S = SaveSystem();
-	return S && S->SaveGame(false, *Name, UserIndex, Data);
+	return S && S->SaveGame(false, *Entry(Name), UserIndex, Data);
 }
 
 bool FPawPlatformSaveStorage::Delete(const FString& Name)
 {
 	ISaveGameSystem* S = SaveSystem();
-	return S && S->DeleteGame(false, *Name, UserIndex);
+	return S && S->DeleteGame(false, *Entry(Name), UserIndex);
 }
 
 // --- a folder ------------------------------------------------------------------------------------------------------------
 
-TSharedPtr<IPawSaveStorage> PawStorageForThisRun(FString& OutWhy)
+TSharedPtr<IPawSaveStorage> PawStorageForThisRun(FString& OutWhy, const FString& UserFolder, bool* bOutInUserFolder)
 {
+	if (bOutInUserFolder)
+	{
+		*bOutInUserFolder = false;
+	}
 	const TCHAR* Cmd = FCommandLine::Get();
 	FString Folder;
 	if (FParse::Param(Cmd, TEXT("NoSave")))
@@ -69,9 +73,59 @@ TSharedPtr<IPawSaveStorage> PawStorageForThisRun(FString& OutWhy)
 		OutWhy = TEXT("off (an automated run with no -PawSaveDir)");
 		return nullptr;
 	}
-	TSharedPtr<IPawSaveStorage> S = MakeShared<FPawPlatformSaveStorage>();
+	TSharedPtr<IPawSaveStorage> S = MakeShared<FPawPlatformSaveStorage>(UserFolder);
+	if (bOutInUserFolder)
+	{
+		*bOutInUserFolder = !UserFolder.IsEmpty();
+	}
 	OutWhy = S->Describe();
 	return S;
+}
+
+int32 PawAdoptSlots(IPawSaveStorage& From, IPawSaveStorage& To, const TArray<FString>& SlotNames)
+{
+	int32 Moved = 0;
+	for (const FString& Slot : SlotNames)
+	{
+		const FString Bak = Slot + TEXT("_bak");
+		if (To.Exists(Slot) || To.Exists(Bak) || (!From.Exists(Slot) && !From.Exists(Bak)))
+		{
+			continue;
+		}
+		TArray<FString> Copied;
+		bool bAll = true;
+		for (const FString& Name : { Slot, Bak, Slot + TEXT("_tmp") })
+		{
+			if (!From.Exists(Name))
+			{
+				continue;
+			}
+			TArray<uint8> Bytes;
+			if (From.Read(Name, Bytes) && To.Write(Name, Bytes))
+			{
+				Copied.Add(Name);
+			}
+			else
+			{
+				bAll = false;
+			}
+		}
+		if (!bAll)
+		{
+			// The originals stay and the part copied goes, so the next start tries the whole slot again.
+			for (const FString& Name : Copied)
+			{
+				To.Delete(Name);
+			}
+			continue;
+		}
+		for (const FString& Name : Copied)
+		{
+			From.Delete(Name);
+		}
+		++Moved;
+	}
+	return Moved;
 }
 
 FPawFolderSaveStorage::FPawFolderSaveStorage(const FString& InFolder)

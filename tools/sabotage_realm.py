@@ -1787,9 +1787,9 @@ SABOTAGES = [
      'State.PromptStyle = S.PromptStyle;',
      'State.PromptStyle = "auto";',
      'Pawpocalypse.Input.Device'),
-    ('input_device_pad_generic', DEVSUB,
-     'Pc::DeviceRegister(State, E.Device, Pc::DeviceFamilyFromInfo(0, 0, "XInput Controller", "", false));',
-     'Pc::DeviceRegister(State, E.Device, Pc::PcFamily::Generic);',
+    ('input_device_pad_generic', DEVSUB,  # the XInput default moved into PadFamilyNow (Steam Input's answer first, 2026-11-26)
+     'return FromPlatform.IsSet() ? FromPlatform.GetValue() : Pc::DeviceFamilyFromInfo(0, 0, "XInput Controller", "", false);',
+     'return FromPlatform.IsSet() ? FromPlatform.GetValue() : Pc::PcFamily::Generic;',
      'Pawpocalypse.Input.Device'),
     ('input_device_toast_swapped', DEVSUB,
      'Toast->ShowConnection(Which == Pc::PcDeviceToast::Connected);',
@@ -2851,6 +2851,27 @@ SABOTAGES = [
      '\tif (Last == GFrameCounter)\n',
      '\tif (false)\n',
      'Pawpocalypse.UI.StepDelta'),
+    # Steam (2026-11-26, doc 10 §5): the platform layer's tests, each seen to fail.
+    ('platform_steam_everywhere', "Platform/PawSteam.cpp",  # the editor and the tests would start the Steam API
+     'return PAW_STEAM_BUILD != 0;',
+     'return true;',
+     'Pawpocalypse.Platform.Off'),
+    ('platform_presence_token', "Platform/PawPlatformSubsystem.cpp",  # friends would see a token Steamworks does not have
+     'TEXT("#Biome_%s")',
+     'TEXT("#Realm_%s")',
+     'Pawpocalypse.Platform.Presence'),
+    ('platform_pad_family_ignored', "Input/PawInputDeviceSubsystem.cpp",  # a PlayStation pad through Steam Input: Xbox prompts
+     'else if (FromPlatform.IsSet() && Known->second != FromPlatform.GetValue())',
+     'else if (false)',
+     'Pawpocalypse.Platform.PadFamily'),
+    ('platform_adopt_overwrites', "Save/PawSaveStorage.cpp",  # a Steam account's own slot overwritten by the PC's old one
+     'if (To.Exists(Slot) || To.Exists(Bak) || (!From.Exists(Slot) && !From.Exists(Bak)))',
+     'if (!From.Exists(Slot) && !From.Exists(Bak))',
+     'Pawpocalypse.Platform.AdoptSlots'),
+    ('platform_adopt_half_slot', "Save/PawSaveStorage.cpp",  # a failed copy leaves half a slot that blocks the retry
+     '\t\t\t\tTo.Delete(Name);\n',
+     '\t\t\t\t;\n',
+     'Pawpocalypse.Platform.AdoptSlots'),
 ]
 
 

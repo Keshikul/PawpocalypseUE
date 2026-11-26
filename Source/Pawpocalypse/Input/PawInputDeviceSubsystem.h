@@ -13,8 +13,8 @@
 //   rendering (Godot: never headless).
 //
 // Pads on Windows: Unreal reads XInput only (KB U/08 §5.1), and XInput names every pad "XInput Controller": a pad is the Xbox
-// family (Godot's family_from_info on that name) until Steam Input says otherwise (doc 10 §5). The Button prompts override is
-// the answer for a DualSense meanwhile.
+// family (Godot's family_from_info on that name) unless Steam Input says otherwise (doc 10 §5: in the Steam build,
+// UPawPlatformSubsystem::TranslatedPadFamily names a PlayStation pad or the Deck's). The Button prompts override still wins.
 //
 // In the editor (PIE) the preprocessor is not installed (it would watch the editor's own input); the tests call the Observe*
 // entries directly.
@@ -100,6 +100,10 @@ public:
 	// The tests' hook: the pad last detected (Godot's fixtures name families XInput never reports), the family refreshed as a
 	// claim would (OnFamilyChanged when it moves).
 	void SetDetectedForTest(Pc::PcFamily Detected);
+	// The family a pad registers with: the platform's answer (Steam Input), else XInput's Xbox. The tests pin the platform's.
+	Pc::PcFamily PadFamilyNow() const;
+	TOptional<Pc::PcFamily> PlatformPadFamily() const;
+	void SetPadFamilyForTest(TOptional<Pc::PcFamily> Family) { PadFamilyForTest = Family; }
 
 	// Godot's Input.is_action_pressed: a key or pad button of the action held, or one of its axis halves past its dead zone
 	// (the analog value, never Slate's digital stand-in). Fed by every event observed; forgotten when the game loses focus.
@@ -145,6 +149,7 @@ private:
 	void PlaceFocusPrompt();
 	void NoteDetected();
 	Pc::PcFamily NotifiedDetected = Pc::PcFamily::Keyboard; // PcDeviceState's start
+	TOptional<Pc::PcFamily> PadFamilyForTest;
 
 	Pc::PcDeviceState State;
 	// What the bindings were last applied from (apply() runs again only when one of these changes: controls_changed).

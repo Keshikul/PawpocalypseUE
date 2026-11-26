@@ -98,7 +98,9 @@ and the slot's toggles and tutorial.
   **Format 2 (D17, 2026-11-12)**: `bait_kills` (the Bait bank a Reawaken keeps, E2). A format-1 file loads with its kills
   this run as its Bait and every boss it beat open (E1, the passage it had re-locked); a format-1 build refuses a format-2
   file as newer. The test: `Save: format 2 carries the Bait bank; a format-1 file ...` (PcSaveTests).
-- **Settings never in the save** (per device, §3). **Steam Auto-Cloud** on the save folder later (no code) `[KB S/03]`.
+- **Settings never in the save** (per device, §3). **Steam Auto-Cloud** (2026-11-26, doc 10 §5): under Steam the slots live in
+  `SaveGames/<64-bit Steam ID>/` (`slot_*.sav` synced), the settings in the root (per PC); the root's slots move into the
+  first Steam account's folder once (`PawAdoptSlots`) `[KB U/10 §5.1]`.
 - **Sandbox** (docs/09 §1 rule 4): `-NoSave` turns saving off; `-PawSaveDir=<folder>` keeps the slots there; an automation run or
   an `-unattended` run with neither never reads or writes the real slots (`Pawpocalypse.Save.Sandbox`); the packaged bench and the
   screenshot tour pass `-NoSave`. Tests hand in a memory storage (`UseStorageForTest`).

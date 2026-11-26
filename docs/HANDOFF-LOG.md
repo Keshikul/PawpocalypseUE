@@ -8,6 +8,95 @@ in whichever file holds it.
 
 ---
 
+## 2026-11-26 (155) - The Steam features: achievements, rich presence, Cloud saves, the overlay's pause, Steam Input's pads
+
+**Where the project is.** As (154), plus this entry's work, uncommitted; ProjectVersion 0.1.2. The designer: "The build is
+live and published. Do the steam features"; asked before packaging, they chose "Push, I'll set it live".
+
+**What happened.**
+- **The game** (doc 10 §5.1): a second game target, `PawpocalypseSteam`, the only build that starts the Steam API
+  (`PAW_STEAM_BUILD`, set by `Pawpocalypse.Build.cs` from the target's name); never in the editor, a test, a gate or an
+  `-unattended` run. New `Source/Pawpocalypse/Platform/`: `PawSteam` (the only Steam caller: the engine's Steamworks SDK v164,
+  `steam_api64` loaded by the SteamShared plugin, now enabled for the game through `tools/trim_game_plugins.py`) and
+  `UPawPlatformSubsystem` (what the game asks). Online Subsystem Steam is NOT used: the launcher ignores a target's
+  `CustomConfig` (a lesson from another project, now in KB U/01 §2.4), and a single-player game needs none of its sessions.
+  - Achievements: every earned id set on Steam within a second; a load catches up what a save earned outside Steam.
+  - Rich presence: `#Biome_<tier>` in the realm (the biome's existing translated name), nothing on the title.
+  - The overlay opening opens the pause menu (the HUD).
+  - Saves: under Steam the slots go to `SaveGames/<64-bit Steam ID>/` (Auto-Cloud), settings stay per PC; the PC's existing
+    slots move into the first account's folder once (`PawAdoptSlots`).
+  - "System" language = the game's language in Steam; Steam Input's real pad type picks the prompts (PlayStation, Deck).
+  - A Shipping Steam build opened outside Steam asks Steam to start it.
+- **Tools**: `tools/steam_files.py` (the Steamworks upload files from the game's data + `--check` / `--self-test`, both
+  everyday gates now); `tools/package.py --steam` (`build/package_steam`, start file renamed `Pawpocalypse.exe`, audit rules
+  for `steam_api64.dll`, the start file, no `steam_appid.txt`); `tools/steam_upload.py` (SteamCMD; never the default branch).
+- **Tests**: `Pawpocalypse.Platform.{Off,Presence,PadFamily,AdoptSlots}` (everyday gate L3 Pawpocalypse.Platform); 5 new
+  sabotages in `tools/sabotage_realm.py` (`platform_*`) and the updated `input_device_pad_generic`: all 6 CAUGHT, the clean
+  build PASS.
+- **Steamworks** (doc 10 §5.2, published): 39 achievements (23 languages configured; names from the string tables; our own
+  icons from `SourceArt/svg/ui/achievement_*.svg`, achieved and grey), rich presence file, Steam Cloud (10 MB, 20 files,
+  Auto-Cloud `WinAppDataLocal/Pawpocalypse/Saved/SaveGames/{64BitSteamID}/slot_*.sav`), Steam Input opt-ins (PlayStation,
+  Switch, Generic, future; Generic Gamepad), VC++ 2022 redistributable, Windows 64-bit.
+- **Text**: the old `requirement_text` of `Data/AchievementData.csv` says "mice" and has broken characters, so the Steam
+  descriptions are new DRAFT lines, `docs/STEAM-ACHIEVEMENTS-DRAFT-2026-11-26.csv` (English, from the data: "Kill 1,000
+  enemies in total."), uploaded English-only so the achievements work; Steam shows English in the other languages.
+- **Build**: `py tools/package.py --config Shipping --steam --bump` -> 0.1.2 (the first run stopped after its audit
+  PASS on a missing `SAVES["Steam"]` README line: fixed, the tester files written, the package self-test now checks every
+  package kind has its lines); `py tools/steam_upload.py` -> BuildID 26943569 (5 files added, 4 changed, 1 removed: the
+  exe's new name; 125 chunks; players download 47.3 MB).
+- Docs: doc 10 §5 rewritten as built, §7; docs 03, 05, 08; CLAUDE.md (tools, the Platform folder, the Steam rule). KB: U/01
+  §2.4 (CustomConfig on the launcher; two game targets share intermediates), S/03 (the Steam API without OSS; site facts).
+
+**Proof.** `check_all` (everyday) exit 0, all 40 gates PASS (`build/check_all_20261126_155.log`; `tools/package.py`'s SAVES fix came after it, its self-test PASS again by hand); the sabotages above; the
+Steam target compiles in Shipping (`PAW_STEAM_BUILD 1` in its definitions, 0 in the editor's); the Steam package's audit PASS (256.0 MB; `steam_api64.dll` staged, the start file `Pawpocalypse.exe`, no `steam_appid.txt`) and its `PAW_STEAM_BUILD 1`; SteamCMD "Successfully finished"; the Builds page's preview: 47.3 MB for players to download over 26942308. **Not run**: the
+Steam build itself on this PC (it would set achievements and move the designer's slots: the designer's test). So the Steam
+API starting, an achievement reaching Steam, the presence, the overlay pause, the cloud sync and the PlayStation prompts are
+built and unit-tested, not yet seen working.
+
+### Open (the designer's)
+- Set BuildID 26943569 live on the default branch (Steamworks > SteamPipe > Builds, SMS code), then play from Steam: check an
+  achievement pops (Kill your first enemy), friends see the biome, Shift+Tab pauses, a PlayStation pad shows its buttons.
+- Approve or change the 39 achievement descriptions (`docs/STEAM-ACHIEVEMENTS-DRAFT-2026-11-26.csv`); then they are
+  translated (22 languages) and uploaded again (`py tools/steam_files.py`, Bulk Import).
+- Before release: untick Steam Cloud's "developers only"; Store page > Supported Features (achievements, Cloud, controller).
+- Report a bug still opens the itch board (Steam discussions need the store page live).
+- Commit (0.1.1 and 0.1.2 bumps, this work) when asked.
+
+### Next step
+The designer's Steam play of 26943569. A Shipping build writes no log, so if something does not work (no achievement pops,
+no presence), build `PawpocalypseSteam` Development and run its exe from `Binaries/Win64` with Steam open: the log says
+"Steam: on, app 5720010, user ..., language ..." or why the API did not start.
+
+## 2026-11-26 (154) - The first Steam build: 0.1.1 Shipping uploaded to App 5720010
+
+**Where the project is.** As (153), plus: `Config/DefaultGame.ini` ProjectVersion 0.1.1 (the package's `--bump`),
+uncommitted. The designer: "I've opened a steam page for this game. The steam id is 5720010 (i hope it's right) can you
+create a build and push it to steam so i can test?"
+
+**What happened.**
+- **The App ID checked**: `steamcmd +app_info_print 5720010` names "Pawpocalypse", depot 5720011 (it is the App ID, not
+  the store item id). SteamCMD's cached login (`%USERPROFILE%\tools\steamcmd`) worked without a prompt.
+- **Package**: `py tools/package.py --config Shipping --bump`: 0.1.1, UAT 163 s, 255.7 MB (exe 119.6, paks 119.6),
+  audit PASS; symbols in `build/symbols/20261126_111608-Shipping`.
+- **Steamworks** (in the designer's browser): launch option 0 `Pawpocalypse.exe` (Launch (Default), Windows, 64-bit only)
+  added and published (the only pending change). The Developer Comp package 1968922 already held depot 5720011.
+- **Upload**: BuildID 26942308 (`build/steam/upload/app_build_5720010.vdf`, `SetLive ""`): 48 files, 243.8 MB, 259 chunks;
+  players download 159.8 MB. Doc 10 §5 records the IDs, the steps and the build table.
+
+**Proof.** The audit's PASS; SteamCMD "Successfully finished AppID 5720010 build (BuildID 26942308)"; the Builds page's
+preview lists 26942308 for the default branch. Not run: the Shipping package itself (it would write into the designer's
+`%LOCALAPPDATA%\Pawpocalypse\Saved`), `check_all` (no code or content changed since (153)'s exit 0).
+
+### Open (the designer's)
+- Set 26942308 live on the default branch: Steamworks > SteamPipe > Builds > Preview Change > Set Build Live Now, then the
+  SMS code. Then install and play from the Steam library.
+- Commit the version bump (0.1.1) when asked.
+- As (153).
+
+### Next step
+After the designer's play: their notes; the rest of the Steamworks settings (doc 10 §5: redistributables, supported OS,
+Steam Input, Cloud); the Steam integration (`IPawPlatform`) when asked.
+
 ## 2026-11-25 (153) - Layered PSDs for every store image and the logos; Drive cleaned to its final layout
 
 **Where the project is.** As (152), plus this entry's work, uncommitted. The designer: "Make psd. Also clean up the

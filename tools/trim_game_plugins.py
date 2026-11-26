@@ -28,7 +28,9 @@ UPROJECT = os.path.join(ROOT, "Pawpocalypse.uproject")
 
 # Always enabled for every target.
 # ProceduralMeshComponent: the backdrop's patches and puddles (phase 6 slice 2, UPawBackdropMesh).
-GAME_PLUGINS = ["CommonUI", "EnhancedInput", "PythonScriptPlugin", "ProceduralMeshComponent"]
+# SteamShared: loads the engine's steam_api64 for Platform/PawSteam (doc 10 §5; the Steam API starts only in the
+# PawpocalypseSteam target).
+GAME_PLUGINS = ["CommonUI", "EnhancedInput", "PythonScriptPlugin", "ProceduralMeshComponent", "SteamShared"]
 # Enabled, editor only (in addition to the restricted engine defaults below).
 EDITOR_PLUGINS = ["EditorScriptingUtilities", "ModelingToolsEditorMode"]
 

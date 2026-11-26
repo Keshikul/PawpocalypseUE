@@ -28,7 +28,9 @@ never project names or design decisions.
 
 ## Standing rules
 - **Never commit, push, package or export unless the designer asks in that message.** Stage explicit paths, never `git add -A`.
-  No force-push.
+  No force-push. An upload to Steam (`tools/steam_upload.py`) is an export.
+- **Only `Platform/PawSteam` calls the Steam API**, and only in the PawpocalypseSteam target outside automated runs (doc 10 §5):
+  never run a Steam build in a gate or tool (it would unlock achievements on the designer's account).
 - **Measure, don't assume.** Balance claims come from `tools/pawsim.py` (reads `Data/*.csv`); performance claims from packaged builds.
 - **A test that has never failed has never been tested.** Negative-test every assertion; confirm the sabotage landed.
 - **Sandbox every automated run** (saves, settings, input remaps): the designer's own game must stay byte-identical.
@@ -105,6 +107,9 @@ py tools/create_input_assets.py --run                                    # IA_* 
 py tools/sabotage_realm.py [--only NAME]                                 # game-module sabotages of the realm tests (UBT each, ~1 min)
 py tools/packaged_bench.py [--seconds 20] [--runs 3] [--exec "paw.Rig 0"] # L5: paw.Bench in the packaged build (build/package): frame gate, up to 3 runs, the game thread on the best (--runs 1 --exec: an A/B)
 py tools/package.py [--config Shipping] [--no-gates] [--bump]           # the designer's word only: clean archive, UAT, symbols, audit, README + Send logs.bat, the L5 gates (--audit [DIR]: an existing package; --self-test)
+py tools/package.py --config Shipping --steam [--bump]                  # the designer's word only: the PawpocalypseSteam target (Steam on) -> build/package_steam, start file Pawpocalypse.exe (doc 10 §5.3)
+py tools/steam_upload.py --user <account> [--branch NAME] [--preview]   # the designer's word only: SteamCMD uploads build/package_steam to App 5720010 (never sets the default branch live)
+py tools/steam_files.py [--check | --self-test]                         # the Steamworks upload files from the game's data -> build/steam/steamworks (achievements CSVs + icons, rich presence); --check: they agree with the game
 py tools/packaged_soak.py [--speed 5|20] [--minutes 240]                # L6: paw.Soak in the packaged build: a whole game through the UI's presses -> build/soak (PASS: won, no Error, no stall)
 py tools/packaged_pso.py [--route soak|bench] [--log FILE]               # the PSO check: PSO precache validation along a route -> build/pso/report.txt (FAIL: one of this game's materials compiled at first draw); never clears the driver cache
 py tools/packaged_languages.py [--start ru]                             # L5: paw.Languages in the packaged build: every language offered, complete, shown, drawn (glyphs), Thai/CJK wrapped -> build/loc/package (sheet.png)
@@ -143,7 +148,7 @@ py tools/trim_game_plugins.py                                            # rewri
 ## Folders
 ```
 Source/PawCore/            pure C++ rules + field sim, no engine headers; Tests/
-Source/Pawpocalypse/       game module: Core, Data, Realm, Render, UI, Input, Save, Audio, Dev (Platform: planned, not built; doc 10 §5)
+Source/Pawpocalypse/       game module: Core, Data, Realm, Render, UI, Input, Save, Audio, Platform (Steam: doc 10 §5), Dev
 Source/PawpocalypseEditor/ importers, validators, builders (editor only)
 Content/Pawpocalypse/      everything shipped (always cooked): Maps, Data, Art, Materials, Audio, Fonts, UI, Localization
 Data/                      CSV source of truth (the game's own, edited here)

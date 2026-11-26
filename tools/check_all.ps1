@@ -84,6 +84,11 @@ Invoke-Gate 'translations lint self-test' 'py tools\loc_lint.py --self-test'
 # packaging itself is the designer's word, never run here.
 Invoke-Gate 'package audit self-test' 'py tools\package.py --self-test'
 Invoke-Gate 'steam delta self-test' 'py tools\steam_delta.py --self-test'
+# Steam (2026-11-26, doc 10 §5): the Steamworks upload files can be made from the game's data (every achievement named in
+# every language with an icon and a description, every biome named for the rich presence), and the game's presence token
+# and App ID are the ones the files and the upload assume; the self-test plants each fault.
+Invoke-Gate 'steam files agree' 'py tools\steam_files.py --check'
+Invoke-Gate 'steam files self-test' 'py tools\steam_files.py --self-test'
 # The packaged bench makes up to three runs (2026-11-24): the game thread on the best (one run's p99 moved 2.8-6.8 ms on the
 # same package; interference only slows a run), every other check in every run; the self-test plants each case and the
 # game's reason wording.
@@ -132,6 +137,9 @@ Invoke-EngineGate 'L3 Pawpocalypse.UI' 'py tools\run_automation.py --no-build Pa
 Invoke-EngineGate 'L3 Pawpocalypse.Save' 'py tools\run_automation.py --no-build Pawpocalypse.Save' -NeedsBuild
 Invoke-EngineGate 'L3 Pawpocalypse.Input' 'py tools\run_automation.py --no-build Pawpocalypse.Input' -NeedsBuild
 Invoke-EngineGate 'L3 Pawpocalypse.Audio' 'py tools\run_automation.py --no-build Pawpocalypse.Audio' -NeedsBuild
+# The platform layer (2026-11-26): no Steam in the editor or any automated run, the presence token, Steam Input's pad family,
+# the slots moving into a Steam account's folder.
+Invoke-EngineGate 'L3 Pawpocalypse.Platform' 'py tools\run_automation.py --no-build Pawpocalypse.Platform' -NeedsBuild
 # The GAME target too (what a package compiles): editor-only API (WITH_EDITOR / WITH_EDITORONLY_DATA) in game-module code
 # builds in the editor and breaks only here (HANDOFF-LOG (41): two sessions of it went unseen until the packaged gate).
 Invoke-EngineGate 'UBT game build' ('"C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat" Pawpocalypse Win64 Development ' +

@@ -32,6 +32,7 @@
 #include "Realm/PawRealmSubsystem.h"
 #include "Save/PawSettingsSubsystem.h"
 #include "Input/PawInputDeviceSubsystem.h"
+#include "Platform/PawPlatformSubsystem.h"
 #include "UI/PawButton.h"
 #include "UI/PawIcons.h"
 #include "UI/PawSettingsDialog.h"
@@ -353,6 +354,18 @@ void UPawHudScreen::OnLayoutReady()
 			if (AskButton)
 			{
 				AskButton->SetCheck(true, ConfirmReawaken(this));
+			}
+		});
+	}
+	// The Steam overlay opened (Shift+Tab, a friend's message, the Guide button): the pause menu, as Esc would (doc 10 §5).
+	// OpenPauseMenu refuses when a menu or modal is already up or the game is paused.
+	if (UPawPlatformSubsystem* Platform = GetGameInstance() ? GetGameInstance()->GetSubsystem<UPawPlatformSubsystem>() : nullptr)
+	{
+		Platform->OnOverlay.AddWeakLambda(this, [this](bool bOpened)
+		{
+			if (bOpened)
+			{
+				OpenPauseMenu();
 			}
 		});
 	}

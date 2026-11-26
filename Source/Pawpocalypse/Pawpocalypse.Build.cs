@@ -36,5 +36,19 @@ public class Pawpocalypse : ModuleRules
 
 		// Settings > Audio > Output: the system's output devices and the swap (the audio mixer's platform, WASAPI on Windows).
 		PrivateDependencyModuleNames.AddRange(new string[] { "AudioMixer", "AudioMixerCore" });
+
+		// Steam (doc 10 §5, Platform/PawSteam): the engine's Steamworks SDK, steam_api64 delay-loaded and loaded by the SteamShared
+		// plugin. Compiled into every Windows build so the editor build checks it; switched ON only in the PawpocalypseSteam
+		// target (PAW_STEAM_BUILD), so the editor, the tests and the plain build never start the Steam API.
+		if (Target.Platform == UnrealTargetPlatform.Win64)
+		{
+			PrivateDependencyModuleNames.AddRange(new string[] { "Steamworks", "SteamShared" });
+			PrivateDefinitions.Add("PAW_WITH_STEAMWORKS=1");
+		}
+		else
+		{
+			PrivateDefinitions.Add("PAW_WITH_STEAMWORKS=0");
+		}
+		PrivateDefinitions.Add(Target.Name == "PawpocalypseSteam" ? "PAW_STEAM_BUILD=1" : "PAW_STEAM_BUILD=0");
 	}
 }

@@ -23,20 +23,38 @@ public:
 
 // Which storage this run reads and writes, for everything kept between runs (the slots, the settings; docs/09 §1 rule 4):
 // -NoSave: none; -PawSaveDir=<folder>: that folder; an automated run (automation, -unattended) without it: none, so the
-// designer's own files stay byte-identical; otherwise the platform's save system. Null: nothing is read or written.
-// OutWhy says which, for the log.
-PAWPOCALYPSE_API TSharedPtr<IPawSaveStorage> PawStorageForThisRun(FString& OutWhy);
+// designer's own files stay byte-identical; otherwise the platform's save system, in UserFolder when one is given (the save
+// slots of a Steam account: Saved/SaveGames/<64-bit Steam ID>, Auto-Cloud's folder; doc 10 §5). Null: nothing is read or
+// written. OutWhy says which, for the log; bOutInUserFolder whether UserFolder was used.
+PAWPOCALYPSE_API TSharedPtr<IPawSaveStorage> PawStorageForThisRun(FString& OutWhy, const FString& UserFolder = FString(),
+	bool* bOutInUserFolder = nullptr);
+
+// Moves the save slots a platform user's folder lacks into it, once (KB U/10 §5.1): for each slot name with neither the slot
+// nor its _bak in To, its entries (the slot, _bak, _tmp) that From has are copied to To, and deleted from From only after
+// every copy of that slot succeeded. So the saves made before the game knew the Steam account follow the first account that
+// plays, and a second account on the PC starts with its own. Returns the slots moved.
+PAWPOCALYPSE_API int32 PawAdoptSlots(IPawSaveStorage& From, IPawSaveStorage& To, const TArray<FString>& SlotNames);
 
 // The shipping backend: the platform's save system (ISaveGameSystem through IPlatformFeaturesModule), so a console port
-// swaps the backend at no cost (KB P/01). On Windows it is files under Saved/SaveGames.
+// swaps the backend at no cost (KB P/01). On Windows it is files under Saved/SaveGames (<SubFolder>/ when given: a name with
+// "/" makes a folder there, KB U/10 §5.1).
 class PAWPOCALYPSE_API FPawPlatformSaveStorage : public IPawSaveStorage
 {
 public:
+	FPawPlatformSaveStorage() = default;
+	explicit FPawPlatformSaveStorage(const FString& InSubFolder) : SubFolder(InSubFolder) {}
 	virtual bool Exists(const FString& Name) override;
 	virtual bool Read(const FString& Name, TArray<uint8>& Out) override;
 	virtual bool Write(const FString& Name, const TArray<uint8>& Data) override;
 	virtual bool Delete(const FString& Name) override;
-	virtual FString Describe() const override { return TEXT("platform save system"); }
+	virtual FString Describe() const override
+	{
+		return SubFolder.IsEmpty() ? FString(TEXT("platform save system")) : FString::Printf(TEXT("platform save system, folder %s"), *SubFolder);
+	}
+
+private:
+	FString Entry(const FString& Name) const { return SubFolder.IsEmpty() ? Name : SubFolder + TEXT("/") + Name; }
+	FString SubFolder;
 };
 
 // A folder of <Name>.sav files: the sandbox for automated runs (-PawSaveDir=<folder>), so the designer's own saves stay

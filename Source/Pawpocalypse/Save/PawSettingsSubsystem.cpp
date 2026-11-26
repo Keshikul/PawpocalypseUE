@@ -12,6 +12,7 @@
 #include "Misc/Parse.h"
 #include "HAL/PlatformMisc.h"
 #include "PcLocales.h"
+#include "Platform/PawPlatformSubsystem.h"
 #include "Save/PawSaveStorage.h"
 #include "UI/PawText.h"
 #include "UnrealEngine.h"
@@ -294,8 +295,9 @@ void UPawSettingsSubsystem::ApplyLanguage()
 		const Pc::PcLanguage* Asked = Pc::LanguageByCulture(Utf8(Wanted));
 		Setting = Asked ? Asked->Code : Pc::LocaleEnglish;
 	}
-	// Steam's language for the game joins here once the game talks to Steam (settings_manager.gd's hook; none in either build).
-	const std::string Code = Pc::LocaleResolve(Setting, Available, Utf8(FPlatformMisc::GetDefaultLocale()), std::string());
+	// Under Steam, "system" is the language chosen for the game in Steam (doc 10 §5; empty in every other build).
+	const std::string Code = Pc::LocaleResolve(Setting, Available, Utf8(FPlatformMisc::GetDefaultLocale()),
+		Utf8(UPawPlatformSubsystem::PlatformLanguage()));
 	const Pc::PcLanguage* Shown = Pc::LanguageByCode(Code);
 	Language.Code = UTF8_TO_TCHAR(Code.c_str());
 	Language.Culture = Shown ? UTF8_TO_TCHAR(Shown->Culture) : TEXT("en");

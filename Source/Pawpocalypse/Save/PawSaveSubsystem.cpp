@@ -13,6 +13,7 @@
 #include "Misc/ScopeLock.h"
 #include "PcField.h"
 #include "Realm/PawRealmSubsystem.h"
+#include "Platform/PawPlatformSubsystem.h"
 #include "Save/PawSaveStorage.h"
 #include "Save/PawSettingsSubsystem.h"
 
@@ -141,11 +142,28 @@ void UPawSaveSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Collection.InitializeDependency<UPawGameSubsystem>();
 	Collection.InitializeDependency<UPawSettingsSubsystem>();
 	Stats = MakeShared<FPawSaveWriteStats>();
-	// An automated run never touches the real slots (docs/09 §1 rule 4): a test hands in its own storage.
+	// An automated run never touches the real slots (docs/09 §1 rule 4): a test hands in its own storage. Under Steam the
+	// slots are the Steam account's (its own folder, synced by Auto-Cloud; doc 10 §5), and the slots made before the game
+	// knew the account move into it once.
 	FString Why;
-	Storage = PawStorageForThisRun(Why);
+	const FString UserFolder = UPawPlatformSubsystem::SaveUserFolder();
+	bool bInUserFolder = false;
+	Storage = PawStorageForThisRun(Why, UserFolder, &bInUserFolder);
 	bEnabled = Storage.IsValid();
 	UE_LOG(LogPaw, Log, TEXT("Save: %s"), *Why);
+	if (bEnabled && bInUserFolder)
+	{
+		TArray<FString> Slots;
+		for (int32 I = 0; I < SlotCount; ++I)
+		{
+			Slots.Add(SlotName(I));
+		}
+		FPawPlatformSaveStorage Root;
+		if (const int32 Moved = PawAdoptSlots(Root, *Storage, Slots))
+		{
+			UE_LOG(LogPaw, Log, TEXT("Save: %d slots moved into the folder of Steam user %s"), Moved, *UserFolder);
+		}
+	}
 	bInitialized = true;
 	StartOnLastSlot();
 	if (bEnabled)

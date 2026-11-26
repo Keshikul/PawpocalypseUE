@@ -23,7 +23,7 @@ Source/
     Input/                input device subsystem, glyphs, bindings (doc 05)
     Save/                 save container, slots, migrations (doc 08)
     Audio/                UPawAudioSubsystem (AudioManager) and the generated bank (doc 07 §6; built phase 6)
-    Platform/             (phase 8, not built yet) IPawPlatform: achievements, cloud, rich presence, store URL (Null + Steam impls, doc 10)
+    Platform/             IPawPlatform as UPawPlatformSubsystem + PawSteam (the only Steam caller): achievements, rich presence, the overlay, the save folder, the language, pad type (doc 10 §5, built 2026-11-26)
     Dev/                  the cheats, the debug HUD, paw.Bench, paw.Shot and the tour steps; planned: soak driver, trailer
                           director (compiled out of Shipping)
   PawpocalypseEditor/   editor-only: the widget baker (UPawWidgetBaker), the Enhanced Input asset builder, the font builder

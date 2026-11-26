@@ -1,5 +1,7 @@
 #include "Input/PawInputDeviceSubsystem.h"
 
+#include "Platform/PawPlatformSubsystem.h"
+
 #include "Audio/PawAudioSubsystem.h"
 #include "Core/PawLog.h"
 #include "Engine/Engine.h"
@@ -225,13 +227,36 @@ void UPawInputDeviceSubsystem::Observe(const Pc::PcDeviceEvent& E)
 	const Pc::PcCursorSource Cursor = State.Cursor;
 	const bool bHidden = State.bPointerHidden;
 	const Pc::PcDeviceToast ToastBefore = State.Toast;
-	if ((E.Kind == Pc::PcDeviceEventKind::PadButton || E.Kind == Pc::PcDeviceEventKind::PadMotion) && !State.DeviceFamilies.count(E.Device))
+	if (E.Kind == Pc::PcDeviceEventKind::PadButton || E.Kind == Pc::PcDeviceEventKind::PadMotion)
 	{
-		// A pad first heard from: XInput calls every pad "XInput Controller" (family_from_info: Xbox).
-		Pc::DeviceRegister(State, E.Device, Pc::DeviceFamilyFromInfo(0, 0, "XInput Controller", "", false));
+		// A pad first heard from: XInput calls every pad "XInput Controller" (family_from_info: Xbox), unless the platform
+		// says what it really is (Steam Input passes a PlayStation pad or the Deck's on as an Xbox pad: doc 10 §5). Steam's
+		// answer can come later than the first press (or a pad is swapped in its slot): while the platform answers, a known
+		// pad's family follows it.
+		const auto Known = State.DeviceFamilies.find(E.Device);
+		const TOptional<Pc::PcFamily> FromPlatform = PlatformPadFamily();
+		if (Known == State.DeviceFamilies.end())
+		{
+			Pc::DeviceRegister(State, E.Device, PadFamilyNow());
+		}
+		else if (FromPlatform.IsSet() && Known->second != FromPlatform.GetValue())
+		{
+			Pc::DeviceRegister(State, E.Device, FromPlatform.GetValue());
+		}
 	}
 	Pc::DeviceObserve(State, E, NowMs());
 	Changed(Family, Cursor, bHidden, ToastBefore);
+}
+
+TOptional<Pc::PcFamily> UPawInputDeviceSubsystem::PlatformPadFamily() const
+{
+	return PadFamilyForTest.IsSet() ? PadFamilyForTest : UPawPlatformSubsystem::TranslatedPadFamily();
+}
+
+Pc::PcFamily UPawInputDeviceSubsystem::PadFamilyNow() const
+{
+	const TOptional<Pc::PcFamily> FromPlatform = PlatformPadFamily();
+	return FromPlatform.IsSet() ? FromPlatform.GetValue() : Pc::DeviceFamilyFromInfo(0, 0, "XInput Controller", "", false);
 }
 
 bool UPawInputDeviceSubsystem::IsActionHeld(const TCHAR* Action) const
@@ -391,7 +416,7 @@ void UPawInputDeviceSubsystem::ObserveConnection(int32 Device, bool bConnected)
 	const Pc::PcCursorSource Cursor = State.Cursor;
 	const bool bHidden = State.bPointerHidden;
 	State.Toast = Pc::PcDeviceToast::None; // each connection decides its own toast
-	Pc::DeviceConnection(State, Device, bConnected, Pc::DeviceFamilyFromInfo(0, 0, "XInput Controller", "", false), NowMs());
+	Pc::DeviceConnection(State, Device, bConnected, PadFamilyNow(), NowMs());
 	const Pc::PcDeviceToast Shown = State.Toast;
 	Changed(Family, Cursor, bHidden, Shown);
 	if (Shown != Pc::PcDeviceToast::None)

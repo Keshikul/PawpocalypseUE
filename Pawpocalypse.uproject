@@ -38,6 +38,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "SteamShared",
+			"Enabled": true
+		},
+		{
 			"Name": "EditorScriptingUtilities",
 			"Enabled": true,
 			"TargetAllowList": [

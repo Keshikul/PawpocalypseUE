@@ -2,6 +2,7 @@
 files written into it, and the packaged gates run on it.
 
     py tools/package.py [--config Development|Shipping] [--no-gates] [--bump]
+    py tools/package.py --config Shipping --steam [--bump]   # the Steam build (doc 10 §5): build/package_steam
     py tools/package.py --audit [ARCHIVE]   # the audit alone, on a package already made (reads it; writes build/ only)
     py tools/package.py --self-test         # the audit's rules against planted listings (nothing packaged)
 
@@ -35,6 +36,10 @@ The audit (also --audit): the archive's files, the IoStore container's packages 
         a paw cursor missing; ICU data without Thai's dictionary or zh-Hant (the English preset: HANDOFF-LOG (136)); no exe.
   FAIL  ... and a file the trim (step 5) removes left in the archive (the D3D12 / Vulkan debug layers, UAT's manifests,
         a plugin's Boost: the game never loads them).
+  --steam: the PawpocalypseSteam target (Steam switched on: Platform/PawSteam), Shipping only, into build/package_steam;
+  its start file PawpocalypseSteam.exe is renamed Pawpocalypse.exe (Steamworks' launch option; KB U/19 §7). The audit then
+  also FAILs on: no steam_api64.dll staged (the game could not start Steam), a steam_appid.txt anywhere (a build that runs
+  outside Steam as the game), no Pawpocalypse.exe start file. Upload with tools/steam_upload.py.
 Exit 0 = PASS; 1 = FAIL; 2 = refused or no package.
 """
 import argparse
@@ -57,11 +62,17 @@ UNREALPAK = os.path.join(ENGINE, "Binaries", "Win64", "UnrealPak.exe")
 UPROJECT = os.path.join(ROOT, "Pawpocalypse.uproject")
 GAME_INI = os.path.join(ROOT, "Config", "DefaultGame.ini")
 CONTENT = os.path.join(ROOT, "Content", "Pawpocalypse")
+# "Steam" is the Shipping build of the PawpocalypseSteam target (--steam).
 ARCHIVES = {"Development": os.path.join(ROOT, "build", "package"),
-            "Shipping": os.path.join(ROOT, "build", "package_shipping")}
+            "Shipping": os.path.join(ROOT, "build", "package_shipping"),
+            "Steam": os.path.join(ROOT, "build", "package_steam")}
 EXES = {"Development": "Pawpocalypse/Binaries/Win64/Pawpocalypse.exe",
-        "Shipping": "Pawpocalypse/Binaries/Win64/Pawpocalypse-Win64-Shipping.exe"}
-PDBS = {"Development": "Pawpocalypse.pdb", "Shipping": "Pawpocalypse-Win64-Shipping.pdb"}
+        "Shipping": "Pawpocalypse/Binaries/Win64/Pawpocalypse-Win64-Shipping.exe",
+        "Steam": "Pawpocalypse/Binaries/Win64/PawpocalypseSteam-Win64-Shipping.exe"}
+PDBS = {"Development": "Pawpocalypse.pdb", "Shipping": "Pawpocalypse-Win64-Shipping.pdb",
+        "Steam": "PawpocalypseSteam-Win64-Shipping.pdb"}
+STEAM_TARGET = "PawpocalypseSteam"
+STEAM_API = "Engine/Binaries/ThirdParty/Steamworks/*/Win64/steam_api64.dll"
 MAPS = {"Pawpocalypse/Content/Pawpocalypse/Maps/L_Title.umap", "Pawpocalypse/Content/Pawpocalypse/Maps/L_Realm.umap"}
 TABLES = ("ST_UI.csv", "ST_Data.csv", "ST_Tree.csv")
 LOC = "Pawpocalypse/Content/Pawpocalypse/Localization"
@@ -115,7 +126,15 @@ def audit(files, packages, loose, config, cultures, cursors):
     for m in sorted(MAPS - maps):
         fail.append("map not cooked: %s" % m)
     for m in sorted(maps - MAPS):
-        (fail if config == "Shipping" else warn).append("a map not shipped: %s" % m)
+        (fail if config in ("Shipping", "Steam") else warn).append("a map not shipped: %s" % m)
+    if config == "Steam":
+        if not any(fnmatch.fnmatch(p, STEAM_API) for p in norm):
+            fail.append("no steam_api64.dll staged (%s): the game could not start Steam" % STEAM_API)
+        if "Pawpocalypse.exe" not in norm:
+            fail.append("no start file Pawpocalypse.exe (Steamworks' launch option)")
+    for p in sorted(norm):
+        if p.rsplit("/", 1)[-1].lower() == "steam_appid.txt":
+            fail.append("a steam_appid.txt in the archive: %s (the game would run outside Steam)" % p)
     have = set(loose)
     for t in TABLES:
         if "%s/Strings/%s" % (LOC, t) not in have:
@@ -207,7 +226,8 @@ def self_test():
 
     def clean(config):
         files = {EXES[config]: 100, "Pawpocalypse/Content/Paks/Pawpocalypse-Windows.utoc": 10, "Pawpocalypse.exe": 5,
-                 "Pawpocalypse/Binaries/Win64/D3D12/x64/D3D12Core.dll": 7}
+                 "Pawpocalypse/Binaries/Win64/D3D12/x64/D3D12Core.dll": 7,
+                 "Engine/Binaries/ThirdParty/Steamworks/Steamv164/Win64/steam_api64.dll": 3}
         packages = sorted(MAPS) + ["Pawpocalypse/Content/Pawpocalypse/Data/DT_Cards.uasset",
                                    "Pawpocalypse/Content/ShaderArchive-Pawpocalypse-PCD3D_SM6-PCD3D_SM6.ushaderbytecode",
                                    "Engine/Content/EngineMaterials/DefaultMaterial.uasset"]
@@ -238,9 +258,20 @@ def self_test():
         "the English ICU preset (no zh-Hant)": ("without zh_Hant", "Development", lambda f, p, l: l.remove(ICU_NEEDED[1])),
         "a debug layer left in the archive": ("not needed by this game", "Shipping",
             lambda f, p, l: f.__setitem__("Pawpocalypse/Binaries/Win64/D3D12/x64/d3d12SDKLayers.dll", 7)),
+        "Steam: no steam_api64.dll": ("no steam_api64.dll", "Steam",
+            lambda f, p, l: f.pop("Engine/Binaries/ThirdParty/Steamworks/Steamv164/Win64/steam_api64.dll")),
+        "Steam: the start file not renamed": ("no start file", "Steam", lambda f, p, l: f.pop("Pawpocalypse.exe")),
+        "Steam: a steam_appid.txt": ("steam_appid.txt", "Steam",
+            lambda f, p, l: f.__setitem__("Pawpocalypse/Binaries/Win64/steam_appid.txt", 1)),
+        "Steam: a test map": ("a map not shipped", "Steam", lambda f, p, l: p.append("Pawpocalypse/Content/Pawpocalypse/Maps/L_Test.umap")),
     }
     ok = True
-    for config in ("Development", "Shipping"):
+    # Every kind of package has its exe, symbols and README line (2026-11-26: the first --steam run lacked SAVES["Steam"]
+    # and stopped after the audit, before the tester files).
+    tables = all(k in t for k in ARCHIVES for t in (EXES, PDBS, SAVES))
+    print("%s  every package kind in EXES, PDBS and SAVES" % ("PASS" if tables else "FAIL"))
+    ok &= tables
+    for config in ("Development", "Shipping", "Steam"):
         fail, warn = audit(*clean(config), config, cultures, cursors)
         good = not fail
         print("%s  clean %s listing passes" % ("PASS" if good else "FAIL", config))
@@ -404,7 +435,8 @@ If something goes wrong, run "Send logs.bat". It puts Pawpocalypse-logs.zip on y
 reports, settings and saves, and your PC's graphics information). Send that file with a few words on what happened.
 """
 SAVES = {"Development": "Saves, settings and logs are in Pawpocalypse\\Saved inside this folder.",
-         "Shipping": "Saves, settings and logs are in %LOCALAPPDATA%\\Pawpocalypse\\Saved."}
+         "Shipping": "Saves, settings and logs are in %LOCALAPPDATA%\\Pawpocalypse\\Saved.",
+         "Steam": "Start it from Steam. Saves are in %LOCALAPPDATA%\\Pawpocalypse\\Saved\\SaveGames\\<your Steam ID> (Steam Cloud)."}
 
 SEND_LOGS = r"""@echo off
 rem Collects this game's logs, crash reports, settings and saves, and the PC's graphics information, into one zip on the
@@ -447,7 +479,7 @@ def package(config, gates, bump):
         print("package: an Unreal editor of this project is running; close it first (this never closes it)")
         unreal_procs.print_blocking(found)
         return 2
-    for image in ("Pawpocalypse.exe", "Pawpocalypse-Win64-Shipping.exe"):
+    for image in ("Pawpocalypse.exe", "Pawpocalypse-Win64-Shipping.exe", "PawpocalypseSteam-Win64-Shipping.exe"):
         if running(image):
             print("package: %s is running; close it first (it locks the exe: UAT would keep the old one)" % image)
             return 2
@@ -468,8 +500,10 @@ def package(config, gates, bump):
         print("package: version %s" % version)
     stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     log = os.path.join(ROOT, "build", "package_%s_%s.log" % (config, stamp))
-    cmd = ('"%s" BuildCookRun -project="%s" -noP4 -platform=Win64 -clientconfig=%s -build -cook -stage -pak -archive '
-           '-archivedirectory="%s" -nodebuginfo -utf8output -unattended' % (UAT, UPROJECT, config, archive))
+    uat_config = "Shipping" if config == "Steam" else config
+    target = (" -target=%s" % STEAM_TARGET) if config == "Steam" else ""
+    cmd = ('"%s" BuildCookRun -project="%s" -noP4 -platform=Win64 -clientconfig=%s%s -build -cook -stage -pak -archive '
+           '-archivedirectory="%s" -nodebuginfo -utf8output -unattended' % (UAT, UPROJECT, uat_config, target, archive))
     start = time.time()
     print("package: %s -> %s (log %s)" % (config, archive, log))
     with open(log, "w", encoding="utf-8", errors="replace") as f:
@@ -491,6 +525,13 @@ def package(config, gates, bump):
         print("package: symbols -> %s" % symbols)
     else:
         print("package: no %s beside the build (crash dumps of this build will have no symbols)" % PDBS[config])
+    if config == "Steam":
+        # The start file carries the game exe's path inside it (resource 201), so it may be renamed (KB U/19 §7):
+        # Steamworks' launch option is Pawpocalypse.exe.
+        start_file = os.path.join(archive, "Windows", STEAM_TARGET + ".exe")
+        if os.path.isfile(start_file):
+            os.replace(start_file, os.path.join(archive, "Windows", "Pawpocalypse.exe"))
+            print("package: %s.exe -> Pawpocalypse.exe" % STEAM_TARGET)
     n, size = trim_archive(archive)
     print("package: trimmed %d files, %.1f MB the game never loads (debug layers, manifests)" % (n, size / 1e6))
     if run_audit(archive, config) != 0:
@@ -498,6 +539,8 @@ def package(config, gates, bump):
     write_tester_files(archive, config, version)
     if not gates or config != "Development":
         print("package: no packaged gates run (%s)" % ("--no-gates" if not gates else "Shipping has no console"))
+        if config == "Steam":
+            print("package: upload with py tools/steam_upload.py --user <the Steamworks account> [--branch NAME]")
         return 0
     results = {}
     for name, tool, extra in (("languages", "packaged_languages.py", []), ("bench", "packaged_bench.py", []),
@@ -514,14 +557,19 @@ def main():
     ap.add_argument("--config", choices=["Development", "Shipping"], default="Development")
     ap.add_argument("--no-gates", action="store_true")
     ap.add_argument("--bump", action="store_true", help="ProjectVersion's last number + 1 (a build that leaves the PC)")
+    ap.add_argument("--steam", action="store_true", help="the PawpocalypseSteam target (Shipping only): build/package_steam")
     ap.add_argument("--audit", nargs="?", const="", default=None, metavar="ARCHIVE")
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args()
     if args.self_test:
         return self_test()
+    if args.steam and args.config != "Shipping":
+        print("package: --steam is Shipping only (a Development Steam build runs from Binaries: Build.bat PawpocalypseSteam ...)")
+        return 2
+    kind = "Steam" if args.steam else args.config
     if args.audit is not None:
-        return run_audit(args.audit or ARCHIVES[args.config], args.config)
-    return package(args.config, not args.no_gates, args.bump)
+        return run_audit(args.audit or ARCHIVES[kind], kind)
+    return package(kind, not args.no_gates, args.bump)
 
 
 if __name__ == "__main__":

@@ -124,15 +124,84 @@ The Godot release flow ports: staging folder that is exactly the release, butler
 `[KB G/04 §4]`. **Code signing** (SmartScreen on browser downloads): Azure Artifact Signing ~$9.99/month or OV certificate; sign
 the exe only. Unreal exes do not carry an appended blob, so the Godot antivirus-heuristic issue (embedded PCK) does not apply.
 
-## 5. Steam integration (after the App ID; the Godot plan's workstream F)
+## 5. Steam integration (built 2026-11-26, HANDOFF-LOG (155))
 
-- `IPawPlatform` interface (Null implementation by default; Steam implementation in a `Steam` target via `CustomConfig = "Steam"`
-  `[KB U/01 §2.4]`): achievements (mirroring the 39 in-game ones), rich presence (biome, stage), Cloud (Auto-Cloud on the save
-  folder: no code), the real pad type behind Steam Input for glyphs, overlay-aware pause, the store/discussions URL for Report a
-  bug (`MainMenu.BUG_REPORT_URL` points at itch until then).
-- Online Subsystem Steam is enabled only for these services; **no SteamSockets, no sessions** (single player). `steam_appid.txt`
-  only while developing.
-- Gameplay code never calls Steam directly `[KB S/01 §3]`.
+**The App ID is 5720010** (checked 2026-11-26 with `steamcmd +login <account> +app_info_print 5720010`: name "Pawpocalypse",
+depot 5720011). Depot 5720011 "Pawpocalypse Content". Packages: 1968922 Developer Comp (depot 5720011, Release State
+Override: the team's accounts own and play it before release), 1968923 Beta Testing (keys), 1968924 the store package.
+
+### 5.1 In the game (as built)
+
+- **Two game targets.** `Pawpocalypse` (the editor, every test and gate, builds outside Steam): never starts the Steam API.
+  `PawpocalypseSteam` (`Source/PawpocalypseSteam.Target.cs`): the same game with `PAW_STEAM_BUILD=1`
+  (`Pawpocalypse.Build.cs` sets it from the target's name). An automated run (automation, `-unattended`) or `-PawNoSteam`
+  never starts Steam even in the Steam build, so nothing automated can unlock an achievement on the designer's account.
+  Both targets compile the game module into `Intermediate/Build/Win64/x64/UnrealGame/<Config>` (the launcher's shared build
+  environment): building one after the other recompiles the game module, never mixes them `[KB U/01 §2.4]`.
+- **The Steam API directly, not Online Subsystem Steam** (a single-player game needs none of its sessions, and the launcher
+  engine ignores a Steam target's `CustomConfig`, so the OSS route needs an extra config module, `[KB U/01 §2.4]`). The engine's
+  Steamworks SDK (v164); the SteamShared plugin (enabled for the game, `tools/trim_game_plugins.py`) loads `steam_api64.dll`.
+  `Platform/PawSteam` is **the only code that calls Steam**; `Platform/PawPlatformSubsystem` is what the game asks
+  (docs/03's `IPawPlatform`). In every other build each answer is "no platform".
+- **Start**: the game module's `StartupModule` (`Pawpocalypse.cpp`): a Shipping Steam build opened outside Steam calls
+  `SteamAPI_RestartAppIfNecessary(5720010)` and exits (Steam starts it); then `SteamAPI_InitEx`, callbacks pumped every frame
+  (`FTSTicker`). A Development Steam build run from its exe gets the App ID from the `SteamAppId` environment variable it sets
+  (no `steam_appid.txt`; the package audit fails on one).
+- **Achievements**: every id in the progress's `AchievementsEarned` is set on Steam (`SetAchievement`, one `StoreStats`):
+  a new one within a second (a 1 s poll of the earned count and the progress epoch, as the audio's), and on a load the ones a
+  save earned before Steam knew (a save made outside Steam catches up). Steam loads the account's achievements at
+  `SteamAPI_Init` (SDK 1.61+: no `RequestCurrentStats`); a write before that, or of an id Steamworks lacks, is retried
+  (`UserStatsReceived_t` triggers one). API names = the ids of `Data/AchievementData.csv`.
+- **Rich presence**: in a running realm `steam_display = "#Biome_<tier id>"`, the biome's name (the Steamworks file: the
+  string tables' `TIER_<id>_name` in 23 languages); on the title none (Steam shows "Playing Pawpocalypse"). No new words.
+- **The overlay**: `GameOverlayActivated_t` -> `UPawPlatformSubsystem::OnOverlay` -> the HUD's `OpenPauseMenu()` (refused
+  while a menu or modal is up or the game is paused).
+- **Saves and Steam Cloud**: under Steam the slots live in `SaveGames/<64-bit Steam ID>/` (Auto-Cloud's `{64BitSteamID}`; two
+  accounts on one PC never share or upload each other's slots); the settings stay in the root, per PC `[KB U/10 §5.1]`.
+  The slots made before the game knew the account move into the first account's folder once (`PawAdoptSlots`: copied,
+  then deleted from the root only after every copy of that slot succeeded; never over a slot the folder has).
+- **The language**: "system" means the language chosen for the game in Steam (`Pc::LocaleResolve`'s Steam argument).
+- **Pads**: Steam Input's type of the first translated pad (`ISteamInput::Init(false)`, `GetInputTypeForHandle`) names
+  the prompt family: PlayStation, Steam Deck, Xbox; Switch and DirectInput pads draw as Generic (Xbox's prompts; no Nintendo
+  prompts). Read at most once a second; a known pad follows Steam's answer. The Button prompts setting still wins.
+- Tests: `Pawpocalypse.Platform.*` (no Steam in the editor or tests, the presence token, the pad family, the slot move),
+  each seen to fail (`tools/sabotage_realm.py`, `platform_*`). `py tools/steam_files.py --check` (everyday): the Steamworks
+  files can be made and agree with the game.
+- **Not done**: Report a bug still opens the itch board (`UPawMainMenu::BugReportUrl`); the Steam discussions need the store
+  page live. The pad type and the overlay pause are untested on real hardware (no pad and no Steam run in a gate).
+
+### 5.2 Steamworks (entered 2026-11-26 in the designer's browser, published)
+
+| Page | Entered |
+|---|---|
+| Installation > General | install folder `Pawpocalypse`; launch option 0 `Pawpocalypse.exe`, Launch (Default), Windows, 64-bit only |
+| Installation > Redistributables | Visual C++ 2022 (includes 2019, 2017, 2015) |
+| Application > General | Supported OS: Windows, 64 Bit Only |
+| Stats & Achievements > Achievements | 23 languages (Configure Languages); 39 achievements by Bulk Import (`build/steam/steamworks`, `py tools/steam_files.py`): names in 23 languages, descriptions English only (a DRAFT, `docs/STEAM-ACHIEVEMENTS-DRAFT-2026-11-26.csv`, for the designer; translated after the yes), our own icons achieved and not ("Automatically generate unachieved icons" unticked) |
+| Community > Rich Presence | `rich_presence.vdf`: `#Biome_tier_1` ... `#Biome_tier_12`, 23 languages |
+| Application > Steam Cloud | 10,000,000 bytes (Steam's minimum; a slot is ~3.5 KB), 20 files; Auto-Cloud: root `WinAppDataLocal`, subdirectory `Pawpocalypse/Saved/SaveGames/{64BitSteamID}`, pattern `slot_*.sav` (the slots, their `_bak` and `_tmp`; never `settings`), not recursive, [Cross-Platform]. **"Enable cloud support for developers only" is ticked (Steam's default): untick before release** |
+| Application > Steam Input | opted in: PlayStation, Nintendo Switch, Generic (DirectInput), Any Future Devices (not Xbox: the game reads XInput); default template Generic Gamepad; Deck touchscreen: Left Mouse Click Emulation (default) |
+
+Store page > Supported Features (achievements, Cloud, controller support) is the designer's, with the store page.
+
+### 5.3 Uploading a build
+
+`py tools/package.py --config Shipping --steam --bump` (the Steam target, `build/package_steam`, the start file renamed
+`Pawpocalypse.exe`; the audit also fails on no `steam_api64.dll`, no start file, a `steam_appid.txt`), then
+`py tools/steam_upload.py --user <the designer's Steamworks account> [--branch NAME]` (SteamCMD's cached login; App ID from
+`PawSteam.h`, depot App ID + 1; excludes `*.pdb`, `*.bat`, `README.txt`, `Manifest_*.txt`). Without `--branch` the build
+lands live nowhere: Steamworks > SteamPipe > Builds > pick the branch > Preview Change > Set Build Live Now; the default
+branch asks for an SMS code (the account has no mobile authenticator): the designer's step. SteamCMD can set a beta branch
+at upload, never the default one.
+
+| BuildID | Version / commit | Upload | Live on default |
+|---|---|---|---|
+| 26942308 | 0.1.1, 1f7ce73 + the version bump; the plain target (no Steam API) | 243.8 MB, 48 files, 259 chunks (players: 159.8 MB) | 2026-11-26 (the designer) |
+| 26943569 | 0.1.2, 1f7ce73 + (155); the Steam target (achievements, presence, Cloud, overlay pause, pad type) | 5 files added, 4 changed, 1 removed; 125 chunks (players: 47.3 MB) | waiting for the designer's SMS code (2026-11-26) |
+
+### 5.4 Rules
+
+- Gameplay code never calls Steam directly `[KB S/01 §3]`; no SteamSockets, no sessions (single player).
 - **Steam Deck**: default controller config reaches everything; glyphs match; text >= 12 px at 1280x800; 60 fps target at 800p
   (30 minimum); graphics settings per device; the on-screen keyboard is not needed (no text entry) `[KB S/02]`. Run the Windows
   build under Proton on the Deck before claiming "Verified".
@@ -154,4 +223,5 @@ cooked filter); pak listing audit (no never-ship content); colour gate on the pa
 first-run hitch check with `-clearPSODriverCache` on a clean machine without Unreal or Visual Studio (NOT on a working PC: on
 NVIDIA it deletes the driver's shader cache every game on the machine shares, `WindowsD3D12Device.cpp`)
 `[KB U/12 §6]`; soak at 5x for the whole game; save-version bump in the same commit as any save-meaning change; a rollback build
-kept; beta branch on Steam first `[KB S/03]`.
+kept; beta branch on Steam first `[KB S/03]`; the Steam build (`--steam`), Steam Cloud's "developers only" unticked, the
+achievement descriptions approved and translated (doc 10 §5.2).

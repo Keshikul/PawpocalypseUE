@@ -316,8 +316,8 @@ re-applies the desired focus target when a modal closes: `UPawPauseMenu::ReturnF
   rule). Base it on `UCommonInputSubsystem::OnInputMethodChanged` `[KB U/08 §5]`.
 - **Windows pads: Unreal reads XInput only** (GameInput plugin off by default): every pad looks like Xbox, and a PlayStation
   pad plugged in directly does not work at all; through Steam Input it works as Xbox and the real type comes from the Steam
-  API `[KB U/08 §5.1]`. Settings > Controls > Button prompts (Auto / Xbox / PlayStation / Steam Deck) is the override until
-  Steam integration lands (doc 10 §5). Decide in phase 5 whether to enable the GameInput plugin for direct DualSense support.
+  API `[KB U/08 §5.1]`: in the Steam build `UPawPlatformSubsystem::TranslatedPadFamily` names it (2026-11-26, doc 10 §5).
+  Settings > Controls > Button prompts (Auto / Xbox / PlayStation / Steam Deck) still overrides it. Decide in phase 5 whether to enable the GameInput plugin for direct DualSense support.
 - **Glyphs are generated** (in the Godot repo: `tools/sweet_input.py` via `sweet_ui.py --write`; copied and rasterised here by
   `tools/raster_svg.py`, as built above) per family, named by POSITION (`face_down` is
   A on Xbox, Cross on PlayStation): import them as one texture set per family into `CommonInputBaseControllerData` assets.

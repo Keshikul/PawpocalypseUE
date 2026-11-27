@@ -2,20 +2,27 @@
 // Godot code; these prove the screen built on them, on the REAL root layout (its Slate built, so the Menu stack activates).
 //
 // Pawpocalypse.UI.Tree.Opens       T opens a browse on the Menu stack (once), the field holds, every node seated where the
-//                                  layout says, the captions (BRANCH_LABELS: "Splash"), the fit and centre, the X.
+//                                  layout says, the names (BRANCH_LABELS: "Splash"; a branch's in the field), the reveal
+//                                  (a fresh game shows part of the tree), the fit to what is shown and the centre, the X.
 // Pawpocalypse.UI.Tree.Browse      read-only: a press buys nothing however rich; READY halos still show; the tooltip says so;
 //                                  closing releases the field and never travels.
 // Pawpocalypse.UI.Tree.Spend       a Reawaken (after its ceremony) opens the spend step (Continue, the cheapest node selected), a press buys one
-//                                  level, the node and its link turn owned, leaving asks once (unspent / next run), then
+//                                  level, the node and its link turn owned, leaving asks in the confirm dialog (P4.7: "You
+//                                  still have Stardust to spend." / "Start the next run?", Leave / Stay), Stay stays, Leave
 //                                  travels to the starting biome.
 // Pawpocalypse.UI.Tree.Text        every branch's effect at every level, rendered through ST_Tree + FText exactly as Godot's
 //                                  _effect_text (the Godot fixture); the tooltip's title and lines.
-// Pawpocalypse.UI.Tree.Navigation  every node's four rules are PcTreeLayout's picks (itself when nothing lies that way).
+// Pawpocalypse.UI.Tree.Navigation  every shown node's four rules are PcTreeLayout's picks among the shown (itself when
+//                                  nothing lies that way); a hidden node is never a target.
 // Pawpocalypse.UI.Tree.Zoom        zoom about the view's centre, clamped; Q's next affordable node.
-// Pawpocalypse.UI.Tree.Paint       the links (owned only with both ends), the rainbow verbs, the pulse, the job rings; the
-//                                  frames LOCKED < READY < OWNED in one series.
+// Pawpocalypse.UI.Tree.Paint       the links (owned only with both ends, in the trunk's colour, as shown as their far end),
+//                                  the Unicorn's rings; the stickers (C1: a shape per kind, owned in the trunk's card, the
+//                                  rest dark, the gold ring to buy now), the chips (level, tick, price), the reveal.
 // Pawpocalypse.UI.Tree.TipOnce     the tooltip is built when its node or numbers change, not every frame; the selection
 //                                  follows a node's focus event (review CR9).
+// Pawpocalypse.UI.Tree.KeepsKeys   the tree (and the pause menu, settings, the title: every screen that reads Back itself) holds
+//                                  the keys when a click lands on nothing focusable; Esc to the tree itself asks, then leaves
+//                                  (playtest 2026-11-26, notes 11, 27).
 //
 // Negative tests: tools/sabotage_realm.py (`tree_*`).
 
@@ -40,12 +47,18 @@
 #include "Realm/PawRealmSubsystem.h"
 #include "UI/PawButton.h"
 #include "UI/PawHudScreen.h"
+#include "UI/PawMainMenu.h"
+#include "UI/PawPauseMenu.h"
 #include "UI/PawReawakenCeremony.h"
 #include "UI/PawRootLayout.h"
+#include "UI/PawSettingsDialog.h"
 #include "UI/PawSkillTreeScreen.h"
+#include "UI/PawBoba.h"
+#include "UI/PawConfirmDialog.h"
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
 #include "UI/PawTreeTables.h"
+#include <set>
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "UI/PawTextTesting.h"
 
@@ -88,6 +101,7 @@ namespace
 			}
 			RootSlate = Root->TakeWidget();
 			Hud->SetMenuStack(Root->MenuStack);
+			Hud->SetModalStack(Root->ModalStack); // the tree's leave question (P4.7)
 			return true;
 		}
 
@@ -135,6 +149,33 @@ namespace
 	}
 
 	double Luma(const FLinearColor& C) { return 0.2126 * C.R + 0.7152 * C.G + 0.0722 * C.B; }
+
+	// What PcTreeLayout reveals for this progress (C1).
+	std::set<std::string> ShownOf(const Pc::PcGameData& D, const Pc::PcProgress& P)
+	{
+		std::set<std::string> Out;
+		for (const Pc::PcSkillBranch& B : D.Branches)
+		{
+			if (Pc::TreeNodeReveal(D, P, B.Id) != Pc::PcTreeReveal::Hidden)
+			{
+				Out.insert(B.Id);
+			}
+		}
+		return Out;
+	}
+
+	const PawTree::FTrunkLook* LookOf(const Pc::PcGameData& D, const std::string& Id)
+	{
+		const FString Trunk = UTF8_TO_TCHAR(Pc::TreeTrunkOf(D, Id).c_str());
+		for (const PawTree::FTrunkLook& L : PawTree::TrunkLooks)
+		{
+			if (Trunk == L.Id)
+			{
+				return &L;
+			}
+		}
+		return nullptr;
+	}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTreeOpensTest, "Pawpocalypse.UI.Tree.Opens", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -158,10 +199,13 @@ bool FPawTreeOpensTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("one screen on the Menu stack"), W.Root->MenuStack->GetNumWidgets(), 1);
 	TestTrue(TEXT("the field is held by the tree"), W.Realm->IsPauseHeldBy(UPawSkillTreeScreen::PauseHolder) && W.Realm->IsPaused());
 	TestTrue(TEXT("the HUD knows a menu is up (hold-to-buy waits)"), W.Hud->IsMenuUp());
+	const UPawBobaSubsystem* Boba = W.GI->GetSubsystem<UPawBobaSubsystem>();
+	TestTrue(TEXT("P4.3: Boba is held off while the tree is up (never over the skill tree)"),
+		Boba && Boba->GetState().Suppressors.count("tree") == 1);
 	TestTrue(TEXT("a menu's input config"), Tree->GetDesiredInputConfig().IsSet() && Tree->GetDesiredInputConfig()->GetInputMode() == ECommonInputMode::Menu);
 
 	const Pc::PcTreeLayout L = Pc::LayOutTree(W.D());
-	TestEqual(TEXT("every branch a node"), Tree->GetNodeCount(), static_cast<int32>(W.D().Branches.size()));
+	TestEqual(TEXT("every skill on the tree a node (a retired one is not, D-e)"), Tree->GetNodeCount(), static_cast<int32>(Pc::BranchOrder(W.D()).size()));
 	int32 Seated = 0;
 	for (const auto& KV : L.Nodes)
 	{
@@ -176,10 +220,28 @@ bool FPawTreeOpensTest::RunTest(const FString& Parameters)
 		const UPawTreeNode* N = Tree->GetNode(UTF8_TO_TCHAR(B.Id.c_str()));
 		Pictured += N && !B.IconPath.empty() && N->GetIconName() == TEXT("T_") + FPaths::GetBaseFilename(UTF8_TO_TCHAR(B.IconPath.c_str())) ? 1 : 0;
 	}
-	TestEqual(TEXT("every node its branch's icon"), Pictured, static_cast<int32>(W.D().Branches.size()));
-	TestEqual(TEXT("captions are BRANCH_LABELS, not the data's name"), S(Tree->GetCaption(TEXT("overkill"))), FString(TEXT("Splash")));
-	TestEqual(TEXT("a trunk's caption"), S(Tree->GetCaption(TEXT("claws"))), FString(TEXT("Claws")));
-	const Pc::PcRect2 B = Pc::TreeBounds(L);
+	TestEqual(TEXT("every node its branch's icon"), Pictured, static_cast<int32>(Pc::BranchOrder(W.D()).size()));
+	// C1: no caption under a node; the name is the tooltip's title, the branch's name stands in the field.
+	Tree->ShowTip(TEXT("overkill"), true);
+	TestTrue(TEXT("names are BRANCH_LABELS, not the data's name"), S(Tree->GetTipTitle()).StartsWith(TEXT("Splash")));
+	Tree->ShowTip(FString(), false);
+	TestEqual(TEXT("a branch's name in the field"), S(Tree->GetBranchLabel(TEXT("claws"))), FString(TEXT("CLAWS")));
+	// The reveal: a fresh game shows the trunks and one ring ahead, the rest hidden (collapsed, out of reach).
+	const std::set<std::string> Shown = ShownOf(W.D(), W.P());
+	TestEqual(TEXT("what is shown is PcTreeLayout's reveal"), Tree->GetShownCount(), static_cast<int32>(Shown.size()));
+	TestTrue(TEXT("a fresh game shows part of the tree"), Tree->GetShownCount() < Tree->GetNodeCount());
+	int32 Agrees = 0;
+	for (const Pc::PcSkillBranch& Br : W.D().Branches)
+	{
+		const UPawTreeNode* N = Tree->GetNode(UTF8_TO_TCHAR(Br.Id.c_str()));
+		const bool bShown = Shown.count(Br.Id) != 0;
+		// A retired skill (D-e) has no node at all: off the board by construction.
+		Agrees += (N ? bShown == Tree->IsShown(UTF8_TO_TCHAR(Br.Id.c_str())) && bShown == (N->GetVisibility() != ESlateVisibility::Collapsed)
+			: !bShown && Pc::IsBranchRetired(W.D(), Br.Id)) ? 1 : 0;
+	}
+	TestEqual(TEXT("every hidden node off the board, every shown one on it"), Agrees, static_cast<int32>(W.D().Branches.size()));
+	const Pc::PcRect2 B = Tree->GetFitBounds();
+	TestTrue(TEXT("the fit frames what is shown, not the whole tree"), B.W < Pc::TreeBounds(L).W);
 	TestEqual(TEXT("fitted on open (the content area under the header)"), Tree->GetZoom(), Pc::TreeFitZoom(B, 1920.0, 950.0), 1e-9);
 	TestEqual(TEXT("and centred"), Tree->GetPan().X, 960.0 - B.CentreX() * Tree->GetZoom(), 1e-6);
 	// R4h: the real view size arrives on the first tick (at 150 % UI: 1280 x 720); the fit and the centre follow it.
@@ -381,19 +443,28 @@ bool FPawTreeSpendTest::RunTest(const FString& Parameters)
 	A.Add(TEXT("n"), PawText::Count(static_cast<int64>(P.Stardust)));
 	TestEqual(TEXT("the balance follows"), S(Tree->GetStardustText()), S(PawText::Ui(TEXT("TREE_stardust"), A)));
 
-	// Leaving asks once, then goes; the second press travels to the starting biome.
+	// Leaving asks (P4.7, playtest 2026-11-26 note 27: a real question, not "press again"), Stay selected; Stay stays; Leave
+	// travels to the starting biome.
 	const bool bUnspent = Pc::HasAffordableBranch(D, P);
 	Tree->PressClose();
-	TestTrue(TEXT("the first press arms"), Tree->IsCloseArmed() && Tree->IsActivated());
-	TestTrue(TEXT("the plate in the middle says so"), Tree->IsWarningShown());
-	TestEqual(TEXT("the warning"), S(Tree->GetWarningText()),
-		FString(bUnspent ? TEXT("You still have Stardust to spend.\nPress again to leave anyway.") : TEXT("Back to the game?\nPress again to start the next run.")));
-	TestEqual(TEXT("and the button"), S(Tree->GetCloseButton()->GetLabel()), FString(bUnspent ? TEXT("Leave Stardust unspent?") : TEXT("Start the next run?")));
+	UPawConfirmDialog* Ask = Tree->GetLeaveDialog();
+	TestTrue(TEXT("Continue asks, the tree still up"), Ask != nullptr && Tree->IsActivated());
+	TestEqual(TEXT("the question"), Ask ? S(Ask->GetPrompt()) : FString(),
+		FString(bUnspent ? TEXT("You still have Stardust to spend.") : TEXT("Start the next run?")));
+	TestTrue(TEXT("Leave / Stay"), Ask && S(Ask->GetYesLabel()) == TEXT("Leave") && S(Ask->GetNoLabel()) == TEXT("Stay"));
+	TestTrue(TEXT("Stay selected (the safe answer)"), Ask && Ask->GetDesiredFocusTarget() == Ask->GetNoButton());
+	TestEqual(TEXT("Continue keeps its word"), S(Tree->GetCloseButton()->GetLabel()), FString(TEXT("Continue")));
+	Tree->PressClose();
+	TestTrue(TEXT("one question at a time"), Tree->GetLeaveDialog() == Ask && Tree->IsActivated());
+	TestTrue(TEXT("Stay answers"), Tree->AnswerLeave(false));
+	TestTrue(TEXT("Stay: the tree stays, the question goes"), Tree->IsActivated() && !Tree->IsAskingToLeave());
 	TestEqual(TEXT("still no travel"), W.Realm->GetSim().Travels, TravelsBefore);
 	const int64 Where = Pc::ReawakenTravelIndex(D, P);
 	TestTrue(TEXT("a starting biome to go to"), Where >= 0);
 	Tree->PressClose();
-	TestFalse(TEXT("the second press leaves"), Tree->IsActivated());
+	TestTrue(TEXT("asked again"), Tree->IsAskingToLeave());
+	TestTrue(TEXT("Leave answers"), Tree->AnswerLeave(true));
+	TestFalse(TEXT("Leave leaves"), Tree->IsActivated());
 	TestEqual(TEXT("and travels to the starting biome, once"), W.Realm->GetSim().Travels, TravelsBefore + 1);
 	TestEqual(TEXT("the biome Territory decides"), static_cast<int64>(W.Realm->GetSim().Field.TierIndex), Where);
 	TestFalse(TEXT("the field runs"), W.Realm->IsPaused());
@@ -403,15 +474,9 @@ bool FPawTreeSpendTest::RunTest(const FString& Parameters)
 	UPawSkillTreeScreen* Again = W.OpenTree(*this, true);
 	if (Again)
 	{
-		Again->PressClose();
-		TestTrue(TEXT("armed"), Again->IsCloseArmed());
-		const std::string Next = Pc::CheapestAffordableBranch(D, P);
-		Again->PressNode(UTF8_TO_TCHAR(Next.c_str()));
-		TestFalse(TEXT("a purchase disarms"), Again->IsCloseArmed());
-		TestFalse(TEXT("and hides the plate"), Again->IsWarningShown());
-
-		// Buying Auto-Travel or Auto-Card switches that automation ON (doc 02 §9: otherwise the player buys it and nothing
-		// happens). Their limb is owned up to them, so the press itself is the only thing that can switch them.
+		// Buying Auto-Travel switches that automation ON (doc 02 §9: otherwise the player buys it and nothing happens). Its
+		// limb is owned up to it, so the press itself is the only thing that can switch it. Auto-Card is retired (D-e:
+		// auto-pick is free), so never for sale.
 		UPawGameSubsystem* G = W.Game;
 		G->Slot().bAutoTravel = false;
 		G->Slot().bAutoPickCard = false;
@@ -426,9 +491,8 @@ bool FPawTreeSpendTest::RunTest(const FString& Parameters)
 		TestTrue(TEXT("Auto-Travel bought"), Again->PressNode(TEXT("auto_travel")));
 		TestTrue(TEXT("and switched on"), G->Slot().bAutoTravel);
 		TestTrue(TEXT("the realm runs with it"), W.Realm->GetAutoTravel());
-		TestFalse(TEXT("Auto-Card not yet"), G->Slot().bAutoPickCard);
-		TestTrue(TEXT("Auto-Card bought"), Again->PressNode(TEXT("auto_card")));
-		TestTrue(TEXT("and switched on"), G->Slot().bAutoPickCard);
+		TestFalse(TEXT("Auto-Card is never for sale (retired, D-e)"), Again->PressNode(TEXT("auto_card")));
+		TestFalse(TEXT("and auto-pick stays as it was"), G->Slot().bAutoPickCard);
 	}
 	W.Close();
 	return true;
@@ -524,22 +588,42 @@ bool FPawTreeNavigationTest::RunTest(const FString& Parameters)
 	const Pc::PcTreeLayout& L = Tree->GetLayout();
 	const Pc::PcVec2 Dirs[4] = { { 0.0, -1.0 }, { 0.0, 1.0 }, { -1.0, 0.0 }, { 1.0, 0.0 } };
 	const EUINavigation Nav[4] = { EUINavigation::Up, EUINavigation::Down, EUINavigation::Left, EUINavigation::Right };
-	int32 Right = 0, Total = 0, StayPut = 0;
-	for (const std::string& Id : L.Order)
+	// Twice: a fresh game's reveal, then a richer one (the rules are written again when the reveal grows).
+	for (const bool bLater : { false, true })
 	{
-		const UPawTreeNode* N = Tree->GetNode(UTF8_TO_TCHAR(Id.c_str()));
-		for (int32 K = 0; K < 4; ++K)
+		if (bLater)
 		{
-			const std::string Pick = Pc::TreeNavPick(L, Id, Dirs[K]);
-			const UWidget* Want = Pick.empty() ? N : Tree->GetNode(UTF8_TO_TCHAR(Pick.c_str()));
-			Right += Rule(N, Nav[K]) == Want ? 1 : 0;
-			StayPut += Pick.empty() ? 1 : 0;
-			++Total;
+			W.P().BranchLevels["claws"] = 1;
+			W.P().BranchLevels["unlock_aura"] = 1;
+			W.P().ReawakenCount = 6;
+			Tree->RefreshAll();
 		}
-		TestNotNull(TEXT("Next is written"), Rule(N, EUINavigation::Next));
+		const std::set<std::string> Shown = ShownOf(W.D(), W.P());
+		int32 Right = 0, Total = 0, StayPut = 0, ToHidden = 0;
+		for (const std::string& Id : L.Order)
+		{
+			const UPawTreeNode* N = Tree->GetNode(UTF8_TO_TCHAR(Id.c_str()));
+			if (!Shown.count(Id))
+			{
+				continue;
+			}
+			for (int32 K = 0; K < 4; ++K)
+			{
+				const std::string Pick = Pc::TreeNavPick(L, Id, Dirs[K], &Shown);
+				const UWidget* Want = Pick.empty() ? N : Tree->GetNode(UTF8_TO_TCHAR(Pick.c_str()));
+				Right += Rule(N, Nav[K]) == Want ? 1 : 0;
+				StayPut += Pick.empty() ? 1 : 0;
+				const UPawTreeNode* Got = Cast<UPawTreeNode>(Rule(N, Nav[K]));
+				ToHidden += Got && !Shown.count(TCHAR_TO_UTF8(*Got->BranchId)) ? 1 : 0;
+				++Total;
+			}
+			TestNotNull(TEXT("Next is written"), Rule(N, EUINavigation::Next));
+		}
+		TestTrue(TEXT("some nodes shown"), Total > 0);
+		TestEqual(TEXT("every shown node's four rules are the layout's picks among the shown"), Right, Total);
+		TestEqual(TEXT("no rule leads to a hidden node"), ToHidden, 0);
+		TestTrue(TEXT("an edge node keeps the selection (stay put), never leaves the tree"), StayPut > 0);
 	}
-	TestEqual(TEXT("every node's four rules are the layout's picks"), Right, Total);
-	TestTrue(TEXT("an edge node keeps the selection (stay put), never leaves the tree"), StayPut > 0);
 	W.Close();
 	return true;
 }
@@ -564,7 +648,7 @@ bool FPawTreeZoomTest::RunTest(const FString& Parameters)
 	const FVector2D Centre(960.0, 475.0);
 	const FVector2D Under = (Centre - Tree->GetPan()) / Tree->GetZoom();
 	Tree->ZoomBy(Pc::TreeLayout::ZoomStep);
-	TestEqual(TEXT("zoomed in by a step"), Tree->GetZoom(), Pc::TreeFitZoom(Pc::TreeBounds(Tree->GetLayout()), 1920.0, 950.0) + Pc::TreeLayout::ZoomStep, 1e-9);
+	TestEqual(TEXT("zoomed in by a step"), Tree->GetZoom(), Pc::TreeFitZoom(Tree->GetFitBounds(), 1920.0, 950.0) + Pc::TreeLayout::ZoomStep, 1e-9);
 	TestTrue(TEXT("the centre stays put"), ((Centre - Tree->GetPan()) / Tree->GetZoom()).Equals(Under, 1e-6));
 	for (int32 I = 0; I < 40; ++I)
 	{
@@ -608,25 +692,47 @@ bool FPawTreePaintTest::RunTest(const FString& Parameters)
 	}
 	const Pc::PcGameData& D = W.D();
 	const UPawTreeLinks* L = Tree->GetLinks();
-	TestEqual(TEXT("a link per branch"), L->Links.Num(), static_cast<int32>(D.Branches.size()));
+	TestEqual(TEXT("a link per skill on the tree"), L->Links.Num(), static_cast<int32>(Pc::BranchOrder(D).size()));
 	int32 Owned = 0;
 	for (const UPawTreeLinks::FLink& K : L->Links)
 	{
 		Owned += K.bOwned ? 1 : 0;
 	}
 	TestEqual(TEXT("nothing bought, nothing walked"), Owned, 0);
-	int32 Verbs = 0, Jobs = 0;
-	for (const TCHAR* Id : PawTree::RainbowBranches)
+	TestTrue(TEXT("the hub's disc"), L->bHub);
+	// The reveal on the board (C1): a skill two rings out is hidden, its link not drawn; one ring ahead faint, no price.
+	const UPawTreeNode* Deep = Tree->GetNode(TEXT("grand_finale"));
+	const UPawTreeNode* Ahead = Tree->GetNode(TEXT("aura_damage"));
+	const UPawTreeNode* Trunk = Tree->GetNode(TEXT("instinct"));
+	TestTrue(TEXT("two rings out: off the board"), Deep && Deep->GetVisibility() == ESlateVisibility::Collapsed);
+	TestTrue(TEXT("one ring ahead: faint, no price"), Ahead && Ahead->GetVisibility() == ESlateVisibility::Visible
+		&& FMath::IsNearlyEqual(Ahead->GetRenderOpacity(), PawTree::GhostOpacity) && Ahead->GetPrice().IsEmpty());
+	TestTrue(TEXT("a trunk on sale: in full, its price on a chip"), Trunk && FMath::IsNearlyEqual(Trunk->GetRenderOpacity(), 1.0f)
+		&& !Trunk->GetPrice().IsEmpty());
+	auto LinkTo = [&](const std::string& Id)
 	{
-		Verbs += D.FindBranch(TCHAR_TO_UTF8(Id)) ? 1 : 0;
-	}
+		const FVector2D At(Tree->GetLayout().Nodes.at(Id).X, Tree->GetLayout().Nodes.at(Id).Y);
+		for (const UPawTreeLinks::FLink& K : Tree->GetLinks()->Links)
+		{
+			if (K.B.Equals(At))
+			{
+				return K;
+			}
+		}
+		return UPawTreeLinks::FLink();
+	};
+	TestEqual(TEXT("a hidden skill's link is not drawn"), LinkTo("grand_finale").Alpha, 0.0f);
+	TestEqual(TEXT("one ring ahead: its link faint"), LinkTo("aura_damage").Alpha, PawTree::GhostOpacity);
+	TestTrue(TEXT("a link to a skill on sale: shown, dashed"), LinkTo("instinct").Alpha == 1.0f && LinkTo("instinct").bNext);
+	// The shapes say the kind: a skill with levels a square, a one-time skill a circle, a job a diamond.
+	const Pc::PcSkillBranch* Job = nullptr;
 	for (const Pc::PcSkillBranch& B : D.Branches)
 	{
-		Jobs += B.JobId.empty() ? 0 : 1;
+		Job = !Job && !B.JobId.empty() ? &B : Job;
 	}
-	TestEqual(TEXT("a rainbow ring per verb"), L->Rainbow.Num(), Verbs);
-	TestEqual(TEXT("the Unicorn breathes"), L->Pulse.Num(), 1);
-	TestEqual(TEXT("a gold ring per job node"), L->JobRings.Num(), Jobs);
+	TestTrue(TEXT("a ladder is a square"), Tree->GetNode(TEXT("claws"))->GetLook().Shape == EPawNodeShape::Square);
+	TestTrue(TEXT("an unlock is a circle"), Tree->GetNode(TEXT("unlock_aura"))->GetLook().Shape == EPawNodeShape::Circle);
+	TestTrue(TEXT("a job is a diamond"), Job && Tree->GetNode(UTF8_TO_TCHAR(Job->Id.c_str()))->GetLook().Shape == EPawNodeShape::Diamond);
 
 	// A child bought under an unbought parent (a free grant can do it) is not a walked road; with the parent, it is.
 	std::string Child, Parent;
@@ -641,67 +747,123 @@ bool FPawTreePaintTest::RunTest(const FString& Parameters)
 	}
 	W.P().BranchLevels[Child] = 1;
 	Tree->RefreshAll();
-	auto LinkTo = [&](const std::string& Id)
-	{
-		const FVector2D At(Tree->GetLayout().Nodes.at(Id).X, Tree->GetLayout().Nodes.at(Id).Y);
-		for (const UPawTreeLinks::FLink& K : Tree->GetLinks()->Links)
-		{
-			if (K.B.Equals(At))
-			{
-				return K;
-			}
-		}
-		return UPawTreeLinks::FLink();
-	};
 	TestFalse(TEXT("child without parent: not owned"), LinkTo(Child).bOwned);
 	W.P().BranchLevels[Parent] = 1;
 	Tree->RefreshAll();
 	TestTrue(TEXT("both ends: owned"), LinkTo(Child).bOwned);
-	FLinearColor Want = FLinearColor::White; // BRANCH_COLORS.get(id, Color.WHITE)
-	for (const PawTree::FBranchColour& C : PawTree::BranchColours)
-	{
-		if (FString(UTF8_TO_TCHAR(Child.c_str())) == C.Id)
-		{
-			Want = C.Colour;
-		}
-	}
-	TestTrue(TEXT("an owned link wears its branch's colour"), LinkTo(Child).Colour.Equals(Want));
+	const PawTree::FTrunkLook* ChildLook = LookOf(D, Child);
+	TestTrue(TEXT("an owned link wears its trunk's colour"), ChildLook && LinkTo(Child).Colour.Equals(ChildLook->Link));
 
-	// The frames (D18, S4, the UI concept's scrTree): owned green on ink, a node to buy now raised in the gold ring, the
-	// rest slate and the darkest of the three; the same for every trunk (Godot: the trunk's colour, a brightness ladder).
-	for (const PawTree::FBranchColour& C : PawTree::BranchColours)
+	// The stickers (C1, the Compass concept; designer 2026-11-26: "Darker cards for the skill menu"): owned in the trunk's
+	// card on ink, a node to buy now dark in the gold ring, the rest dark; the owned card lighter than the dark.
+	for (const PawTree::FTrunkLook& C : PawTree::TrunkLooks)
 	{
 		FLinearColor LF, LE, RF, RE, OF, OE;
-		UPawTreeNode::FrameColours(Pc::PcTreeNodeState::Locked, C.Colour, LF, LE);
-		UPawTreeNode::FrameColours(Pc::PcTreeNodeState::Ready, C.Colour, RF, RE);
-		UPawTreeNode::FrameColours(Pc::PcTreeNodeState::Owned, C.Colour, OF, OE);
-		if (!TestTrue(FString::Printf(TEXT("%s: owned green on ink, ready in the gold ring, locked the darkest"), C.Id),
-			OF.Equals(PawTokens::UI_TREE_OWNED) && OE.Equals(PawTokens::INK) && RE.Equals(PawTokens::UI_TREE_READY_RING)
-			&& Luma(LF) < Luma(RF) && Luma(LF) < Luma(OF)))
+		UPawTreeNode::FrameColours(Pc::PcTreeNodeState::Locked, C.Card, LF, LE);
+		UPawTreeNode::FrameColours(Pc::PcTreeNodeState::Ready, C.Card, RF, RE);
+		UPawTreeNode::FrameColours(Pc::PcTreeNodeState::Owned, C.Card, OF, OE);
+		if (!TestTrue(FString::Printf(TEXT("%s: owned its card on ink, ready dark in the gold ring, locked dark"), C.Id),
+			OF.Equals(C.Card) && OE.Equals(PawTokens::INK) && RE.Equals(PawTokens::UI_TREE_READY_RING) && RF.Equals(PawTree::NodeDark)
+			&& LF.Equals(PawTree::NodeDark) && !LE.Equals(PawTokens::UI_TREE_READY_RING) && Luma(LF) < Luma(OF)))
 		{
 			break;
 		}
 	}
-	FLinearColor Fill, Edge;
-	UPawTreeNode::FrameColours(Pc::PcTreeNodeState::Owned, PawTree::BranchColours[0].Colour, Fill, Edge);
-	const UPawTreeNode* Claws = Tree->GetNode(PawTree::BranchColours[0].Id);
-	W.P().BranchLevels[TCHAR_TO_UTF8(PawTree::BranchColours[0].Id)] = 1;
-	Tree->RefreshAll();
-	TestTrue(TEXT("an owned node wears the owned frame"), Claws && Claws->GetFrameEdge().Equals(Edge) && Claws->GetFrameFill().Equals(Fill));
-	TestEqual(TEXT("a ladder's counter"), S(Claws->GetCounter()), FString::Printf(TEXT("1/%lld"),
-		static_cast<long long>(Pc::BranchMaxLevel(*D.FindBranch(TCHAR_TO_UTF8(PawTree::BranchColours[0].Id))))));
-	TestTrue(TEXT("an unlock has no counter"), Tree->GetNode(TEXT("unlock_aura"))->GetCounter().IsEmpty());
-	// D18 (S4, the designer 2026-11-19: "do hexagon"): every node a hexagon (the concept's), painted by the node; the old
-	// rounded frame clear (R4f: a skill round, an unlock a rounded square); an unlock's edge heavier.
+	const PawTree::FTrunkLook* ClawsLook = LookOf(D, "claws");
+	const UPawTreeNode* Claws = Tree->GetNode(TEXT("claws"));
 	const UPawTreeNode* Aura = Tree->GetNode(TEXT("unlock_aura"));
+	W.P().BranchLevels["claws"] = 1;
+	W.P().BranchLevels["unlock_aura"] = 1;
+	Tree->RefreshAll();
+	TestTrue(TEXT("an owned node wears its trunk's card on ink"), ClawsLook && Claws && Claws->GetFrameEdge().Equals(PawTokens::INK)
+		&& Claws->GetFrameFill().Equals(ClawsLook->Card));
+	TestEqual(TEXT("an owned ladder's level on its chip"), S(Claws->GetCounter()), FString::Printf(TEXT("1/%lld"),
+		static_cast<long long>(Pc::BranchMaxLevel(*D.FindBranch("claws")))));
+	TestTrue(TEXT("an owned skill shows no price"), Claws->GetPrice().IsEmpty());
+	TestTrue(TEXT("an owned unlock: no counter, a tick"), Aura && Aura->GetCounter().IsEmpty() && Aura->GetLook().bCheck);
 	TestTrue(TEXT("the old frame is clear"), Claws && Aura && Claws->IsFrameClear() && Aura->IsFrameClear());
-	const int32 Before = Claws ? Claws->GetHexPaints() : 0;
+	const int32 Before = Claws ? Claws->GetPlatePaints() : 0;
+	const int32 ChipsBefore = Claws ? Claws->GetChipPaints() : 0;
 	PawLayout::Arrange(Tree, FVector2D(1920.0, 1080.0), 1.0f, 1);
-	TestTrue(TEXT("a node paints its hexagon"), Claws && Claws->GetHexPaints() > Before);
-	TestTrue(TEXT("an unlock's edge is heavier"), Aura && Claws && Aura->GetFrameEdgeWidth() > Claws->GetFrameEdgeWidth());
+	TestTrue(TEXT("a node paints its sticker"), Claws && Claws->GetPlatePaints() > Before);
+	TestTrue(TEXT("and its chips"), Claws && Claws->GetChipPaints() > ChipsBefore);
+	// Zoomed out, the chips keep the text floor on screen (they grow against their node); at 1:1 they are their size.
+	TestTrue(TEXT("fitted below 1:1"), Tree->GetZoom() < 1.0);
+	TestEqual(TEXT("zoomed out: the chips grow to the floor"), Claws ? Claws->GetChipScale() : 0.0, 1.0 / Tree->GetZoom(), 1e-6);
+	while (Tree->GetZoom() < 1.0)
+	{
+		Tree->ZoomBy(Pc::TreeLayout::ZoomStep);
+	}
+	PawLayout::Arrange(Tree, FVector2D(1920.0, 1080.0), 1.0f, 1);
+	TestEqual(TEXT("at 1:1 or closer: their own size"), Claws ? Claws->GetChipScale() : 0.0, 1.0, 1e-9);
+	TestEqual(TEXT("and the names theirs"), Tree->GetNameScale(), 1.0, 1e-9);
+	while (Tree->GetZoom() > 0.4)
+	{
+		Tree->ZoomBy(-Pc::TreeLayout::ZoomStep);
+	}
+	TestEqual(TEXT("zoomed out: the names grow to the floor (16 px of a 30 px name)"), Tree->GetNameScale(), 16.0 / (30.0 * Tree->GetZoom()), 1e-9);
 	const TArray<FVector2D> Ring = UPawTreeLinks::RingPath(FVector2D(0.0, 0.0), FVector2D(40.0));
-	TestTrue(TEXT("a ring is a hexagon, point up, closed"), Ring.Num() > 6 && FMath::IsNearlyEqual(Ring[0].Y, -40.0, 1e-6)
+	bool bRound = Ring.Num() > 12;
+	for (const FVector2D& Pt : Ring)
+	{
+		bRound = bRound && FMath::IsNearlyEqual(Pt.Size(), 40.0, 1e-6);
+	}
+	TestTrue(TEXT("a ring is a circle from the top, closed"), bRound && FMath::IsNearlyEqual(Ring[0].Y, -40.0, 1e-6)
 		&& FMath::IsNearlyEqual(Ring[0].X, 0.0, 1e-6) && Ring[0].Equals(Ring.Last()));
+	// The Unicorn's rings (a trunk on sale from the start: shown in full).
+	TestEqual(TEXT("the Unicorn breathes"), Tree->GetLinks()->Pulse.Num(), 1);
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTreeKeepsKeysTest, "Pawpocalypse.UI.Tree.KeepsKeys", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawTreeKeepsKeysTest::RunTest(const FString& Parameters)
+{
+	// Playtest 2026-11-26 (notes 11, 27): a click on the sky, Continue or a zoom button gave focus to the game's viewport
+	// (Slate focuses the first widget under a click that supports keyboard focus), so Esc never reached the tree and its
+	// "unspent Stardust" warning could not be answered. The screen itself must take that focus, and read Esc there.
+	FTreeWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	UPawSkillTreeScreen* Tree = W.OpenTree(*this, true);
+	if (!Tree)
+	{
+		W.Close();
+		return false;
+	}
+	const TSharedRef<SWidget> Slate = Tree->TakeWidget();
+	TestTrue(TEXT("a click on nothing focusable leaves the keys on the tree, not the viewport"), Slate->SupportsKeyboardFocus());
+	const FKeyEvent Esc(EKeys::Escape, FModifierKeysState(), 0u, false, 0u, 0u);
+	Slate->OnPreviewKeyDown(FGeometry(), Esc);
+	UPawConfirmDialog* Ask = Tree->GetLeaveDialog();
+	TestTrue(TEXT("Esc held by the tree itself: it asks"), Ask != nullptr);
+	// The question takes Back too: Esc there is Stay (the safe answer), and the tree stays.
+	if (Ask)
+	{
+		const TSharedRef<SWidget> AskSlate = Ask->TakeWidget();
+		TestTrue(TEXT("the question holds the keys after a click on its dim"), AskSlate->SupportsKeyboardFocus());
+		AskSlate->OnPreviewKeyDown(FGeometry(), Esc);
+	}
+	TestTrue(TEXT("Esc on the question: Stay"), Tree->IsActivated() && !Tree->IsAskingToLeave());
+	Slate->OnPreviewKeyDown(FGeometry(), Esc);
+	TestTrue(TEXT("Esc asks again"), Tree->AnswerLeave(true));
+	TestFalse(TEXT("Leave: the warning is answered, the tree gone"), Tree->IsActivated());
+
+	// Every other screen that reads Back in its own NativeOnPreviewKeyDown: the same rule (their scrims and plates take clicks).
+	const TPair<const TCHAR*, UUserWidget*> Others[] = {
+		{ TEXT("the pause menu"), CreateWidget<UPawPauseMenu>(W.GI, PawUi::Resolve<UPawPauseMenu>()) },
+		{ TEXT("settings"), CreateWidget<UPawSettingsDialog>(W.GI, PawUi::Resolve<UPawSettingsDialog>()) },
+		{ TEXT("the title"), CreateWidget<UPawMainMenu>(W.GI, PawUi::Resolve<UPawMainMenu>()) },
+	};
+	for (const TPair<const TCHAR*, UUserWidget*>& O : Others)
+	{
+		TestTrue(FString::Printf(TEXT("%s holds the keys after a click on its background"), O.Key),
+			O.Value && O.Value->TakeWidget()->SupportsKeyboardFocus());
+	}
 	W.Close();
 	return true;
 }

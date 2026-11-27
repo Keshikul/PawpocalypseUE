@@ -69,7 +69,8 @@ namespace
 
 	const char* SectionName(Pc::PcSettingsSection S)
 	{
-		return S == Pc::PcSettingsSection::Audio ? "Audio" : S == Pc::PcSettingsSection::Video ? "Video" : "Controls";
+		return S == Pc::PcSettingsSection::Audio ? "Audio" : S == Pc::PcSettingsSection::Video ? "Video"
+			: S == Pc::PcSettingsSection::Controls ? "Controls" : "Game";
 	}
 
 	FResult RunSettingsFixture(const std::string& Path)
@@ -402,6 +403,21 @@ TEST_CASE("Settings: the device played to is the stored one while the system lis
 	S.OutputDevice = "Speakers (Realtek(R) Audio)";
 	CHECK(Pc::SettingsOutputWant({ "Default" }, S) == "Default");
 	CHECK(Pc::SettingsOutputWant({}, S) == "Default");
+}
+
+TEST_CASE("Settings: the Game page (D-e) steps in only when shown: four pages in a game, the first try's three elsewhere")
+{
+	Pc::PcSettingsDialog D;
+	D.Section = Pc::PcSettingsSection::Controls;
+	Pc::SettingsDialogStepSection(D, 1);
+	CHECK(D.Section == Pc::PcSettingsSection::Audio); // three: Controls wraps to Audio
+	D.Section = Pc::PcSettingsSection::Controls;
+	Pc::SettingsDialogStepSection(D, 1, Pc::SettingsSectionCountInGame);
+	CHECK(D.Section == Pc::PcSettingsSection::Game);
+	Pc::SettingsDialogStepSection(D, 1, Pc::SettingsSectionCountInGame);
+	CHECK(D.Section == Pc::PcSettingsSection::Audio);
+	Pc::SettingsDialogStepSection(D, -1, Pc::SettingsSectionCountInGame);
+	CHECK(D.Section == Pc::PcSettingsSection::Game);
 }
 
 #endif

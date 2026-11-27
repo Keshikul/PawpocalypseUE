@@ -48,6 +48,7 @@
 #include "Save/PawSettingsSubsystem.h"
 
 #include <cstring>
+#include "UI/PawTokens.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -617,6 +618,33 @@ bool FPawRealmViewTest::RunTest(const FString& Parameters)
 			R->SetFx(EPawFxBand::Ground, Empty, FillMaterial);
 			TestEqual(TEXT("the band empties: one clear"), R->FxSectionRebuilds() - Before, 2);
 			TestEqual(TEXT("and draws nothing"), R->FxTriangles(EPawFxBand::Ground), 0);
+		}
+
+		// D31 (C3 option B, 2026-11-27): a signature's glow is a GOLD silhouette, 1.10x its body, at half the alpha.
+		{
+			Pc::PcField& Mut = Realm->GetSim().Field;
+			const Pc::PcEnemy* Moth = D.FindEnemy("backyard_moth");
+			TestNotNull(TEXT("the Backyard's moth (a signature)"), Moth);
+			if (Mut.LiveCount() >= D.Code.MaxLiveEnemies)
+			{
+				Pc::KillAllEnemies(Mut, D, P, Pc::PcFieldInput()); // the hunt above filled the field
+			}
+			const int32 Slot = Moth ? Pc::SpawnEnemyAt(Mut, D, P, Moth->Id, Mut.CatX + 200.0, Mut.CatY, -1.0, 0.0) : -1;
+			TestTrue(TEXT("a signature on the field"), Slot >= 0);
+			View->Draw();
+			int32 Glows = 0, Gold = 0;
+			for (const FPawSprite& S : R->LastSprites(EPawLayer::Overlays))
+			{
+				if (S.Whiten >= 1.0f)
+				{
+					++Glows;
+					const bool bGold = FMath::IsNearlyEqual(S.Tint.R, PawTokens::GOLD.R, 1e-3f) && FMath::IsNearlyEqual(S.Tint.G, PawTokens::GOLD.G, 1e-3f)
+						&& FMath::IsNearlyEqual(S.Tint.B, PawTokens::GOLD.B, 1e-3f);
+					Gold += bGold && S.Tint.A <= 0.5f + 1e-3f ? 1 : 0;
+				}
+			}
+			TestTrue(TEXT("its glow drawn"), Glows > 0);
+			TestEqual(TEXT("every glow gold, at most half opaque"), Gold, Glows);
 		}
 
 		// Review CR17: a steady frame looks no drawing up by name (the cells are kept while what they name stays), and a change

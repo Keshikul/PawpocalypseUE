@@ -34,6 +34,7 @@ namespace
 #include "Render/PawSpriteAtlas.h"
 #include "PcBackdropTones.h"
 #include "Engine/Texture2D.h"
+#include "UI/PawTokens.h"
 
 namespace
 {
@@ -230,8 +231,11 @@ void APawRealmView::SampleInput()
 		}
 		break;
 	case ESteer::Pointer:
-		R->SetCat(Pointer.X, Pointer.Y); // wherever the pointer is, under the dock too (only the stick is clamped)
+	{
+		const FVector2D To = PointerStep(Pointer, F.Bounds); // never under the dock (note 35)
+		R->SetCat(To.X, To.Y);
 		break;
+	}
 	default:
 		break;
 	}
@@ -710,7 +714,7 @@ void APawRealmView::DrawCreatures()
 				if (bGlow)
 				{
 					B.Whiten = 1.0f;
-					B.Tint = FLinearColor(1.0f, 1.0f, 1.0f, Mod.A * static_cast<float>(GlowAlpha(LookClock, Phase)));
+					B.Tint = PawTokens::GOLD.CopyWithNewOpacity(Mod.A * static_cast<float>(GlowAlpha(LookClock, Phase))); // D31: gold
 					B.Order = Order - 0.52 + (Layer ? 0.02 * Layer->Order : 0.0);
 					Out.AddSprite(EPawLayer::Overlays, B);
 				}

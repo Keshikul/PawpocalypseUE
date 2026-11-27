@@ -6,15 +6,20 @@
 //
 // TWO MODES (designer 2026-08-20): BROWSE (T / pad Y from the HUD) is read-only, closed by a corner X or Back; the SPEND step
 // (after a Reawaken) is the only time Stardust is spent: nodes buy on press, the close button is a big Continue, and leaving
-// always asks once (designer 2026-10-01), saying whether Stardust is left. Leaving the spend step calls OnSpendingFinished
-// (the HUD travels to the starting biome).
+// always asks (designer 2026-10-01), in the confirm dialog on the Modal stack since P4.7 (playtest 2026-11-26, note 27: a
+// real Leave / Stay question, not "press again"): "You still have Stardust to spend." or "Start the next run?". Leaving the
+// spend step calls OnSpendingFinished (the HUD travels to the starting biome).
 //
 // The canvas: one canvas panel under a render transform (pan, zoom about its origin, Godot's canvas.position / scale);
-// links and the rainbow / job rings painted beneath the nodes (UPawTreeLinks), a gold halo behind each READY node, the
-// nodes (UPawTreeNode: a Common button with the frame of its state, a counter on ladders), captions under them, the hub
-// plate. Fit on open (PcTreeLayout's fit zoom), wheel and buttons zoom about the view's centre, drag pans; RT / LT zoom and
-// the right stick pans on a pad; Q / X jumps to the next affordable node. The tooltip follows the mouse's node, or docks
-// bottom left for the keys and pad (designer 2026-10-01).
+// the links and the hub's disc painted beneath the nodes (UPawTreeLinks), a gold halo behind each READY node, the nodes
+// (UPawTreeNode: a Common button wearing a sticker of its kind and state, with its level and price on chips), each
+// branch's name in the field, the hub's paw and name. THE COMPASS (concept C1, designer 2026-11-26: "Compass is good. You
+// can build it"): one root, a slice per trunk, a square for a skill with levels, a circle for a one-time unlock, a diamond
+// for a job; owned skills in their trunk's colour, the rest dark; the tree revealed as it is bought (PcTreeLayout's
+// TreeNodeReveal: owned or on sale in full, one ring ahead faint, the rest hidden and out of the pad's reach). Fit on open
+// to what is revealed, wheel and buttons zoom about the view's centre, drag pans; RT / LT zoom and the right stick pans on
+// a pad; Q / X jumps to the next affordable node. The tooltip follows the mouse's node, or docks bottom left for the keys
+// and pad (designer 2026-10-01).
 
 #include "CoreMinimal.h"
 #include "CommonActivatableWidget.h"
@@ -37,7 +42,15 @@ class USizeBox;
 class UTextBlock;
 class UVerticalBox;
 
-// The links and rings, painted in canvas space under the nodes (skill_tree_connector_layer.gd).
+// A node's sticker shape (C1): a skill with levels a rounded square, a one-time unlock a circle, a job a diamond.
+enum class EPawNodeShape : uint8
+{
+	Square,
+	Circle,
+	Diamond,
+};
+
+// The links, the hub's disc and the Unicorn's rings, painted in canvas space under the nodes (skill_tree_connector_layer.gd).
 UCLASS()
 class PAWPOCALYPSE_API UPawTreeLinks : public UUserWidget
 {
@@ -47,21 +60,21 @@ public:
 	struct FLink
 	{
 		FVector2D A, B;
-		FLinearColor Colour;
-		bool bOwned = false;
-		bool bShut = false;
+		FLinearColor Colour;  // the trunk's link colour (drawn where owned)
+		bool bOwned = false;  // both ends bought
+		bool bShut = false;   // the road not taken
+		bool bNext = false;   // to a skill on sale now: dashed
+		float Alpha = 1.0f;   // its far end's reveal: 0 hidden (not drawn), faint one ring ahead, 1 shown
 	};
 	TArray<FLink> Links;
-	TArray<FVector2D> Rainbow;  // centres of the verb nodes (a rainbow ring in every state)
-	TArray<FVector2D> Pulse;    // the Unicorn: breathing rings behind its own
-	TArray<FVector2D> JobRings; // the job nodes: one gold ring
+	TArray<FVector2D> Pulse;    // the Unicorn (when shown): rainbow rings breathing behind its own
+	FVector2D HubAt = FVector2D::ZeroVector;
+	bool bHub = false;          // the hub's yellow disc, its rim and shadow (the concept's drawRoot)
 	double RainbowPhase = 0.0;
 	double PulseClock = 0.0;
 
-	// The ring path around a node (_ring_path): D18 (S4) a hexagon, point up, traced just outside the node's own (Godot: a
-	// rounded rectangle); each side cut in PerSide pieces (a rainbow needs the points), closed.
+	// The ring path around a node: a circle (the Unicorn is one), from the top, clockwise, closed.
 	static TArray<FVector2D> RingPath(const FVector2D& Centre, const FVector2D& Half);
-	static TArray<FVector2D> HexPath(const FVector2D& Centre, double Radius, int32 PerSide);
 
 protected:
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling, FSlateWindowElementList& Out,
@@ -77,9 +90,10 @@ public:
 	UPawTreeNodeStyle();
 };
 
-// D18 (S4, the designer 2026-11-19: "do hexagon"): a skill tree node's plate, a hexagon point up filling its box top to
-// bottom (the UI concept's treeNode), in the node state's fill and edge. A piece the node holds as its first part, so it
-// paints UNDER the icon and the counter (a user widget's own NativePaint runs after its children: the node itself cannot).
+// A skill tree node's plate: its sticker (C1, the Compass concept's drawSkill; D18's hexagon until 2026-11-26, hence the
+// name): a hard shadow, a die-cut rim, the edge (a gold ring when it can be bought now), the fill, in the node's shape. A
+// piece the node holds as its first part, so it paints UNDER the icon (a user widget's own NativePaint runs after its
+// children: the node paints its chips over the icon that way).
 UCLASS()
 class PAWPOCALYPSE_API UPawHexPlate : public UUserWidget
 {
@@ -87,25 +101,48 @@ class PAWPOCALYPSE_API UPawHexPlate : public UUserWidget
 
 public:
 	virtual bool Initialize() override;
-	void SetLook(const FLinearColor& InFill, const FLinearColor& InEdge, float InEdgeWidth);
+	void SetLook(EPawNodeShape InShape, const FLinearColor& InFill, const FLinearColor& InEdge, const FLinearColor& InRim, bool bInReadyRing);
+	EPawNodeShape GetShape() const { return Shape; }
 	FLinearColor GetFill() const { return Fill; }
 	FLinearColor GetEdge() const { return Edge; }
-	float GetEdgeWidth() const { return EdgeWidth; }
+	FLinearColor GetRim() const { return Rim; }
+	bool IsReadyRing() const { return bReadyRing; }
 	int32 GetPaints() const { return Paints; }
+	// The shape's outline at Size (a square's side, a circle's diameter; a diamond reaches 0.66 x Size from its centre: the
+	// concept's), not closed.
+	static TArray<FVector2D> ShapePath(EPawNodeShape Shape, const FVector2D& Centre, double Size);
 
 protected:
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling, FSlateWindowElementList& Out,
 		int32 LayerId, const FWidgetStyle& InStyle, bool bParentEnabled) const override;
 
 private:
+	EPawNodeShape Shape = EPawNodeShape::Square;
 	FLinearColor Fill = FLinearColor::Transparent;
 	FLinearColor Edge = FLinearColor::Transparent;
-	float EdgeWidth = 3.0f;
+	FLinearColor Rim = FLinearColor::Transparent;
+	bool bReadyRing = false;
 	mutable int32 Paints = 0;
 };
 
-// One node: the frame of its state (LOCKED / READY / OWNED in the trunk's colour, heavier and rounder for an unlock), the
-// counter on a ladder. The icon art arrives with phase 6.
+// What a node wears (the screen's RefreshAll decides it from PawCore's state and reveal).
+struct FPawNodeLook
+{
+	Pc::PcTreeNodeState State = Pc::PcTreeNodeState::Locked;
+	Pc::PcTreeReveal Reveal = Pc::PcTreeReveal::Full;
+	EPawNodeShape Shape = EPawNodeShape::Square;
+	FLinearColor Card = FLinearColor::White; // the trunk's: an owned node's fill
+	bool bOwned = false;
+	FText Counter;            // a ladder bought at least once: "3/10" on a chip, green when full
+	bool bMaxed = false;
+	bool bCheck = false;      // a one-time unlock owned: a green tick
+	FText Price;              // on sale now (shown, not owned): the price on a chip under it
+	bool bAffordable = false; // yellow when it can be paid, pale when not
+	bool bShine = false;
+};
+
+// One node: its sticker (the plate), its picture, its chips: the level on an owned ladder, a tick on an owned unlock, the
+// price on what is on sale (the concept: "readable without hovering").
 UCLASS()
 class PAWPOCALYPSE_API UPawTreeNode : public UCommonButtonBase
 {
@@ -115,32 +152,37 @@ public:
 	UPawTreeNode(const FObjectInitializer& ObjectInitializer);
 	virtual bool Initialize() override;
 
-	void SetLook(Pc::PcTreeNodeState State, const FLinearColor& Trunk, bool bUnlock, const FText& Counter, bool bShine);
-	Pc::PcTreeNodeState GetState() const { return State; }
-	FText GetCounter() const;
+	void SetLook(const FPawNodeLook& InLook);
+	const FPawNodeLook& GetLook() const { return Look; }
+	Pc::PcTreeNodeState GetState() const { return Look.State; }
+	FText GetCounter() const { return Look.Counter; }
+	FText GetPrice() const { return Look.Price; }
 	FLinearColor GetFrameFill() const;
 	FLinearColor GetFrameEdge() const;
-	float GetFrameEdgeWidth() const;
-	// D18 (S4): the node's hexagon plate (the concept's); how many times it has painted (tests), and the old frame clear.
-	int32 GetHexPaints() const;
+	// The plate (its shape, colours, how many times it painted: tests), the old frame clear, how many times the chips painted.
+	int32 GetPlatePaints() const;
+	int32 GetChipPaints() const { return ChipPaints; }
+	double GetChipScale() const { return ChipScale; } // the last paint's chip scale (>= 1: zoomed out, the chips keep their size)
 	const UPawHexPlate* GetPlate() const { return Plate; }
 	bool IsFrameClear() const;
-	bool IsShining() const { return bShine; }
+	bool IsShining() const { return Look.bShine; }
 
 	FString BranchId;
 	// The screen this node tells when focus enters it (review CR9: the selection follows focus by this event, not by asking
 	// every node every frame).
 	TWeakObjectPtr<class UPawSkillTreeScreen> Screen;
-	// The branch's picture (its icon_path), 56 px in the middle of the node (phase 6 slice 5b).
-	void SetIconPath(const FString& Path);
+	// A node's picture (its icon_path), Px square in the middle of the node (phase 6 slice 5b).
+	void SetIconPath(const FString& Path, double Px);
 	FString GetIconName() const;
 
-	// _frame(): the three states as one series, READY lerped a third of the way from LOCKED to OWNED.
-	static void FrameColours(Pc::PcTreeNodeState State, const FLinearColor& Trunk, FLinearColor& OutFill, FLinearColor& OutEdge);
+	// The sticker's fill and edge by state (C1): owned the trunk's card on ink; on sale now dark in the gold ring; the rest dark.
+	static void FrameColours(Pc::PcTreeNodeState State, const FLinearColor& Card, FLinearColor& OutFill, FLinearColor& OutEdge);
 
 protected:
 	virtual void NativeTick(const FGeometry& Geometry, float DeltaSeconds) override;
 	virtual void NativeOnAddedToFocusPath(const FFocusEvent& InFocusEvent) override;
+	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling, FSlateWindowElementList& Out,
+		int32 LayerId, const FWidgetStyle& InStyle, bool bParentEnabled) const override;
 
 private:
 	void OnNodeReady();
@@ -150,11 +192,14 @@ private:
 	TObjectPtr<UTextBlock> CounterText;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UImage> Icon;
-	Pc::PcTreeNodeState State = Pc::PcTreeNodeState::Locked;
+	FPawNodeLook Look;
 	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<UPawHexPlate> Plate; // D18 (S4): the hexagon under the icon
-	bool bShine = false;
+	TObjectPtr<UPawHexPlate> Plate; // the sticker under the icon
 	double ShineClock = 0.0;
+	UPROPERTY()
+	FSlateBrush StardustBrush;     // the price chip's star (made once)
+	mutable int32 ChipPaints = 0;
+	mutable double ChipScale = 1.0;
 };
 
 UCLASS()
@@ -179,9 +224,14 @@ public:
 	void RefreshAll();
 	// A node pressed: in the spend step, one level (PcTree's rule); a browse never buys. True when bought.
 	bool PressNode(const FString& Id);
-	// The close button or Back: the spend step asks once, then leaves; a browse leaves.
+	// The close button or Back: the spend step asks (the confirm dialog), a browse leaves.
 	void PressClose();
-	bool IsCloseArmed() const { return bConfirmLeaving; }
+	// The Modal stack the leave question opens on (the HUD hands it over). Without one the spend step leaves at once.
+	void SetModalStack(class UCommonActivatableWidgetStack* Stack);
+	// The leave question is up; answering it (the tests and the drivers: Leave or Stay). False when none is up.
+	bool IsAskingToLeave() const;
+	bool AnswerLeave(bool bLeave);
+	class UPawConfirmDialog* GetLeaveDialog() const;
 	// Q / X: the next node that can be bought after the selected one; focuses it. Empty when none.
 	FString JumpToAffordable();
 	// The zoom about the view's centre (the wheel, the buttons, the triggers), clamped.
@@ -204,18 +254,24 @@ public:
 
 	// The tree's motion (UiJuice, phase 6 slice 5c): NativeTick steps it; the tests read and drive it.
 	FPawJuice& GetJuice() { return Juice; }
-	UBorder* GetWarningPlate() const { return WarningPlate; }
 
 	// What the tests read (and only read).
 	UPawTreeNode* GetNode(const FString& Id) const;
 	int32 GetNodeCount() const { return Nodes.Num(); }
 	const Pc::PcTreeLayout& GetLayout() const { return Layout; }
-	FText GetCaption(const FString& Id) const;
 	bool IsHaloShown(const FString& Id) const;
+	// The reveal (C1): what is on the board (owned, on sale, one ring ahead); the rest is hidden and out of the pad's reach.
+	bool IsShown(const FString& Id) const { return Shown.Contains(Id); }
+	int32 GetShownCount() const { return Shown.Num(); }
+	// What the fit frames: the shown nodes, the hub and the branch names.
+	Pc::PcRect2 GetFitBounds() const;
+	// A trunk's name in the field (empty when it has none) and where it stands (canvas space).
+	FText GetBranchLabel(const FString& Trunk) const;
+	FVector2D GetBranchLabelAt(const FString& Trunk) const;
+	// How much the names are grown against the canvas so they keep the text floor on screen (1 at 1:1 or closer).
+	double GetNameScale() const { return NameScale; }
 	FText GetStardustText() const;
 	UPawButton* GetCloseButton() const { return CloseButton; }
-	FText GetWarningText() const;
-	bool IsWarningShown() const;
 	// The tooltip's lines as shown (PawGlyphs::Neutral: a prompt is <g:stem> or <k:label>).
 	TArray<FText> GetTipLines() const;
 	FString GetLegend() const;
@@ -249,9 +305,11 @@ private:
 	void BuildChrome(class UOverlay* Root);
 	void OnLayoutReady();
 	void WriteNavigation();
+	std::set<std::string> ShownIds() const;
 	void ApplyTransform();
 	void StyleClose();
 	void Follow(const FString& Id, bool bInstant);
+	void LeaveNow();
 	void OnNodeFocused(const FString& Id);
 	FVector2D ContentSize() const;
 	FVector2D NodeOnScreen(const FString& Id) const;
@@ -272,18 +330,20 @@ private:
 	UPROPERTY()
 	TMap<FString, TObjectPtr<UBorder>> Halos;
 	UPROPERTY()
-	TMap<FString, TObjectPtr<UTextBlock>> Captions;
+	TMap<FString, TObjectPtr<UTextBlock>> BranchLabels; // per trunk
+	UPROPERTY()
+	TObjectPtr<UBorder> HubName;
+	double NameScale = 1.0;
+	TSet<FString> Shown;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> StardustText;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> CloseButton;
 	UPROPERTY()
 	TObjectPtr<class UOverlaySlot> CloseSlot;
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<UBorder> WarningPlate;
-	FPawJuice Juice; // hover pops, the READY nodes' lean, the purchase punch, the leaving plate's pop-in (skill_tree_ui.gd)
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<UTextBlock> WarningText;
+	FPawJuice Juice; // hover pops, the READY nodes' lean, the purchase punch (skill_tree_ui.gd)
+	TWeakObjectPtr<class UCommonActivatableWidgetStack> ModalStack;
+	TWeakObjectPtr<class UPawConfirmDialog> LeaveDialog;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> TipPanel;
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -298,7 +358,6 @@ private:
 	Pc::PcTreeLayout Layout;
 	TArray<FString> Order; // branch order, as FString
 	bool bSpendMode = false;
-	bool bConfirmLeaving = false;
 	double Zoom = 1.0;
 	FVector2D Pan = FVector2D::ZeroVector;
 	FVector2D ViewSize = FVector2D(1920.0, 1080.0);

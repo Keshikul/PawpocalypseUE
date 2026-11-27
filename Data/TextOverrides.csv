@@ -7,7 +7,6 @@ ST_UI,BOSS_out_of_time,{boss} — OUT OF TIME. It left and your Bait is spent.,"
 ST_UI,BOSS_defeated_first,{boss} DEFEATED\nEvolution Stage {n}: new biomes unlocked.,"{boss} DEFEATED
 Evolution Stage {n} — new realms are open.",
 ST_UI,REALMS_hint,"5 biomes have a boss. Buy its Bait to summon it. If the timer runs out, it leaves and the Bait is spent.","Five biomes hold a boss. Buy its Bait and it comes to you — if the timer runs out it leaves, and the Bait is spent.",
-ST_UI,REAWAKEN_blurb,Resets Catnip and upgrades. Bosses stay beaten and Bait is kept. Stardust increases damage and Catnip permanently. Spend it in the skill tree after you Reawaken.,Reawakening ends this life. Catnip and every base upgrade reset. Stardust raises your permanent damage multiplier and buys skill branches — and the tree can only be bought from in the screen that follows a Reawaken.,
 ST_UI,REAWAKEN_progress_first,{earned} / {required} to your first Reawaken,{earned} / {required} earned toward your first Reawaken,
 ST_UI,REAWAKEN_progress_later,{earned} / {required} suggested. You can Reawaken now.,{earned} / {required} — suggested point to Reawaken (you may go now),
 ST_UI,REAWAKEN_multiplier,Damage multiplier x{now}  →  x{after},Damage multiplier {now}x  →  {after}x,
@@ -34,12 +33,9 @@ ST_UI,JOBS_boss_gate,Locked — defeat the boss in {biome} first.,"Locked — be
 ST_UI,PICK_subtitle,Take 1 card.,Take one. You are not owed a good hand.,
 ST_UI,PICK_foresight,{subtitle}\nNext hand: {cards},"{subtitle}
 Next hand will hold: {cards}",
-ST_UI,PICK_costs,This card has a downside.,This one costs you something.,
 ST_UI,PICK_flavour_zone,FIELD,GROUND,
 ST_UI,PICK_flavour_fortune,CATNIP,SPOILS,
 ST_UI,PICK_flavour_deck,CARDS,THE DECK,
-ST_UI,TREE_warn_unspent,You have unspent Stardust.\nPress again to leave.,"You still have Stardust to spend.
-Press again to leave anyway.",
 ST_UI,TREE_closed,Locked — you took {branch}.,Closed — you took {branch}.,
 ST_UI,JOBPICK_note,Fixed for this run. Change it at your next Reawaken.,Locked for this run. You may change it at your next Reawaken.,
 ST_UI,JOBPICK_none_blurb,No effect.,A bare neck. Every trade in the list is measured against this.,
@@ -54,7 +50,6 @@ ST_UI,TITLE_leaderboard_before_clock,No time recorded: you won before the run cl
 ST_UI,TITLE_leaderboard_not_yet,You have not defeated the final boss yet.,You have not cleared the final boss yet.,
 ST_UI,TITLE_delete_prompt,Delete slot {slot}?\n\nReawaken {n} · {time} played\nCannot be undone.,"Delete slot {slot}?\n\nReawaken {n}, {time} played.\nThis cannot be undone.",
 ST_UI,SETTINGS_master,Master volume  {n}%,Master Volume: {n}%,Matches Music and Sound Effects (no colon).
-ST_UI,SETTINGS_video_note,The interface keeps its size at every resolution. Resolution applies in windowed mode.,"The game renders at a fixed internal resolution and scales to the window, so the interface stays the same size at every setting. Resolution applies in windowed mode.",
 ST_UI,SETTINGS_prompts_note,Auto shows the buttons of the device you used last.,"Auto shows the buttons of whatever you touched last: keyboard and mouse, or a controller.",
 ST_UI,SETTINGS_dock_note,Put the menu on the side of your free hand.,"Put the menu on the side of your free hand, the one that is not on the mouse.",
 ST_UI,CONTROLS_line_nothing,Nothing changed.,"Nothing pressed, nothing changed.",
@@ -153,7 +148,7 @@ ST_Tree,TREE_job_tax_collector_blurb,Catnip x2.5. Kitten damage x0.4.,"Everythin
 ST_Tree,TREE_job_ratcatcher_blurb,Spawn rate x2. Enemy health x1.6.,"Calls them in. Twice as many arrive, and every one of them is half again as hard to put down.",
 ST_Tree,TREE_claws_blurb,Increases damage. +15% to +130% and x1.06 to x1.75 over 10 levels.,"Adds to your damage and multiplies it — paw and aura alike. Two brackets in one node: the flat bonus sums with itself, the multiplier rides on top.",
 ST_Tree,TREE_instinct_blurb,Increases kitten damage. +35% to +350% over 10 levels.,"Adds to every kitten's damage. Scales with how many kittens you own, so it pairs with Vitality.",
-ST_Tree,TREE_vitality_blurb,Adds kittens. They attack enemies on their own. +1 to +10 over 10 levels.,"More kittens, permanently. They hunt on their own and keep earning while you aim elsewhere.",
+ST_Tree,TREE_vitality_blurb,Adds kittens that hunt on their own. +1 to +10 over 10 levels.,"More kittens, permanently. They hunt on their own and keep earning while you aim elsewhere.",shorter (approved 2026-11-26)
 ST_Tree,TREE_unlock_aura_blurb,Unlocks the aura: it damages every enemy inside its radius. Unlocks the Aura Radius upgrade.,"Gives you the AURA: everything inside your reach takes continuous damage, instead of one mouse at a time. Its Aura Radius shop line appears once you own it.",
 ST_Tree,TREE_aura_damage_blurb,Increases aura damage. x1.18 to x3 over 10 levels.,Makes the aura hurt more. Needs the Aura.,
 ST_Tree,TREE_aura_reach_blurb,Increases aura radius permanently. x1.08 to x2 over 10 levels.,Permanently widens the aura. The shop line does the same thing for one run; this one keeps it.,
@@ -282,3 +277,6 @@ ST_Tree,FX_SNARED_DAMAGE_MULTIPLICATIVE,x{v} damage to snared enemies,x{v} damag
 ST_Tree,FX_ENEMY_DRIFT,ground enemies drift toward you,ground mice drift toward you,mice -> enemies (designer 2026-11-09); was: ground mice drift toward you
 ST_Tree,FX_VANISH_INTERVAL,an enemy vanishes every {v}s,a mouse vanishes every {v}s,mice -> enemies (designer 2026-11-09); was: a mouse vanishes every {v}s
 ST_Tree,FX_AURA_CROWD_SCALING,+{v}% aura damage per enemy inside it,+{v}% aura damage per mouse inside it,mice -> enemies (designer 2026-11-09); was: +{v}% aura damage per mouse inside it
+ST_Data,SKILL_vitality_name,Extra Kittens,Vitality,note 38 (playtest 2026-11-26; approved in docs/TEXT-DRAFT-2026-11-26.csv): Vitality sounded like health; it gives kittens
+ST_Data,ACH_br_vitality_5_name,Big Family,Boundless Vitality,note 38 (playtest 2026-11-26; approved in docs/TEXT-DRAFT-2026-11-26.csv): Vitality sounded like health; it gives kittens
+ST_Tree,TREE_vitality_label,Extra Kittens,Vitality,note 38 (playtest 2026-11-26; approved in docs/TEXT-DRAFT-2026-11-26.csv): Vitality sounded like health; it gives kittens

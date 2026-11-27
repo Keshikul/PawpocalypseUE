@@ -167,8 +167,12 @@ Override: the team's accounts own and play it before release), 1968923 Beta Test
 - Tests: `Pawpocalypse.Platform.*` (no Steam in the editor or tests, the presence token, the pad family, the slot move),
   each seen to fail (`tools/sabotage_realm.py`, `platform_*`). `py tools/steam_files.py --check` (everyday): the Steamworks
   files can be made and agree with the game.
-- **Not done**: Report a bug still opens the itch board (`UPawMainMenu::BugReportUrl`); the Steam discussions need the store
-  page live. The pad type and the overlay pause are untested on real hardware (no pad and no Steam run in a gate).
+- **Report a bug** opens `https://steamcommunity.com/app/5720010/discussions/` (playtest 2026-11-26, note 5), in the Steam
+  overlay while Steam runs (`UPawPlatformSubsystem::OpenWebPage`), else the browser.
+- **The exe's icon**: `SourceArt/icon/Pawpocalypse.ico` (`tools/make_app_icon.py`, from the key art's square icon, D26),
+  set in `Source/Pawpocalypse.Target.cs` (`WindowsPlatform.ApplicationIcon`; not `Build/Windows/Application.ico`, which is
+  the gitignored `build/` on Windows). Steam's own client and library icons are uploaded in Steamworks.
+- **Not done**: the pad type and the overlay pause are untested on real hardware (no pad and no Steam run in a gate).
 
 ### 5.2 Steamworks (entered 2026-11-26 in the designer's browser, published)
 
@@ -177,7 +181,7 @@ Override: the team's accounts own and play it before release), 1968923 Beta Test
 | Installation > General | install folder `Pawpocalypse`; launch option 0 `Pawpocalypse.exe`, Launch (Default), Windows, 64-bit only |
 | Installation > Redistributables | Visual C++ 2022 (includes 2019, 2017, 2015) |
 | Application > General | Supported OS: Windows, 64 Bit Only |
-| Stats & Achievements > Achievements | 23 languages (Configure Languages); 39 achievements by Bulk Import (`build/steam/steamworks`, `py tools/steam_files.py`): names in 23 languages, descriptions English only (a DRAFT, `docs/STEAM-ACHIEVEMENTS-DRAFT-2026-11-26.csv`, for the designer; translated after the yes), our own icons achieved and not ("Automatically generate unachieved icons" unticked) |
+| Stats & Achievements > Achievements | 23 languages (Configure Languages); 39 achievements by Bulk Import (`build/steam/steamworks`, `py tools/steam_files.py`): names in 23 languages, descriptions English only (a DRAFT, `docs/STEAM-ACHIEVEMENTS-DRAFT-2026-11-26.csv`, for the designer; translated after the yes), our own icons achieved and not ("Automatically generate unachieved icons" unticked). **2026-11-27 (HANDOFF-LOG (160), published):** "Boundless Vitality" became "Big Family" (D-l: the skill is Extra Kittens; its old translations cleared, so the other languages show the English until the retranslation), and the two Rainbow Gut goals name their skill (they said "Unicorn"); `steam_files.py --check` now holds a skill goal to the tree's label |
 | Community > Rich Presence | `rich_presence.vdf`: `#Biome_tier_1` ... `#Biome_tier_12`, 23 languages |
 | Application > Steam Cloud | 10,000,000 bytes (Steam's minimum; a slot is ~3.5 KB), 20 files; Auto-Cloud: root `WinAppDataLocal`, subdirectory `Pawpocalypse/Saved/SaveGames/{64BitSteamID}`, pattern `slot_*.sav` (the slots, their `_bak` and `_tmp`; never `settings`), not recursive, [Cross-Platform]. **"Enable cloud support for developers only" is ticked (Steam's default): untick before release** |
 | Application > Steam Input | opted in: PlayStation, Nintendo Switch, Generic (DirectInput), Any Future Devices (not Xbox: the game reads XInput); default template Generic Gamepad; Deck touchscreen: Left Mouse Click Emulation (default) |
@@ -197,7 +201,8 @@ at upload, never the default one.
 | BuildID | Version / commit | Upload | Live on default |
 |---|---|---|---|
 | 26942308 | 0.1.1, 1f7ce73 + the version bump; the plain target (no Steam API) | 243.8 MB, 48 files, 259 chunks (players: 159.8 MB) | 2026-11-26 (the designer) |
-| 26943569 | 0.1.2, 1f7ce73 + (155); the Steam target (achievements, presence, Cloud, overlay pause, pad type) | 5 files added, 4 changed, 1 removed; 125 chunks (players: 47.3 MB) | waiting for the designer's SMS code (2026-11-26) |
+| 26943569 | 0.1.2, 1f7ce73 + (155); the Steam target (achievements, presence, Cloud, overlay pause, pad type) | 5 files added, 4 changed, 1 removed; 125 chunks (players: 47.3 MB) | 2026-11-26 (the designer) |
+| 26966137 | 0.1.3, the commit of HANDOFF-LOG (160); the playtest's work (157)-(160): Phase 1, the Compass tree, the 480 dock, the shop tooltip, Boba, the gold signature glow | 7 files changed (133.5 MB), 141 chunks | waiting for the designer's SMS code (2026-11-27) |
 
 ### 5.4 Rules
 

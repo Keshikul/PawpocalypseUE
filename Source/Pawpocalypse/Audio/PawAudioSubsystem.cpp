@@ -171,9 +171,9 @@ double UPawAudioSubsystem::MusicGain() const
 	{
 		return 1.0;
 	}
-	// _apply_bus: a muted or zero Master silences all; each bus a linear amplitude.
+	// _apply_bus: a muted or zero Master silences all; each bus a linear amplitude; the music under its trim.
 	const auto& P = S->Get();
-	return P.bMuted ? 0.0 : P.MasterVolume * P.MusicVolume;
+	return P.bMuted ? 0.0 : P.MasterVolume * P.MusicVolume * DbToAmp(MusicTrimDb);
 }
 
 double UPawAudioSubsystem::SfxGain() const

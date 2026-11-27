@@ -82,7 +82,8 @@ namespace Pc
 
 	bool HasAutoCard(const PcGameData& D, const PcProgress& P, bool bAutoPickSetting)
 	{
-		return BranchEffect(D, P, "auto_card") > 0.0 && bAutoPickSetting;
+		// D-e (playtest 2026-11-26, note 36): free for everyone; the first try's rule wanted the Auto-Card node owned.
+		return bAutoPickSetting && (D.Code.AutoPickFree != 0 || BranchEffect(D, P, "auto_card") > 0.0);
 	}
 
 	std::vector<std::string> DrawHand(const PcGameData& D, const PcProgress& P, int64_t Size, PcCardRolls& R)

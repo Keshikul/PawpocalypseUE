@@ -98,6 +98,13 @@ public:
 		return FVector2D(FMath::Clamp(Cat.X + Velocity.X * Dt, Bounds.X, Bounds.X + Bounds.W),
 			FMath::Clamp(Cat.Y + Velocity.Y * Dt, Bounds.Y, Bounds.Y + Bounds.H));
 	}
+	// The pointer path: the cat goes where the pointer is, clamped to the playfield as the stick is. Over the dock it waits at
+	// the dock's edge (no enemy goes under the dock), and when the pointer leaves the window (alt-tab, a click outside) it
+	// stays where the pointer left the field, still hitting (playtest 2026-11-26, note 35; the first try let it under the dock).
+	static FVector2D PointerStep(const FVector2D& Pointer, const Pc::PcRect& Bounds)
+	{
+		return FVector2D(FMath::Clamp(Pointer.X, Bounds.X, Bounds.X + Bounds.W), FMath::Clamp(Pointer.Y, Bounds.Y, Bounds.Y + Bounds.H));
+	}
 	static bool PointerOverField(const FVector2D& Pointer, const Pc::PcRect& Bounds, bool bOverDock)
 	{
 		return !bOverDock && Bounds.HasPoint(Pointer.X, Pointer.Y);

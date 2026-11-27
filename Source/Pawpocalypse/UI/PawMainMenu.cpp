@@ -8,6 +8,7 @@
 
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
+#include "Components/BorderSlot.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/HorizontalBox.h"
@@ -26,6 +27,7 @@
 #include "Engine/GameInstance.h"
 #include "GenericPlatform/GenericPlatformProcess.h"
 #include "HAL/PlatformProcess.h"
+#include "Platform/PawPlatformSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Misc/DateTime.h"
@@ -35,7 +37,10 @@
 #include "PcTitle.h"
 #include "Save/PawSaveSubsystem.h"
 #include "Save/PawSettingsSubsystem.h"
+#include "Engine/Texture2D.h"
+#include "UI/PawBoba.h"
 #include "UI/PawButton.h"
+#include "Input/PawInputDeviceSubsystem.h"
 #include "UI/PawIcons.h"
 #include "UI/PawPrompts.h"
 #include "UI/PawHudScreen.h"
@@ -46,9 +51,10 @@
 #include "UI/PawWidgets.h"
 #include "UI/PawGarden.h"
 
-// main_menu.gd: where bugs go (the itch board; the Steam discussions once on Steam) and the game's Discord (an invite set
-// never to expire). Links, not words: never translated.
-const TCHAR* UPawMainMenu::BugReportUrl = TEXT("https://pugtatogames.itch.io/pawpocalypse/community");
+// Where bugs go: the game's Steam discussions (playtest 2026-11-26, note 5; the first try's itch board before), and the
+// game's Discord (an invite set never to expire). Links, not words: never translated. Opened in the Steam overlay under
+// Steam (UPawPlatformSubsystem::OpenWebPage), else the browser.
+const TCHAR* UPawMainMenu::BugReportUrl = TEXT("https://steamcommunity.com/app/5720010/discussions/");
 const TCHAR* UPawMainMenu::DiscordUrl = TEXT("https://discord.gg/ETASJXDZgY");
 
 namespace
@@ -350,6 +356,17 @@ bool UPawMainMenu::Initialize()
 		Well->SetBrush(Rounded(PawTokens::UI_BUTTON, PawTokens::UI_PANEL_FRAME, static_cast<float>(ChromeEdge), 14.0f));
 		Well->SetVisibility(ESlateVisibility::HitTestInvisible);
 		Photo->SetContent(Well);
+		// P4.3: her photo in the well (the first of DA_Boba; set when the title opens), fitted inside it.
+		UImage* BobaImage = T->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("BobaPhotoImage"));
+		BobaImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+		// Centred by its UBorderSlot: UBorder::SetHorizontalAlignment after SetContent moves only the live SBorder, and the
+		// slot (what the asset saves, what BuildSlot applies) keeps Fill: the photo stretched to the square well.
+		UBorderSlot* BobaSlot = Cast<UBorderSlot>(Well->SetContent(BobaImage));
+		if (BobaSlot)
+		{
+			BobaSlot->SetHorizontalAlignment(HAlign_Center);
+			BobaSlot->SetVerticalAlignment(VAlign_Center);
+		}
 		for (const TCHAR* Key : { TEXT("TITLE_boba_name"), TEXT("TITLE_boba_role") })
 		{
 			// The name heavy ink, the role muted: on the card, with no outline (D18; R4c's Butter on plum).
@@ -585,6 +602,10 @@ bool UPawMainMenu::Initialize()
 		LanguageScroll->AddChild(LanguageList);
 	}
 	const bool bOk = Super::Initialize();
+	// The screen itself takes the keys when a click lands on nothing focusable (its scrim, a plate): Slate gives focus to
+	// the first focusable widget under the click, and without this that was the game's viewport, so Back / Esc never
+	// reached NativeOnPreviewKeyDown (playtest 2026-11-26, note 11; KB U/24).
+	SetIsFocusable(true);
 	if (bOk && PawUi::ShouldWire(this))
 	{
 		PawUi::UseAtlasIcons(this); // the asset's saved icon brushes: the atlas's cells (one batch)
@@ -630,7 +651,7 @@ void UPawMainMenu::OnLayoutReady()
 	Click(MenuButtons[3], [this]() { PressLeaderboard(); });
 	Click(MenuButtons[4], [this]() { PressSettings(); });
 	Click(MenuButtons[5], [this]() { PressCredits(); });
-	Click(MenuButtons[6], [this]() { PressExit(); });
+	Click(MenuButtons[6], [this]() { AskQuit(); }); // asks first, as Back does (playtest 2026-11-26, note 43)
 	for (int32 I = 0; I < 3; ++I)
 	{
 		Click(ClusterButtons[I], [this, I]() { PressCluster(I); });
@@ -672,7 +693,7 @@ void UPawMainMenu::OnLayoutReady()
 	}
 	if (!OnOpenUrl)
 	{
-		OnOpenUrl = [](const FString& Url) { FPlatformProcess::LaunchURL(*Url, nullptr, nullptr); };
+		OnOpenUrl = [](const FString& Url) { UPawPlatformSubsystem::OpenWebPage(Url); };
 	}
 	if (!OnQuit)
 	{
@@ -711,6 +732,55 @@ void UPawMainMenu::NativeOnActivated()
 	}
 	Refresh();
 	FocusTop();
+	if (UPawBobaSubsystem* Boba = UPawBobaSubsystem::Of(this))
+	{
+		Boba->EnterMenu(TEXT("main_menu")); // P4.3
+		ShowBobaPhoto();
+	}
+}
+
+void UPawMainMenu::NativeOnDeactivated()
+{
+	Super::NativeOnDeactivated();
+	if (UPawBobaSubsystem* Boba = UPawBobaSubsystem::Of(this))
+	{
+		Boba->LeaveMenu(TEXT("main_menu"));
+	}
+}
+
+void UPawMainMenu::ShowBobaPhoto()
+{
+	UImage* Image = Cast<UImage>(WidgetTree ? WidgetTree->FindWidget(TEXT("BobaPhotoImage")) : nullptr);
+	const UPawBobaSubsystem* Boba = UPawBobaSubsystem::Of(this);
+	UTexture2D* Tex = Boba ? Boba->GetPhoto(0) : nullptr;
+	const FVector2D Size = UPawBobaSubsystem::PhotoSize(Tex);
+	if (!Image || !Tex || Size.X <= 0.0 || Size.Y <= 0.0)
+	{
+		return;
+	}
+	// Fitted inside the well, its edge inside the frame (the frame's ink and a little air).
+	const double Room = PawUi::R4BobaPhoto - 16.0;
+	const double K = Room / FMath::Max(Size.X, Size.Y);
+	FSlateBrush Brush;
+	Brush.SetResourceObject(Tex);
+	Brush.ImageSize = Size * K;
+	Image->SetBrush(Brush);
+}
+
+bool UPawMainMenu::PressBoba()
+{
+	UPawBobaSubsystem* Boba = UPawBobaSubsystem::Of(this);
+	return Boba && Boba->Force();
+}
+
+UImage* UPawMainMenu::GetBobaPhoto() const
+{
+	return Cast<UImage>(WidgetTree ? WidgetTree->FindWidget(TEXT("BobaPhotoImage")) : nullptr);
+}
+
+UWidget* UPawMainMenu::GetBobaCard() const
+{
+	return WidgetTree ? WidgetTree->FindWidget(TEXT("BobaCard")) : nullptr;
 }
 
 bool UPawMainMenu::CanTakeFocus() const
@@ -1300,10 +1370,17 @@ void UPawMainMenu::Back()
 	case ELayer::Leaderboard: PressClose(); return;
 	case ELayer::Slots: PressSlotsBack(); return;
 	default:
-		RememberOpener();
-		AskConfirm(PawText::Ui(TEXT("TITLE_quit_prompt")), [this]() { PressExit(); });
+		AskQuit();
 		return;
 	}
+}
+
+void UPawMainMenu::AskQuit()
+{
+	// "Quit Pawpocalypse?": Exit and Back on the menu both ask (playtest 2026-11-26, note 43: "there should be are you sure you
+	// want to exit type prompts when quitting"; Exit quit at once until then). Yes saves first (PressExit).
+	RememberOpener();
+	AskConfirm(PawText::Ui(TEXT("TITLE_quit_prompt")), [this]() { PressExit(); });
 }
 
 FReply UPawMainMenu::NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& KeyEvent)
@@ -1325,8 +1402,18 @@ FReply UPawMainMenu::NativeOnMouseButtonDown(const FGeometry& Geometry, const FP
 {
 	// Godot's LanguageScrim: a press that reaches the screen while the list is up (no row took it) closes the list, unless it
 	// landed on the list's own card (its edge, its scroll bar).
-	return PressOffLanguageMenu(MouseEvent.GetScreenSpacePosition()) ? FReply::Handled()
-		: Super::NativeOnMouseButtonDown(Geometry, MouseEvent);
+	if (PressOffLanguageMenu(MouseEvent.GetScreenSpacePosition()))
+	{
+		return FReply::Handled();
+	}
+	// P4.3: a click on Boba's card brings her over (the card is a plate, not a button: mouse only, as the cluster is).
+	if (const UWidget* Card = GetBobaCard(); Card && !IsLayerShown(ELayer::Slots) && !IsLayerShown(ELayer::Leaderboard) && !IsLayerShown(ELayer::Credits)
+		&& !IsLayerShown(ELayer::Confirm) && Card->GetCachedGeometry().IsUnderLocation(MouseEvent.GetScreenSpacePosition()))
+	{
+		PressBoba();
+		return FReply::Handled();
+	}
+	return Super::NativeOnMouseButtonDown(Geometry, MouseEvent);
 }
 
 bool UPawMainMenu::PressOffLanguageMenu(const FVector2D& ScreenPosition)
@@ -1347,15 +1434,20 @@ bool UPawMainMenu::PressOffLanguageMenu(const FVector2D& ScreenPosition)
 void UPawMainMenu::StepSwell(double DeltaSeconds)
 {
 	// HOVER MAKES ROOM (designer, 2026-09-11): the card and its column grow together, so the neighbours move rather than
-	// the card overlapping them. The selected card swells too, so the keys and a pad see the same "this one".
+	// the card overlapping them. The selected card swells too, so the keys and a pad see the same "this one" -- but only
+	// as the ring shows it (UPawButton::RingRule): the focus the slots open with stays on slot 1 under a mouse, and it kept
+	// slot 1 large while the pointer swelled another (playtest 2026-11-26, note 6).
 	const float Rate = static_cast<float>((SlotHoverScale - 1.0) / SlotHoverSec);
+	const UGameInstance* GI = GetGameInstance();
+	const UPawInputDeviceSubsystem* Device = GI ? GI->GetSubsystem<UPawInputDeviceSubsystem>() : nullptr;
+	const bool bPointer = Device && Device->LastWasPointer();
 	for (int32 I = 0; I < SlotCards.Num(); ++I)
 	{
 		if (!SlotCards[I] || !SlotScale.IsValidIndex(I))
 		{
 			continue;
 		}
-		const bool bUp = IsLayerShown(ELayer::Slots) && (SlotCards[I]->IsHovered() || Selected(SlotCards[I]));
+		const bool bUp = IsLayerShown(ELayer::Slots) && SlotSwells(SlotCards[I]->IsHovered(), Selected(SlotCards[I]), bPointer);
 		const float Target = bUp ? static_cast<float>(SlotHoverScale) : 1.0f;
 		const float Next = FMath::FInterpConstantTo(SlotScale[I], Target, static_cast<float>(DeltaSeconds), Rate);
 		if (Next != SlotScale[I])
@@ -1374,12 +1466,26 @@ void UPawMainMenu::StepSwell(double DeltaSeconds)
 	}
 }
 
+bool UPawMainMenu::SlotSwells(bool bHovered, bool bSelected, bool bLastWasPointer)
+{
+	return UPawButton::RingRule(bHovered, bSelected, bLastWasPointer);
+}
+
 void UPawMainMenu::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
 	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
 	StepSwell(DeltaSeconds);
 	Juice.Tick(DeltaSeconds);
+	// P4.3: the card's hover pop (the mouse over it, the effects on).
+	if (UWidget* Card = GetBobaCard())
+	{
+		const float Want = Card->IsHovered() && FPawJuice::EffectsOn(this) ? static_cast<float>(Pc::JuiceHoverScale) : 1.0f;
+		if (!FMath::IsNearlyEqual(Card->GetRenderTransform().Scale.X, Want))
+		{
+			Card->SetRenderScale(FVector2D(Want, Want));
+		}
+	}
 }
 
 // --- test views ----------------------------------------------------------------------------------------------------------

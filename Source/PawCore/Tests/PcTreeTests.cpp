@@ -4,6 +4,8 @@
 #include "PcCsv.h"
 #include "PcData.h"
 #include "PcTree.h"
+#include "PcTreeLayout.h"
+#include "PcCardDraw.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -29,6 +31,10 @@ namespace
 		{
 			std::vector<std::string> Errors;
 			REQUIRE(Pc::LoadGameData(DataDir(), Data, Errors));
+			// The Godot rows were recorded under the first try's rules: auto-pick behind the Auto-Card node, no skill retired.
+			// D-e's (2026-11-26) are proven by their own tests (PcTreeTests.cpp, "D-e").
+			Data.Code.AutoPickFree = 0;
+			Data.Code.RetiredBranches.clear();
 			bLoaded = true;
 		}
 		return Data;
@@ -327,6 +333,71 @@ TEST_CASE("Tree rules from the Godot comments")
 		CHECK(Q.JobsHeld.count(B.JobId) == 1);
 		CHECK(Pc::BranchForJob(D, B.JobId) == B.Id);
 	}
+}
+
+TEST_CASE("D-e: auto-pick is free; a retired skill is hidden, never for sale, not laid out, and refunded on load")
+{
+	// The game's own data (Game() above is the first try's, for the Godot rows).
+	Pc::PcGameData D;
+	std::vector<std::string> Errors;
+	REQUIRE(Pc::LoadGameData(DataDir(), D, Errors));
+	REQUIRE(D.Code.AutoPickFree == 1);
+	REQUIRE(std::find(D.Code.RetiredBranches.begin(), D.Code.RetiredBranches.end(), "auto_card") != D.Code.RetiredBranches.end());
+	const Pc::PcSkillBranch* Card = D.FindBranch("auto_card");
+	REQUIRE(Card != nullptr); // the row stays: what it cost is read from it
+	Pc::PcProgress P;
+	P.Stardust = 1e12;
+	P.ReawakenCount = 99;
+	for (std::string Up = Card->Parent; !Up.empty(); Up = D.FindBranch(Up)->Parent)
+	{
+		P.BranchLevels[Up] = Pc::BranchMaxLevel(*D.FindBranch(Up));
+	}
+	// Auto-pick: the setting alone (the node not owned).
+	CHECK(Pc::HasAutoCard(D, P, true));
+	CHECK_FALSE(Pc::HasAutoCard(D, P, false));
+	Pc::PcGameData First = D; // the first try's rules
+	First.Code.AutoPickFree = 0;
+	First.Code.RetiredBranches.clear();
+	CHECK_FALSE(Pc::HasAutoCard(First, P, true)); // the first try's rule: the node too
+	// Retired: everything else about it ready, still never for sale, hidden, off the tree's order, layout and links.
+	CHECK(Pc::IsBranchRetired(D, "auto_card"));
+	CHECK_FALSE(Pc::IsBranchRetired(D, "claws"));
+	CHECK_FALSE(Pc::IsBranchRetired(First, "auto_card"));
+	// Retiring a skill retires everything under it (D-c will retire skills with children).
+	Pc::PcGameData Pruned = D;
+	Pruned.Code.RetiredBranches = { "unlock_aura" };
+	CHECK(Pc::IsBranchRetired(Pruned, "aura_damage"));
+	CHECK(Pc::IsBranchRetired(Pruned, "grand_finale"));
+	CHECK_FALSE(Pc::IsBranchRetired(Pruned, "claws"));
+	CHECK(Pc::IsBranchAvailable(First, P, "auto_card"));
+	CHECK_FALSE(Pc::IsBranchAvailable(D, P, "auto_card"));
+	CHECK_FALSE(Pc::PurchaseNextBranchLevel(D, P, "auto_card").bBought);
+	CHECK(Pc::TreeNodeReveal(D, P, "auto_card") == Pc::PcTreeReveal::Hidden);
+	const std::vector<std::string> Order = Pc::BranchOrder(D);
+	CHECK(std::find(Order.begin(), Order.end(), "auto_card") == Order.end());
+	CHECK(Order.size() == D.Branches.size() - 1);
+	const Pc::PcTreeLayout L = Pc::LayOutTree(D);
+	CHECK(L.Nodes.count("auto_card") == 0);
+	CHECK(L.Nodes.size() == D.Branches.size() - 1);
+	for (const Pc::PcTreeLink& K : Pc::TreeLinks(D, P))
+	{
+		CHECK(K.To != "auto_card");
+	}
+	// A save that owns it: refunded what it paid, the level gone; once.
+	Pc::PcProgress Old = P;
+	Old.Stardust = 10.0;
+	Old.BranchLevels["auto_card"] = 1;
+	const double Paid = Card->LevelCosts.at(0);
+	CHECK(Pc::RefundRetiredBranches(D, Old) == doctest::Approx(Paid));
+	CHECK(Old.Stardust == doctest::Approx(10.0 + Paid));
+	CHECK(Old.BranchLevels.count("auto_card") == 0);
+	CHECK(Pc::RefundRetiredBranches(D, Old) == 0.0);
+	CHECK(Old.Stardust == doctest::Approx(10.0 + Paid));
+	// Nothing retired: nothing refunded.
+	Pc::PcProgress Kept = P;
+	Kept.BranchLevels["auto_card"] = 1;
+	CHECK(Pc::RefundRetiredBranches(First, Kept) == 0.0);
+	CHECK(Kept.BranchLevels.at("auto_card") == 1);
 }
 
 #endif

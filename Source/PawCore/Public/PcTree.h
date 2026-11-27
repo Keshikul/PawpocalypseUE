@@ -32,6 +32,11 @@ namespace Pc
 	PAWCORE_API bool IsBranchAvailable(const PcGameData& D, const PcProgress& P, const std::string& Id);
 	// branch_reawaken_gate(): the Reawaken the branch becomes buyable on, for "locked until Reawaken N".
 	PAWCORE_API int64_t BranchReawakenGate(const PcGameData& D, const std::string& Id);
+	// A skill taken out of the game (CodeConstants retired_branches), or one under it: hidden, never for sale, not laid out.
+	PAWCORE_API bool IsBranchRetired(const PcGameData& D, const std::string& Id);
+	// A loaded save that owns a retired skill gets back what it paid for its bought levels (their prices, from its row) and
+	// loses the levels. Returns the Stardust refunded (0: nothing to do). Run once on every load.
+	PAWCORE_API double RefundRetiredBranches(const PcGameData& D, PcProgress& P);
 
 	// purchase_next_level(): on success the Stardust is spent, the level rises, a job node hands its job over (once), and an
 	// automation node asks for its own switch to be turned on (the settings live outside PawCore).

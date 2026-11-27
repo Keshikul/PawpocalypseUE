@@ -16,6 +16,7 @@
 //                                      closes.
 // Pawpocalypse.UI.CardPick.Navigation  Take row wraps, down to that card's Banish, then Reroll, then back to the middle card.
 // Pawpocalypse.UI.CardPick.PauseHolds  holders stack; a click swallowed while held stays swallowed until it is let go.
+// Pawpocalypse.UI.CardPick.Lift        the card the pointer is on lifts; the deal's first focus lifts only for the keys and a pad.
 //
 // Negative tests: tools/sabotage_realm.py (`pick_*`).
 
@@ -316,7 +317,8 @@ bool FPawPickLookTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("{v} and {c} at level one"), S(Close->GetBodyText()),
 		FString(TEXT("Your aura detonates for 5 seconds of damage, but shrinks to 0.7x its radius.")));
 	TestTrue(TEXT("a cost card wears the red frame"), Close->HasCostFrame());
-	TestTrue(TEXT("and says so"), Close->IsWarningShown());
+	// Playtest 2026-11-26 (note 22): "remove the 'this card has a downside' text from cards". The frame stays.
+	TestFalse(TEXT("and no line says so"), Close->IsWarningShown() || Close->WidgetTree->FindWidget(TEXT("WarnText")));
 	TestFalse(TEXT("a free card has neither"), Bounty->HasCostFrame() || Bounty->IsWarningShown());
 	TestEqual(TEXT("the flavour word"), S(Bounty->GetFlavourText()), FString(TEXT("SPOILS")));
 	TestEqual(TEXT("the flavour band"), Bounty->GetBandColour(), PawTokens::UI_CARD_DECK);
@@ -422,6 +424,48 @@ bool FPawPickTakeTest::RunTest(const FString& Parameters)
 		TestEqual(TEXT("nothing granted"), Pc::CardLevel(W.P(), "rigor"), static_cast<int64_t>(0));
 		TestFalse(TEXT("and the screen does not trap the player"), Again->IsActivated());
 	}
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawPickAutoPickTest, "Pawpocalypse.UI.CardPick.AutoPick", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawPickAutoPickTest::RunTest(const FString& Parameters)
+{
+	// D-e (playtest 2026-11-26, note 36): auto-pick is free; the box under Reroll turns it on and takes a card of this hand.
+	FPickWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	TestFalse(TEXT("a new game starts with auto-pick off"), W.Game->Slot().bAutoPickCard);
+	UPawCardPickScreen* Pick = W.Deal(*this, { "bounty", "spite", "rigor" });
+	if (!Pick)
+	{
+		W.Close();
+		return false;
+	}
+	UPawButton* Box = Pick->GetAutoPickButton();
+	TestTrue(TEXT("the box shows, with no tree node owned"), Shown(Box) && Pc::BranchLevel(W.P(), "auto_card") == 0);
+	TestEqual(TEXT("its words"), Box ? S(Box->GetLabel()) : FString(), FString(TEXT("Auto-pick cards")));
+	TestEqual(TEXT("where it is turned off"), S(Pick->GetAutoPickNote()), FString(TEXT("You can turn it off in Settings.")));
+	Pick->ClickAutoPick();
+	TestFalse(TEXT("the guard holds the first press"), W.Game->Slot().bAutoPickCard);
+	W.PastGuard(Pick);
+	Pick->ClickAutoPick();
+	TestTrue(TEXT("auto-pick on"), W.Game->Slot().bAutoPickCard && W.Realm->GetAutoPick());
+	int64 Taken = 0;
+	for (const char* Id : { "bounty", "spite", "rigor" })
+	{
+		Taken += Pc::CardLevel(W.P(), Id);
+	}
+	TestEqual(TEXT("one card of this hand taken"), Taken, static_cast<int64>(1));
+	TestTrue(TEXT("the hand is gone"), W.P().Hand.empty());
+	TestFalse(TEXT("the pick closes"), Pick->IsActivated());
+	TestFalse(TEXT("the field runs again"), W.Realm->IsPaused());
+	W.Game->NewGame();
+	TestFalse(TEXT("a new game: off again"), W.Game->Slot().bAutoPickCard);
 	W.Close();
 	return true;
 }
@@ -549,23 +593,24 @@ bool FPawPickNavigationTest::RunTest(const FString& Parameters)
 	UWidget* B1 = Pick->GetCard(1)->GetBanish();
 	UWidget* B2 = Pick->GetCard(2)->GetBanish();
 	UWidget* R = Pick->GetRerollButton();
-	TestEqual(TEXT("seven controls wired"), Pick->GetWired().Num(), 7);
+	UWidget* A = Pick->GetAutoPickButton(); // D-e: beside Reroll, one row
+	TestEqual(TEXT("eight controls wired"), Pick->GetWired().Num(), 8);
 	TestTrue(TEXT("right along the hand"), Nav(T0, EUINavigation::Right) == T1 && Nav(T1, EUINavigation::Right) == T2);
 	TestTrue(TEXT("and round"), Nav(T2, EUINavigation::Right) == T0 && Nav(T0, EUINavigation::Left) == T2);
 	TestTrue(TEXT("down to that card's Banish"), Nav(T0, EUINavigation::Down) == B0 && Nav(T2, EUINavigation::Down) == B2);
 	TestTrue(TEXT("Banish up to its Take"), Nav(B1, EUINavigation::Up) == T1);
-	TestTrue(TEXT("down from any Banish to Reroll"), Nav(B0, EUINavigation::Down) == R && Nav(B2, EUINavigation::Down) == R);
-	TestTrue(TEXT("Reroll up to the middle card's Banish"), Nav(R, EUINavigation::Up) == B1);
-	TestTrue(TEXT("and down round to the middle card"), Nav(R, EUINavigation::Down) == T1);
-	TestTrue(TEXT("up from the hand round to Reroll"), Nav(T0, EUINavigation::Up) == R);
-	TestTrue(TEXT("Reroll alone in its row"), Nav(R, EUINavigation::Left) == R && Nav(R, EUINavigation::Right) == R);
+	TestTrue(TEXT("down from a Banish to the nearer of Reroll and Auto-pick"), Nav(B0, EUINavigation::Down) == R && Nav(B2, EUINavigation::Down) == A);
+	TestTrue(TEXT("up from each to the nearest Banish"), Nav(R, EUINavigation::Up) == B0 && Nav(A, EUINavigation::Up) == B2);
+	TestTrue(TEXT("and down round to the nearest card"), Nav(R, EUINavigation::Down) == T0 && Nav(A, EUINavigation::Down) == T2);
+	TestTrue(TEXT("up from the hand round to that row"), Nav(T0, EUINavigation::Up) == R && Nav(T2, EUINavigation::Up) == A);
+	TestTrue(TEXT("Reroll and Auto-pick side by side"), Nav(R, EUINavigation::Right) == A && Nav(A, EUINavigation::Right) == R);
 
-	// Without Banish and Reroll the hand is the whole screen: up and down stay on the card.
+	// Without Banish and Reroll: the hand and the Auto-pick box.
 	W.P().Rerolls = 0;
 	W.P().Banishes = 0;
 	Pick->ShowHand(false);
-	TestEqual(TEXT("three controls"), Pick->GetWired().Num(), 3);
-	TestTrue(TEXT("down stays on the card"), Nav(T1, EUINavigation::Down) == T1 && Nav(T1, EUINavigation::Up) == T1);
+	TestEqual(TEXT("four controls"), Pick->GetWired().Num(), 4);
+	TestTrue(TEXT("down and up from a card: the box"), Nav(T1, EUINavigation::Down) == A && Nav(T1, EUINavigation::Up) == A);
 	W.Close();
 	return true;
 }
@@ -607,6 +652,20 @@ bool FPawPickPauseHoldsTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("a restarted field stays held"), R->IsPaused());
 	R->SetPauseHold(TEXT("card_pick"), false);
 	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawCardPickLiftTest, "Pawpocalypse.UI.CardPick.Lift", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawCardPickLiftTest::RunTest(const FString& Parameters)
+{
+	// Playtest 2026-11-26 (note 6, the slot cards' fault, here too): the deal focuses the first Take, and a mouse never moves
+	// focus, so the first card stayed lifted while the pointer lifted another.
+	TestTrue(TEXT("the card under the pointer lifts"), UPawCardFace::LiftRule(false, true, false, true));
+	TestFalse(TEXT("the deal's first focus does not lift a card under a mouse"), UPawCardFace::LiftRule(false, false, true, true));
+	TestTrue(TEXT("the keys' or a pad's selection lifts"), UPawCardFace::LiftRule(false, false, true, false));
+	TestTrue(TEXT("held for a test: lifted"), UPawCardFace::LiftRule(true, false, false, true));
+	TestFalse(TEXT("none: flat"), UPawCardFace::LiftRule(false, false, false, false));
 	return true;
 }
 

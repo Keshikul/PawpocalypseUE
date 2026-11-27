@@ -84,6 +84,7 @@ node tools/art/sticker_record.js [--check]                               # Stick
 py tools/art/sticker_art.py [OUT_DIR | --overlays]                       # the recorded cast as the game's files (make_sweet_art calls it); --overlays: the cat's hat and weapon constants PawFieldLook.h must hold
 py tools/art/review_anatomy.py                                           # build/review/anatomy.png: the anatomy batch in sweet_anatomy.SPECIES / BATCH beside today's (R5)
 py tools/art/review_rig.py                                               # build/review/rig.gif + rig.png: the enemies' wings and legs moving (SourceArt/svg/rigs, R5)
+py tools/art/review_signatures.py | review_engineer_hat.py | review_boss_summon.py | review_kitten_icon.py   # build/review/c3..c6_*.png: the playtest's concept sheets C3-C6 (2026-11-27)
 py tools/fonts.py [--check]                                              # UI/PawFontSpec.h: the font F_Paw's table (faces, typefaces, sub-fonts)
 py tools/import_fonts.py --run                                           # SourceArt/fonts -> FF_* faces + the composite F_Paw, headless (editor closed)
 py tools/check_font_coverage.py [--self-test]                            # every language's characters reach a face of F_Paw that has them
@@ -92,7 +93,8 @@ py tools/gen_data_strings.py                                             # ST_Da
 py tools/import_data.py [--check | --self-test]                          # Data/*.csv -> DT_* (headless, editor closed) + parity
 powershell -ExecutionPolicy Bypass -File tools\build_pawcore_tests.ps1   # PawCore L1 tests, plain MSVC, seconds (-Long: long suite)
 powershell -ExecutionPolicy Bypass -File tools\check_all.ps1             # every gate (-Full: + negative tests and long runs)
-py tools/econ_review.py [--proposal recommended | pass+inc0.5 ...] [--waits FILE]   # the economy review's numbers: pawsim + waves + buy logs, proposals in memory -> build/econ
+py tools/econ_review.py [--proposal recommended | pass+inc0.5 ...] [--waits FILE]   # the economy review's numbers: pawsim + waves + buy logs, proposals in memory -> build/econ (cards/cardsunc/focus<k>: the income cards, E0)
+py tools/check_pawsim_cards.py [--self-test]                            # pawsim's income-card model against hand arithmetic (check_all)
 py tools/sabotage_pawcore.py [--only NAME]                               # one-line PawCore sabotages; each must be CAUGHT
 py tools/safe_mutate.py [--list | --self-test]                           # puts back any planted fault a dead run left in the tree (check_all's first gate)
 py tools/run_automation.py [--no-build] [Pawpocalypse.Realm]             # engine automation tests, headless (editor closed; builds first; --self-test: the guard's wait, tools/unreal_procs.py)
@@ -101,7 +103,7 @@ py tools/art/build_art.py [--check]                                     # the ar
 py tools/raster_svg.py [--check]                                        # SourceArt/svg -> png (the glyphs: 56 px; the cursors; the chrome and icons 1:1)
 py tools/pack_atlas.py [--check]                                        # the field's sprites and rig layers -> SourceArt/png/atlas (ONE 4096 page + field.csv: a page is a draw call per kind)
 py tools/pack_ui_atlas.py [--check]                                     # the 128 px UI icons -> SourceArt/png/ui_atlas (one 2048 page + ui.csv; import_art icons brings it in: one Slate batch for the icons)
-py tools/import_art.py --run [input|chrome|icons|atlas|floors]                       # SourceArt -> T_* textures, DA_FieldAtlas, DA_Icons (+ the UI atlas), the floors, headless (editor closed)
+py tools/import_art.py --run [input|chrome|icons|atlas|floors|boba]                  # SourceArt -> T_* textures, DA_FieldAtlas, DA_Icons (+ the UI atlas), the floors, Boba's photos (SourceArt/boba -> DA_Boba), headless (editor closed)
 py tools/import_audio.py --run                                          # SourceAudio -> SW_* sounds + DA_AudioBank, headless (editor closed)
 py tools/create_input_assets.py --run                                    # IA_* / IMC_Pawpocalypse from Data/InputMap.csv (generated, never edited)
 py tools/sabotage_realm.py [--only NAME]                                 # game-module sabotages of the realm tests (UBT each, ~1 min)
@@ -110,6 +112,7 @@ py tools/package.py [--config Shipping] [--no-gates] [--bump]           # the de
 py tools/package.py --config Shipping --steam [--bump]                  # the designer's word only: the PawpocalypseSteam target (Steam on) -> build/package_steam, start file Pawpocalypse.exe (doc 10 §5.3)
 py tools/steam_upload.py --user <account> [--branch NAME] [--preview]   # the designer's word only: SteamCMD uploads build/package_steam to App 5720010 (never sets the default branch live)
 py tools/steam_files.py [--check | --self-test]                         # the Steamworks upload files from the game's data -> build/steam/steamworks (achievements CSVs + icons, rich presence); --check: they agree with the game
+py tools/make_app_icon.py [--src PNG | --check | --self-test]          # the exe's icon: SourceArt/icon/Pawpocalypse.ico from the key art's square icon (Target.cs WindowsPlatform.ApplicationIcon; --check: every size there)
 py tools/packaged_soak.py [--speed 5|20] [--minutes 240]                # L6: paw.Soak in the packaged build: a whole game through the UI's presses -> build/soak (PASS: won, no Error, no stall)
 py tools/packaged_pso.py [--route soak|bench] [--log FILE]               # the PSO check: PSO precache validation along a route -> build/pso/report.txt (FAIL: one of this game's materials compiled at first draw); never clears the driver cache
 py tools/packaged_languages.py [--start ru]                             # L5: paw.Languages in the packaged build: every language offered, complete, shown, drawn (glyphs), Thai/CJK wrapped -> build/loc/package (sheet.png)

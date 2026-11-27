@@ -8,7 +8,11 @@
 namespace PawUi
 {
 	// hud.gd
-	constexpr double DockWidth = 568.0;              // hud.tscn UpgradeDock: offset_left = -568
+	constexpr double DockWidth = 480.0;              // D-j (playtest 2026-11-26, note 24): 568 (hud.tscn's) -> 480, -15 %
+	// P4.1: the shared tooltip (UPawTooltip): its width, its gap from the dock, and how far it keeps from the screen's edge.
+	constexpr double DockTipWidth = 360.0;
+	constexpr double DockTipGap = 12.0;
+	constexpr double DockTipMargin = 16.0;
 	constexpr double EdgeMargin = 20.0;              // EDGE_MARGIN
 	constexpr double HudRefreshHz = 15.0;            // HUD_REFRESH_HZ: dirty work spent at 15 Hz; a press refreshes at once
 	constexpr double StatusRowWidth = 600.0;         // hud.tscn StatusPanel 20..620
@@ -18,7 +22,6 @@ namespace PawUi
 	constexpr double ZonePlatePadX = 10.0;           // ZONE_PLATE_PAD
 	constexpr double ZonePlatePadY = 6.0;
 	constexpr double ZoneBarHeight = 12.0;           // D18 (S4): the concept's 10 at 1600 (Godot _build_zone_progress: 14)
-	constexpr double WaveBarHeight = 10.0;           // _build_wave_progress
 	constexpr double XpBarBottom = 18.0;             // hud.tscn XPBar: offset_bottom = -18, offset_top = -54
 	constexpr double XpBarHeight = 16.0;             // D18 (S4): the concept's 14 at 1600 (Godot XPBar/Bar: 24)
 	constexpr double XpLevelWidth = 52.0;            // XPBar/LevelNow custom_minimum_size
@@ -141,7 +144,6 @@ namespace PawUi
 	constexpr int32 CardNewTextOutline = 2;
 	constexpr double CardRankPx = 16.0; // R4b: the 16 px text floor (Godot 13)
 	constexpr double CardBodyPx = 17.0;
-	constexpr double CardWarnPx = 16.0; // R4b: the 16 px text floor (Godot 14)
 	constexpr double CardTakeHeight = 42.0;          // take custom_minimum_size.y
 	constexpr double CardBanishHeight = 28.0;        // burn custom_minimum_size.y
 	constexpr double CardBanishPx = 16.0; // R4b: the 16 px text floor (Godot 13)
@@ -330,7 +332,7 @@ namespace PawUi
 	constexpr double R4BobaHeight = 360.0;
 	constexpr double R4BobaPhoto = 220.0;
 	constexpr double R4BobaNamePx = 34.0;
-	constexpr double R4BobaAngle = 4.0;
+	constexpr double R4BobaAngle = 0.0;             // P4.3 (playtest note 3): straight (R4c tilted it 4 deg)
 	constexpr double R4HintPadX = 18.0;             // the hint's plate (the small plum plate, a pill on the lawn)
 	constexpr double R4HintPadY = 6.0;
 	constexpr double R4VersionAbove = 12.0;         // the version: right, above the cluster
@@ -393,13 +395,15 @@ namespace PawUi
 	constexpr double PauseButtonHeight = 54.0;       // the main page's buttons
 	constexpr double PauseTitlePx = 48.0;            // D18 (S4): PAUSED as the concept's sticker title
 	constexpr double SettingsTitlePx = 40.0;         // D18 (S4): SETTINGS as the concept's sticker title (Godot: the label's 17)
-	constexpr double PauseIconPx = 28.0;             // D18 (S4): each button's icon (the concept's .62 of 36, at 1080p)
 	constexpr double PauseSlotSeparation = 8.0;      // SlotPage / SlotList separation
 	constexpr double PauseSlotHeight = 52.0;         // _build_slots: custom_minimum_size.y
 	constexpr double PauseSlotBackHeight = 46.0;     // SlotBackButton
 
 	// settings_dialog.tscn (the scrim, the window's plate and margins are the pause menu's)
 	constexpr double SettingsWindowWidth = 1000.0;   // Window offsets -500 .. 500, -490 .. 490
+	// Room inside a scrolling page for the selection ring, drawn FocusRingExpand (4) px outside a row: a scroll box clips to
+	// its bounds, and the ring's left edge was cut off (playtest 2026-11-26, note 4).
+	constexpr double SettingsRingRoom = 6.0;
 	constexpr double SettingsWindowHeight = 980.0;
 	constexpr double SettingsSectionSeparation = 6.0; // SectionBar separation
 	constexpr double SettingsPageSeparation = 10.0;  // AudioPage / VideoPage / ControlsPage separation

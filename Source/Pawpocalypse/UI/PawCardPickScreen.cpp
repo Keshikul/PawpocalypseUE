@@ -21,6 +21,7 @@
 #include "Core/PawGameSubsystem.h"
 #include "Core/PawLog.h"
 #include "Engine/World.h"
+#include "Input/PawInputDeviceSubsystem.h"
 #include "PcData.h"
 #include "PcHud.h"
 #include "Realm/PawRealmSubsystem.h"
@@ -40,6 +41,10 @@ namespace
 	// The text inside a card is given a fixed wrap width (KB U/09 §3): the card's width less its margins.
 	constexpr float BandWrap = static_cast<float>(CardWidth - 2.0 * CardBandPadX - 2.0 * CardFramePx);
 	constexpr float BodyWrap = static_cast<float>(CardWidth - 2.0 * CardInnerPadX - 2.0 * CardFramePx);
+	// The card's sentence 10 px short of that: a shrunk font measures ~1.5 % wider than it wraps, and at 268 Czech and
+	// Spanish card texts ran 2-4 px past their box at 1280 x 800, 150 % UI (measured 2026-11-27, when the parity check
+	// started comparing wraps; the asset had held 258 since the first try's padding).
+	constexpr float BodyTextWrap = BodyWrap - 10.0f;
 	constexpr float SubtitleWrap = 900.0f;
 
 	// FLAVOUR_COLOURS: a hand of three reads as three KINDS of thing before any text is read (Stacklands' card families).
@@ -189,14 +194,11 @@ bool UPawCardFace::Initialize()
 		ArtPanel->SetContent(Art);
 		NameText = Heavy(CardText(T, CardNamePx, PawTokens::INK, BodyWrap, TEXT("NameText")));
 		Body->AddChildToVerticalBox(NameText)->SetPadding(Gap);
-		BodyText = CardText(T, CardBodyPx, PawTokens::INK, BodyWrap, TEXT("BodyText"));
+		BodyText = CardText(T, CardBodyPx, PawTokens::INK, BodyTextWrap, TEXT("BodyText"));
 		UVerticalBoxSlot* TextSlot = Body->AddChildToVerticalBox(BodyText);
 		TextSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 		TextSlot->SetPadding(Gap);
-		WarnText = CardText(T, CardWarnPx, PawTokens::UI_CARD_BANISH, BodyWrap, TEXT("WarnText"));
-		WarnText->SetText(PawText::Ui(TEXT("PICK_costs")));
-		WarnText->SetVisibility(ESlateVisibility::Collapsed);
-		Body->AddChildToVerticalBox(WarnText)->SetPadding(Gap);
+		// No "This card has a downside." line (playtest 2026-11-26, note 22): the red frame and the card's own words say it.
 		// "LEVEL 2 of 3" is the single most useful thing on the card (Godot); D18 (S4): with a dot per level beside it.
 		LevelRow = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("LevelRow"));
 		LevelRow->SetVisibility(ESlateVisibility::HitTestInvisible);
@@ -303,7 +305,6 @@ void UPawCardFace::SetLook(const FLook& Look)
 		NewBadge->SetVisibility(Look.bNew ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 	ShowDots(Look.Level, Look.MaxLevel);
-	WarnText->SetVisibility(Look.bCosts ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	Banish->SetVisibility(Look.bBanish ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 	// The trade is visible before the text is read: a card that costs you something wears the alert frame.
 	Plate->SetBrush(Rounded(PawTokens::UI_CARD_PLATE, Look.bCosts ? PawTokens::UI_CARD_BANISH : PawTokens::INK,
@@ -354,7 +355,17 @@ FString UPawCardFace::GetArtName() const
 
 bool UPawCardFace::IsLifted() const
 {
-	return bLiftHeld || IsHovered() || Selected(Take) || Selected(Banish);
+	// Focus lifts a card only for the keys and a pad (UPawButton::RingRule): under a mouse the deal's first focus is not
+	// "this one", and it held the first card up while the pointer lifted another (playtest 2026-11-26, note 6: the slot
+	// cards' swell had the same fault).
+	const UGameInstance* GI = GetGameInstance();
+	const UPawInputDeviceSubsystem* Device = GI ? GI->GetSubsystem<UPawInputDeviceSubsystem>() : nullptr;
+	return LiftRule(bLiftHeld, IsHovered(), Selected(Take) || Selected(Banish), Device && Device->LastWasPointer());
+}
+
+bool UPawCardFace::LiftRule(bool bHeld, bool bHovered, bool bSelected, bool bLastWasPointer)
+{
+	return bHeld || UPawButton::RingRule(bHovered, bSelected, bLastWasPointer);
 }
 
 void UPawCardFace::StepLift(double DeltaSeconds)
@@ -391,7 +402,12 @@ FLinearColor UPawCardFace::GetRankColour() const { return RankText ? RankText->G
 FText UPawCardFace::GetBodyText() const { return BodyText ? BodyText->GetText() : FText::GetEmpty(); }
 bool UPawCardFace::HasCostFrame() const { return Plate && Plate->Background.OutlineSettings.Color.GetSpecifiedColor() == PawTokens::UI_CARD_BANISH; }
 FLinearColor UPawCardFace::GetBandColour() const { return Band ? Band->Background.TintColor.GetSpecifiedColor() : FLinearColor::Transparent; }
-bool UPawCardFace::IsWarningShown() const { return WarnText && WarnText->GetVisibility() != ESlateVisibility::Collapsed; }
+bool UPawCardFace::IsWarningShown() const
+{
+	// The line left the card (playtest 2026-11-26, note 22); an asset that still held it would show it.
+	const UWidget* Warn = WidgetTree ? WidgetTree->FindWidget(TEXT("WarnText")) : nullptr;
+	return Warn && Warn->GetVisibility() != ESlateVisibility::Collapsed;
+}
 bool UPawCardFace::IsNewShown() const
 {
 	return NewBadge && NewBadge->GetVisibility() != ESlateVisibility::Collapsed && NewStar && NewStar->GetBrush().GetResourceObject();
@@ -488,10 +504,25 @@ bool UPawCardPickScreen::Initialize()
 		RowSlot->SetHorizontalAlignment(HAlign_Center);
 		RowSlot->SetPadding(Gap);
 
+		// Reroll, the Auto-pick box (D-e, playtest 2026-11-26 note 36) and its note on one row, so the screen keeps its height
+		// at 1280 x 800 and 150 % UI (Polish ran off the bottom with them stacked).
+		UHorizontalBox* ToolRow = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("ToolRow"));
+		ToolRow->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		Column->AddChildToVerticalBox(ToolRow)->SetHorizontalAlignment(HAlign_Center);
 		RerollButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("RerollButton"));
 		RerollButton->SetMinDimensions(0, static_cast<int32>(RerollHeight));
 		RerollButton->SetVisibility(ESlateVisibility::Collapsed);
-		Column->AddChildToVerticalBox(RerollButton)->SetHorizontalAlignment(HAlign_Center);
+		ToolRow->AddChildToHorizontalBox(RerollButton)->SetPadding(FMargin(0.0f, 0.0f, 12.0f, 0.0f));
+		AutoPickButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("AutoPickButton"));
+		AutoPickButton->SetLabel(PawText::Ui(TEXT("PICK_auto")));
+		AutoPickButton->SetCheck(true, false);
+		AutoPickButton->SetMinDimensions(0, static_cast<int32>(RerollHeight));
+		ToolRow->AddChildToHorizontalBox(AutoPickButton);
+		AutoPickNote = MakeText(T, LabelPx, PawTokens::UI_TEXT, false, TEXT("AutoPickNote"));
+		AutoPickNote->SetText(PawText::Ui(TEXT("PICK_auto_note")));
+		UHorizontalBoxSlot* NoteSlot = ToolRow->AddChildToHorizontalBox(AutoPickNote);
+		NoteSlot->SetVerticalAlignment(VAlign_Center);
+		NoteSlot->SetPadding(FMargin(12.0f, 0.0f, 0.0f, 0.0f));
 	}
 	const bool bOk = Super::Initialize();
 	if (bOk && PawUi::ShouldWire(this))
@@ -507,6 +538,10 @@ void UPawCardPickScreen::OnLayoutReady()
 	{
 		RerollButton->OnClicked().AddWeakLambda(this, [this]() { ClickReroll(); });
 		RerollButton->SetIcon(RerollIcon, RerollIconPx); // D18 (S4): the concept's Reawaken arrow
+	}
+	if (AutoPickButton)
+	{
+		AutoPickButton->OnClicked().AddWeakLambda(this, [this]() { ClickAutoPick(); });
 	}
 	// The faces are made per deal, into Row (FaceAt).
 }
@@ -766,6 +801,29 @@ void UPawCardPickScreen::ClickReroll()
 	}
 }
 
+void UPawCardPickScreen::ClickAutoPick()
+{
+	if (IsGuardOpen())
+	{
+		AutoPick();
+	}
+}
+
+bool UPawCardPickScreen::AutoPick()
+{
+	UPawRealmSubsystem* R = Realm();
+	if (!R)
+	{
+		return false;
+	}
+	R->SetAutoPick(true);
+	const bool bTaken = !R->AutoPickNow().IsEmpty();
+	Close();
+	return bTaken;
+}
+
+FText UPawCardPickScreen::GetAutoPickNote() const { return AutoPickNote ? AutoPickNote->GetText() : FText::GetEmpty(); }
+
 bool UPawCardPickScreen::Take(int32 Index)
 {
 	UPawRealmSubsystem* R = Realm();
@@ -835,7 +893,7 @@ void UPawCardPickScreen::ShowReroll(int64 Rerolls)
 		Takes.Add(Faces[I]->GetTake());
 		Banishes.Add(Faces[I]->GetBanish());
 	}
-	Wired = WireRows({ Takes, Banishes, { RerollButton.Get() } });
+	Wired = WireRows({ Takes, Banishes, { RerollButton.Get(), AutoPickButton.Get() } });
 }
 
 bool UPawCardPickScreen::CanTakeFocus() const

@@ -50,6 +50,7 @@ Invoke-Gate 'no mutant left in place' 'py tools\safe_mutate.py'
 Invoke-Gate 'L0 static' 'py tools\check_pawcore_static.py'
 Invoke-Gate 'L1 PawCore tests' 'powershell -ExecutionPolicy Bypass -File tools\build_pawcore_tests.ps1'
 Invoke-Gate 'mirror (PawCore vs pawsim)' 'py tools\check_mirror.py'
+Invoke-Gate 'pawsim income cards (E0)' 'py tools\check_pawsim_cards.py'
 Invoke-Gate 'validator fuzz 3k' 'py tools\fuzz_validator.py --trials 3000'
 # Sticker Box (D18, 2026-11-18): tools/art/sticker_cast.py is what the approved Bestiary (tools/art/concept_bestiary.html) draws,
 # recorded by the concept's own code; a hand edit, or a changed concept that was not recorded again, fails here.
@@ -89,6 +90,8 @@ Invoke-Gate 'steam delta self-test' 'py tools\steam_delta.py --self-test'
 # and App ID are the ones the files and the upload assume; the self-test plants each fault.
 Invoke-Gate 'steam files agree' 'py tools\steam_files.py --check'
 Invoke-Gate 'steam files self-test' 'py tools\steam_files.py --self-test'
+Invoke-Gate 'app icon' 'py tools\make_app_icon.py --check'
+Invoke-Gate 'app icon self-test' 'py tools\make_app_icon.py --self-test'
 # The packaged bench makes up to three runs (2026-11-24): the game thread on the best (one run's p99 moved 2.8-6.8 ms on the
 # same package; interference only slows a run), every other check in every run; the self-test plants each case and the
 # game's reason wording.

@@ -71,6 +71,8 @@ namespace
 		TMap<FName, FString> Words;
 		// A text's look the restyle sets in code and grafts into the asset (restyle:Part): typeface, outline, shadow.
 		TMap<FName, FString> Looks;
+		// P4.3 (2026-11-27): every part's tilt (a code change to an angle must reach the asset: graft slot:Part).
+		TMap<FName, float> Angles;
 	};
 
 	FString ClassKey(const UWidget* W)
@@ -99,14 +101,24 @@ namespace
 				return;
 			}
 			Out.Classes.FindOrAdd(ClassKey(W))++;
+			Out.Angles.Add(W->GetFName(), W->GetRenderTransformAngle());
 			if (const UTextBlock* T = Cast<UTextBlock>(W))
 			{
 				Out.Words.Add(W->GetFName(), T->GetText().ToString());
 				const FSlateFontInfo& F = T->GetFont();
 				// R4g: and its colour (a code change to a title's colour must reach the asset: graft text:).
-				Out.Looks.Add(W->GetFName(), FString::Printf(TEXT("typeface %s, outline %d, shadow %.1f,%.1f, colour %s"), *F.TypefaceFontName.ToString(),
-					F.OutlineSettings.OutlineSize, T->GetShadowOffset().X, T->GetShadowOffset().Y,
-					*T->GetColorAndOpacity().GetSpecifiedColor().ToFColorSRGB().ToHex()));
+				// P4.8 (2026-11-27): and its wrap (a code change to a width, e.g. the dock's, must reach the asset: graft wrapat:).
+				Out.Looks.Add(W->GetFName(), FString::Printf(TEXT("typeface %s, outline %d, shadow %.1f,%.1f, colour %s, wrap %.0f%s"),
+					*F.TypefaceFontName.ToString(), F.OutlineSettings.OutlineSize, T->GetShadowOffset().X, T->GetShadowOffset().Y,
+					*T->GetColorAndOpacity().GetSpecifiedColor().ToFColorSRGB().ToHex(), T->GetWrapTextAt(), T->GetAutoWrapText() ? TEXT(" auto") : TEXT("")));
+			}
+			else if (const UPawPromptText* PT = Cast<UPawPromptText>(W))
+			{
+				Out.Looks.Add(W->GetFName(), FString::Printf(TEXT("prompt text %.1f px, wrap %.0f (graft props:)"), PT->TextPx, PT->WrapAt));
+			}
+			else if (const UPawIconText* IT = Cast<UPawIconText>(W))
+			{
+				Out.Looks.Add(W->GetFName(), FString::Printf(TEXT("icon text %.1f px, wrap %.0f (graft props:)"), IT->TextPx, IT->WrapAt));
 			}
 			else if (const UPawButton* B = Cast<UPawButton>(W))
 			{
@@ -558,6 +570,14 @@ bool FPawWidgetsParityTest::RunTest(const FString& Parameters)
 			if (const FString* Got = A.Looks.Find(P.Key))
 			{
 				TestEqual(FString::Printf(TEXT("%s.%s looks the same (graft restyle:%s, or text: for its colour)"), *Name, *P.Key.ToString(), *P.Key.ToString()), *Got, P.Value);
+			}
+		}
+		for (const TPair<FName, float>& P : C.Angles)
+		{
+			if (const float* Got = A.Angles.Find(P.Key); Got && !FMath::IsNearlyEqual(*Got, P.Value, 0.01f))
+			{
+				AddError(FString::Printf(TEXT("%s.%s is tilted %.2f in the asset, %.2f in code (graft slot:%s)"), *Name, *P.Key.ToString(), *Got,
+					P.Value, *P.Key.ToString()));
 			}
 		}
 	}

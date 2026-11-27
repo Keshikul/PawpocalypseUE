@@ -14,13 +14,33 @@ was approved is what ships. Timing, sizes of the arc and the claws, and when eac
 
 import palette as PAL
 
+# The aura (playtest 2026-11-26, note 31: "the aura shouldn't have a huge round outline. just feather is good"): the fill
+# alone, its outer AURA_FEATHER of the radius fading to clear; no ring (width 0: not drawn). D18 had a 6 px ring at 85 %.
 AURA_LIFT = PAL.STICKER_CREATURES["halo"]
-AURA_LIFT_ALPHA = 0.16
+AURA_LIFT_ALPHA = 0.18
+AURA_FEATHER = 0.35          # the share of the radius that fades from AURA_LIFT_ALPHA to clear
 AURA_RING = PAL.STICKER_CREATURES["halo"]
 AURA_RING_ALPHA = 0.85
-AURA_RING_WIDTH = 6.0        # px
+AURA_RING_WIDTH = 0.0        # px; 0: no ring
 AURA_INK_EDGE = 0.0          # none: the concept's ring has no ink edge
 AURA_INK_ALPHA = 0.0
+
+# The ground zones cards leave (they were the first try's colours, hard-coded in PawVfx). Ember Trail burns red (playtest
+# 2026-11-26, note 39: "ember trail is blue. it should be red"); Hammerfall's crater and Anvil Echo keep theirs.
+ZONE_TRAIL = PAL.STICKER["badge"]
+ZONE_CRATER = "#FF853D"
+ZONE_ECHO = "#9EE0F0"
+
+# Thunderclap's detonation (playtest 2026-11-26, note 32: "thunderclap doesn't have a visual effect?": the first try's 4 px
+# pale ring faded as it grew and was gone inside the cat). A bold white ring on an ink edge sweeps out to the aura's edge
+# and holds its strength for PULSE_HOLD of its life, over a quick flash of the aura's yellow.
+PULSE_RING = PAL.STICKER["white"]
+PULSE_RING_WIDTH = 10.0      # px
+PULSE_INK_EDGE = 3.0         # px each side
+PULSE_FLASH = PAL.STICKER_CREATURES["halo"]
+PULSE_FLASH_ALPHA = 0.35
+PULSE_SEC = 0.45
+PULSE_HOLD = 0.6             # the share of its life at full strength
 
 CRIT = PAL.STICKER["yellow"]  # crits and earned crits (an earned crit stays twice as wide, as in Godot)
 

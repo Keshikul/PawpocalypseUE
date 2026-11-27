@@ -20,6 +20,13 @@ namespace Pc
 		// --- the rules PawCore ports today (GameState, CardManager) ---------------------------------------------------
 		// BOSS_REALMS: the five biomes holding a boss, in ladder order. Beating them in order raises the stage.
 		std::vector<std::string> BossRealms;
+		// D-e (playtest 2026-11-26, note 36): auto-pick is free for everyone (1); 0 is the first try's rule (only with the
+		// Auto-Card node owned). The Godot replays set 0.
+		int64_t AutoPickFree = 0;
+		// Skills taken out of the game (D-e: auto_card; with E2, D-c's audit, deep_pockets, auto_bait). Their rows stay in
+		// SkillBranchData (a save that owns one is refunded what it paid, from them); a retired skill and everything under it
+		// is hidden, never for sale and not laid out. The Godot replays clear it.
+		std::vector<std::string> RetiredBranches;
 		// EVOLUTION_STAGE_COUNT: stage 1 is the baseline, each boss grants one, the ending grants the seventh.
 		int64_t EvolutionStageCount = 0;
 		// MAX_WAVE: the wave counter stops here while the kill counter does not.

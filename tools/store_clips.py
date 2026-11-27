@@ -89,7 +89,7 @@ LATE = (["paw.Do paw.Cheat.UnlockStages"] + [s for s in STARTER if s != "paw.Row
 def montage(name, realms, seconds_each):
     """One take of several realms: each travelled to and filled at 5x unrecorded, then recorded (paw.Clip append)."""
     frames = round(seconds_each * FPS)
-    steps = []
+    steps = ["paw.Boba 0"]  # no cameo at random in a take (P4.3)
     for n in realms:
         steps += (["paw.Travel %d" % n, "paw.Do paw.Cheat.Speed 5"] + wait(4) + ["paw.Do paw.Cheat.Speed 1"] + wait(0.5)
                   + ["paw.Clip %s %d append" % (name, frames), "paw.Wait %d" % (frames + 2)])

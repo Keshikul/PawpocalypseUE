@@ -647,7 +647,9 @@ bool FPawInputScreensTest::RunTest(const FString& Parameters)
 		UPawSettingsDialog* D = UPawSettingsDialog::Open(W.Root->ModalStack, nullptr);
 		D->PressSection(Pc::PcSettingsSection::Audio);
 		SendKey(D, K);
-		TestTrue(FString::Printf(TEXT("section_prev %s: Controls (wraps)"), *K.ToString()), D->IsPageShown(Pc::PcSettingsSection::Controls));
+		// It wraps to the last page shown: Game in a game (D29), Controls elsewhere.
+		const Pc::PcSettingsSection Last = D->IsInGame() ? Pc::PcSettingsSection::Game : Pc::PcSettingsSection::Controls;
+		TestTrue(FString::Printf(TEXT("section_prev %s: the last page (wraps)"), *K.ToString()), D->IsPageShown(Last));
 		D->PressClose();
 	}
 	for (const FKey& K : PawInput::KeysOf(TEXT("back")))
@@ -1139,6 +1141,11 @@ bool FPawInputPointerFieldTest::RunTest(const FString& Parameters)
 		FVector2D(1920, 1080));
 	TestEqual(TEXT("never under the dock"), APawRealmView::StickStep(FVector2D(600, 10), FVector2f(-900.0f, -900.0f), 1.0, Field),
 		FVector2D(568, 0));
+	// Playtest 2026-11-26 (note 35): the pointer's cat is clamped the same way: over the dock it waits at the dock's edge.
+	TestEqual(TEXT("the pointer on the field: the cat under it"), APawRealmView::PointerStep(FVector2D(1000, 500), Field), FVector2D(1000, 500));
+	TestEqual(TEXT("the pointer over the dock: the cat at the dock's edge"), APawRealmView::PointerStep(FVector2D(300, 500), Field),
+		FVector2D(568, 500));
+	TestEqual(TEXT("past the far corner: in it"), APawRealmView::PointerStep(FVector2D(2500, -40), Field), FVector2D(1920, 0));
 	return true;
 }
 

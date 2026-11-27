@@ -80,6 +80,9 @@ public:
 	bool PickJob(const FString& JobId, bool bSecond);
 	// CardManager.reroll_hand(): a fresh hand for one reroll; false with no hand up or no reroll left.
 	bool RerollHand();
+	// Auto-pick turned on while a hand is up (D-e, the card screen's box): a card of it taken at random now, as a deal
+	// with auto-pick on takes one (its own roll stream). The card taken, or "" with no hand up.
+	FString AutoPickNow();
 	// CardManager.banish_from_hand(): spends a banish on a card in the hand and re-deals (the level is not used). True also
 	// when the re-deal comes back empty (the deck banished dry): the hand is then gone and the pick closes.
 	bool BanishFromHand(const FString& CardId);

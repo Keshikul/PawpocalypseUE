@@ -4,6 +4,7 @@
 #include "Core/PawLog.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "HAL/PlatformProcess.h"
 #include "HAL/PlatformTime.h"
 #include "PcStats.h"
 #include "Platform/PawSteam.h"
@@ -42,6 +43,14 @@ bool UPawPlatformSubsystem::IsActive()
 FString UPawPlatformSubsystem::SaveUserFolder()
 {
 	return PawSteam::SteamId64();
+}
+
+void UPawPlatformSubsystem::OpenWebPage(const FString& Url)
+{
+	if (!PawSteam::OpenOverlayWebPage(Url))
+	{
+		FPlatformProcess::LaunchURL(*Url, nullptr, nullptr);
+	}
 }
 
 FString UPawPlatformSubsystem::PlatformLanguage()

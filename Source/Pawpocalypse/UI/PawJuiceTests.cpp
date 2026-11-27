@@ -373,13 +373,7 @@ bool FPawJuiceTreeTest::RunTest(const FString& Parameters)
 	J.Tick(1.0);
 	TestTrue(TEXT("and settles"), Near(ScaleX(Node), 1.0) && Near(ScaleY(Node), 1.0));
 
-	UBorder* Plate = Tree->GetWarningPlate();
-	TestTrue(TEXT("no leaving plate yet"), Plate && Plate->GetVisibility() == ESlateVisibility::Collapsed);
-	Tree->PressClose();
-	TestTrue(TEXT("leaving asks"), Plate && Plate->GetVisibility() != ESlateVisibility::Collapsed);
-	TestTrue(TEXT("the plate pops in from POP_IN_FROM"), Plate && Near(ScaleX(Plate), Pc::JuicePopInFrom));
-	J.Tick(1.0);
-	TestTrue(TEXT("to full size"), Plate && Near(ScaleX(Plate), 1.0));
+	// (The leaving plate's pop-in went with the plate: P4.7 asks in the confirm dialog, Pawpocalypse.UI.Confirm.)
 	W.Close();
 	return true;
 }

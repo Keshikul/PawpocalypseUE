@@ -43,7 +43,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CORE = ROOT / "Source" / "PawCore"
 UI = ROOT / "Source" / "Pawpocalypse" / "UI"
 ST_UI = ROOT / "Content" / "Pawpocalypse" / "Localization" / "Strings" / "ST_UI.csv"
-UI_KEY = re.compile(r'TEXT\("((?:TAB|PAGE|SHOP|ZONE|WAVE|BOSS|REALMS|BAIT|REAWAKEN|CATCHES|AWARDS|JOBS|PICK|TREE|PROMPT|CEREMONY|JOBPICK|VICTORY|DURATION|TITLE|PAUSE|SETTINGS|CONTROLS|INPUT|KEY|HUD|QUICK)_[a-z0-9_]+)"\)')
+UI_KEY = re.compile(r'TEXT\("((?:TAB|PAGE|SHOP|ZONE|WAVE|BOSS|REALMS|BAIT|REAWAKEN|CATCHES|AWARDS|JOBS|PICK|TREE|PROMPT|CEREMONY|JOBPICK|VICTORY|DURATION|TITLE|PAUSE|SETTINGS|CONTROLS|INPUT|KEY|HUD|QUICK|TIP)_[a-z0-9_]+)"\)')
 # A colour built from numbers: FLinearColor(1, 0, 0), FColor Name{255, ...}, FromHex(...); not a function returning one.
 UI_COLOUR = re.compile(r"\bF(?:Linear)?Color\s*(?:\w+\s*)?[({]\s*[-+]?[\d.]|FromHex|FromSRGBColor")
 UI_TEXT = re.compile(r"FText::FromString\s*\(|\bLOCTEXT\s*\(|\bNSLOCTEXT\s*\(")

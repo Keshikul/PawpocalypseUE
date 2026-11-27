@@ -9,12 +9,27 @@
 
 namespace PawFxLook
 {
-	// The aura (D18): the concept's yellow ring over a faint fill of it, no ink edge (AuraInkEdge 0: not drawn).
-	inline const FLinearColor AuraLift = FLinearColor(1.000000f, 0.831373f, 0.278431f, 0.160000f);
+	// The aura: a fill of the concept's yellow whose outer AuraFeather of the radius fades to clear (playtest 2026-11-26,
+	// note 31); a ring only when AuraRingWidth > 0, an ink edge only when AuraInkEdge > 0.
+	inline const FLinearColor AuraLift = FLinearColor(1.000000f, 0.831373f, 0.278431f, 0.180000f);
+	inline constexpr double AuraFeather = 0.350;
 	inline const FLinearColor AuraRing = FLinearColor(1.000000f, 0.831373f, 0.278431f, 0.850000f);
-	inline constexpr double AuraRingWidth = 6.000;
+	inline constexpr double AuraRingWidth = 0.000;
 	inline constexpr double AuraInkEdge = 0.000;
 	inline constexpr double AuraInkAlpha = 0.000;
+
+	// The ground zones (Ember Trail red: playtest 2026-11-26, note 39).
+	inline const FLinearColor ZoneTrail = FLinearColor(0.949020f, 0.329412f, 0.356863f, 1.000000f);
+	inline const FLinearColor ZoneCrater = FLinearColor(1.000000f, 0.521569f, 0.239216f, 1.000000f);
+	inline const FLinearColor ZoneEcho = FLinearColor(0.619608f, 0.878431f, 0.941176f, 1.000000f);
+
+	// Thunderclap's detonation (playtest 2026-11-26, note 32).
+	inline const FLinearColor PulseRing = FLinearColor(1.000000f, 1.000000f, 1.000000f, 1.000000f);
+	inline constexpr double PulseRingWidth = 10.000;
+	inline constexpr double PulseInkEdge = 3.000;
+	inline const FLinearColor PulseFlash = FLinearColor(1.000000f, 0.831373f, 0.278431f, 0.350000f);
+	inline constexpr double PulseSec = 0.450;
+	inline constexpr double PulseHold = 0.600;
 
 	// Crits and earned crits (Godot's pink is the reward colour).
 	inline const FLinearColor Crit = FLinearColor(1.000000f, 0.784314f, 0.239216f, 1.000000f);

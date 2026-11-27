@@ -311,30 +311,6 @@ TEST_CASE("HUD: the zone plate says progress, ready, bait or nothing")
 	}
 }
 
-TEST_CASE("HUD: the wave line counts bait where a boss lives, waves elsewhere")
-{
-	const Pc::PcGameData& D = Game();
-	Pc::PcProgress P = Fresh(D);
-	REQUIRE(D.Tiers.front().BossData.empty());
-	Pc::PcWaveLine Line = Pc::WaveLine(D, P);
-	CHECK(Line.bVisible == (Pc::WaveProgress(D, P).Costs > 0.0));
-	CHECK_FALSE(Line.bBait);
-	CHECK(Line.Wave == P.CurrentWaveIndex);
-
-	const Pc::PcTier& BossTier = FirstBossTier(D);
-	const Pc::PcBoss* Boss = D.FindBoss(BossTier.BossData);
-	Pc::CheatUnlockAllTiers(D, P);
-	Pc::BeginBiome(D, P, BossTier.Id);
-	Line = Pc::WaveLine(D, P);
-	REQUIRE(Line.bVisible);
-	CHECK(Line.bBait);
-	CHECK(Line.Needed == Boss->BaitRequired);
-	CHECK(Line.Held == std::min(Pc::BaitHeld(D, P, BossTier.Id), Boss->BaitRequired));
-	P.BaitKillsByBiome[P.CurrentBiomeId] += (Boss->BaitRequired + 5) * Boss->KillsPerBait; // more than needed: clamped
-	Line = Pc::WaveLine(D, P);
-	CHECK(Line.Held == Boss->BaitRequired);
-}
-
 TEST_CASE("HUD: the Pounce clock and the boss panel")
 {
 	const Pc::PcGameData& D = Game();
@@ -402,6 +378,36 @@ TEST_CASE("HUD: tab badges never sit on the open tab; Achievements count; Jobs a
 	CHECK(Pc::AnyUpgradeAffordable(D, P));
 	CHECK(Pc::TabState(F, D, P, T::Upgrades, T::Realms, 0).bBadge);
 	CHECK_FALSE(Pc::TabState(F, D, P, T::Upgrades, T::Upgrades, 0).bBadge); // open: no star
+	// Playtest 2026-11-26 (note 26): a row the shop hides or locks never lights it. Kitten Speed (45 Catnip) is locked with
+	// no kitten; with Catnip for it and for nothing the shop shows, no dot.
+	{
+		Pc::PcProgress Q = Fresh(D);
+		REQUIRE(Pc::IsKittenSpeedLocked(D, Q));
+		const double Locked = Pc::UpgradeCostById(D, Q, "kitten_speed");
+		// The shown rows bought up until each costs more than the locked one (the playtest's state a few minutes in).
+		double Cheapest = 1e300;
+		for (const std::string& Id : Pc::ShopRowOrder())
+		{
+			if (Pc::ShopRow(D, Q, Id, 1).Kind != Pc::PcShopRowKind::Price)
+			{
+				continue;
+			}
+			while (Pc::UpgradeCostById(D, Q, Id) <= Locked && !Pc::IsUpgradeAtCap(D, Q, Id))
+			{
+				++Q.UpgradeLevels[Id];
+			}
+			if (Pc::ShopRow(D, Q, Id, 1).Kind == Pc::PcShopRowKind::Price)
+			{
+				Cheapest = std::min(Cheapest, Pc::UpgradeCostById(D, Q, Id));
+			}
+		}
+		REQUIRE(Locked < Cheapest); // the case the playtest hit: the locked row is the cheapest
+		REQUIRE(Pc::IsKittenSpeedLocked(D, Q));
+		Q.Catnip = Locked;
+		CHECK_FALSE(Pc::AnyUpgradeAffordable(D, Q));
+		Q.Catnip = Cheapest;
+		CHECK(Pc::AnyUpgradeAffordable(D, Q));
+	}
 
 	CHECK_FALSE(Pc::TabState(F, D, P, T::Catches, T::Upgrades, 0).bBadge);
 	P.Hand = { D.Cards.front().Id };
@@ -941,6 +947,92 @@ TEST_CASE("HUD: the card pick says the level, each card's next level and price, 
 	// An id the data does not hold is skipped, never drawn blank.
 	P.Hand.push_back("no_such_card");
 	CHECK(Pc::CardPick(D, P).Cards.size() == 3);
+}
+
+TEST_CASE("P4.1: the shop row's tooltip (now, next, price, short)")
+{
+	const Pc::PcGameData& D = Game();
+	Pc::PcProgress P = Fresh(D);
+	const Pc::PcUpgrade& Paw = *D.FindUpgrade("paw_damage");
+	const double Cost = Pc::UpgradeCostById(D, P, "paw_damage");
+
+	P.Catnip = Cost * 0.25;
+	Pc::PcUpgradeTip Tip = Pc::UpgradeTip(D, P, "paw_damage", 1);
+	REQUIRE(Tip.bKnown);
+	CHECK_FALSE(Tip.bLocked);
+	CHECK(Tip.Number == Pc::PcTipNumber::Multiplier);
+	CHECK(Tip.Level == 0);
+	CHECK(Tip.Now == doctest::Approx(1.0));
+	CHECK(Tip.Next == doctest::Approx(Paw.EffectPerLevel));
+	CHECK(Tip.Levels == 1);
+	CHECK(Tip.Price == Cost);
+	CHECK_FALSE(Tip.bAffordable);
+	CHECK(Tip.Short == doctest::Approx(Cost * 0.75));
+
+	P.Catnip = Cost;
+	Tip = Pc::UpgradeTip(D, P, "paw_damage", 1);
+	CHECK(Tip.bAffordable);
+	CHECK(Tip.Short == 0.0);
+
+	// A bulk amount: the tip's Next is what the row's press buys, every level of it.
+	P.Catnip = 1e12;
+	const Pc::PcShopRow Bulk = Pc::ShopRow(D, P, "paw_damage", 10);
+	REQUIRE(Bulk.Kind == Pc::PcShopRowKind::Bulk);
+	Tip = Pc::UpgradeTip(D, P, "paw_damage", 10);
+	CHECK(Tip.Levels == Bulk.Levels);
+	CHECK(Tip.Price == Bulk.Price);
+	CHECK(Tip.Next == doctest::Approx(std::pow(Paw.EffectPerLevel, static_cast<double>(Bulk.Levels))));
+
+	// An additive share and a count read as such.
+	CHECK(Pc::UpgradeTip(D, P, "crit_chance", 1).Number == Pc::PcTipNumber::Percent);
+	CHECK(Pc::UpgradeTip(D, P, "kitten_count", 1).Number == Pc::PcTipNumber::Count);
+
+	// Locked before a kitten: no numbers.
+	const Pc::PcUpgradeTip Locked = Pc::UpgradeTip(D, P, "kitten_power", 1);
+	CHECK(Locked.bKnown);
+	CHECK(Locked.bLocked);
+	CHECK(Locked.Price == 0.0);
+
+	// An unknown line.
+	CHECK_FALSE(Pc::UpgradeTip(D, P, "no_such_line", 1).bKnown);
+}
+
+TEST_CASE("P4.1: a maxed line's tooltip holds its number")
+{
+	const Pc::PcGameData& D = Game();
+	Pc::PcProgress P = Fresh(D);
+	// Crit Chance has a cap: buy past it.
+	P.UpgradeLevels["crit_chance"] = 50;
+	REQUIRE(Pc::IsUpgradeAtCap(D, P, "crit_chance"));
+	const Pc::PcUpgradeTip Tip = Pc::UpgradeTip(D, P, "crit_chance", 1);
+	CHECK(Tip.bMaxed);
+	CHECK(Tip.Next == Tip.Now);
+	CHECK(Tip.Now == doctest::Approx(Pc::EffectiveCap(*D.FindUpgrade("crit_chance"), P)));
+	CHECK(Tip.Price == 0.0);
+}
+
+TEST_CASE("P4.1: the tooltip sits beside the dock, level with its row, on screen")
+{
+	const Pc::PcRect Left{ 0.0, 0.0, 480.0, 1080.0 };
+	const Pc::PcRect Row{ 24.0, 300.0, 432.0, 60.0 };
+	Pc::PcRect T = Pc::PlaceTip(Left, Row, 360.0, 200.0, 1920.0, 1080.0, 12.0, 16.0);
+	CHECK(T.X == 492.0);                       // the field side of a left dock
+	CHECK(T.CentreY() == doctest::Approx(330.0)); // level with the row
+	CHECK(T.W == 360.0);
+	CHECK(T.H == 200.0);
+
+	const Pc::PcRect Right{ 1440.0, 0.0, 480.0, 1080.0 };
+	T = Pc::PlaceTip(Right, Pc::PcRect{ 1464.0, 300.0, 432.0, 60.0 }, 360.0, 200.0, 1920.0, 1080.0, 12.0, 16.0);
+	CHECK(T.X == 1440.0 - 12.0 - 360.0);       // the field side of a right dock
+
+	// Kept on screen: a row at the top and one at the bottom.
+	T = Pc::PlaceTip(Left, Pc::PcRect{ 24.0, 0.0, 432.0, 40.0 }, 360.0, 200.0, 1920.0, 1080.0, 12.0, 16.0);
+	CHECK(T.Y == 16.0);
+	T = Pc::PlaceTip(Left, Pc::PcRect{ 24.0, 1050.0, 432.0, 40.0 }, 360.0, 200.0, 1920.0, 1080.0, 12.0, 16.0);
+	CHECK(T.Bottom() == doctest::Approx(1080.0 - 16.0));
+	// A screen too narrow for it beside the dock: inside the screen anyway.
+	T = Pc::PlaceTip(Left, Row, 360.0, 200.0, 700.0, 1080.0, 12.0, 16.0);
+	CHECK(T.Right() <= 700.0 - 16.0 + 1e-9);
 }
 
 #endif

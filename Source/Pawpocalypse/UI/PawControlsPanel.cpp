@@ -8,6 +8,7 @@
 #include "Components/OverlaySlot.h"
 #include "Components/ScaleBox.h"
 #include "Components/ScrollBox.h"
+#include "Components/ScrollBoxSlot.h"
 #include "Components/SizeBox.h"
 #include "Components/Slider.h"
 #include "Components/Spacer.h"
@@ -109,7 +110,8 @@ bool UPawControlsPanel::Initialize()
 		Scroll->SetScrollWhenFocusChanges(EScrollWhenFocusChanges::InstantScroll);
 		Size->SetContent(Scroll);
 		UVerticalBox* Body = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("Body"));
-		Scroll->AddChild(Body);
+		// Room for the selection ring, which the scroll box would clip (playtest 2026-11-26, note 4).
+		Cast<UScrollBoxSlot>(Scroll->AddChild(Body))->SetPadding(FMargin(static_cast<float>(SettingsRingRoom)));
 
 		ShowPromptsCheck = Check(T, Body, TEXT("ShowPromptsCheck"), CheckKeys[0]);
 		TutorialTipsCheck = Check(T, Body, TEXT("TutorialTipsCheck"), CheckKeys[1]);

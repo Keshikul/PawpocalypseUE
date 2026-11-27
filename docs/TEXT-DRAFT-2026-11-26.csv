@@ -1,0 +1,43 @@
+table,key,proposed,note
+ST_Data,SKILL_vitality_name,Extra Kittens,"note 38: ""Vitality"" sounded like health; it gives kittens. Other names: Kitten Pack, Big Family"
+ST_Tree,TREE_vitality_label,Extra Kittens,the caption under the node
+ST_Tree,TREE_vitality_blurb,Adds kittens that hunt on their own. +1 to +10 over 10 levels.,"the same facts, one idea shorter"
+ST_Data,ACH_br_vitality_5_name,Big Family,"its achievement (5 levels; was ""Boundless Vitality""); Steam's list is uploaded again"
+ST_UI,PICK_auto,Auto-pick cards,"note 36: the box under Reroll on the card screen (P4.5)"
+ST_UI,PICK_auto_note,You can turn it off in Settings.,"note 36: the line beside the box"
+ST_UI,SETTINGS_section_game,Game,"a new Settings page for game options (auto-pick first)"
+ST_UI,SETTINGS_auto_pick,Auto-pick cards,the box on that page
+ST_UI,PAUSE_quit_game,Quit game,"note 43: a new pause button (P4.7)"
+ST_UI,PAUSE_quit_prompt,Save and quit?,its question
+ST_UI,PAUSE_save_quit,Save and quit,"the question's yes; its no is the existing Cancel"
+ST_UI,TREE_leave_prompt,You still have Stardust to spend.,"note 27: a real Leave / Stay question when leaving the spend step (P4.7), replacing ""Press again to leave"""
+ST_UI,TREE_leave_yes,Leave,
+ST_UI,TREE_leave_no,Stay,
+ST_UI,TIP_now,Now,"the tooltip's two number boxes (C1, P4.1)"
+ST_UI,TIP_next,Next,
+ST_UI,TIP_gives,Gives,the box for an unlock not bought yet
+ST_UI,TIP_short,Need {amount} more,the price chip when the player cannot pay yet
+ST_UI,CATCHES_head,This run's cards,"note 19: the Catches page lists only the cards taken this run (P4.6)"
+ST_UI,CATCHES_held,{name}  (Lv {level}),"note 19 (E4): cards have no last level, so no ""/{max}"""
+ST_UI,PICK_level,LEVEL {level},"note 19 (E4): no ""of {max}"""
+ST_Data,CARD_hot_borders_desc,Enemies leaving the area burn for x{v} aura damage.,"note 30 (E5, D-k): only enemies walking out burn; the numbers are re-measured"
+ST_Data,CARD_slow_burn_desc,Enemies your aura touches burn for 3s after. x{v} aura damage. Spawn rate x{c}.,"note 40 (E5, D-k): its own effect, no longer the borders"
+ST_UI,BOSS_summon,Summon {boss},"note 42 (E2): the Bait button becomes this; free"
+ST_UI,BOSS_beaten,{boss} beaten,the same button once the boss is beaten for good
+ST_UI,BOSS_strength,Damage: {have} / {need},"the strength meter: your damage per second, and what beats the boss in time"
+ST_UI,BOSS_left,{boss} left. Try again when you are stronger.,the toast when the time runs out
+ST_Data,UPG_paw_damage_desc,Your damage. The aura uses it too.,"note 14: each upgrade's one line in the new tooltip (P4.1); the numbers sit under it"
+ST_Data,UPG_attack_speed_desc,How often you attack.,
+ST_Data,UPG_crit_chance_desc,Chance for a critical hit.,
+ST_Data,UPG_shred_desc,Each hit on the same enemy does more damage.,
+ST_Data,UPG_execute_desc,Kills enemies under this much health at once.,
+ST_Data,UPG_aura_radius_desc,How far your aura reaches.,
+ST_Data,UPG_currency_find_desc,More Catnip from every kill.,
+ST_Data,UPG_spawn_rate_desc,How many enemies arrive.,
+ST_Data,UPG_kitten_count_desc,More kittens.,"its number follows E3 (+1 a buy)"
+ST_Data,UPG_kitten_power_desc,Damage per kitten.,
+ST_Data,UPG_kitten_speed_desc,How fast kittens move.,
+ST_Data,UPG_shield_pierce_desc,Damage that gets through shields.,
+ST_Data,UPG_pounce_power_desc,Pounce damage.,
+ST_Data,UPG_pounce_cooldown_desc,Time between Pounces.,
+ST_Data,UPG_overkill_desc,Damage past a kill hits the nearest enemy.,

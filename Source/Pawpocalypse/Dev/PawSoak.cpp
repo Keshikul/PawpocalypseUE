@@ -331,7 +331,7 @@ namespace
 					if (Id.IsEmpty())
 					{
 						T->PressClose();
-						T->PressClose();
+						T->AnswerLeave(true); // P4.7: the leave question's Leave
 						++TreeLeaves;
 					}
 					else if (T->PressNode(Id))
@@ -344,7 +344,7 @@ namespace
 						Note(FString::Printf(TEXT("the tree offered %s and refused to buy it (%.4g Stardust) at game minute %.1f"), *Id, P.Stardust, GameMin));
 						++TreeRefused;
 						T->PressClose();
-						T->PressClose();
+						T->AnswerLeave(true); // P4.7: the leave question's Leave
 						++TreeLeaves;
 					}
 				}

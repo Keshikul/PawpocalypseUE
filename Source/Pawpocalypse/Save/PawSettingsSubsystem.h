@@ -129,6 +129,12 @@ public:
 		FPlatformRect& OutWork);
 	int32 GetWrites() const { return Writes; }
 	bool IsStored() const { return Storage.IsValid(); }
+	// Whether the last read found a settings file (false on this PC's first run, or with no storage).
+	bool HadSettingsFile() const { return bHadFile; }
+	// The first run on a PC (no settings file yet, the window not named on the command line): borderless fullscreen on the
+	// main monitor, at its own resolution (playtest 2026-11-26, note 1: the 1920 x 1080 window was small on a bigger
+	// monitor). PcSettings' own default stays the first try's window, so a file without the key still reads as windowed.
+	static void FirstRunDefaults(Pc::PcSettings& InOut, bool bHadFile, bool bWindowFromCommandLine);
 
 	// The tests' sandbox: their own storage, read now (as at startup); null: none, the defaults.
 	void UseStorageForTest(TSharedPtr<IPawSaveStorage> InStorage);
@@ -156,6 +162,7 @@ private:
 	FPawLanguageApplied Language;
 	int32 Writes = 0;
 	bool bWindowFromCommandLine = false;
+	bool bHadFile = false;
 	FTSTicker::FDelegateHandle StartupApply;
 	FDelegateHandle ActivationHandle;
 	bool bAppActive = true;

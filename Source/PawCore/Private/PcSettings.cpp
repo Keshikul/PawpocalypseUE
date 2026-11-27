@@ -892,10 +892,11 @@ namespace Pc
 		return true;
 	}
 
-	void SettingsDialogStepSection(PcSettingsDialog& D, int64_t Direction)
+	void SettingsDialogStepSection(PcSettingsDialog& D, int64_t Direction, int64_t Count)
 	{
+		Count = Count > 0 ? Count : SettingsSectionCount;
 		const int64_t At = static_cast<int64_t>(D.Section) + Direction;
-		D.Section = static_cast<PcSettingsSection>(((At % SettingsSectionCount) + SettingsSectionCount) % SettingsSectionCount);
+		D.Section = static_cast<PcSettingsSection>(((At % Count) + Count) % Count);
 	}
 
 	int64_t SettingsFpsSelected(const PcSettings& S)

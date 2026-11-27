@@ -43,6 +43,7 @@
 #include "PcEconomy.h"
 #include "PcField.h"
 #include "PcHud.h"
+#include "UI/PawTooltip.h"
 #include "PcJobs.h"
 #include "PcProgress.h"
 #include "PcStats.h"
@@ -253,8 +254,11 @@ bool FPawHudReadoutsTest::RunTest(const FString& Parameters)
 	// R4e: the board's rows: the words on the left, a little bigger, taller.
 	TestTrue(TEXT("a shop row: words left, 18 px"), W.Hud->GetRowButton(Paw)->bAlignLeft
 		&& FMath::IsNearlyEqual(W.Hud->GetRowButton(Paw)->LabelPx, static_cast<float>(PawUi::R4RowPx)));
-	// R4d: the wave line's plate is what shows and hides with it.
-	TestTrue(TEXT("the wave line sits on its plum plate"), W.Hud->WaveShown() && W.Hud->WaveShown()->GetFName() == TEXT("WavePlate"));
+	// Playtest 2026-11-26 (note 8): no wave line or bar on the HUD (the asset is what ships).
+	for (const TCHAR* Gone : { TEXT("WavePlate"), TEXT("WaveBox"), TEXT("WaveLine"), TEXT("WaveBar") })
+	{
+		TestNull(FString::Printf(TEXT("no %s"), Gone), W.Hud->WidgetTree->FindWidget(Gone));
+	}
 	const int32 Power = W.RowOf("kitten_power");
 	TestTrue(TEXT("Kitten Power waits for a kitten"), S(W.Hud->GetRowButton(Power)->GetLabel()).StartsWith(TEXT("Kitten Power — buy a Kitten first")));
 	TestFalse(TEXT("with no price plate"), W.Hud->GetRowButton(Power)->IsPriceTagShown());
@@ -299,12 +303,6 @@ bool FPawHudReadoutsTest::RunTest(const FString& Parameters)
 	// The bar keeps what Godot's Range keeps: the fraction snapped to 0.01.
 	TestTrue(TEXT("its bar"), FMath::IsNearlyEqual(W.Hud->GetZoneFill(),
 		static_cast<float>(Pc::GodotRangeValue(Zone.Fraction, 0.0, 1.0, Pc::GodotRangeStep)), 1e-6f));
-	const Pc::PcWaveLine Wave = Pc::WaveLine(W.D(), P);
-	TestEqual(TEXT("the wave line shown as PcHud says"), W.Hud->IsWaveVisible(), Wave.bVisible);
-	if (Wave.bVisible && !Wave.bBait)
-	{
-		TestTrue(TEXT("the wave line"), S(W.Hud->GetWaveText()).StartsWith(FString::Printf(TEXT("Wave %lld  —  "), Wave.Wave)));
-	}
 
 	// The XP bar: within the level.
 	P.CatchesLevel = 2;
@@ -371,22 +369,23 @@ bool FPawHudDockTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("without a dock the field is the view"), F.Bounds.X, 0.0);
 	// A HUD 1920 x 1080 UI units (scale 1), dock on the left.
 	W.Hud->ReportDockForSize(FVector2D(1920.0, 1080.0));
-	TestEqual(TEXT("left: the dock's rect"), W.Realm->GetDock().W, 568.0);
-	TestTrue(TEXT("left: the field starts at the dock's edge"), FMath::IsNearlyEqual(F.Bounds.X, 568.0, 1e-9));
+	TestEqual(TEXT("D-j (playtest 2026-11-26, note 24): the dock 480 wide, not hud.tscn's 568"), PawUi::DockWidth, 480.0);
+	TestEqual(TEXT("left: the dock's rect"), W.Realm->GetDock().W, PawUi::DockWidth);
+	TestTrue(TEXT("left: the field starts at the dock's edge"), FMath::IsNearlyEqual(F.Bounds.X, PawUi::DockWidth, 1e-9));
 	TestTrue(TEXT("left: and runs to the right edge"), FMath::IsNearlyEqual(F.Bounds.X + F.Bounds.W, 1920.0, 1e-9));
 	TestTrue(TEXT("a click over the dock is the dock's"), W.Realm->IsOverDock(100.0, 500.0));
 	TestFalse(TEXT("a click on the field is a Pounce"), W.Realm->IsOverDock(1000.0, 500.0));
 	// Flipped: the dock on the right.
 	W.Hud->SetDockOnLeft(false);
 	W.Hud->ReportDockForSize(FVector2D(1920.0, 1080.0));
-	TestTrue(TEXT("right: the dock's rect"), FMath::IsNearlyEqual(W.Realm->GetDock().X, 1920.0 - 568.0, 1e-9));
+	TestTrue(TEXT("right: the dock's rect"), FMath::IsNearlyEqual(W.Realm->GetDock().X, 1920.0 - PawUi::DockWidth, 1e-9));
 	TestTrue(TEXT("right: the field starts at 0"), FMath::IsNearlyEqual(F.Bounds.X, 0.0, 1e-9));
-	TestTrue(TEXT("right: and stops at the dock"), FMath::IsNearlyEqual(F.Bounds.W, 1920.0 - 568.0, 1e-9));
+	TestTrue(TEXT("right: and stops at the dock"), FMath::IsNearlyEqual(F.Bounds.W, 1920.0 - PawUi::DockWidth, 1e-9));
 	TestTrue(TEXT("right: the dock takes its clicks"), W.Realm->IsOverDock(1800.0, 500.0));
 	// A window of another size: the UI's units scale to the field's 1080.
 	W.Hud->SetDockOnLeft(true);
 	W.Hud->ReportDockForSize(FVector2D(1280.0, 800.0));
-	TestTrue(TEXT("scaled: the dock in field units"), FMath::IsNearlyEqual(W.Realm->GetDock().W, 568.0 * 1080.0 / 800.0, 1e-9));
+	TestTrue(TEXT("scaled: the dock in field units"), FMath::IsNearlyEqual(W.Realm->GetDock().W, PawUi::DockWidth * 1080.0 / 800.0, 1e-9));
 	W.Hud->SetDockOnLeft(true);
 	W.Close();
 	return true;
@@ -455,10 +454,8 @@ bool FPawHudStatusLookTest::RunTest(const FString& Parameters)
 	const UPanelWidget* Body = Cast<UPanelWidget>(Tree->FindWidget(TEXT("FieldBody")));
 	const UWidget* Name = Tree->FindWidget(TEXT("BiomeName"));
 	const UWidget* Zone = Tree->FindWidget(TEXT("ZonePlate"));
-	const UWidget* Wave = Tree->FindWidget(TEXT("WavePlate"));
-	TestTrue(TEXT("the panel holds the biome's name, the next biome's line, the wave line, in that order"), Body && Name && Zone && Wave
-		&& Name->GetParent() == Body && Zone->GetParent() == Body && Wave->GetParent() == Body
-		&& Body->GetChildIndex(Name) < Body->GetChildIndex(Zone) && Body->GetChildIndex(Zone) < Body->GetChildIndex(Wave));
+	TestTrue(TEXT("the panel holds the biome's name, then the next biome's line"), Body && Name && Zone
+		&& Name->GetParent() == Body && Zone->GetParent() == Body && Body->GetChildIndex(Name) < Body->GetChildIndex(Zone));
 	TestTrue(TEXT("the panel is the status row's, under the pills"), Body && Body->GetParent() == W.Hud->GetFieldPlate()
 		&& W.Hud->GetFieldPlate()->GetParent() == W.Hud->GetStatusRow());
 	const Pc::PcField& F = W.Realm->GetSim().Field;
@@ -469,7 +466,6 @@ bool FPawHudStatusLookTest::RunTest(const FString& Parameters)
 		return B ? B->GetWidgetStyle().FillImage.TintColor.GetSpecifiedColor() : FLinearColor::Transparent;
 	};
 	TestEqual(TEXT("the next biome's bar is the concept's green"), Fill(TEXT("ZoneBar")), PawTokens::UI_BAR_ZONE);
-	TestEqual(TEXT("the wave bar is its blue"), Fill(TEXT("WaveBar")), PawTokens::UI_BAR_WAVE);
 	TestEqual(TEXT("the level's bar is its purple"), Fill(TEXT("XpBar")), PawTokens::UI_BAR_XP);
 	const UWidget* XpRow = Tree->FindWidget(TEXT("XpRow"));
 	TestTrue(TEXT("the level's row on its plate"), XpRow && XpRow->GetParent() == Tree->FindWidget(TEXT("XpPlate")));
@@ -1412,6 +1408,82 @@ bool FPawHudMemoryTest::RunTest(const FString& Parameters)
 		GEngine->DestroyWorldContext(World2);
 		World2->DestroyWorld(false);
 	}
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawHudTooltipTest, "Pawpocalypse.UI.Hud.Tooltip", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// P4.1 (playtest 2026-11-26, notes 14 and 23): a shop row's tooltip says what Pc::UpgradeTip says, in the approved words.
+bool FPawHudTooltipTest::RunTest(const FString& Parameters)
+{
+	FHudWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	Pc::PcProgress& P = W.P();
+	UPawTooltip* Tip = W.Hud->GetTooltip();
+	if (!TestNotNull(TEXT("the HUD has the tooltip"), Tip))
+	{
+		W.Close();
+		return false;
+	}
+	TestFalse(TEXT("hidden until a row is pointed at"), Tip->IsShown());
+
+	const int32 Paw = W.RowOf("paw_damage");
+	const double Cost = Pc::UpgradeCostById(W.D(), P, "paw_damage");
+	P.Catnip = Cost * 0.25;
+	W.Hud->ShowRowTip(Paw);
+	TestTrue(TEXT("shown for the row"), Tip->IsShown());
+	TestEqual(TEXT("which row"), W.Hud->GetTipRow(), Paw);
+	TestEqual(TEXT("the name"), S(Tip->GetName()), FString(TEXT("Paw Damage")));
+	TestEqual(TEXT("the level"), S(Tip->GetLevel()), FString(TEXT("Lv 0")));
+	TestEqual(TEXT("the approved line"), S(Tip->GetLine()), FString(TEXT("Your damage. The aura uses it too.")));
+	TestTrue(TEXT("Now and Next"), Tip->IsNumbersShown() && Tip->IsNextShown());
+	TestEqual(TEXT("Now"), S(Tip->GetNow()), FString(TEXT("x1.00")));
+	TestEqual(TEXT("Next"), S(Tip->GetNext()), FString::Printf(TEXT("x%.2f"), W.D().FindUpgrade("paw_damage")->EffectPerLevel));
+	TestTrue(TEXT("the price"), Tip->IsCostShown());
+	TestEqual(TEXT("the price's words"), S(Tip->GetCost()), S(PawText::Amount(Cost)));
+	TestFalse(TEXT("short: the off plate"), Tip->IsCostPayable());
+	TestTrue(TEXT("short: the red chip"), Tip->IsBlockShown());
+	TestEqual(TEXT("short: how much more"), S(Tip->GetBlock()), FString::Printf(TEXT("Need %s more"), *S(PawText::Amount(Cost * 0.75))));
+
+	P.Catnip = Cost;
+	W.Hud->ShowRowTip(Paw);
+	TestTrue(TEXT("affordable: the raised yellow"), Tip->IsCostPayable());
+	TestFalse(TEXT("affordable: no red chip"), Tip->IsBlockShown());
+
+	// A share reads as a percent; a count as a whole number.
+	P.Catnip = 1e9;
+	W.Hud->ShowRowTip(W.RowOf("crit_chance"));
+	TestEqual(TEXT("Crit Chance now"), S(Tip->GetNow()), FString(TEXT("0%")));
+	TestEqual(TEXT("Crit Chance next"), S(Tip->GetNext()),
+		FString::Printf(TEXT("%.0f%%"), W.D().FindUpgrade("crit_chance")->EffectPerLevel * 100.0));
+	W.Hud->ShowRowTip(W.RowOf("kitten_count"));
+	TestEqual(TEXT("Kitten Count next"), S(Tip->GetNext()),
+		S(PawText::Count(static_cast<int64>(W.D().FindUpgrade("kitten_count")->EffectPerLevel))));
+
+	// Maxed: Now only, MAX on the chip, nothing red.
+	P.UpgradeLevels["crit_chance"] = 50;
+	W.Hud->ShowRowTip(W.RowOf("crit_chance"));
+	TestFalse(TEXT("maxed: no Next"), Tip->IsNextShown());
+	TestEqual(TEXT("maxed: the chip says MAX"), S(Tip->GetCost()), FString(TEXT("MAX")));
+	TestFalse(TEXT("maxed: no red chip"), Tip->IsBlockShown());
+
+	// Locked (Kitten Power before a kitten): the name and line, no numbers, no price.
+	P.UpgradeLevels["kitten_count"] = 0;
+	W.Hud->ShowRowTip(W.RowOf("kitten_power"));
+	TestTrue(TEXT("locked: shown"), Tip->IsShown());
+	TestFalse(TEXT("locked: no numbers"), Tip->IsNumbersShown());
+	TestFalse(TEXT("locked: no price"), Tip->IsCostShown());
+
+	// Nothing rings in a test (no pointer, no focus): the tick hides it.
+	W.Hud->ShowRowTip(Paw);
+	W.Hud->Pump(0.016);
+	TestFalse(TEXT("the tick hides it when no row rings"), Tip->IsShown());
+	TestEqual(TEXT("and forgets the row"), W.Hud->GetTipRow(), static_cast<int32>(INDEX_NONE));
 	W.Close();
 	return true;
 }

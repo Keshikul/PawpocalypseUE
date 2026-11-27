@@ -263,7 +263,11 @@ def self_test_apply():
             after = status(eng, translations("de"))
             expect("new line translated", (new_t, new_k) in after["translated"], True)
             expect("a translated line replaced", translations("de")[old_t][old_k][0].startswith("EIGEN"), True)
-            expect("stale on arrival listed stale", [(t, k, o) for t, k, o, _ in after["stale"]], [(stale_t, stale_k, stale_e + " (old)")])
+            # Only the planted row is NEW among the stale: the real files may hold stale lines of their own (the translation
+            # freeze, D28: English changes go in untranslated until the retranslation near release).
+            before_stale = {(t, k) for t, k, _, _ in s["stale"]}
+            expect("stale on arrival listed stale", [(t, k, o) for t, k, o, _ in after["stale"] if (t, k) not in before_stale],
+                   [(stale_t, stale_k, stale_e + " (old)")])
             expect("counts", (len(after["translated"]), len(after["missing"])), (len(s["translated"]) + 1, len(s["missing"]) - 2))
             files, _, _ = port_po.build(godot)
             changed = [p.name for p, b in files.items() if p.parent.name == "de" and p.read_bytes() != b]

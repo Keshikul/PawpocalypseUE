@@ -106,8 +106,11 @@ namespace Pc
 
 	// --- the dialog (settings_dialog.gd) -------------------------------------------------------------------------------
 	enum class PcSettingsSlider : uint8_t { Master, Music, Sfx };
-	enum class PcSettingsSection : uint8_t { Audio, Video, Controls };
+	// Audio, Video, Controls (the first try's three, always there) and, since D-e (2026-11-26), Game: what the loaded game
+	// keeps (auto-pick), shown only in a game.
+	enum class PcSettingsSection : uint8_t { Audio, Video, Controls, Game };
 	constexpr int64_t SettingsSectionCount = 3;
+	constexpr int64_t SettingsSectionCountInGame = 4;
 
 	struct PcSettingsDialog
 	{
@@ -128,8 +131,8 @@ namespace Pc
 	// A slider moved to Value (by a drag, a key, a stick): false when it did not move (the snapped value is the one it
 	// held; Godot emits nothing then, so nothing is stored). Moved: the line says the slider's value, the volume is stored.
 	PAWCORE_API bool SettingsDialogMoveSlider(PcSettingsDialog& D, PcSettings& S, PcSettingsSlider Which, double Value);
-	// _step_section(): the dialog's own pages, wrapping (LB / RB, Page Up / Down).
-	PAWCORE_API void SettingsDialogStepSection(PcSettingsDialog& D, int64_t Direction);
+	// _step_section(): the dialog's own pages, wrapping (LB / RB, Page Up / Down), over the Count it shows.
+	PAWCORE_API void SettingsDialogStepSection(PcSettingsDialog& D, int64_t Direction, int64_t Count = SettingsSectionCount);
 
 	// The item each list shows selected (_sync_from_settings).
 	PAWCORE_API int64_t SettingsFpsSelected(const PcSettings& S);      // a cap not on the list shows Unlimited, and stays

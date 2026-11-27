@@ -101,9 +101,18 @@ namespace PawText
 	// tests; never the designer's editor, which UPawSettingsSubsystem leaves alone) game text stays English unless
 	// Localization.ForceLoadGameLocalizationInEditor is on: on for a culture, off again for English.
 	PAWPOCALYPSE_API bool ShowCulture(const FString& Culture);
-	// Locales.available(): English and every COMPLETE language (no line missing: Godot lists only loaded .po files, "so an
-	// unfinished language cannot be chosen by accident", and its files were complete), in the picker's order (Godot's codes:
-	// "en", "zh_Hans", "es_MX"; Pc::Languages()). bUnfinishedToo: every language with a line in use.
+	// THE TRANSLATION FREEZE (designer 2026-11-26: "Dont translate anything though. We still might change stuff. We will
+	// retranslate closer to release"; asked what players see meanwhile: "Offer them, gaps in English"). While it is on, a
+	// language stays offered when it covers at least FrozenCoverage of the lines that need words, and a line changed or added
+	// since shows its English (a stale or missing translation is never shown). The retranslation turns it off: complete only.
+	inline constexpr bool bTranslationFrozen = true;
+	inline constexpr double FrozenCoverage = 0.9;
+	// Whether a language with this count is offered to players: a line in use, and complete; or, frozen, covering
+	// FrozenCoverage of the lines.
+	PAWPOCALYPSE_API bool IsOffered(const FTranslationCount& Count, bool bFrozen = bTranslationFrozen);
+	// Locales.available(): English and every OFFERED language (IsOffered: complete, or during the freeze nearly so; Godot
+	// lists only loaded .po files, "so an unfinished language cannot be chosen by accident"), in the picker's order (Godot's
+	// codes: "en", "zh_Hans", "es_MX"; Pc::Languages()). bUnfinishedToo: every language with a line in use.
 	PAWPOCALYPSE_API bool ShowUnfinishedLanguages(); // -PawDraftLanguages on the command line (the designer's review, tours)
 	PAWPOCALYPSE_API void SetShowUnfinishedLanguagesForTest(bool bShow);
 	PAWPOCALYPSE_API TArray<FString> Languages(bool bUnfinishedToo = ShowUnfinishedLanguages());

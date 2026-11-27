@@ -50,6 +50,7 @@
 #include "UI/PawPounceClock.h"
 #include "UI/PawPrompts.h"
 #include "UI/PawText.h"
+#include "UI/PawTooltip.h"
 #include "UI/PawTokens.h"
 #include "UI/PawRainbow.h"
 #include "UI/PawVictoryScreen.h"
@@ -85,8 +86,10 @@ namespace
 		const UPawSettingsSubsystem* S = SettingsOf(W);
 		return !S || S->Get().bConfirmReawaken;
 	}
-	constexpr float PageWrap = 520.0f;   // the dock's inner width: wrapped page text is given a fixed width (KB U/09 §3)
-	constexpr float ButtonWrap = 480.0f; // inside a button's padding
+	// The dock's inner width (its 48 px of plate padding off DockWidth): wrapped page text is given a fixed width (KB U/09
+	// §3); a button's text 88 px less (its padding). D-j: both follow the 480 px dock (they were 520 and 480 at 568).
+	constexpr float PageWrap = static_cast<float>(PawUi::DockWidth - 48.0);
+	constexpr float ButtonWrap = static_cast<float>(PawUi::DockWidth - 88.0);
 	constexpr double RealmRowHeight = 54.0; // hud.gd _build_travel_panel: custom_minimum_size.y
 	constexpr double ReawakenButtonHeight = 76.0; // hud.tscn ReawakenButton
 	constexpr double ReawakenButtonPx = 26.0;
@@ -219,6 +222,11 @@ bool UPawHudScreen::Initialize()
 		WidgetTree->RootWidget = Root;
 		BuildOverlay(Root);
 		BuildDock(Root); // the dock draws above the field's readouts
+		// P4.1: the shared tooltip, above the dock and the field (placed by ShowRowTip with a render translation).
+		Tooltip = WidgetTree->ConstructWidget<UPawTooltip>(PawUi::Resolve<UPawTooltip>(), TEXT("Tooltip"));
+		UOverlaySlot* TipSlot = Root->AddChildToOverlay(Tooltip);
+		TipSlot->SetHorizontalAlignment(HAlign_Left);
+		TipSlot->SetVerticalAlignment(VAlign_Top);
 		// Last: the Reawaken ceremony over all of it (Godot's CanvasLayer 10 over the HUD's 1). It takes no input.
 		Ceremony = WidgetTree->ConstructWidget<UPawReawakenCeremony>(PawUi::Resolve<UPawReawakenCeremony>(), TEXT("Ceremony"));
 		UOverlaySlot* CeremonySlot = Root->AddChildToOverlay(Ceremony);
@@ -430,24 +438,8 @@ void UPawHudScreen::BuildOverlay(UOverlay* Root)
 		B->SetPadding(FMargin(0.0f));
 	};
 
-	// The wave line (a bare part of the panel since D18; R4d had it on its own plum plate).
-	UBorder* WavePlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("WavePlate"));
-	Flat(WavePlate);
-	WavePlate->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	WaveBox = T->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("WaveBox"));
-	WaveBox->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	WavePlate->SetContent(WaveBox);
-	// hud.gd: the Bait icon before the wave line (wrap_label "bait"). D18: muted, as the concept's.
-	WaveLine = IconLine(T, TEXT("bait"), PawUi::SmallPx, PawTokens::UI_TEXT_MUTED, 0.0f, TEXT("WaveLine"), false);
-	WaveBox->AddChildToVerticalBox(WaveLine);
-	// D18 (S4): the concept's bar, blue (Godot: the theme's ProgressBar).
-	WaveBar = PawUi::MakeBar(T, PawTokens::UI_BAR_TRACK, PawTokens::UI_BAR_WAVE, PawTokens::UI_PANEL_FRAME,
-		static_cast<float>(PawUi::StatusBarEdge), static_cast<float>(PawUi::StatusBarRadius), TEXT("WaveBar"));
-	USizeBox* WaveBarBox = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("WaveBarBox"));
-	WaveBarBox->SetHeightOverride(PawUi::WaveBarHeight);
-	WaveBarBox->SetContent(WaveBar);
-	WaveBarBox->SetVisibility(ESlateVisibility::HitTestInvisible);
-	WaveBox->AddChildToVerticalBox(WaveBarBox)->SetPadding(FMargin(0.0f, 3.0f, 0.0f, 0.0f));
+	// No wave line (playtest 2026-11-26, note 8: "there is no need for wave bar on the hud. waves do nothing"). Waves stay a
+	// rule (enemy HP and rewards step up a wave; Fence, Reputation, Compound Interest count them): WORKLIST-PLAYTEST D-f.
 
 	// The next biome's line (the zone plate; a bare part of the panel since D18).
 	ZonePlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("ZonePlate"));
@@ -465,7 +457,6 @@ void UPawHudScreen::BuildOverlay(UOverlay* Root)
 	ZoneBody->AddChildToVerticalBox(ZoneBarBox)->SetPadding(FMargin(0.0f, 3.0f, 0.0f, 0.0f));
 	const float Gap = static_cast<float>(PawUi::FieldRowGap);
 	FieldBody->AddChildToVerticalBox(ZonePlate)->SetPadding(FMargin(0.0f, Gap, 0.0f, 0.0f));
-	FieldBody->AddChildToVerticalBox(WavePlate)->SetPadding(FMargin(0.0f, Gap, 0.0f, 0.0f));
 
 	// The Catches XP bar along the field's bottom: level now, the bar, level next (hud.tscn XPBar). D18 (S4, the UI
 	// concept's HUD): on a plate, "Level n" before a purple bar; the next level stays at the bar's end (the concept leaves
@@ -653,6 +644,9 @@ void UPawHudScreen::BuildDock(UOverlay* Root)
 	DockLegend->IconPx = static_cast<int32>(PawUi::DockLegendPromptPx);
 	DockLegend->TextPx = static_cast<float>(PawUi::DockLegendPx);
 	DockLegend->TextColour = PawTokens::UI_TEXT;
+	DockLegend->WrapAt = PageWrap - 24.0f; // D-j: at 480 the legend runs past the dock in 24 languages on one line. 24 px
+	// short of the page: its line breaks are chosen a little narrower than it draws (the inline key caps; French drew 449 px
+	// against a 432 wrap at 1280 x 800, 150 % UI, measured 2026-11-27)
 	Body->AddChildToVerticalBox(DockLegend)->SetPadding(FMargin(0.0f, 8.0f, 0.0f, 0.0f));
 	USizeBox* QuickBox = T->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("QuickBarBox"));
 	QuickBox->SetMinDesiredHeight(QuickBarHeight);
@@ -724,6 +718,7 @@ void UPawHudScreen::BuildUpgradesPage(UVerticalBox* Page)
 	Page->AddChildToVerticalBox(AmountRow)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 8.0f));
 	UTextBlock* AmountLabel = PawUi::Heavy(PawUi::MakeText(T, PawUi::AmountLabelPx, PawTokens::UI_TEXT_MUTED, false, TEXT("AmountLabel")));
 	AmountLabel->SetText(PawText::Ui(TEXT("SHOP_amount_label")));
+	AmountLabel->SetAutoWrapText(true); // D-j: the narrower dock leaves "Cantidad a comprar" 5 px short on one line
 	UHorizontalBoxSlot* LabelSlot = AmountRow->AddChildToHorizontalBox(AmountLabel);
 	LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 	LabelSlot->SetVerticalAlignment(VAlign_Center);
@@ -794,6 +789,126 @@ void UPawHudScreen::BuildShopRows()
 		}
 		Rows.Add(Row);
 	}
+}
+
+namespace
+{
+	// P4.1: a tooltip number in its kind: x1.42 (a multiplier; the shop's own "x1"), 18% (a share, the language's own
+	// percent), 4 (a count).
+	FText TipNumber(Pc::PcTipNumber Kind, double Value)
+	{
+		switch (Kind)
+		{
+		case Pc::PcTipNumber::Percent:
+		{
+			// Godot's way (never grouped): whole, or to one place; the sign's place the language's (TIP_percent).
+			const double P = Value * 100.0;
+			FFormatNamedArguments A;
+			A.Add(TEXT("v"), PawText::Fixed(P, FMath::IsNearlyEqual(P, FMath::RoundToDouble(P), 1e-6) ? 0 : 1));
+			return PawText::Ui(TEXT("TIP_percent"), A);
+		}
+		case Pc::PcTipNumber::Count:
+			return PawText::Count(static_cast<int64>(FMath::RoundToDouble(Value)));
+		default:
+			return PawText::Verbatim(TEXT("x") + (Value < 1000.0 ? PawText::Fixed(Value, Value < 10.0 ? 2 : 1) : PawText::Amount(Value)).ToString());
+		}
+	}
+}
+
+void UPawHudScreen::ShowRowTip(int32 Index)
+{
+	const UPawGameSubsystem* G = Game();
+	const std::vector<std::string>& Order = Pc::ShopRowOrder();
+	if (!Tooltip || !G || !G->IsDataReady() || !Rows.IsValidIndex(Index) || Index >= static_cast<int32>(Order.size()))
+	{
+		HideTip();
+		return;
+	}
+	const std::string& Id = Order[static_cast<size_t>(Index)];
+	const Pc::PcUpgradeTip Tip = Pc::UpgradeTip(G->Data(), G->Progress(), Id, GetBuyMultiplier());
+	if (!Tip.bKnown)
+	{
+		HideTip();
+		return;
+	}
+	FFormatNamedArguments LevelArgs;
+	LevelArgs.Add(TEXT("level"), PawText::Count(Tip.Level));
+	Tooltip->SetHeader(UpgradeIcon(Id), PawText::DataField(TEXT("UPG"), Id, TEXT("name")),
+		Tip.bLocked ? FText::GetEmpty() : PawText::Ui(TEXT("SHOP_row_level"), LevelArgs));
+	Tooltip->SetLine(PawText::DataField(TEXT("UPG"), Id, TEXT("desc")));
+	Tooltip->SetNumbers(!Tip.bLocked, TipNumber(Tip.Number, Tip.Now), TipNumber(Tip.Number, Tip.Next), !Tip.bMaxed);
+	if (Tip.bMaxed)
+	{
+		Tooltip->SetCost(true, PawText::Ui(TEXT("SHOP_row_max_plate")), false, false);
+	}
+	else
+	{
+		Tooltip->SetCost(!Tip.bLocked, PawText::Amount(Tip.Price), Tip.bAffordable, true);
+	}
+	FFormatNamedArguments ShortArgs;
+	ShortArgs.Add(TEXT("amount"), PawText::Amount(Tip.Short));
+	Tooltip->SetBlock(!Tip.bLocked && !Tip.bMaxed && !Tip.bAffordable, PawText::Ui(TEXT("TIP_short"), ShortArgs));
+	Tooltip->SetVisibility(ESlateVisibility::HitTestInvisible);
+	TipRow = Index;
+
+	// Beside the dock on the field side, level with the row (Pc::PlaceTip), all in this screen's own space.
+	const FGeometry& Hud = GetCachedGeometry();
+	const FVector2D Screen = Hud.GetLocalSize();
+	auto Local = [&Hud](const UWidget* W)
+	{
+		const FGeometry& G = W->GetCachedGeometry();
+		const FVector2D TL = Hud.AbsoluteToLocal(G.GetAbsolutePosition());
+		const FVector2D BR = Hud.AbsoluteToLocal(G.GetAbsolutePosition() + G.GetAbsoluteSize());
+		return Pc::PcRect{ TL.X, TL.Y, BR.X - TL.X, BR.Y - TL.Y };
+	};
+	if (Screen.X <= 0.0 || !DockBox)
+	{
+		return; // not laid out yet (a test that never drew the screen): the content is right, the place waits for a frame
+	}
+	Tooltip->ForceLayoutPrepass();
+	FVector2D Size = Tooltip->GetDesiredSize();
+	if (Size.X <= 0.0)
+	{
+		Size = FVector2D(PawUi::DockTipWidth, 200.0);
+	}
+	const Pc::PcRect At = Pc::PlaceTip(Local(DockBox), Local(Rows[Index]), Size.X, Size.Y, Screen.X, Screen.Y, PawUi::DockTipGap, PawUi::DockTipMargin);
+	Tooltip->SetRenderTranslation(FVector2D(At.X, At.Y));
+}
+
+void UPawHudScreen::HideTip()
+{
+	if (Tooltip)
+	{
+		Tooltip->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	TipRow = INDEX_NONE;
+}
+
+void UPawHudScreen::RefreshTooltip()
+{
+	// The row that shows its ring (hovered, or selected by keys or a pad: UPawButton::ShowsRing) on the open Upgrades page.
+	int32 Ringed = INDEX_NONE;
+	if (ActiveTabRef() == Pc::PcDockTab::Upgrades && DockBox && DockBox->IsVisible())
+	{
+		for (int32 I = 0; I < Rows.Num(); ++I)
+		{
+			if (Rows[I] && Rows[I]->IsVisible() && Rows[I]->ShowsRing())
+			{
+				Ringed = I;
+				break;
+			}
+		}
+	}
+	if (Ringed == INDEX_NONE)
+	{
+		if (TipRow != INDEX_NONE)
+		{
+			HideTip();
+		}
+		return;
+	}
+	// Shown again each frame it rings: the price, what is short and the numbers follow the Catnip and the buy amount.
+	ShowRowTip(Ringed);
 }
 
 void UPawHudScreen::BuildRealmRows()
@@ -1033,10 +1148,6 @@ void UPawHudScreen::ApplyDockSide()
 				// D18 (S4): the status panel as wide as the pills (wider when its words need it).
 				S->SetHorizontalAlignment(Child == FieldPlate ? HAlign_Fill : (bLeft ? HAlign_Right : HAlign_Left));
 			}
-		}
-		if (UVerticalBoxSlot* S = WaveLine ? Cast<UVerticalBoxSlot>(WaveLine->Slot) : nullptr)
-		{
-			S->SetHorizontalAlignment(bLeft ? HAlign_Right : HAlign_Left);
 		}
 	}
 	// The XP bar runs along the bottom of the FIELD, from the dock's edge.
@@ -1676,6 +1787,7 @@ void UPawHudScreen::Pump(double DeltaSeconds)
 	}
 	RememberFocus();
 	TickRepeat(static_cast<float>(DeltaSeconds));
+	RefreshTooltip();
 	// The clock moves every frame (it is a clock); the rest is dirty work at 15 Hz.
 	if (const UPawRealmSubsystem* R = Realm(); R && PounceClock)
 	{
@@ -1748,6 +1860,7 @@ bool UPawHudScreen::OpenSkillTree(bool bSpend)
 	SkillTree = Stack->AddWidget<UPawSkillTreeScreen>(PawUi::Resolve<UPawSkillTreeScreen>(), [this, bSpend](UPawSkillTreeScreen& Tree)
 	{
 		Tree.SetSpendMode(bSpend);
+		Tree.SetModalStack(ModalStack.Get()); // its leave question (P4.7)
 		// The tree calls it only when the spend step ends, never after a browse (skill_tree_ui.gd: `if was_spending`).
 		Tree.OnSpendingFinished = [this]() { ReturnToStartingBiome(); };
 	});
@@ -2061,27 +2174,6 @@ void UPawHudScreen::RefreshStatus(const UPawRealmSubsystem& R, const UPawGameSub
 	SetText(XpNext, PawText::Count(Xp.Level + 1));
 	XpKept = PawUi::SetBarValue(XpBar, Xp.Fraction, PawUi::XpBarStep, 0.0); // hud.tscn: step 0.0001, a flat fill
 
-	const Pc::PcWaveLine Wave = Pc::WaveLine(D, P);
-	SetShown(WaveShown(), Wave.bVisible); // R4d: the plate goes with its line (an empty plum pill otherwise)
-	if (Wave.bVisible)
-	{
-		FFormatNamedArguments Args;
-		Args.Add(TEXT("wave"), PawText::Count(Wave.Wave));
-		if (Wave.bBait)
-		{
-			Args.Add(TEXT("held"), PawText::Count(Wave.Held));
-			Args.Add(TEXT("needed"), PawText::Count(Wave.Needed));
-			SetText(WaveLine, PawText::Ui(TEXT("WAVE_bait"), Args));
-		}
-		else
-		{
-			Args.Add(TEXT("done"), PawText::Amount(Wave.Done));
-			Args.Add(TEXT("cost"), PawText::Amount(Wave.Cost));
-			SetText(WaveLine, PawText::Ui(TEXT("WAVE_plain"), Args));
-		}
-		PawUi::SetBarValue(WaveBar, Wave.Fraction, Pc::GodotRangeStep, 0.0); // D18 (S4): a flat fill (Godot: the theme's nine-patch)
-	}
-
 	// D18 (S4): the status panel's first line, the biome the cat is in.
 	if (F.TierIndex >= 0 && F.TierIndex < static_cast<int64_t>(D.Tiers.size()))
 	{
@@ -2240,7 +2332,7 @@ void UPawHudScreen::BuildReawakenPage(UVerticalBox* Page)
 	UTextBlock* Title = MakePageTitle(T, PcDockTab::Reawaken);
 	Page->AddChildToVerticalBox(Title)->SetHorizontalAlignment(HAlign_Fill);
 	PageTitles.Add(Title);
-	PageText(Page, PawTokens::UI_TEXT, PageWrap)->SetText(PawText::Ui(TEXT("REAWAKEN_blurb")));
+	// No "Resets Catnip..." blurb (playtest 2026-11-26, note 10): the payout box below says what a Reawaken gives.
 	ReawakenProgressLine = IconLine(T, TEXT("catnip"), PawUi::LabelPx, PawTokens::UI_TEXT, PageWrap - 32.0f, TEXT("ReawakenProgressLine"));
 	Page->AddChildToVerticalBox(ReawakenProgressLine)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
 	// hud.tscn ReawakenBar: rainbow_bar.gd, the theme's track under a scrolling rainbow and its sparks (phase 6 slice 5d).
@@ -3162,7 +3254,6 @@ FText UPawHudScreen::GetCatnipMultiplierText() const { return CatnipMultiplierTe
 FText UPawHudScreen::GetCatnipText() const { return CatnipText ? CatnipText->GetText() : FText::GetEmpty(); }
 FText UPawHudScreen::GetStardustText() const { return StardustText ? StardustText->GetText() : FText::GetEmpty(); }
 FText UPawHudScreen::GetZoneText() const { return ZoneText ? ZoneText->GetText() : FText::GetEmpty(); }
-FText UPawHudScreen::GetWaveText() const { return WaveLine ? WaveLine->GetText() : FText::GetEmpty(); }
 FText UPawHudScreen::GetBossText() const { return BossText ? BossText->GetText() : FText::GetEmpty(); }
 FText UPawHudScreen::GetBossTimerText() const { return BossTimer ? BossTimer->GetText() : FText::GetEmpty(); }
 UWidget* UPawHudScreen::GetFieldPlate() const { return FieldPlate; }
@@ -3182,18 +3273,6 @@ FText UPawHudScreen::GetXpText(bool bNext) const
 }
 bool UPawHudScreen::IsZoneVisible() const { return ZonePlate && ZonePlate->GetVisibility() != ESlateVisibility::Collapsed; }
 UWidget* UPawHudScreen::GetZonePlate() const { return ZonePlate; }
-UWidget* UPawHudScreen::WaveShown() const
-{
-	// R4d: the wave line sits on WavePlate; an asset the plate was never grafted into shows WaveBox itself.
-	UPanelWidget* Parent = WaveBox ? WaveBox->GetParent() : nullptr;
-	return Parent && Parent->GetFName() == TEXT("WavePlate") ? static_cast<UWidget*>(Parent) : static_cast<UWidget*>(WaveBox.Get());
-}
-
-bool UPawHudScreen::IsWaveVisible() const
-{
-	const UWidget* Shown = WaveShown();
-	return Shown && Shown->GetVisibility() != ESlateVisibility::Collapsed;
-}
 bool UPawHudScreen::IsBossPanelVisible() const { return BossPanel && BossPanel->GetVisibility() != ESlateVisibility::Collapsed; }
 bool UPawHudScreen::IsBossTimerVisible() const { return BossTimer && BossTimer->GetVisibility() != ESlateVisibility::Collapsed; }
 

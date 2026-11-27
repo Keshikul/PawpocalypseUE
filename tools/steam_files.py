@@ -32,6 +32,7 @@ TRANSLATIONS = ROOT / "Content" / "Pawpocalypse" / "Localization" / "Translation
 ICONS = ROOT / "SourceArt" / "svg" / "ui"
 LOCALES = ROOT / "Source" / "PawCore" / "Private" / "PcLocales.cpp"
 STEAM_H = ROOT / "Source" / "Pawpocalypse" / "Platform" / "PawSteam.h"
+TEXT_H = ROOT / "Source" / "Pawpocalypse" / "UI" / "PawText.h"
 PLATFORM_CPP = ROOT / "Source" / "Pawpocalypse" / "Platform" / "PawPlatformSubsystem.cpp"
 OUT = ROOT / "build" / "steam" / "steamworks"
 ICON_PX = 256
@@ -57,11 +58,20 @@ def read_csv(path):
 
 
 def table(culture, name="ST_Data"):
-    """Key -> text of a string table in one culture (English: the source strings)."""
+    """Key -> text of a string table in one culture (English: the source strings). A translation counts only while its
+    Source is today's English, as in the game (PawText::RegisterTranslations): a stale one is never shown."""
+    english = {r["Key"]: r["SourceString"] for r in read_csv(STRINGS / ("%s.csv" % name))}
     if culture == "en":
-        return {r["Key"]: r["SourceString"] for r in read_csv(STRINGS / ("%s.csv" % name))}
+        return english
     path = TRANSLATIONS / culture / ("%s.csv" % name)
-    return {r["Key"]: r["Text"] for r in read_csv(path)} if path.exists() else {}
+    rows = read_csv(path) if path.exists() else []
+    return {r["Key"]: r["Text"] for r in rows if r.get("Source") == english.get(r["Key"])}
+
+
+def frozen(text_h=TEXT_H):
+    """The translation freeze (D28, PawText.h bTranslationFrozen): a line changed since the last translation shows its
+    English, so a name missing in a language is allowed (Steam shows the English where a language has none)."""
+    return bool(re.search(r"inline constexpr bool bTranslationFrozen = true;", Path(text_h).read_text(encoding="utf-8")))
 
 
 def descriptions():
@@ -80,13 +90,18 @@ def gather():
     return achievements, tiers, langs, tables, desc, desc_file
 
 
-def problems(achievements, tiers, langs, tables, desc, desc_file, icons_dir=ICONS, platform_cpp=PLATFORM_CPP, steam_h=STEAM_H):
+def problems(achievements, tiers, langs, tables, desc, desc_file, icons_dir=ICONS, platform_cpp=PLATFORM_CPP, steam_h=STEAM_H,
+             is_frozen=None):
     out = []
+    if is_frozen is None:
+        is_frozen = frozen()
     if not langs or langs[0] != ("en", "english"):
         out.append("languages: PcLocales.cpp's table not read (English first)")
     ids = [a["id"] for a in achievements]
     for a in achievements:
         for culture, steam in langs:
+            if is_frozen and culture != "en":
+                continue  # D28: until the retranslation, a name with no current translation shows its English
             if not tables[culture].get("ACH_%s_name" % a["id"], "").strip():
                 out.append("achievement %s: no name in %s (%s)" % (a["id"], culture, steam))
         if not (icons_dir / ("achievement_%s.svg" % a["id"])).exists():
@@ -99,8 +114,18 @@ def problems(achievements, tiers, langs, tables, desc, desc_file, icons_dir=ICON
                 out.append("achievement %s: no description in %s" % (i, desc_file.name))
         for i in sorted(set(desc) - set(ids)):
             out.append("%s describes %s, which Data/AchievementData.csv does not have" % (desc_file.name, i))
+        # A skill's goal names the skill as the tree shows it (ST_Tree's label: Vitality became Extra Kittens, D-l, and its
+        # description did not; the unicorn node is Rainbow Gut).
+        labels = table("en", "ST_Tree")
+        for a in achievements:
+            if a.get("metric") == "SKILL_BRANCH_LEVEL" and a.get("branch_id"):
+                name = labels.get("TREE_%s_label" % a["branch_id"], "").strip()
+                if name and name not in desc.get(a["id"], ""):
+                    out.append("achievement %s: its description does not name the skill as the game does (%s)" % (a["id"], name))
     for t in tiers:
         for culture, steam in langs:
+            if is_frozen and culture != "en":
+                continue
             if not tables[culture].get("TIER_%s_name" % t, "").strip():
                 out.append("presence: tier %s has no name in %s (%s)" % (t, culture, steam))
     cpp = Path(platform_cpp).read_text(encoding="utf-8")
@@ -148,7 +173,8 @@ def write(out, achievements, tiers, langs, tables, desc):
         w = csv.writer(f)
         w.writerow(["api_name (required; must match an api_name from the definitions CSV)", "field (name or description)"] + [s for _, s in langs])
         for a in achievements:
-            w.writerow([a["id"], "name"] + [tables[c]["ACH_%s_name" % a["id"]] for c, _ in langs])
+            # A name with no current translation is left blank: Steam shows the English (D28, the freeze).
+            w.writerow([a["id"], "name"] + [tables[c].get("ACH_%s_name" % a["id"], "") for c, _ in langs])
             # The descriptions are English only until the designer approves them (then they are translated): Steam shows
             # English where a language has none.
             w.writerow([a["id"], "description"] + [desc[a["id"]] if c == "en" else "" for c, _ in langs])
@@ -160,7 +186,8 @@ def write(out, achievements, tiers, langs, tables, desc):
     for c, steam in langs:
         lines += ["\t%s" % vdf_quote(steam), "\t{", '\t\t"tokens"', "\t\t{"]
         for t in tiers:
-            lines.append("\t\t\t%s %s" % (vdf_quote(PRESENCE_PREFIX + t), vdf_quote(tables[c]["TIER_%s_name" % t])))
+            name = tables[c].get("TIER_%s_name" % t) or tables["en"]["TIER_%s_name" % t]  # English where none is current
+            lines.append("\t\t\t%s %s" % (vdf_quote(PRESENCE_PREFIX + t), vdf_quote(name)))
         lines += ["\t\t}", "\t}"]
     lines.append("}")
     (out / "rich_presence.vdf").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -179,10 +206,19 @@ def self_test():
         mutate(args)
         cases.append((name, bool(problems(*args, **kw))))
 
-    plant("a name missing in German", lambda a: a[3]["de"].pop("ACH_%s_name" % a[0][0]["id"]))
-    plant("a tier without a Thai name", lambda a: a[3]["th"].pop("TIER_%s_name" % a[1][0]))
+    plant("a name missing in German (no freeze)", lambda a: a[3]["de"].pop("ACH_%s_name" % a[0][0]["id"], None), is_frozen=False)
+    plant("a tier without a Thai name (no freeze)", lambda a: a[3]["th"].pop("TIER_%s_name" % a[1][0], None), is_frozen=False)
+    plant("an English name missing (frozen too)", lambda a: a[3]["en"].pop("ACH_%s_name" % a[0][0]["id"]), is_frozen=True)
+    # The freeze lets a translation be missing; a stale one is never read (the game's rule).
+    with tempfile.TemporaryDirectory() as tmp:
+        h = Path(tmp) / "PawText.h"
+        h.write_text("inline constexpr bool bTranslationFrozen = false;", encoding="utf-8")
+        cases.append(("the freeze read from PawText.h (off there)", frozen() and not frozen(h)))
     plant("an achievement with no description", lambda a: a[4].pop(a[0][0]["id"]))
     plant("a description of an achievement that does not exist", lambda a: a[4].__setitem__("no_such", "x"))
+    skill_goal = next((x for x in base[0] if x.get("metric") == "SKILL_BRANCH_LEVEL" and x.get("branch_id")), None)
+    if skill_goal:
+        plant("a skill goal naming the skill's old name", lambda a: a[4].__setitem__(skill_goal["id"], "Reach Old Name level 5 in the skill tree."))
     plant("an achievement with no icon", lambda a: a[0].append(dict(a[0][0], id="no_icon_here")) or a[4].__setitem__("no_icon_here", "x")
           or [a[3][c].__setitem__("ACH_no_icon_here_name", "x") for c, _ in a[2]])
     plant("the languages not read", lambda a: a[2].clear())

@@ -41,6 +41,34 @@ void FPawFxCanvas::Circle(const FVector2D& Centre, double Radius, const FLinearC
 	}
 }
 
+void FPawFxCanvas::FeatherDisc(const FVector2D& Centre, double Radius, double Feather, const FLinearColor& Color)
+{
+	if (Radius <= 0.0 || Color.A <= 0.0f)
+	{
+		return;
+	}
+	const double Inner = FMath::Clamp(Radius - Feather, 0.0, Radius);
+	const FColor Solid = Bytes(Color);
+	const FColor Clear = Bytes(FLinearColor(Color.R, Color.G, Color.B, 0.0f));
+	const int32 Mid = Add(Centre, Solid);
+	const int32 First = Verts.Num();
+	for (int32 I = 0; I < CircleSegments; ++I)
+	{
+		const double A = UE_DOUBLE_TWO_PI * I / CircleSegments;
+		const FVector2D Dir(FMath::Cos(A), FMath::Sin(A));
+		Add(Centre + Dir * Inner, Solid);  // First + 2I
+		Add(Centre + Dir * Radius, Clear); // First + 2I + 1
+	}
+	for (int32 I = 0; I < CircleSegments; ++I)
+	{
+		const int32 In0 = First + 2 * I;
+		const int32 In1 = First + 2 * ((I + 1) % CircleSegments);
+		Indices.Append({ Mid, In0, In1 });               // the solid inside, as Circle winds it
+		Indices.Append({ In0, In0 + 1, In1 + 1 });       // the band: solid at its inner edge, clear at its outer
+		Indices.Append({ In0, In1 + 1, In1 });
+	}
+}
+
 void FPawFxCanvas::Arc(const FVector2D& Centre, double Radius, double Start, double End, int32 PointCount, const FLinearColor& Color,
 	double Width)
 {

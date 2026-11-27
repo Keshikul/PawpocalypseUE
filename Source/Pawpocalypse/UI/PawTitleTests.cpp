@@ -833,6 +833,12 @@ bool FPawTitleBackTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("in Godot's words"), S(M->GetConfirmText()), FString(TEXT("Quit Pawpocalypse?")));
 	M->PressConfirmNo();
 	TestEqual(TEXT("Cancel stays"), W.Quits, 0);
+	// Playtest 2026-11-26 (note 43): the Exit button asks first, as Back does.
+	M->GetMenuButton(6)->OnClicked().Broadcast();
+	TestTrue(TEXT("Exit asks before quitting"), M->GetTopLayer() == UPawMainMenu::ELayer::Confirm && W.Quits == 0);
+	TestEqual(TEXT("the same question"), S(M->GetConfirmText()), FString(TEXT("Quit Pawpocalypse?")));
+	M->PressConfirmNo();
+	TestEqual(TEXT("Cancel stays"), W.Quits, 0);
 	// Nothing to keep: Exit writes nothing.
 	M->PressExit();
 	TestEqual(TEXT("Exit quits"), W.Quits, 1);
@@ -848,6 +854,9 @@ bool FPawTitleBackTest::RunTest(const FString& Parameters)
 	M->PressCluster(2);
 	TestEqual(TEXT("two links opened"), W.Opened.Num(), 2);
 	TestEqual(TEXT("the bug board"), W.Opened.IsValidIndex(0) ? W.Opened[0] : FString(), FString(UPawMainMenu::BugReportUrl));
+	// Playtest 2026-11-26 (note 5): "the report a bug should redirect to steam discussions" (this game's App ID, 5720010).
+	TestEqual(TEXT("the bug board is the game's Steam discussions"), FString(UPawMainMenu::BugReportUrl),
+		FString(TEXT("https://steamcommunity.com/app/5720010/discussions/")));
 	TestEqual(TEXT("the Discord"), W.Opened.IsValidIndex(1) ? W.Opened[1] : FString(), FString(UPawMainMenu::DiscordUrl));
 	TestTrue(TEXT("Language opens its list, no link"), M->GetTopLayer() == UPawMainMenu::ELayer::Language);
 	W.Close();
@@ -940,6 +949,20 @@ bool FPawTitleLanguageTest::RunTest(const FString& Parameters)
 	PawText::SetShowUnfinishedLanguagesForTest(false);
 	Settings->UseStorageForTest(nullptr);
 	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawTitleSwellTest, "Pawpocalypse.UI.Title.SlotSwell", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawTitleSwellTest::RunTest(const FString& Parameters)
+{
+	// Playtest 2026-11-26 (note 6): "slot 1 is large. the rest increase in size as you hover but slot 1 is always large". The
+	// slots open with focus on the active slot's card, and a mouse never moves focus: the swell must read focus only as the
+	// ring does (the keys and a pad), never the focus a mouse player cannot see.
+	TestTrue(TEXT("the hovered card swells"), UPawMainMenu::SlotSwells(true, false, true));
+	TestFalse(TEXT("the slots' opening focus does not swell slot 1 under a mouse"), UPawMainMenu::SlotSwells(false, true, true));
+	TestTrue(TEXT("the keys' or a pad's selection swells"), UPawMainMenu::SlotSwells(false, true, false));
+	TestFalse(TEXT("neither: flat"), UPawMainMenu::SlotSwells(false, false, false));
 	return true;
 }
 

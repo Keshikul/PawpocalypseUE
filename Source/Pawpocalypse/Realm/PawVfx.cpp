@@ -24,9 +24,6 @@ namespace
 	const FColorG PiedPiperColor(0.84f, 0.62f, 0.46f, 0.85f);
 	const FColorG HammerfallColor(1.0f, 0.62f, 0.48f, 0.9f);
 	constexpr double AnvilEchoReach = 1.35;
-	const FColorG ZoneTrail(0.55f, 0.82f, 1.0f, 1.0f);
-	const FColorG ZoneCrater(1.0f, 0.52f, 0.24f, 1.0f);
-	const FColorG ZoneEcho(0.62f, 0.88f, 0.94f, 1.0f);
 	constexpr double DragTetherSec = 0.35;
 	const FColorG DragTetherColor(0.98f, 0.80f, 0.52f, 0.65f);
 	constexpr double RushPulseSec = 0.55;
@@ -219,6 +216,20 @@ bool FPawVfx::Burst(const FContext& C, const FVector2D& At, const FLinearColor& 
 	return true;
 }
 
+bool FPawVfx::Shock(const FContext& C, double Radius)
+{
+	if (!Room(C))
+	{
+		return false;
+	}
+	FFx& E = Add(EKind::Shock);
+	E.At = C.Cat;
+	E.Radius = Radius;
+	E.Life = PawFxLook::PulseSec;
+	E.bA = true; // round the cat where it is now (the aura goes with it)
+	return true;
+}
+
 bool FPawVfx::Slam(const FContext& C, const FVector2D& At, double Radius, bool bQuiet)
 {
 	if (!Room(C))
@@ -408,7 +419,7 @@ void FPawVfx::OnFrameEvents(const FContext& C)
 			Burst(C, At, PrismColor, E.Value, 0.45, 5.0);
 			break;
 		case K::AuraPulse:
-			Burst(C, At, FColorG(0.55f, 0.82f, 1.0f, 0.9f), E.Value, 0.4, 4.0);
+			Shock(C, E.Value);
 			break;
 		case K::Pounce:
 		{
@@ -696,6 +707,26 @@ void FPawVfx::DrawEffect(const FFx& E, const FContext& C, FPawFxCanvas& Out) con
 		Out.Arc(Centre, R, 0.0, Tau, BurstSegments, Scaled(E.Color, 1.0 - Ease), E.Width);
 		return;
 	}
+	case EKind::Shock:
+	{
+		// Thunderclap (playtest 2026-11-26, note 32): the ring sweeps from a fifth of the aura out to just past its edge and
+		// keeps its strength for PulseHold of its life (the first try's faded as it grew, gone inside the cat), over a flash
+		// of the aura's yellow in its first third. Round the cat where it is now (the aura goes with it).
+		const FVector2D ShockAt = E.bA ? C.Cat : E.At;
+		const double R = E.Radius * (0.2 + 0.85 * EaseOutCubic(T));
+		const double Strength = T < PawFxLook::PulseHold ? 1.0 : FMath::Max(0.0, 1.0 - (T - PawFxLook::PulseHold) / (1.0 - PawFxLook::PulseHold));
+		if (T < 1.0 / 3.0)
+		{
+			Out.Circle(ShockAt, R, Scaled(PawFxLook::PulseFlash, 1.0 - T * 3.0));
+		}
+		if (Strength <= 0.0 || R <= 0.0)
+		{
+			return;
+		}
+		Out.Arc(ShockAt, R, 0.0, Tau, BurstSegments, Scaled(InkColor, Strength), PawFxLook::PulseRingWidth + 2.0 * PawFxLook::PulseInkEdge);
+		Out.Arc(ShockAt, R, 0.0, Tau, BurstSegments, Scaled(PawFxLook::PulseRing, Strength), PawFxLook::PulseRingWidth);
+		return;
+	}
 	case EKind::Slam:
 	{
 		const double Fade = 1.0 - T;
@@ -895,7 +926,9 @@ void FPawVfx::Draw(const FContext& C, FPawFxCanvas& Ground, FPawFxCanvas& Under,
 		{
 			continue;
 		}
-		const FColorG Base = Z.Kind == Pc::PcZoneKind::Trail ? ZoneTrail : Z.Kind == Pc::PcZoneKind::Crater ? ZoneCrater : ZoneEcho;
+		// PawFxLook (tools/art/fx_look.py): Ember Trail red (playtest 2026-11-26, note 39), the crater orange, the echo pale.
+		const FColorG Base = Z.Kind == Pc::PcZoneKind::Trail ? PawFxLook::ZoneTrail
+			: Z.Kind == Pc::PcZoneKind::Crater ? PawFxLook::ZoneCrater : PawFxLook::ZoneEcho;
 		const FVector2D At(Z.X, Z.Y);
 		Under.Circle(At, Z.Radius, Scaled(Base, 0.28 * Life));
 		for (int32 I = 0; I < ZoneBands; ++I)
@@ -939,13 +972,18 @@ void FPawVfx::Draw(const FContext& C, FPawFxCanvas& Ground, FPawFxCanvas& Under,
 		}
 		else
 		{
-			Over.Circle(C.Cat, AuraRadius, PawFxLook::AuraLift);
+			// The fill alone, its edge feathered to clear (playtest 2026-11-26, note 31: "just feather"); a ring and its ink edge
+			// only when the look gives them a width.
+			Over.FeatherDisc(C.Cat, AuraRadius, AuraRadius * PawFxLook::AuraFeather, PawFxLook::AuraLift);
 			if (PawFxLook::AuraInkEdge > 0.0) // D3's Plum edge; the Sticker ring has none (D18)
 			{
 				Over.Arc(C.Cat, AuraRadius, 0.0, Tau, AuraSegments, WithAlpha(InkColor, PawFxLook::AuraInkAlpha),
 					PawFxLook::AuraRingWidth + PawFxLook::AuraInkEdge * 2.0);
 			}
-			Over.Arc(C.Cat, AuraRadius, 0.0, Tau, AuraSegments, PawFxLook::AuraRing, PawFxLook::AuraRingWidth);
+			if (PawFxLook::AuraRingWidth > 0.0)
+			{
+				Over.Arc(C.Cat, AuraRadius, 0.0, Tau, AuraSegments, PawFxLook::AuraRing, PawFxLook::AuraRingWidth);
+			}
 		}
 	}
 	// The golden sparkles (z 2, children of the mice: after the cat in the tree), then the slams (z 2, spawned later still).
@@ -1046,7 +1084,7 @@ void FPawVfx::Draw(const FContext& C, FPawFxCanvas& Ground, FPawFxCanvas& Under,
 	}
 	for (const FFx& E : Effects)
 	{
-		if (E.Kind == EKind::Burst && E.bA)
+		if ((E.Kind == EKind::Burst && E.bA) || E.Kind == EKind::Shock)
 		{
 			DrawEffect(E, C, Over);
 		}

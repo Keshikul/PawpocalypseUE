@@ -48,7 +48,8 @@ namespace Pc
 	// get_starting_rerolls() (Overtime): the tree nodes the deal reads, whole and never negative.
 	PAWCORE_API int64_t CardForesight(const PcGameData& D, const PcProgress& P);
 	PAWCORE_API int64_t CardPrototypeLevels(const PcGameData& D, const PcProgress& P);
-	// has_auto_card(): the node owned AND the setting on (SettingsManager.auto_pick_card, the game module's).
+	// has_auto_card(): the setting on (the game module's slot), and since D-e nothing else (CodeConstants auto_pick_free; the
+	// first try's rule, 0, also wanted the Auto-Card node owned).
 	PAWCORE_API bool HasAutoCard(const PcGameData& D, const PcProgress& P, bool bAutoPickSetting);
 
 	// draw_hand(): up to Size cards from the eligible pool, weighted (a negative weight counts as 0), without replacement,

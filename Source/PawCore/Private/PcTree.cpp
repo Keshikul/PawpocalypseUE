@@ -62,12 +62,53 @@ namespace Pc
 		return std::string();
 	}
 
+	bool IsBranchRetired(const PcGameData& D, const std::string& Id)
+	{
+		const std::vector<std::string>& Gone = D.Code.RetiredBranches;
+		const PcSkillBranch* B = D.FindBranch(Id);
+		for (size_t Guard = 0; B && Guard <= D.Branches.size(); ++Guard)
+		{
+			if (std::find(Gone.begin(), Gone.end(), B->Id) != Gone.end())
+			{
+				return true;
+			}
+			B = B->Parent.empty() ? nullptr : D.FindBranch(B->Parent);
+		}
+		return false;
+	}
+
+	double RefundRetiredBranches(const PcGameData& D, PcProgress& P)
+	{
+		double Refund = 0.0;
+		for (const PcSkillBranch& B : D.Branches)
+		{
+			const auto It = P.BranchLevels.find(B.Id);
+			if (It == P.BranchLevels.end() || !IsBranchRetired(D, B.Id))
+			{
+				continue;
+			}
+			const int64_t Bought = std::min<int64_t>(It->second, static_cast<int64_t>(B.LevelCosts.size()));
+			for (int64_t L = 0; L < Bought; ++L)
+			{
+				Refund += B.LevelCosts[static_cast<size_t>(L)];
+			}
+			P.BranchLevels.erase(It);
+		}
+		P.Stardust += Refund;
+		return Refund;
+	}
+
 	bool IsBranchAvailable(const PcGameData& D, const PcProgress& P, const std::string& Id)
 	{
 		const PcSkillBranch* B = D.FindBranch(Id);
 		if (!B)
 		{
 			return true;
+		}
+		// Taken out of the game (D-e): never for sale.
+		if (IsBranchRetired(D, Id))
+		{
+			return false;
 		}
 		// The only enforced prerequisite: a ladder cannot be bought before the unlock it hangs off.
 		if (B->bParentIsRequired && !B->Parent.empty() && BranchLevel(P, B->Parent) <= 0)

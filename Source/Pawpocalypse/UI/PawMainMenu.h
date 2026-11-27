@@ -39,6 +39,7 @@
 class UBorder;
 class UCommonActivatableWidgetStack;
 class UCanvasPanel;
+class UImage;
 class UOverlay;
 class UPawButton;
 class UPawPromptText;
@@ -91,7 +92,9 @@ public:
 	void PressSettings();       // the settings dialog, on the Modal stack (SetModalStack); nothing without one
 	void SetModalStack(UCommonActivatableWidgetStack* Stack);
 	void PressCredits();
+	// Quits (saving first when there is something to keep). The Exit button and Back ask first: AskQuit.
 	void PressExit();
+	void AskQuit();
 	void PressSlot(int32 SlotIndex);
 	void PressDelete(int32 SlotIndex);
 	void PressConfirmYes();
@@ -113,6 +116,11 @@ public:
 
 	ELayer GetTopLayer() const;
 	bool IsLayerShown(ELayer Layer) const;
+	// P4.3: Boba's card: a click brings her over (the tests press it); its photo, the card itself.
+	bool PressBoba();
+	void ShowBobaPhoto();
+	UImage* GetBobaPhoto() const;
+	UWidget* GetBobaCard() const;
 
 	// What the tests read (and only read).
 	UPawButton* GetMenuButton(int32 Index) const; // 0 Continue .. 6 Exit
@@ -145,9 +153,13 @@ public:
 	const TArray<FString>& GetLanguageCodes() const { return LanguageCodes; }
 	// Steps the slot cards' swell by DeltaSeconds (NativeTick does it every frame; the tests drive it).
 	void StepSwell(double DeltaSeconds);
+	// Whether a slot card swells: hovered, or selected by the keys or a pad (the ring's rule): the focus the slots open with
+	// does not swell slot 1 under a mouse (playtest 2026-11-26, note 6).
+	static bool SlotSwells(bool bHovered, bool bSelected, bool bLastWasPointer);
 
 protected:
 	virtual void NativeOnActivated() override;
+	virtual void NativeOnDeactivated() override;
 	virtual void NativeTick(const FGeometry& Geometry, float DeltaSeconds) override;
 	virtual FReply NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& KeyEvent) override;
 	// The clear scrim behind the language list: a press anywhere off the list closes it (Godot's LanguageScrim).

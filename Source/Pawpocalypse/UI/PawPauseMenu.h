@@ -3,7 +3,8 @@
 // The pause menu (docs/05 §6.3; Godot pause_menu.tscn / pause_menu.gd; its rules are PcPause, proven by fixture `pause`).
 //
 // Continue, Save (the five slots: an occupied one asks for a second press), Settings, Back to Main Menu (a second press saves
-// and goes to the title; "Quit WITHOUT saving" shows beside it while it is armed). A Menu-stack screen that holds the field
+// and goes to the title; "Quit WITHOUT saving" shows beside it while it is armed), Quit game (P4.7, playtest 2026-11-26 note
+// 43: "Save and quit?" in UPawConfirmDialog on the Modal stack; yes saves and quits the game). A Menu-stack screen that holds the field
 // (pause holder "pause"). Opened by the HUD on Esc / Start when nothing else is up and the field runs; closed by Esc / B /
 // Start, and on the Save page Esc and B go back to the main page first.
 //
@@ -45,6 +46,8 @@ public:
 
 	// What leaving for the title does (default: open L_Title); the tests replace it.
 	TFunction<void()> OnLeave;
+	// What quitting the game does once saved (default: the engine's quit); the tests replace it.
+	TFunction<void()> OnQuit;
 
 	// The presses (the buttons call these; so do the tests).
 	void PressContinue();
@@ -52,6 +55,10 @@ public:
 	void PressSettings();
 	void PressMainMenu();
 	void PressDiscard();
+	// Quit game: asks "Save and quit?" (the confirm dialog, on the Modal stack; nothing without one).
+	void PressQuitGame();
+	// The quit question while it is up (null otherwise).
+	class UPawConfirmDialog* GetQuitDialog() const;
 	void PressSlot(int32 SlotIndex);
 	void PressSlotsBack();
 	// Esc / B (bBack) or Start (pause): on the Save page Back returns to the main page, anything else closes.
@@ -82,6 +89,7 @@ private:
 	void OnLayoutReady();
 	void Close();
 	void Leave(bool bSave);
+	void QuitSaved();
 	void ShowPage();
 	void RefreshSlots();
 	void RefreshMain();
@@ -111,6 +119,8 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> DiscardButton;
 	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UPawButton> QuitGameButton;
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> StatusText;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> SlotTitle;
@@ -125,6 +135,7 @@ private:
 	bool bLastSaveFailed = false; // the status line's "Saved" was not (review CR15): "Slot {n} was not saved."
 	TArray<UWidget*> Wired;
 	TWeakObjectPtr<UCommonActivatableWidgetStack> ModalStack;
+	TWeakObjectPtr<class UPawConfirmDialog> QuitDialog;
 	bool bSettingsUp = false;
 	ESlateVisibility VisibleAs = ESlateVisibility::SelfHitTestInvisible;
 	// The button the selection comes back to after Settings: Common UI re-applies the desired target once the dialog is gone

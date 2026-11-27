@@ -42,6 +42,7 @@
 #include "UI/PawRootLayout.h"
 #include "UI/PawSettingsDialog.h"
 #include "UI/PawSkillTreeScreen.h"
+#include "UI/PawConfirmDialog.h"
 #include "UnrealClient.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 
@@ -438,6 +439,8 @@ namespace
 			if (UPawGameSubsystem* G = Game())
 			{
 				G->Progress().TierKillCount = 100000;
+				// D17 E2: Bait comes from the biome's own kill bank (the wave count above earns none since 2026-11-12).
+				G->Progress().BaitKillsByBiome[G->Progress().CurrentBiomeId] = 100000;
 				G->Progress().Catnip = 1.0e7;
 			}
 			if (UPawHudScreen* H = Hud())
@@ -546,12 +549,20 @@ namespace
 			return false;
 		});
 		Press(EKeys::Gamepad_FaceButton_Right);
-		Expect(TEXT("the first B asks before starting the next run"), []()
+		Expect(TEXT("B asks before starting the next run (the leave question, Stay selected)"), []()
 		{
 			const UPawSkillTreeScreen* T = Hud() ? Hud()->GetSkillTree() : nullptr;
-			return T && T->IsActivated() && T->IsCloseArmed();
+			const UPawConfirmDialog* D = T ? T->GetLeaveDialog() : nullptr;
+			return D && Focused(D->GetNoButton());
 		});
-		Press(EKeys::Gamepad_FaceButton_Right, 30);
+		Press(EKeys::Gamepad_DPad_Left);
+		Expect(TEXT("the D-pad reaches Leave"), []()
+		{
+			const UPawSkillTreeScreen* T = Hud() ? Hud()->GetSkillTree() : nullptr;
+			const UPawConfirmDialog* D = T ? T->GetLeaveDialog() : nullptr;
+			return D && Focused(D->GetYesButton());
+		});
+		Press(EKeys::Gamepad_FaceButton_Bottom, 30);
 		Until(TEXT("B leaves the tree; the new run starts"), []()
 		{
 			const UPawSkillTreeScreen* T = Hud() ? Hud()->GetSkillTree() : nullptr;

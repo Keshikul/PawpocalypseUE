@@ -1,7 +1,8 @@
 # Phase 6 slice 6: the Unicorn ceremony, the Reawaken banner, Boba, the tutorial (plan, 2026-11-07)
 
-**Status (2026-11-24): 6a (the Unicorn ceremony) DONE; 6b (the Reawaken banner), 6c (Boba) and 6d (the tutorial) NOT
-BUILT** (no banner, cameo or tutorial in `Source/`; only the tutorial's setting and `tutorial_done` are stored). Since D22 (2026-11-23) the surveys below describe what the first try did, as the design to start from, not a
+**Status (2026-11-27): 6a (the Unicorn ceremony) DONE; 6c (Boba) DONE as the playtest's P4.3 (HANDOFF-LOG (159): PcBoba,
+UPawBobaSubsystem; the pause menu's "CEO on duty" photo not built, its words new); 6b (the Reawaken banner) and 6d (the
+tutorial) NOT BUILT** (only the tutorial's setting and `tutorial_done` are stored). Since D22 (2026-11-23) the surveys below describe what the first try did, as the design to start from, not a
 spec to match; the look is Sticker Box (D18), the words plain (D15), drafted first. (Was, 2026-11-10: 6a DONE; 6b-6d wait
 for the restyle (designer, 2026-11-07: restyle first;
 `WORKLIST-RESTYLE-2026-11-07.md`); they are built in the port's own look after R7, their rules and timing still exact

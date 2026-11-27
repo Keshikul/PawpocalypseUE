@@ -33,6 +33,8 @@
 #include "UI/PawControlsPanel.h"
 #include "UI/PawTokens.h"
 #include "UI/PawUiKit.h"
+#include "Components/ScrollBoxSlot.h"
+#include "Blueprint/WidgetTree.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "PcProgress.h"
@@ -410,6 +412,35 @@ bool FPawSettingsWindowMonitorTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSettingsFirstRunTest, "Pawpocalypse.UI.Settings.FirstRun", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawSettingsFirstRunTest::RunTest(const FString& Parameters)
+{
+	// Playtest 2026-11-26 (note 1): "when the game first launches it should launch in the resolution the main monitor is".
+	Pc::PcSettings First;
+	UPawSettingsSubsystem::FirstRunDefaults(First, false, false);
+	TestTrue(TEXT("no settings file yet: fullscreen, at the main monitor's own resolution"), First.bFullscreen);
+	Pc::PcSettings Kept;
+	UPawSettingsSubsystem::FirstRunDefaults(Kept, true, false);
+	TestFalse(TEXT("a file read: the player's choice stands (the default window when it says nothing)"), Kept.bFullscreen);
+	Pc::PcSettings Named;
+	UPawSettingsSubsystem::FirstRunDefaults(Named, false, true);
+	TestFalse(TEXT("a window named on the command line (the bench, a tour): that window"), Named.bFullscreen);
+	// The read itself says whether a file was there.
+	FSettingsWorld W;
+	if (!W.Open(*this, false))
+	{
+		W.Close();
+		return false;
+	}
+	TestFalse(TEXT("an empty storage: no file"), W.Settings->HadSettingsFile());
+	W.Settings->SetFullscreen(true);
+	W.Settings->Reload();
+	TestTrue(TEXT("once a setting is saved: a file"), W.Settings->HadSettingsFile());
+	W.Close();
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSettingsFullscreenGreysTest, "Pawpocalypse.UI.Settings.FullscreenGreys", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FPawSettingsFullscreenGreysTest::RunTest(const FString& Parameters)
@@ -462,7 +493,7 @@ bool FPawSettingsLookTest::RunTest(const FString& Parameters)
 	}
 	const TCHAR* Parts[] = { TEXT("SectionAudio"), TEXT("SectionVideo"), TEXT("SectionControls"), TEXT("VolumeSlider"), TEXT("MusicSlider"),
 		TEXT("SfxSlider"), TEXT("MuteCheck"), TEXT("OutputOption"), TEXT("LanguageOption"), TEXT("ResolutionOption"), TEXT("FullscreenCheck"),
-		TEXT("VsyncCheck"), TEXT("QualityOption"), TEXT("MaxFpsOption"), TEXT("EffectsCheck"), TEXT("VideoNote"), TEXT("PromptsOption"),
+		TEXT("VsyncCheck"), TEXT("QualityOption"), TEXT("MaxFpsOption"), TEXT("EffectsCheck"), TEXT("PromptsOption"),
 		TEXT("PromptsNote"), TEXT("DockSideOption"), TEXT("DockSideNote"), TEXT("CloseButton") };
 	for (const TCHAR* P : Parts)
 	{
@@ -471,6 +502,20 @@ bool FPawSettingsLookTest::RunTest(const FString& Parameters)
 			W.Close();
 			return false;
 		}
+	}
+	// Playtest 2026-11-26 (note 4): no note under the video page; the scrolling pages leave room for the selection ring (a
+	// scroll box clips to its bounds, and the ring is drawn FocusRingExpand px outside a row: its left edge was cut off).
+	TestNull(TEXT("no note under the video page"), D->GetPart(TEXT("VideoNote")));
+	const UUserWidget* ControlsList = Cast<UUserWidget>(D->GetPart(TEXT("ControlsPanel")));
+	const TPair<const TCHAR*, const UWidget*> Scrolled[] = {
+		{ TEXT("the pages"), D->GetPart(TEXT("Pages")) },
+		{ TEXT("the controls list"), ControlsList && ControlsList->WidgetTree ? ControlsList->WidgetTree->FindWidget(TEXT("Body")) : nullptr },
+	};
+	for (const TPair<const TCHAR*, const UWidget*>& Part : Scrolled)
+	{
+		const UScrollBoxSlot* Slot = Part.Value ? Cast<UScrollBoxSlot>(Part.Value->Slot) : nullptr;
+		TestTrue(FString::Printf(TEXT("%s leave the ring its room in the scroll box"), Part.Key), Slot
+			&& Slot->GetPadding().Left >= PawUi::FocusRingExpand && Slot->GetPadding().Right >= PawUi::FocusRingExpand);
 	}
 	TestEqual(TEXT("the title"), S(D->GetTitleText()), FString(TEXT("SETTINGS")));
 	TestEqual(TEXT("Audio"), S(D->GetCheck(TEXT("SectionAudio"))->GetLabel()), FString(TEXT("Audio")));
@@ -721,6 +766,56 @@ bool FPawSettingsFromPauseTest::RunTest(const FString& Parameters)
 	Pause->PressContinue();
 	TestFalse(TEXT("Continue lets it go"), W.Realm->IsPaused());
 	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSettingsGamePageTest, "Pawpocalypse.UI.Settings.GamePage", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawSettingsGamePageTest::RunTest(const FString& Parameters)
+{
+	// D-e (2026-11-26): in a game the Game page holds the loaded game's Auto-pick box; on the title there is no such page.
+	for (const bool bInGame : { true, false })
+	{
+		FSettingsWorld W;
+		if (!W.Open(*this, bInGame))
+		{
+			W.Close();
+			return false;
+		}
+		UPawSettingsDialog* D = UPawSettingsDialog::Open(W.Root->ModalStack, nullptr);
+		if (!TestTrue(TEXT("the dialog is up"), D && D->IsActivated()))
+		{
+			W.Close();
+			return false;
+		}
+		const FString Where = bInGame ? TEXT("in a game") : TEXT("on the title");
+		const UWidget* Tab = D->GetPart(TEXT("SectionGame"));
+		TestEqual(Where + TEXT(": the Game page"), Tab && Tab->GetVisibility() != ESlateVisibility::Collapsed, bInGame);
+		TestEqual(Where + TEXT(": in a game"), D->IsInGame(), bInGame);
+		D->PressSection(Pc::PcSettingsSection::Controls);
+		D->StepSection(1);
+		TestEqual(Where + TEXT(": RB from Controls"), static_cast<int32>(D->GetDialogState().Section),
+			static_cast<int32>(bInGame ? Pc::PcSettingsSection::Game : Pc::PcSettingsSection::Audio));
+		if (bInGame)
+		{
+			TestTrue(TEXT("its page shows"), D->IsPageShown(Pc::PcSettingsSection::Game));
+			const UPawButton* Box = Cast<UPawButton>(D->GetPart(TEXT("AutoPickCheck")));
+			TestTrue(TEXT("the box, its words"), Box && Box->GetLabel().ToString() == TEXT("Auto-pick cards"));
+			TestFalse(TEXT("off in a new game"), W.Realm->GetAutoPick());
+			D->ToggleAutoPick();
+			TestTrue(TEXT("the box turns it on, in the loaded game"), W.Realm->GetAutoPick() && W.Game->Slot().bAutoPickCard);
+			D->ToggleAutoPick();
+			TestFalse(TEXT("and off"), W.Realm->GetAutoPick() || W.Game->Slot().bAutoPickCard);
+		}
+		else
+		{
+			D->PressSection(Pc::PcSettingsSection::Game);
+			TestEqual(TEXT("no Game page to open on the title"), static_cast<int32>(D->GetDialogState().Section),
+				static_cast<int32>(Pc::PcSettingsSection::Audio));
+		}
+		D->PressClose();
+		W.Close();
+	}
 	return true;
 }
 

@@ -30,6 +30,9 @@
 #include "UI/PawMainMenu.h"
 #include "UI/PawPauseMenu.h"
 #include "UI/PawSettingsDialog.h"
+#include "UI/PawConfirmDialog.h"
+#include "UI/PawTooltip.h"
+#include "UI/PawBoba.h"
 #include "UI/PawPrompts.h"
 #include "UI/PawToast.h"
 #include "UI/PawRootLayout.h"
@@ -161,11 +164,12 @@ namespace PawUi
 			UPawButton::StaticClass(), UPawCardFace::StaticClass(), UPawHexPlate::StaticClass(), UPawTreeNode::StaticClass(), UPawTreeLinks::StaticClass(),
 			UPawPounceClock::StaticClass(), UPawReawakenCeremony::StaticClass(), UPawPromptIcon::StaticClass(), UPawPromptText::StaticClass(), UPawIconText::StaticClass(),
 			UPawControlsPanel::StaticClass(), UPawGarden::StaticClass(), UPawRainbowBar::StaticClass(), UPawRainbowFrame::StaticClass(),
-			UPawTreeSky::StaticClass(), UPawUnicornCeremony::StaticClass(),
+			UPawTreeSky::StaticClass(), UPawUnicornCeremony::StaticClass(), UPawTooltip::StaticClass(), UPawBobaLayer::StaticClass(),
 			// the screens
 			UPawRootLayout::StaticClass(), UPawMainMenu::StaticClass(), UPawHudScreen::StaticClass(), UPawCardPickScreen::StaticClass(),
 			UPawSkillTreeScreen::StaticClass(), UPawJobPicker::StaticClass(), UPawVictoryScreen::StaticClass(),
 			UPawPauseMenu::StaticClass(), UPawSettingsDialog::StaticClass(), UPawToast::StaticClass(),
+			UPawConfirmDialog::StaticClass(),
 		};
 	}
 

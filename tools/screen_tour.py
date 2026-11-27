@@ -117,7 +117,7 @@ def fonts_set():
     lines = font_lines()
     shots = ROOT / "Saved" / "PawShots"
     shots.mkdir(parents=True, exist_ok=True)
-    steps = ["t.MaxFPS 60"]
+    steps = ["t.MaxFPS 60", "paw.Boba 0"]  # no cameo at random in a tour shot (P4.3)
     for culture, ls in lines.items():
         (shots / ("fontsheet_%s.txt" % culture)).write_text("\n".join(l.replace("\n", " ") for l in ls), encoding="utf-8")
         steps += ["paw.FontSheet %s" % culture, "paw.Wait 20", "paw.Shot tour_font_%s" % culture]

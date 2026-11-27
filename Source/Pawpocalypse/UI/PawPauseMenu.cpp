@@ -3,6 +3,7 @@
 #include "Audio/PawAudioSubsystem.h"
 #include "Input/PawInputMap.h"
 #include "UI/PawSettingsDialog.h"
+#include "UI/PawConfirmDialog.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 
 #include "Blueprint/WidgetTree.h"
@@ -17,9 +18,11 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "PcSave.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "Save/PawSaveSubsystem.h"
+#include "UI/PawBoba.h"
 #include "UI/PawButton.h"
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
@@ -107,6 +110,8 @@ bool UPawPauseMenu::Initialize()
 		// Built beside the button it qualifies, shown only mid-decision.
 		DiscardButton = PageButton(T, MainPage, TEXT("DiscardButton"), TEXT("PAUSE_discard"), 0.0, false, Gap);
 		DiscardButton->SetVisibility(ESlateVisibility::Collapsed);
+		// P4.7 (playtest 2026-11-26, note 43): the game can be quit from here, after one question.
+		QuitGameButton = PageButton(T, MainPage, TEXT("QuitGameButton"), TEXT("PAUSE_quit_game"), PauseButtonHeight, false, Gap);
 		// D18 (S4): ink (green read 3.3:1 on the cream window, and was green for "not saved" and "overwrite?" too).
 		StatusText = MakeText(T, LabelPx, PawTokens::UI_TEXT, false, TEXT("StatusText"));
 		StatusText->SetJustification(ETextJustify::Center);
@@ -137,6 +142,10 @@ bool UPawPauseMenu::Initialize()
 		SlotBackButton = PageButton(T, SlotPage, TEXT("SlotBackButton"), TEXT("PAUSE_back"), PauseSlotBackHeight, false, PauseSlotSeparation);
 	}
 	const bool bOk = Super::Initialize();
+	// The screen itself takes the keys when a click lands on nothing focusable (its scrim, a plate): Slate gives focus to
+	// the first focusable widget under the click, and without this that was the game's viewport, so Back / Esc never
+	// reached NativeOnPreviewKeyDown (playtest 2026-11-26, note 11; KB U/24).
+	SetIsFocusable(true);
 	if (bOk && PawUi::ShouldWire(this))
 	{
 		PawUi::UseAtlasIcons(this); // the asset's saved icon and plate brushes: the atlas's cells (one batch)
@@ -159,24 +168,20 @@ void UPawPauseMenu::OnLayoutReady()
 	Click(SaveButton, [this]() { PressSave(); });
 	Click(MainMenuButton, [this]() { PressMainMenu(); });
 	Click(DiscardButton, [this]() { PressDiscard(); });
+	Click(QuitGameButton, [this]() { PressQuitGame(); });
+	if (!OnQuit)
+	{
+		OnQuit = [this]() { UKismetSystemLibrary::QuitGame(this, GetOwningPlayer(), EQuitPreference::Quit, false); };
+	}
 	Click(SlotBackButton, [this]() { PressSlotsBack(); });
 	for (int32 I = 0; I < SlotCount; ++I)
 	{
 		Click(GetSlotButton(I), [this, I]() { PressSlot(I); });
 	}
 	Click(SettingsButton, [this]() { PressSettings(); });
-	// D18 (S4): the concept's pause buttons, each with its icon; Continue, the thing to press, on the yellow plate.
-	auto Dress = [](UPawButton* B, const TCHAR* Icon)
-	{
-		if (B)
-		{
-			B->SetIcon(Icon, PawUi::PauseIconPx);
-		}
-	};
-	Dress(ContinueButton, TEXT("ui_tab_reawaken"));
-	Dress(SaveButton, TEXT("ui_quick_save"));
-	Dress(SettingsButton, TEXT("ui_quick_settings"));
-	Dress(MainMenuButton, TEXT("ui_quick_quit"));
+	// The words alone, centred (playtest 2026-11-26, note 25: "the paused menu texts are not centered. remove the icons in
+	// the buttons"; D18's concept had an icon each, which pushed the words off the middle). Continue, the thing to press,
+	// stays on the yellow plate.
 	if (ContinueButton)
 	{
 		ContinueButton->SetCallLook(true);
@@ -214,6 +219,10 @@ void UPawPauseMenu::NativeOnActivated()
 {
 	Super::NativeOnActivated();
 	UPawAudioSubsystem::PlayFrom(this, TEXT("ui_click")); // pause_menu.gd open()
+	if (UPawBobaSubsystem* Boba = UPawBobaSubsystem::Of(this))
+	{
+		Boba->EnterMenu(TEXT("pause")); // P4.3: Boba visits the menus
+	}
 	ReturnFocus = nullptr;
 	// open(): the main page, the status cleared, the tree paused (a holder: it resumes only when no one else holds it).
 	Pc::PauseOpen(State);
@@ -227,6 +236,10 @@ void UPawPauseMenu::NativeOnActivated()
 
 void UPawPauseMenu::NativeOnDeactivated()
 {
+	if (UPawBobaSubsystem* Boba = UPawBobaSubsystem::Of(this))
+	{
+		Boba->LeaveMenu(TEXT("pause"));
+	}
 	if (UPawRealmSubsystem* R = Realm())
 	{
 		R->SetPauseHold(PauseHolder, false);
@@ -450,6 +463,53 @@ void UPawPauseMenu::PressMainMenu()
 	// discard is the other control, never under the key.
 	RefreshMain();
 	FocusPage(MainMenuButton);
+}
+
+void UPawPauseMenu::PressQuitGame()
+{
+	// "Save and quit?" [Save and quit] [Cancel] (the words approved 2026-11-26). Cancel puts the selection back on this button.
+	if (GetQuitDialog())
+	{
+		return; // one at a time
+	}
+	const TWeakObjectPtr<UPawPauseMenu> Self(this);
+	QuitDialog = UPawConfirmDialog::Open(ModalStack.Get(), PawText::Ui(TEXT("PAUSE_quit_prompt")), PawText::Ui(TEXT("PAUSE_quit_save")),
+		PawText::Ui(TEXT("TITLE_cancel")),
+		[Self]()
+		{
+			if (UPawPauseMenu* M = Self.Get())
+			{
+				M->QuitSaved();
+			}
+		},
+		[Self]()
+		{
+			if (UPawPauseMenu* M = Self.Get())
+			{
+				M->ReturnFocus = M->QuitGameButton;
+				M->FocusPage(M->QuitGameButton);
+			}
+		});
+}
+
+UPawConfirmDialog* UPawPauseMenu::GetQuitDialog() const
+{
+	UPawConfirmDialog* D = QuitDialog.Get();
+	return D && D->IsActivated() && !D->IsAnswered() ? D : nullptr;
+}
+
+void UPawPauseMenu::QuitSaved()
+{
+	// As Back to Main Menu's second press saves (Leave(true)), then the game ends.
+	if (UPawSaveSubsystem* S = Saves())
+	{
+		S->SaveGame();
+		S->Flush();
+	}
+	if (OnQuit)
+	{
+		OnQuit();
+	}
 }
 
 void UPawPauseMenu::PressDiscard()

@@ -22,6 +22,8 @@ namespace Pc
 		using C = PcCodeConstants;
 		const FieldRef Fields[] = {
 			L("boss_realms", &C::BossRealms),
+			I("auto_pick_free", &C::AutoPickFree),
+			L("retired_branches", &C::RetiredBranches),
 			I("evolution_stage_count", &C::EvolutionStageCount),
 			I("max_wave", &C::MaxWave),
 			D("max_golden_chance", &C::MaxGoldenChance),

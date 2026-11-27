@@ -197,8 +197,6 @@ bool FPawIconsTest::RunTest(const FString& Parameters)
 	UPawHudScreen* H = W.Hud;
 	TestEqual(TEXT("the Catnip icon"), Drawn(H->GetCurrencyIcon(false)), FString(TEXT("T_ui_icon_catnip")));
 	TestEqual(TEXT("the Stardust icon"), Drawn(H->GetCurrencyIcon(true)), FString(TEXT("T_ui_icon_stardust")));
-	TestTrue(TEXT("the wave line wears Bait's"), H->GetWaveLine() && H->GetWaveLine()->IconName == CurrencyIconName(TEXT("bait"))
-		&& H->GetWaveLine()->IsIconShown());
 	for (int32 I = 0; I < static_cast<int32>(Pc::PcDockTab::Count); ++I)
 	{
 		const Pc::PcDockTab Tab = static_cast<Pc::PcDockTab>(I);

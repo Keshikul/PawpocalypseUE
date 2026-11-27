@@ -65,3 +65,5 @@ realtime_interest_period_sec,60.0,Compound Interest: share of banked Catnip paid
 second_helping_biome_index,3,a literal in begin_biome(): Second Helping's deferred half pays on arriving at biome index 3 (0-based) or deeper,scripts/autoload/game_state.gd:begin_biome()
 spawn_direction_spread,0.9,radians (~52°) either side of dead-center,scripts/systems/tier_controller.gd:SPAWN_DIRECTION_SPREAD
 spawn_edge_inset,24.0,keeps spawns clear of play_bounds' exclusive far edges,scripts/systems/tier_controller.gd:SPAWN_EDGE_INSET
+auto_pick_free,1,"D-e (playtest 2026-11-26, note 36): auto-pick is free for everyone, switched on from the card screen and off in Settings or on the card screen. 0 is the first try's rule: only with the Auto-Card node owned.",
+retired_branches,auto_card,"Skills taken out of the game; their rows stay in SkillBranchData so a save that owns one is refunded what it paid (D-e: auto_card, no longer needed once auto-pick is free; D-c with E2 adds audit, deep_pockets and auto_bait). Hidden, never for sale, not laid out.",

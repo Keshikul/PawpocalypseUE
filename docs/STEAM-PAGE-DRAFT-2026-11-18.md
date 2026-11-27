@@ -11,6 +11,78 @@
 > numbers are out of date: 16 kinds of enemy (now 39 drawings), 41 achievements (now 39), 6 to 10 hours (about 2 h for a
 > fast player after D17; about 3 h since D24, 2026-11-24).
 
+## Version 4 (2026-11-26): warmer, a DRAFT for the designer
+
+The designer, 2026-11-26: "It feels very stale right now. I would like it to be slightly more warm, maybe some puns. But
+not too long. Research similar games descriptions again." The research: `build/steam/research/NOTES-2026-11-26-tone.md`
+(26 pages read, 19 studied; Cat Quest, Little Kitty Big City, Untitled Goose Game, Nubby's Number Factory, Mewgenics,
+Cookie Clicker, Gnorp Apologue, Vampire Survivors and more). What the warm pages that stay short do, and this draft does:
+- **Facts first, the joke last**: 7 of the 9 short descriptions with a joke end on it. Ours ends on the unicorn.
+- **One running joke**: the cat's list of enemies (the short description, then Hunt).
+- **Absurd facts said plainly**: four unicorns; Rainbow Poop.
+- **Side jokes hang off whole facts**, in brackets or a trailing clause, so each line still informs without them.
+- **Two puns on the whole page** ("a catch", "nine lives"), none in the headings, none hyphenated, no apocalypse
+  wordplay (two other store titles already pun on it). The research's well-written pages spend 0-2.
+- **Every count kept**, as version 3 (the table at the end).
+
+Length: the short description 260 characters (version 3: 242; the translations need 280 or less); About 239 words (version
+3: 232).
+
+**Waits for the playtest's changes**: "summon 5 bosses" and "It leaves, and you can call it back later" are D-c (no Bait;
+E2 not built yet); "83 skills" is the tree after D-c / D-e remove Auto-Bait, Auto-Card, Audit and Deep Pockets (87
+today). Publish it with those changes, not before. **Translations**: per D28 the 20 store translations are not redone now;
+Steam keeps showing each language's version 3 text until the retranslation near release.
+
+### Short description
+
+> Pawpocalypse is an incremental game about a small cat with a long list of enemies: geese, crocodiles, ghosts and 36
+> more. Bat them with your paw, buy upgrades, pick cards and summon 5 bosses. Reawaken to come back stronger. By the end,
+> the cat rides a unicorn.
+
+### About this game
+
+`[clip: hunt]`
+**Hunt with your paw.**
+Move over an enemy and your paw does the rest. Every kill pays Catnip and crosses one more name off the list.
+
+`[clip: upgrades]`
+**Buy 15 upgrades.**
+Damage, attack speed, crits, an aura and a Pounce. Kittens join the hunt (they take it very seriously).
+
+`[clip: cards]`
+**Pick a card every level.**
+28 cards change how a run plays. Some have a catch, and the card tells you what it is.
+
+`[clip: boss]`
+**Summon 5 bosses.**
+Each one rules a realm. Beat it and your cat evolves and new realms open. Not strong enough yet? It leaves, and you can call it back later.
+
+`[clip: evolve]`
+**Evolve 6 times.**
+Tiny Kitten, Armored Tomcat, Cyber Cat, then four unicorns. Every stage changes your weapon. (Yes, four unicorns.)
+
+`[clip: reawaken]`
+**Reawaken.**
+Trade your Catnip and upgrades for Stardust, which increases damage and Catnip permanently. Cats get nine lives. This one takes as many as it needs.
+
+`[clip: tree]`
+**Grow the skill tree.**
+83 skills that never reset, and 9 jobs to unlock. Take one job into each run: each changes how your cat fights.
+
+**Features**
+- 12 realms, from the Backyard to the Litterbox Dimension
+- 39 kinds of enemy and 5 bosses
+- 15 upgrades, 28 cards and 9 jobs
+- 83 skills in a tree that never resets
+- 7 stages for your cat, from Tiny Kitten to The Last Unicorn
+- 39 achievements
+- Keyboard and mouse or a controller, every control remappable
+
+Also: one of the skills is called Rainbow Poop. It hurts.
+
+(Rainbow Poop: `Data/SkillBranchData.csv` `unlock_poop`, under the Unicorn: every 8 s a puddle that damages enemies for
+3 s. The four unicorns: `Data/EvolutionData.csv` stages 4-7, Rainbow Cavalry, Alicorn, Void Unicorn, The Last Unicorn.)
+
 ## Version 3 (2026-11-18): signed off
 
 The designer, 2026-11-18: the text and the top tags **approved**; length **left off** the page; the AI disclosure **the
@@ -137,6 +209,19 @@ translations of Godot's lines, but **the 280 lines changed for the port are untr
 - Then list each language once it is reviewed (launch plan decision 6).
 
 ## Store localization (the page in 20 languages): drafted 2026-11-18
+
+**Version 4, 2026-11-26** (the designer: "Good text. Create the translations and upload file for steam"; the store page is
+the exception to D28's freeze, which covers the game's own text). The 13 changed fields of each language were translated
+again (260 fields; the unchanged headings and features kept), by four parallel passes against
+`build/steam/localization/v4/BRIEF.md`; `v4_check.py --merge` merged and stamped them, and `make_store_localization.py`
+wrote the pack: **`build/steam/localization/storepage_localization.json`** (itemid 5720010, 21 languages) and
+`readable/<lang>.txt`. Every check passes (numbers, the game's terms, Catnip and Stardust, short descriptions 108 to 277
+characters) and its self-test catches each of 9 plants. The two puns per language: "a catch" as the local idiom where one
+exists (Haken, hic, háček, haczyk, hake, подвох, bökkenő, letra chiquita, 猫腻 / 暗藏陷阱, 裏/表 on a card), else plainly;
+"nine lives" as each culture says it (seven in German, Italian, Spanish and Portuguese; nine elsewhere), as a word. Rainbow
+Poop is each language's own name from ST_Tree. **Before upload**: the pack's About is text only. If the English About on
+Steam already holds the GIFs, upload by the safe route (KB Steam/05): download the Localization JSON from Steamworks, swap
+each text run, keep the image tags. And publish it with the bosses' Summon (E2) and the 83-skill tree, not before.
 
 `build/steam/localization/` holds the short description and the About section in the game's 20 languages, in the shape
 Steamworks' Localization tab uploads (`storepage_localization.json`, one entry per language API name), and one readable

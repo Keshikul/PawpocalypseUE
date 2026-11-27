@@ -12,6 +12,8 @@
 #include "Misc/Parse.h"
 #include "Misc/ScopeLock.h"
 #include "PcField.h"
+#include "PcSave.h"
+#include "PcTree.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "Platform/PawPlatformSubsystem.h"
 #include "Save/PawSaveStorage.h"
@@ -619,6 +621,12 @@ EPawLoadOutcome UPawSaveSubsystem::LoadGame(int32 Slot)
 	SetLoadNotice(Which, Outcome);
 	const Pc::PcLoadResult R = Pc::ApplySave(G->Data(), G->Progress(), S, G->Slot());
 	G->Slot() = R.Extras;
+	// D-e (2026-11-26): a skill taken out of the game (CodeConstants retired_branches) gives back what it cost.
+	const double Refund = Pc::RefundRetiredBranches(G->Data(), G->Progress());
+	if (Refund > 0.0)
+	{
+		UE_LOG(LogPaw, Log, TEXT("Save: %.0f Stardust refunded for retired skills"), Refund);
+	}
 	G->MarkProgressReplaced();
 	if (R.bTreeMigrated)
 	{

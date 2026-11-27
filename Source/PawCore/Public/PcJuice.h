@@ -13,7 +13,8 @@
 namespace Pc
 {
 	// Godot's Tween.TransitionType / EaseType, the ones UiJuice uses (and LINEAR).
-	enum class PcTrans : uint8_t { Linear, Sine, Quad, Back, Elastic };
+	// Bounce (TRANS_BOUNCE): Boba's drop (P4.3), appended.
+	enum class PcTrans : uint8_t { Linear, Sine, Quad, Back, Elastic, Bounce };
 	enum class PcEase : uint8_t { In, Out, InOut, OutIn };
 
 	// Tween.interpolate_value(initial, delta, elapsed, duration, trans, ease): the value a tween from Initial by Delta shows

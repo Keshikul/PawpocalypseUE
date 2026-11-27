@@ -72,7 +72,7 @@ SCENES = [
 
 
 def steps_for(scenes, tag="store_"):
-    steps = ["t.MaxFPS 60", "paw.DebugHud 0"]
+    steps = ["t.MaxFPS 60", "paw.DebugHud 0", "paw.Boba 0"]  # paw.Boba 0: no cameo at random in a shot (P4.3)
     for name, _what, pre in scenes:
         steps += pre + ["paw.Shot %s%s" % (tag, name)]
     steps[-1] += " quit"

@@ -11,6 +11,7 @@
 #include "PcData.h"
 #include "PcField.h"
 #include "Realm/PawFieldLook.h"
+#include "Realm/PawFxLook.h"
 #include "Realm/PawRealmSim.h"
 #include "Realm/PawVfx.h"
 #include "Render/PawFxCanvas.h"
@@ -168,7 +169,8 @@ bool FPawVfxMappingTest::RunTest(const FString& Parameters)
 		TestEqual(TEXT("giblets: the gore once (60 ms apart)"), V.LiveOf(EKind::Shards), 2);
 		FPawVfx M;
 		W.Events(M, { Event(K::CatnipBomb, 0, 240.0), Event(K::PrismBurst, 0, 300.0), Event(K::AuraPulse, 0, 250.0), Event(K::Cleave) });
-		TestEqual(TEXT("bomb, prism, pulse: bursts"), M.LiveOf(EKind::Burst), 3);
+		TestEqual(TEXT("bomb, prism: bursts"), M.LiveOf(EKind::Burst), 2);
+		TestEqual(TEXT("the aura's pulse: its shock ring (playtest 2026-11-26, note 32)"), M.LiveOf(EKind::Shock), 1);
 		TestEqual(TEXT("the bomb's spray"), M.LiveOf(EKind::Shards), 1);
 		TestEqual(TEXT("Hammerfall's beam"), M.LiveOf(EKind::Beam), 1);
 	}
@@ -267,16 +269,20 @@ bool FPawVfxLookTest::RunTest(const FString& Parameters)
 		FPawFxCanvas G, U, O;
 		V.Draw(W.Context(), G, U, O);
 		W.Game->Progress().BranchLevels["unlock_aura"] = 0;
-		bool bRing = false, bLift = false;
+		bool bRing = false, bLift = false, bFeather = false;
 		for (const FColor& C : O.Colors)
 		{
-			bRing |= C.R == Halo.R && C.G == Halo.G && C.B == Halo.B && C.A == 217;
-			bLift |= C.R == Halo.R && C.G == Halo.G && C.B == Halo.B && C.A == 41;
+			const bool bHalo = C.R == Halo.R && C.G == Halo.G && C.B == Halo.B;
+			bRing |= bHalo && C.A == 217;
+			bLift |= bHalo && C.A == 46;
+			bFeather |= bHalo && C.A == 0;
 		}
 		const TArray<FVector2D> Ring = VertsOf(O, Halo);
-		TestTrue(TEXT("the aura's ring is the concept's yellow at 85 %"), bRing);
+		// Playtest 2026-11-26 (note 31): "the aura shouldn't have a huge round outline. just feather is good".
+		TestFalse(TEXT("no ring round the aura"), bRing);
 		TestEqual(TEXT("no ink edge (the Sticker ring has none)"), VertsOf(O, Ink).Num(), 0);
-		TestTrue(TEXT("the inside a 16 % fill of the same yellow"), bLift);
+		TestTrue(TEXT("the inside an 18 % fill of the concept's yellow"), bLift);
+		TestTrue(TEXT("its edge fades to clear"), bFeather);
 		TestEqual(TEXT("no gold (Godot's ring)"), VertsOf(O, GodotGold).Num(), 0);
 		const FVector2D Cat = W.Context().Cat;
 		double Far = 0.0;
@@ -284,7 +290,48 @@ bool FPawVfxLookTest::RunTest(const FString& Parameters)
 		{
 			Far = FMath::Max(Far, (P - Cat).Size());
 		}
-		TestTrue(TEXT("the ring round the cat at the aura's radius"), Far > 60.0 && Far < 300.0);
+		TestTrue(TEXT("the soft edge round the cat at the aura's radius"), Far > 60.0 && Far < 300.0);
+	}
+	{
+		// Thunderclap's shock (playtest 2026-11-26, note 32): half way through its life it is still at full strength, a white
+		// ring on its ink edge out past half the aura's radius (the first try's had faded inside the cat by then).
+		FPawVfx V;
+		W.Events(V, { Event(Pc::PcFieldEventKind::AuraPulse, 0, 250.0) });
+		V.Tick(W.Context(1.0, PawFxLook::PulseSec * 0.5));
+		FPawFxCanvas G, U, O;
+		V.Draw(W.Context(), G, U, O);
+		const FVector2D Cat = W.Context().Cat;
+		double Far = 0.0;
+		bool bFull = false;
+		for (int32 I = 0; I < O.Colors.Num(); ++I)
+		{
+			const FColor& C = O.Colors[I];
+			if (C == White)
+			{
+				bFull = true;
+				Far = FMath::Max(Far, (FVector2D(O.Verts[I].X, O.Verts[I].Y) - Cat).Size());
+			}
+		}
+		TestTrue(TEXT("the shock ring at full strength half way"), bFull);
+		TestTrue(TEXT("out past half the aura"), Far > 125.0);
+		TestTrue(TEXT("on its ink edge"), VertsOf(O, Ink).Num() > 0);
+	}
+	{
+		// Ember Trail's zones burn red (playtest 2026-11-26, note 39: "ember trail is blue. it should be red").
+		Pc::PcDamageZone Z;
+		Z.X = 700.0;
+		Z.Y = 400.0;
+		Z.Radius = 40.0;
+		Z.Remaining = Z.Duration = 2.5;
+		Z.Kind = Pc::PcZoneKind::Trail;
+		W.Sim.Field.Zones.push_back(Z);
+		FPawVfx V;
+		FPawFxCanvas G, U, O;
+		V.Draw(W.Context(), G, U, O);
+		W.Sim.Field.Zones.pop_back();
+		const FColor Red = Rgb(0xF2, 0x54, 0x5B), OldBlue = Rgb(0x8C, 0xD1, 0xFF);
+		TestTrue(TEXT("an Ember Trail zone is drawn in the badge red"), VertsOf(U, Red).Num() > 0);
+		TestEqual(TEXT("and never the first try's blue"), VertsOf(U, OldBlue).Num(), 0);
 	}
 	{
 		// A plain strike (Sticker Box, D18: the concept's swipe): a white arc on its ink edge and, from 35 % of the sweep, the

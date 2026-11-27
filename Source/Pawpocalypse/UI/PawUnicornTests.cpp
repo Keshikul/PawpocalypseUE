@@ -187,7 +187,7 @@ bool FPawUnicornPlaysTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("(no level moved)"), Levels(), Before);
 	// Close cannot close the tree out from under it (closed, it never ticked to its end and the tree refused every purchase).
 	Tree->PressClose();
-	Tree->PressClose();
+	Tree->AnswerLeave(true); // P4.7: the leave question's Leave
 	TestTrue(TEXT("Close leaves the tree up mid-fiesta"), Tree->IsActivated() && Tree->IsSpendMode() && C->IsPlaying());
 	W.Step(C, 0.3);
 	TestFalse(TEXT("a key before 0.6 s does not skip"), C->Input(Pc::PcUnicornInput::KeyDown));

@@ -426,6 +426,8 @@ struct FPawUpgradeRow : public FTableRowBase
 	UPROPERTY(VisibleAnywhere, Category = "Data")
 	FString target_stat;
 	UPROPERTY(VisibleAnywhere, Category = "Data")
+	FString description;
+	UPROPERTY(VisibleAnywhere, Category = "Data")
 	FString godot_file;
 };
 

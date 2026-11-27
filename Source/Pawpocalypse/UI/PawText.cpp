@@ -614,7 +614,7 @@ namespace PawText
 		for (const FString& Culture : Held().Cultures)
 		{
 			const Pc::PcLanguage* L = Pc::LanguageByCulture(TCHAR_TO_UTF8(*Culture));
-			if (L && (bUnfinishedToo || TranslationCount(Culture).Missing == 0))
+			if (L && (bUnfinishedToo || IsOffered(TranslationCount(Culture))))
 			{
 				Loaded.insert(L->Code);
 			}
@@ -625,6 +625,12 @@ namespace PawText
 			Out.Add(UTF8_TO_TCHAR(Code.c_str()));
 		}
 		return Out;
+	}
+
+	bool IsOffered(const FTranslationCount& Count, bool bFrozen)
+	{
+		const int32 Need = Count.Lines + Count.Missing;
+		return Count.Lines > 0 && (Count.Missing == 0 || (bFrozen && static_cast<double>(Count.Lines) >= FrozenCoverage * Need));
 	}
 
 	FText LanguageLabel(const FString& Code)

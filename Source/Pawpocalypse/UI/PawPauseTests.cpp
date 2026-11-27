@@ -11,6 +11,8 @@
 // Pawpocalypse.UI.Pause.Leaves        Back to Main Menu arms, its second press saves and leaves; the discard leaves without
 //                                     writing; closing disarms (reopened, one press never leaves).
 // Pawpocalypse.UI.Pause.BackKeys      back on the Save page returns to the main page; pause (Start) closes from either.
+// Pawpocalypse.UI.Pause.QuitGame      Quit game asks "Save and quit?" (the confirm dialog, Cancel selected); Cancel and Back
+//                                     keep the menu and write nothing; Save and quit writes the active slot, then quits.
 // Pawpocalypse.UI.Pause.Overwrite     an occupied slot asks first (the file untouched), the second press writes it.
 //
 // Negative tests: tools/sabotage_realm.py (`pause_*`).
@@ -33,6 +35,8 @@
 #include "UI/PawButton.h"
 #include "UI/PawHudScreen.h"
 #include "UI/PawPauseMenu.h"
+#include "UI/PawConfirmDialog.h"
+#include "Widgets/CommonActivatableWidgetContainer.h"
 #include "UI/PawRootLayout.h"
 #include "UI/PawSkillTreeScreen.h"
 #include "UI/PawWidgets.h"
@@ -441,10 +445,13 @@ bool FPawPauseLookTest::RunTest(const FString& Parameters)
 		TestNotNull(TEXT("a slot button is wired"), M->GetSlotButton(I));
 	}
 	TestEqual(TEXT("the title"), S(M->GetTitleText()), FString(TEXT("PAUSED")));
-	// D18 (S4): the concept's pause, each main button with its icon, Continue on the yellow plate.
-	TestEqual(TEXT("Continue's icon"), M->GetButton(TEXT("ContinueButton"))->GetIconName(), FString(TEXT("ui_tab_reawaken")));
-	TestTrue(TEXT("drawn"), M->GetButton(TEXT("ContinueButton"))->IsIconShown());
-	TestEqual(TEXT("Back to Main Menu's"), M->GetButton(TEXT("MainMenuButton"))->GetIconName(), FString(TEXT("ui_quick_quit")));
+	// Playtest 2026-11-26 (note 25): the main buttons' words alone and centred, no icons; Continue on the yellow plate.
+	for (const TCHAR* Name : { TEXT("ContinueButton"), TEXT("SaveButton"), TEXT("SettingsButton"), TEXT("MainMenuButton") })
+	{
+		const UPawButton* B = M->GetButton(Name);
+		TestTrue(FString::Printf(TEXT("%s: no icon, its words centred"), Name), B && !B->IsIconShown() && B->GetIconName().IsEmpty()
+			&& !B->bAlignLeft);
+	}
 	TestTrue(TEXT("Continue on the yellow plate"), M->GetButton(TEXT("ContinueButton"))->HasCallLook());
 	TestTrue(TEXT("the main page"), M->IsPageShown(false) && !M->IsPageShown(true));
 	TestTrue(TEXT("Settings opens the settings dialog"), M->GetButton(TEXT("SettingsButton"))->GetIsEnabled());
@@ -599,6 +606,77 @@ bool FPawPauseLeavesTest::RunTest(const FString& Parameters)
 	}
 	TestFalse(TEXT("closed"), M->IsActivated());
 	TestFalse(TEXT("the field let go"), W.Realm->IsPaused());
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawPauseQuitTest, "Pawpocalypse.UI.Pause.QuitGame", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawPauseQuitTest::RunTest(const FString& Parameters)
+{
+	FPauseWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	W.P().ReawakenCount = 3;
+	W.P().LifetimeKills = 777;
+	UPawPauseMenu* M = W.FromHud(*this);
+	if (!M)
+	{
+		W.Close();
+		return false;
+	}
+	int32 Quits = 0;
+	M->OnQuit = [&Quits]() { ++Quits; };
+	TestEqual(TEXT("the button"), Label(M->GetButton(TEXT("QuitGameButton"))), FString(TEXT("Quit game")));
+	TestTrue(TEXT("it shows"), Shows(M->GetButton(TEXT("QuitGameButton"))));
+	// Asks: the question, its answers, Cancel selected; nothing written, nothing quit.
+	M->PressQuitGame();
+	UPawConfirmDialog* Ask = M->GetQuitDialog();
+	if (!TestNotNull(TEXT("Quit game asks"), Ask))
+	{
+		W.Close();
+		return false;
+	}
+	TestEqual(TEXT("the question"), Ask->GetPrompt().ToString(), FString(TEXT("Save and quit?")));
+	TestEqual(TEXT("its yes"), Ask->GetYesLabel().ToString(), FString(TEXT("Save and quit")));
+	TestEqual(TEXT("its no"), Ask->GetNoLabel().ToString(), FString(TEXT("Cancel")));
+	TestTrue(TEXT("Cancel selected (the safe answer)"), Ask->GetDesiredFocusTarget() == Ask->GetNoButton());
+	TestTrue(TEXT("on the Modal stack"), W.Root->ModalStack->GetNumWidgets() == 1);
+	M->PressQuitGame();
+	TestTrue(TEXT("one question at a time"), M->GetQuitDialog() == Ask && W.Root->ModalStack->GetNumWidgets() == 1);
+	TestEqual(TEXT("no quitting yet"), Quits, 0);
+	// Cancel: the menu stays, nothing written.
+	Ask->PressNo();
+	TestTrue(TEXT("Cancel closes the question"), M->GetQuitDialog() == nullptr);
+	TestTrue(TEXT("the menu stays"), M->IsActivated() && W.Realm->IsPaused());
+	TestEqual(TEXT("Cancel never quits"), Quits, 0);
+	TestFalse(TEXT("nor writes"), W.Save->HasAnySave());
+	// Back on the question is Cancel too.
+	M->PressQuitGame();
+	Ask = M->GetQuitDialog();
+	if (Ask)
+	{
+		const FKeyEvent Esc(EKeys::Escape, FModifierKeysState(), 0u, false, 0u, 0u);
+		Ask->TakeWidget()->OnPreviewKeyDown(FGeometry(), Esc);
+	}
+	TestTrue(TEXT("Back: Cancel"), Ask && M->GetQuitDialog() == nullptr && Quits == 0 && !W.Save->HasAnySave());
+	// Save and quit: the active slot written, then the game quits (once).
+	M->PressQuitGame();
+	Ask = M->GetQuitDialog();
+	if (TestNotNull(TEXT("asked again"), Ask))
+	{
+		Ask->PressYes();
+		Ask->PressYes();
+	}
+	TestEqual(TEXT("Save and quit quits, once"), Quits, 1);
+	Pc::PcSlotSummary Summary;
+	if (TestTrue(TEXT("after writing the active slot"), W.Save->ReadSlotSummary(W.Save->GetActiveSlot(), Summary)))
+	{
+		TestEqual(TEXT("this game"), Summary.Kills, static_cast<int64_t>(777));
+	}
 	W.Close();
 	return true;
 }

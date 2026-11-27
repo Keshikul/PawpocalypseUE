@@ -220,7 +220,8 @@ bool FPawAudioRulesTest::RunTest(const FString& Parameters)
 		S->SetMasterVolume(0.5);
 		S->SetMusicVolume(0.4);
 		S->SetSfxVolume(0.8);
-		TestEqual(TEXT("music gain"), A->MusicGain(), 0.2, 1e-9);
+		// Playtest 2026-11-26 (note 37): the music sits 10 dB under the slider (half as loud).
+		TestEqual(TEXT("music gain: Master x Music, 10 dB down"), A->MusicGain(), 0.2 * FMath::Pow(10.0, -10.0 / 20.0), 1e-9);
 		TestEqual(TEXT("sfx gain"), A->SfxGain(), 0.4, 1e-9);
 		S->SetMuted(true);
 		TestEqual(TEXT("muted: silence"), A->MusicGain() + A->SfxGain(), 0.0);

@@ -267,7 +267,9 @@ namespace
 			{
 				Why.Add(TEXT("not offered"));
 			}
-			if (L.Count.Missing > 0 || L.Count.Left > 0)
+			// During the translation freeze (PawText::bTranslationFrozen) a line changed or added since shows its English: the
+			// counts are reported, and only a language the rule would not offer fails.
+			if ((L.Count.Missing > 0 || L.Count.Left > 0) && (!PawText::bTranslationFrozen || !PawText::IsOffered(L.Count)))
 			{
 				Why.Add(FString::Printf(TEXT("%d missing, %d left out"), L.Count.Missing, L.Count.Left));
 			}

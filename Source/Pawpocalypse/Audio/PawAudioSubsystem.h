@@ -86,9 +86,13 @@ public:
 	const TArray<FPlayed>& Played() const { return Log; }
 	void ClearLog() { Log.Reset(); }
 	static constexpr int32 MaxLog = 256; // the log keeps the newest (review CR4)
-	// The bus amplitudes now (Master x Music, Master x SFX).
+	// The bus amplitudes now (Master x Music x MusicTrim, Master x SFX).
 	double MusicGain() const;
 	double SfxGain() const;
+	// The music's mix level under the slider: -10 dB, which sounds half as loud (playtest 2026-11-26, note 37: "the music is
+	// very loud. it starts at 45% and even that is very loud. make it twice as silent"). A trim, not a new default: the
+	// slider keeps its meaning and it reaches every install, a settings file already written included.
+	static constexpr double MusicTrimDb = -10.0;
 	// The music fade, in dB, of the incoming and the outgoing players (tests).
 	double IncomingDb() const { return FadeInDb; }
 	double OutgoingDb() const { return FadeOutDb; }

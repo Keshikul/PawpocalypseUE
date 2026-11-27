@@ -209,7 +209,7 @@ bool FPawRainbowBarTest::RunTest(const FString& Parameters)
 	for (UPawHudScreen* H : { W.Hud, CodeHud })
 	{
 		const TCHAR* Mode = H == W.Hud ? TEXT("asset") : TEXT("code");
-		for (const TCHAR* Name : { TEXT("WaveBar"), TEXT("ZoneBar"), TEXT("XpBar"), TEXT("BossBar") })
+		for (const TCHAR* Name : { TEXT("ZoneBar"), TEXT("XpBar"), TEXT("BossBar") })
 		{
 			const UProgressBar* B = Part<UProgressBar>(H, Name);
 			if (TestNotNull(FString::Printf(TEXT("%s (%s)"), Name, Mode), B))

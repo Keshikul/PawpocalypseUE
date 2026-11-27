@@ -220,6 +220,19 @@ bool UPawRealmSubsystem::RerollHand()
 	return Pc::RerollHand(Game->Data(), Game->Progress(), Rolls);
 }
 
+FString UPawRealmSubsystem::AutoPickNow()
+{
+	UPawGameSubsystem* Game = GetGame();
+	if (!Game || !Game->IsDataReady() || Game->Progress().Hand.empty())
+	{
+		return FString();
+	}
+	Pc::PcRngCardRolls Rolls(Sim.Field.Seed, ++Sim.Field.Deals);
+	const std::vector<std::string>& Hand = Game->Progress().Hand;
+	const FString Id = UTF8_TO_TCHAR(Hand[static_cast<size_t>(Rolls.Below(static_cast<int64_t>(Hand.size())))].c_str());
+	return ChooseCard(Id) ? Id : FString();
+}
+
 bool UPawRealmSubsystem::BanishFromHand(const FString& CardId)
 {
 	UPawGameSubsystem* Game = GetGame();

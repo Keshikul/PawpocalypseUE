@@ -9,6 +9,7 @@
 #include "PcCards.h"
 #include "PcCore.h"
 #include "PcData.h"
+#include "PcFieldRules.h"
 #include "PcStats.h"
 
 #include <cstdint>
@@ -50,6 +51,38 @@ namespace Pc
 	// _on_upgrade_button_pressed(): the press buys what the row says (purchase_upgrade_bulk); the levels bought.
 	PAWCORE_API int64_t PressShopRow(const PcGameData& D, PcProgress& P, const std::string& UpgradeId, int64_t BuyMultiplier);
 
+	// --- the shared tooltip (P4.1, playtest 2026-11-26 notes 14 and 23) ---------------------------------------------
+
+	// How a line's numbers read: x1.42 (a multiplier), 18 % (a share), 4 (a count: an additive line of whole steps).
+	enum class PcTipNumber : uint8_t
+	{
+		Multiplier,
+		Percent,
+		Count,
+	};
+	// A shop row's tooltip: the line's effect now and after the row's buy (the amount the row shows, its cap applied),
+	// what the buy costs and what is short. Built on ShopRow, so the tip and the row never disagree.
+	struct PcUpgradeTip
+	{
+		bool bKnown = false;     // a shop line that is shown (or shown locked)
+		bool bLocked = false;    // Kitten Power / Speed before a kitten: no numbers, the row says why
+		int64_t Level = 0;
+		PcTipNumber Number = PcTipNumber::Multiplier;
+		double Now = 0.0;        // the effect at Level, capped
+		double Next = 0.0;       // the effect after the buy, capped (= Now when maxed)
+		bool bMaxed = false;
+		int64_t Levels = 0;      // levels the buy gives (1 unless a bulk amount affords more)
+		double Price = 0.0;
+		bool bAffordable = false;
+		double Short = 0.0;      // Price - Catnip when not affordable ("Need {amount} more")
+	};
+	PAWCORE_API PcUpgradeTip UpgradeTip(const PcGameData& D, const PcProgress& P, const std::string& UpgradeId, int64_t BuyMultiplier);
+
+	// Where the tooltip goes: beside the dock on the field side, level with the row (its centre on the row's), kept
+	// Margin inside the screen. All in one space (the HUD's). A dock on the left puts the tip right of it.
+	PAWCORE_API PcRect PlaceTip(const PcRect& Dock, const PcRect& Row, double TipW, double TipH, double ScreenW, double ScreenH,
+		double Gap, double Margin);
+
 	// --- the status row --------------------------------------------------------------------------------------------
 
 	// _on_xp_changed(): the Catches bar fills WITHIN the level (the totals are a geometric series; their ratio reads full).
@@ -80,17 +113,6 @@ namespace Pc
 		bool bRainbow = false;  // the rainbow outline and the lean: Bait or Ready
 	};
 	PAWCORE_API PcZonePlate ZonePlate(const PcField& F, const PcGameData& D, const PcProgress& P);
-
-	// _refresh_wave_progress(): above the zone plate. Bait held / needed when this biome holds a boss, else the wave.
-	struct PcWaveLine
-	{
-		bool bVisible = false;   // false in a biome with no waves (kills_per_wave = 0)
-		double Fraction = 0.0;
-		bool bBait = false;
-		int64_t Held = 0, Needed = 0, Wave = 0;
-		double Done = 0.0, Cost = 0.0;
-	};
-	PAWCORE_API PcWaveLine WaveLine(const PcGameData& D, const PcProgress& P);
 
 	// --- the field overlay -----------------------------------------------------------------------------------------
 

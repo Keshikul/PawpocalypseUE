@@ -1,0 +1,10 @@
+table,key,proposed,note
+ST_UI,AWARD_how_boss,Defeat {boss}.,"P4.1: an achievement's ""how to earn"" line in its tooltip (today the row says only its reward; the first try's requirement_text says ""mice"" and lost its dashes). One line per kind of goal, the numbers from the data; {boss} is the boss's name"
+ST_UI,AWARD_how_skill,Reach level {level} in {skill}.,a skill tree goal (Sharpened Instinct: Instinct to 5)
+ST_UI,AWARD_how_catnip,Earn {amount} Catnip in total.,"Catnip earned over every Reawaken (""across all lives"" in the first try)"
+ST_UI,AWARD_how_kills,Kill {n} enemies in total.,tr_n plural; the first one is AWARD_how_kills_one
+ST_UI,AWARD_how_kills_one,Kill your first enemy.,"First Catch (1 kill): not ""Kill 1 enemies"""
+ST_UI,AWARD_how_reawaken,Reawaken {n} times.,tr_n plural; the first one is AWARD_how_reawaken_one
+ST_UI,AWARD_how_reawaken_one,Reawaken once.,Nine Lives
+ST_UI,AWARD_how_stage,Reach evolution stage {stage}.,the cat's stage goes up with each boss defeated
+ST_UI,AWARD_how_upgrade,Buy {upgrade} to level {level}.,a shop goal (Heavy Paws: Paw Damage to 20)

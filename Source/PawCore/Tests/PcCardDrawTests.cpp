@@ -32,6 +32,10 @@ namespace
 		{
 			std::vector<std::string> Errors;
 			REQUIRE(Pc::LoadGameData(DataDir(), Data, Errors));
+			// The Godot rows were recorded under the first try's rules: auto-pick behind the Auto-Card node, no skill retired.
+			// D-e's (2026-11-26) are proven by their own tests (PcTreeTests.cpp, "D-e").
+			Data.Code.AutoPickFree = 0;
+			Data.Code.RetiredBranches.clear();
 			bLoaded = true;
 		}
 		return Data;

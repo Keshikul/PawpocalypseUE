@@ -12,6 +12,7 @@
 #include "Components/VerticalBoxSlot.h"
 #include "Engine/World.h"
 #include "Realm/PawRealmSubsystem.h"
+#include "UI/PawBoba.h"
 #include "UI/PawButton.h"
 #include "UI/PawText.h"
 #include "UI/PawTokens.h"
@@ -142,6 +143,12 @@ TOptional<FUIInputConfig> UPawVictoryScreen::GetDesiredInputConfig() const
 
 void UPawVictoryScreen::NativeOnActivated()
 {
+	if (UPawBobaSubsystem* Boba = UPawBobaSubsystem::Of(this))
+	{
+		// P4.3: the victory's own cameo, the rainbow one, 1.5 s after it lands (if it is still up).
+		Boba->EnterMenu(TEXT("victory"));
+		Boba->ForceLater(Pc::PcBobaKind::Nyan, 1.5, TEXT("victory"));
+	}
 	if (UPawRealmSubsystem* R = Realm())
 	{
 		R->SetPauseHold(PauseHolder, true);
@@ -154,6 +161,10 @@ void UPawVictoryScreen::NativeOnActivated()
 void UPawVictoryScreen::NativeOnDeactivated()
 {
 	Super::NativeOnDeactivated();
+	if (UPawBobaSubsystem* Boba = UPawBobaSubsystem::Of(this))
+	{
+		Boba->LeaveMenu(TEXT("victory"));
+	}
 	if (UPawRealmSubsystem* R = Realm())
 	{
 		R->SetPauseHold(PauseHolder, false);

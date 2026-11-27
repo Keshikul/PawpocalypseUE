@@ -11,7 +11,7 @@
 |---|---|---|
 | 0-4 | **Done** (2026-10-28 to 2026-11-04) | |
 | 5 Pad and keyboard | **Done** (2026-11-05) | the designer's hand-checks on real pads (Steam Input) and an AZERTY keyboard |
-| 6 Presentation | **Done but slice 6's last three** | **6b the first-Reawaken banner, 6c Boba's photo and cameo, 6d the tutorial (eleven cues): not built** ([WORKLIST-SLICE6](WORKLIST-SLICE6-2026-11-07.md)); the exit tours |
+| 6 Presentation | **Done but two of slice 6** | **6b the first-Reawaken banner, 6d the tutorial (eleven cues): not built** ([WORKLIST-SLICE6](WORKLIST-SLICE6-2026-11-07.md)); 6c Boba built 2026-11-27 (the playtest's P4.3, HANDOFF-LOG (159)); the exit tours |
 | The look (D18) | S0-S5 done | S6 (card art, skill and achievement icons: drafts since (127)), the props, the title face (E1), the rig (E3), S7 sign-off |
 | 7 Localisation | **Done** (2026-11-23) | native reads declined (D20); the store page's Dutch and Danish |
 | 8 Hardening and packaging | **Done but the Deck pass** (2026-11-24) | the Deck-class pass (no hardware); the 5x soak's whole-process stall (seen twice); the owed nightly `-Full` |

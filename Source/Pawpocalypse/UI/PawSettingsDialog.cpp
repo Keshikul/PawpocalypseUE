@@ -10,6 +10,7 @@
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Overlay.h"
 #include "Components/ScrollBox.h"
+#include "Components/ScrollBoxSlot.h"
 #include "Components/OverlaySlot.h"
 #include "Components/SizeBox.h"
 #include "Components/Slider.h"
@@ -22,6 +23,7 @@
 #include "PcLocales.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "Save/PawSettingsSubsystem.h"
+#include "UI/PawBoba.h"
 #include "UI/PawButton.h"
 #include "UI/PawControlsPanel.h"
 #include "UI/PawText.h"
@@ -40,7 +42,8 @@ namespace
 	using namespace PawUi;
 
 
-	const TCHAR* const SectionKeys[] = { TEXT("SETTINGS_section_audio"), TEXT("SETTINGS_section_video"), TEXT("SETTINGS_section_controls") };
+	const TCHAR* const SectionKeys[] = { TEXT("SETTINGS_section_audio"), TEXT("SETTINGS_section_video"), TEXT("SETTINGS_section_controls"),
+		TEXT("SETTINGS_section_game") };
 
 	FString Str(const FText& T) { return T.ToString(); }
 
@@ -67,7 +70,7 @@ namespace
 	{
 		UTextBlock* L = PageLabel(T, Page, Name, Key, false);
 		L->SetAutoWrapText(false);
-		L->SetWrapTextAt(static_cast<float>(SettingsWindowWidth - 2.0 * PausePadX)); // a fixed width (KB U/09 §3)
+		L->SetWrapTextAt(static_cast<float>(SettingsWindowWidth - 2.0 * PausePadX - 2.0 * SettingsRingRoom)); // a fixed width (KB U/09 §3)
 		return L;
 	}
 
@@ -253,9 +256,9 @@ bool UPawSettingsDialog::Initialize()
 		// The section bar: one toggle per section, sharing the width.
 		UHorizontalBox* Bar = T->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("SectionBar"));
 		Body->AddChildToVerticalBox(Bar)->SetPadding(FMargin(0.0f, Gap, 0.0f, 0.0f));
-		const TCHAR* SectionNames[] = { TEXT("SectionAudio"), TEXT("SectionVideo"), TEXT("SectionControls") };
-		UPawButton* Sections[3] = {};
-		for (int32 I = 0; I < 3; ++I)
+		const TCHAR* SectionNames[] = { TEXT("SectionAudio"), TEXT("SectionVideo"), TEXT("SectionControls"), TEXT("SectionGame") };
+		UPawButton* Sections[4] = {};
+		for (int32 I = 0; I < 4; ++I)
 		{
 			UPawButton* B = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), SectionNames[I]);
 			B->SetLabel(PawText::Ui(SectionKeys[I]));
@@ -268,6 +271,7 @@ bool UPawSettingsDialog::Initialize()
 		SectionAudio = Sections[0];
 		SectionVideo = Sections[1];
 		SectionControls = Sections[2];
+		SectionGame = Sections[3]; // D-e: in a game only (ShowSection)
 
 		// The HSeparator: the theme's separator (phase 6 slice 5a). Godot draws it 4 px tall, the texture's 2 + 2 px margins
 		// and nothing between, so the line in the middle of ui_separator.svg never shows (finding F41).
@@ -286,7 +290,8 @@ bool UPawSettingsDialog::Initialize()
 		PagesSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 		PagesSlot->SetPadding(FMargin(0.0f, Gap, 0.0f, 0.0f));
 		UOverlay* Pages = T->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("Pages"));
-		PagesScroll->AddChild(Pages);
+		// Room for the selection ring, which the scroll box would clip (SettingsRingRoom).
+		Cast<UScrollBoxSlot>(PagesScroll->AddChild(Pages))->SetPadding(FMargin(static_cast<float>(SettingsRingRoom)));
 
 		AudioPage = MakePage(T, Pages, TEXT("AudioPage"));
 		VolumeLabel = PageLabel(T, AudioPage, TEXT("VolumeLabel"), nullptr, true);
@@ -311,7 +316,6 @@ bool UPawSettingsDialog::Initialize()
 		MaxFpsLabel = PageLabel(T, VideoPage, TEXT("MaxFpsLabel"), TEXT("SETTINGS_max_fps"), false);
 		MaxFpsOption = PageOption(T, VideoPage, TEXT("MaxFpsOption"));
 		EffectsCheck = PageCheck(T, VideoPage, TEXT("EffectsCheck"), TEXT("SETTINGS_effects"));
-		VideoNote = PageNote(T, VideoPage, TEXT("VideoNote"), TEXT("SETTINGS_video_note"));
 
 		ControlsPage = MakePage(T, Pages, TEXT("ControlsPage"));
 		PromptsLabel = PageLabel(T, ControlsPage, TEXT("PromptsLabel"), TEXT("SETTINGS_prompts"), true);
@@ -324,6 +328,10 @@ bool UPawSettingsDialog::Initialize()
 		ControlsPanel = T->ConstructWidget<UPawControlsPanel>(PawUi::Resolve<UPawControlsPanel>(), TEXT("ControlsPanel"));
 		ControlsPage->AddChildToVerticalBox(ControlsPanel)->SetPadding(FMargin(0.0f, static_cast<float>(SettingsPageSeparation), 0.0f, 0.0f));
 
+		// D-e (playtest 2026-11-26, note 36): the loaded game's options.
+		GamePage = MakePage(T, Pages, TEXT("GamePage"));
+		AutoPickCheck = PageCheck(T, GamePage, TEXT("AutoPickCheck"), TEXT("SETTINGS_auto_pick"));
+
 		CloseButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("CloseButton"));
 		CloseButton->SetLabel(PawText::Ui(TEXT("SETTINGS_close")));
 		CloseButton->SetMinDimensions(0, static_cast<int32>(SettingsRowHeight));
@@ -332,6 +340,10 @@ bool UPawSettingsDialog::Initialize()
 		CloseSlot->SetPadding(FMargin(0.0f, Gap, 0.0f, 0.0f));
 	}
 	const bool bOk = Super::Initialize();
+	// The screen itself takes the keys when a click lands on nothing focusable (its scrim, a plate): Slate gives focus to
+	// the first focusable widget under the click, and without this that was the game's viewport, so Back / Esc never
+	// reached NativeOnPreviewKeyDown (playtest 2026-11-26, note 11; KB U/24).
+	SetIsFocusable(true);
 	if (bOk && PawUi::ShouldWire(this))
 	{
 		PawUi::UseAtlasIcons(this); // the asset's saved icon and plate brushes: the atlas's cells (one batch)
@@ -359,6 +371,8 @@ void UPawSettingsDialog::OnLayoutReady()
 	Click(SectionControls, [this]() { PressSection(Pc::PcSettingsSection::Controls); });
 	Click(CloseButton, [this]() { PressClose(); });
 	Click(MuteCheck, [this]() { ToggleMute(); });
+	Click(SectionGame, [this]() { PressSection(Pc::PcSettingsSection::Game); });
+	Click(AutoPickCheck, [this]() { ToggleAutoPick(); });
 	Click(FullscreenCheck, [this]() { ToggleFullscreen(); });
 	Click(VsyncCheck, [this]() { ToggleVsync(); });
 	Click(EffectsCheck, [this]() { ToggleEffects(); });
@@ -413,6 +427,10 @@ bool UPawSettingsDialog::CanTakeFocus() const
 void UPawSettingsDialog::NativeOnActivated()
 {
 	Super::NativeOnActivated();
+	if (UPawBobaSubsystem* Boba = UPawBobaSubsystem::Of(this))
+	{
+		Boba->EnterMenu(TEXT("settings")); // P4.3
+	}
 	// open(): the controls from the settings (without counting as changes), the tree paused, the page's first control.
 	if (const UWorld* W = GetWorld())
 	{
@@ -446,6 +464,10 @@ void UPawSettingsDialog::OnSettingsChanged()
 
 void UPawSettingsDialog::NativeOnDeactivated()
 {
+	if (UPawBobaSubsystem* Boba = UPawBobaSubsystem::Of(this))
+	{
+		Boba->LeaveMenu(TEXT("settings"));
+	}
 	if (UPawSettingsSubsystem* S = Settings())
 	{
 		S->OnChanged.Remove(SettingsHandle);
@@ -567,6 +589,11 @@ void UPawSettingsDialog::Sync()
 	RefreshVolumeLines();
 	FillOptions();
 	if (MuteCheck) { MuteCheck->SetCheck(true, P.bMuted); }
+	if (AutoPickCheck)
+	{
+		const UPawRealmSubsystem* R = GetWorld() ? GetWorld()->GetSubsystem<UPawRealmSubsystem>() : nullptr;
+		AutoPickCheck->SetCheck(true, R && R->GetAutoPick());
+	}
 	if (FullscreenCheck) { FullscreenCheck->SetCheck(true, P.bFullscreen); }
 	if (VsyncCheck) { VsyncCheck->SetCheck(true, P.bVsync); }
 	if (EffectsCheck) { EffectsCheck->SetCheck(true, P.bEffectsEnabled); }
@@ -587,15 +614,41 @@ UVerticalBox* UPawSettingsDialog::PageOf(Pc::PcSettingsSection Section) const
 	{
 	case Pc::PcSettingsSection::Audio: return AudioPage;
 	case Pc::PcSettingsSection::Video: return VideoPage;
+	case Pc::PcSettingsSection::Game: return GamePage;
 	default: return ControlsPage;
+	}
+}
+
+bool UPawSettingsDialog::IsInGame() const
+{
+	const UPawRealmSubsystem* R = GetWorld() ? GetWorld()->GetSubsystem<UPawRealmSubsystem>() : nullptr;
+	return R && R->IsRunning();
+}
+
+void UPawSettingsDialog::ToggleAutoPick()
+{
+	UPawRealmSubsystem* R = GetWorld() ? GetWorld()->GetSubsystem<UPawRealmSubsystem>() : nullptr;
+	if (R && IsInGame())
+	{
+		R->SetAutoPick(!R->GetAutoPick());
+		AutoPickCheck->SetCheck(true, R->GetAutoPick());
 	}
 }
 
 void UPawSettingsDialog::ShowSection()
 {
-	// show_section(): the page shown, its toggle pressed (the theme's pressed plate).
-	UPawButton* Toggles[3] = { SectionAudio.Get(), SectionVideo.Get(), SectionControls.Get() };
-	for (int32 I = 0; I < 3; ++I)
+	// show_section(): the page shown, its toggle pressed (the theme's pressed plate). The Game page only in a game (D-e).
+	const bool bInGame = IsInGame();
+	if (!bInGame && Dialog.Section == Pc::PcSettingsSection::Game)
+	{
+		Dialog.Section = Pc::PcSettingsSection::Audio;
+	}
+	if (SectionGame)
+	{
+		SectionGame->SetVisibility(bInGame ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
+	UPawButton* Toggles[4] = { SectionAudio.Get(), SectionVideo.Get(), SectionControls.Get(), SectionGame.Get() };
+	for (int32 I = 0; I < 4; ++I)
 	{
 		const Pc::PcSettingsSection S = static_cast<Pc::PcSettingsSection>(I);
 		if (UVerticalBox* Page = PageOf(S))
@@ -616,9 +669,9 @@ void UPawSettingsDialog::FocusPage()
 	// section change (a hidden page's controls must not be in the loop). Opens on the page's first control.
 	TArray<TArray<UWidget*>> Rows;
 	TArray<UWidget*> Bar;
-	for (UPawButton* B : { SectionAudio.Get(), SectionVideo.Get(), SectionControls.Get() })
+	for (UPawButton* B : { SectionAudio.Get(), SectionVideo.Get(), SectionControls.Get(), SectionGame.Get() })
 	{
-		if (B)
+		if (B && B->GetVisibility() != ESlateVisibility::Collapsed)
 		{
 			Bar.Add(B);
 		}
@@ -634,6 +687,9 @@ void UPawSettingsDialog::FocusPage()
 	case Pc::PcSettingsSection::Video:
 		Controls = { LanguageOption.Get(), ResolutionOption.Get(), FullscreenCheck.Get(), VsyncCheck.Get(), QualityOption.Get(),
 			MaxFpsOption.Get(), EffectsCheck.Get() };
+		break;
+	case Pc::PcSettingsSection::Game:
+		Controls = { AutoPickCheck.Get() };
 		break;
 	default:
 		Controls = { PromptsOption.Get(), DockSideOption.Get() };
@@ -655,6 +711,7 @@ void UPawSettingsDialog::FocusPage()
 	}
 	Rows.Add({ CloseButton.Get() });
 	Wired = WireRows(Rows);
+	FirstControl = First;
 	if (CanTakeFocus())
 	{
 		if (UWidget* Target = First ? First : CloseButton.Get())
@@ -666,7 +723,7 @@ void UPawSettingsDialog::FocusPage()
 
 UWidget* UPawSettingsDialog::NativeGetDesiredFocusTarget() const
 {
-	return Wired.Num() > 3 ? Wired[3] : CloseButton.Get();
+	return FirstControl.IsValid() ? FirstControl.Get() : static_cast<UWidget*>(CloseButton.Get());
 }
 
 void UPawSettingsDialog::PressSection(Pc::PcSettingsSection Section)
@@ -677,7 +734,7 @@ void UPawSettingsDialog::PressSection(Pc::PcSettingsSection Section)
 
 void UPawSettingsDialog::StepSection(int64 Direction)
 {
-	Pc::SettingsDialogStepSection(Dialog, Direction);
+	Pc::SettingsDialogStepSection(Dialog, Direction, IsInGame() ? Pc::SettingsSectionCountInGame : Pc::SettingsSectionCount);
 	ShowSection();
 }
 

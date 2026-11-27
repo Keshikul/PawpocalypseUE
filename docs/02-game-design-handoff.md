@@ -97,7 +97,7 @@ sparkle, size.
   farm it; it asks the player to move the cursor somewhere for a reason). Chargers, splitters, ranged are named,
   undesigned.
 - **Signature enemies** (tier 3 up) carry periodic invulnerability windows (`invuln_vulnerable_sec` /
-  `invuln_shield_sec`) and a white glow. `take_damage()` is a no-op while shielded, less what Shield Pierce buys.
+  `invuln_shield_sec`) and a glow (since D31, 2026-11-27: a thin gold one, 1.10x, half alpha; it was white, 1.24x). `take_damage()` is a no-op while shielded, less what Shield Pierce buys.
   This, not "more HP", is what differentiates signature enemies and boss phases; it was asked and answered once.
 - **Golden mice** spawn at the biome's `golden_chance` (raised by Fortune, clamped at `MAX_GOLDEN_CHANCE` 0.35), flee
   and time out: hard to catch, not to kill.
@@ -347,10 +347,13 @@ The Litter King dies in the Litterbox Dimension, stage 7 is granted, the **victo
   Reawaken: the SUGGESTED Reawaken; Achievements: a star by its count). The selected tab survives a biome change.
 - **The skill tree is its own full-screen page** (from the Reawaken ceremony, the quick-access bar or T). **Settings
   is a popup** (Audio / Video / Controls). **Pause menu** on Esc/Start.
-- **Title screen**: five save slots ("played 3 days ago"), a garden scene, Boba, Report a bug (opens the itch
-  community board; later Steam discussions), Discord. Pre-slot saves migrated once.
+- **Title screen**: five save slots ("played 3 days ago"), a garden scene, Boba, Report a bug (the game's Steam
+  discussions, in the Steam overlay under Steam: playtest 2026-11-26, note 5; the itch board before), Discord; Exit asks
+  "Quit Pawpocalypse?" as Back does (note 43). Pre-slot saves migrated once.
 - **The cursor**: over open field the OS pointer hides and the cat IS the cursor; over the dock, popups or a paused
-  game the pointer is the generated paw (open; closed with claws while the button is held).
+  game the pointer is the generated paw (open; closed with claws while the button is held). The cat never leaves the
+  playfield: with the pointer over the dock it waits at the dock's edge, and when the pointer leaves the window (alt-tab)
+  it stays where the pointer left the field, still hitting (playtest 2026-11-26, note 35; `APawRealmView::PointerStep`).
 - **Tutorial**: a paw and one line. Eleven cues in order `card, tree, boss, reawaken, bait, travel, kitten, buy,
   claim, pounce, hover`; one cue at a time; the game's paw tapping one control and one short verb-first line. Never
   pauses, never takes a click or focus. A step is DONE when the game state says the lesson was learned (old saves and

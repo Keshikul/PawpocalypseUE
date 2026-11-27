@@ -118,6 +118,53 @@ namespace Pc
 		return PurchaseUpgradeBulk(D, P, UpgradeId, BuyMultiplier);
 	}
 
+	PcUpgradeTip UpgradeTip(const PcGameData& D, const PcProgress& P, const std::string& UpgradeId, int64_t BuyMultiplier)
+	{
+		PcUpgradeTip Tip;
+		const PcUpgrade* U = D.FindUpgrade(UpgradeId);
+		const PcShopRow Row = ShopRow(D, P, UpgradeId, BuyMultiplier);
+		if (!U || Row.Kind == PcShopRowKind::Hidden)
+		{
+			return Tip;
+		}
+		Tip.bKnown = true;
+		if (Row.Kind == PcShopRowKind::KittenLocked)
+		{
+			Tip.bLocked = true;
+			return Tip;
+		}
+		Tip.Number = U->EffectType == UpgradeEffectType::MULTIPLICATIVE ? PcTipNumber::Multiplier
+			: (U->EffectPerLevel >= 1.0 ? PcTipNumber::Count : PcTipNumber::Percent);
+		Tip.Level = Row.Level;
+		Tip.Now = CappedEffect(*U, Row.Level, P);
+		if (Row.Kind == PcShopRowKind::Max)
+		{
+			Tip.bMaxed = true;
+			Tip.Next = Tip.Now;
+			return Tip;
+		}
+		Tip.Levels = Row.Kind == PcShopRowKind::Bulk ? Row.Levels : 1;
+		Tip.Next = CappedEffect(*U, Row.Level + Tip.Levels, P);
+		Tip.Price = Row.Price;
+		Tip.bAffordable = Row.bEnabled;
+		Tip.Short = Tip.bAffordable ? 0.0 : std::max(0.0, Row.Price - P.Catnip);
+		return Tip;
+	}
+
+	PcRect PlaceTip(const PcRect& Dock, const PcRect& Row, double TipW, double TipH, double ScreenW, double ScreenH, double Gap,
+		double Margin)
+	{
+		PcRect Out;
+		Out.W = TipW;
+		Out.H = TipH;
+		const bool bDockLeft = Dock.CentreX() < ScreenW * 0.5;
+		Out.X = bDockLeft ? Dock.Right() + Gap : Dock.X - Gap - TipW;
+		Out.Y = Row.CentreY() - TipH * 0.5;
+		Out.X = std::clamp(Out.X, Margin, std::max(Margin, ScreenW - Margin - TipW));
+		Out.Y = std::clamp(Out.Y, Margin, std::max(Margin, ScreenH - Margin - TipH));
+		return Out;
+	}
+
 	PcCatchesBar CatchesBar(const PcGameData& D, const PcProgress& P)
 	{
 		PcCatchesBar Bar;
@@ -186,30 +233,6 @@ namespace Pc
 		return Plate;
 	}
 
-	PcWaveLine WaveLine(const PcGameData& D, const PcProgress& P)
-	{
-		PcWaveLine Line;
-		const PcWaveProgress Progress = WaveProgress(D, P);
-		if (Progress.Costs <= 0.0)
-		{
-			return Line;
-		}
-		Line.bVisible = true;
-		Line.Done = Progress.Done;
-		Line.Cost = Progress.Costs;
-		Line.Fraction = std::clamp(Progress.Done / Progress.Costs, 0.0, 1.0);
-		Line.Wave = P.CurrentWaveIndex;
-		const PcTier* Realm = TierById(D, P.CurrentBiomeId);
-		const PcBoss* Boss = Realm && !Realm->BossData.empty() ? D.FindBoss(Realm->BossData) : nullptr;
-		Line.Needed = Boss ? Boss->BaitRequired : 0;
-		if (Line.Needed > 0)
-		{
-			Line.bBait = true;
-			Line.Held = std::min(BaitHeld(D, P, P.CurrentBiomeId), Line.Needed);
-		}
-		return Line;
-	}
-
 	PcPounceClock PounceClock(const PcField& F, const PcProgress& P)
 	{
 		PcPounceClock Clock;
@@ -243,18 +266,13 @@ namespace Pc
 
 	bool AnyUpgradeAffordable(const PcGameData& D, const PcProgress& P)
 	{
-		// UPGRADE_PATHS: every upgrade, visible or not (Godot's loop does not ask), Kitten Power's lock excepted.
-		for (const PcUpgrade& U : D.Upgrades)
+		// The dot says "the shop sells you something now": only a row the shop shows and would sell at x1 (ShopRow's own
+		// rule: the kitten locks, visibility, the cap, F30's epsilon). The first try's loop asked every upgrade, visible or
+		// not, so Kitten Speed's 45 Catnip with no kitten (and the Aura and Pounce lines before their unlocks) lit it for good
+		// (playtest 2026-11-26, note 26: "always has a new red dot ... even if you can't buy anything").
+		for (const std::string& Id : ShopRowOrder())
 		{
-			if (IsUpgradeAtCap(D, P, U.Id))
-			{
-				continue;
-			}
-			if (U.Id == "kitten_power" && IsKittenPowerLocked(D, P))
-			{
-				continue;
-			}
-			if (P.Catnip >= UpgradeCostById(D, P, U.Id))
+			if (ShopRow(D, P, Id, 1).bEnabled)
 			{
 				return true;
 			}

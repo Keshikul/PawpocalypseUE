@@ -76,9 +76,11 @@ bool FPawLanguageTranslationsTest::RunTest(const FString& Parameters)
 		TestEqual(FString::Printf(TEXT("%s: in use and missing make every line that needs words"), *Culture), Count.Lines + Count.Missing,
 			PawText::LinesNeedingWords());
 		TestNotNull(FString::Printf(TEXT("%s is a language of the game"), *Culture), Pc::LanguageByCulture(TCHAR_TO_UTF8(*Culture)));
-		// Offered only when complete (Godot: "so an unfinished language cannot be chosen by accident").
+		// Offered when complete, or during the translation freeze nearly so (Godot: "so an unfinished language cannot be
+		// chosen by accident"; the designer 2026-11-26: "Offer them, gaps in English").
 		const FString Code = UTF8_TO_TCHAR(Pc::LanguageByCulture(TCHAR_TO_UTF8(*Culture))->Code);
-		TestEqual(FString::Printf(TEXT("%s offered only when complete"), *Culture), PawText::Languages(false).Contains(Code), Count.Missing == 0);
+		TestEqual(FString::Printf(TEXT("%s offered by the rule"), *Culture), PawText::Languages(false).Contains(Code), PawText::IsOffered(Count));
+		TestTrue(FString::Printf(TEXT("%s offered to players (every language is, frozen or not)"), *Culture), PawText::Languages(false).Contains(Code));
 		TestTrue(FString::Printf(TEXT("%s offered when unfinished ones are asked for"), *Culture), PawText::Languages(true).Contains(Code));
 	}
 	TestTrue(TEXT("the tables' lines that need words (tools/loc_status.py: 837 on 2026-11-20)"), PawText::LinesNeedingWords() > 800);
@@ -244,7 +246,20 @@ bool FPawLanguageLoaderTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("no text: not in use"), PawText::TranslationIn(PawText::TableUi, TEXT("TAB_jobs"), TEXT("de")).IsEmpty());
 	const PawText::FTranslationCount Da = PawText::TranslationCount(TEXT("da"));
 	TestTrue(TEXT("Danish complete"), Da.Lines == DanishLines && Da.Missing == 0 && Da.Left == 0 && DanishLines == PawText::LinesNeedingWords());
-	TestEqual(TEXT("offered: English and the complete language"), FString::Join(PawText::Languages(false), TEXT(",")), FString(TEXT("en,da")));
+	TestEqual(TEXT("offered: English and the complete language (German has two lines: far below the freeze's floor)"),
+		FString::Join(PawText::Languages(false), TEXT(",")), FString(TEXT("en,da")));
+	// The rule itself: complete is always offered; a few lines short only while frozen; half done never.
+	PawText::FTranslationCount Near, Half, Done;
+	Near.Lines = 95;
+	Near.Missing = 5;
+	Half.Lines = 50;
+	Half.Missing = 50;
+	Done.Lines = 100;
+	TestTrue(TEXT("complete: offered"), PawText::IsOffered(Done, false) && PawText::IsOffered(Done, true));
+	TestTrue(TEXT("five lines short: offered while frozen (their English shows)"), PawText::IsOffered(Near, true));
+	TestFalse(TEXT("five lines short: not offered once the freeze ends"), PawText::IsOffered(Near, false));
+	TestFalse(TEXT("half done: never offered"), PawText::IsOffered(Half, true) || PawText::IsOffered(Half, false));
+	TestFalse(TEXT("nothing: never offered"), PawText::IsOffered(PawText::FTranslationCount(), true));
 	TestEqual(TEXT("asked for unfinished ones too: German, in the picker's order"), FString::Join(PawText::Languages(true), TEXT(",")),
 		FString(TEXT("en,de,da")));
 	{

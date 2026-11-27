@@ -750,6 +750,12 @@ class State:
     # Achievement Stardust already paid. achievement_stardust() is a CUMULATIVE
     # total, so crediting it needs the delta - see credit_achievement_stardust().
     _achievement_stardust_paid: float = 0.0
+    # E0: the run's card picks so far (simulate() sets it each tick from the run's Catches); read by card_fx().
+    run_picks: int = 0
+
+    def card_fx(self) -> dict:
+        """The income cards' effects at this run's picks (E0; neutral unless CARDS_MODEL)."""
+        return card_effects(self.run_picks)
 
     def __post_init__(self):
         for k in self.g.upgrades:
@@ -940,7 +946,17 @@ class State:
                if self.branch_levels.get("aura_damage", 0) > 0 else 1.0)
             * self._damage_scale()
             * self._crit_term()
+            * self._aura_card_term()
         )
+
+    def _aura_card_term(self) -> float:
+        """E0: Thunderclap's bursts and Ember Trail's trail as aura multipliers (1.0 with CARDS_MODEL off)."""
+        if not CARDS_MODEL:
+            return 1.0
+        fx = self.card_fx()
+        if not _PULSE_INTERVAL:
+            _PULSE_INTERVAL.append(float(load_code_constants_csv().get("aura_pulse_interval_sec", 6.0)))
+        return (1.0 + fx["pulse"] / max(_PULSE_INTERVAL[0], 1e-9)) * (1.0 + AURA_TRAIL_UPTIME * fx["trail"])
 
     def player_dps(self) -> float:
         """Paw and aura together — CombatResolver.player_dps().
@@ -1163,6 +1179,7 @@ class State:
         return (
             self.player_dps()
             + self.kitten_count() * self.kitten_dps_each()
+            + (self.kitten_dps_each() * (self.card_fx()["gilded"] - 1.0) if self.kitten_count() > 0 else 0.0)
             + self.poop_dps_sustained()
             + self.pounce_dps_sustained()
             + self.prism_beam_dps()
@@ -1186,7 +1203,7 @@ class State:
         u = self.g.upgrades["spawn_rate"]
         mult = u.clamped(self.upgrade_levels["spawn_rate"],
                          self.floors_reached(), self.reawaken_count)
-        return max(tier.spawn_rate_per_min * mult / 60.0, 1e-4)
+        return max(tier.spawn_rate_per_min * mult * self.card_fx()["spawn"] / 60.0, 1e-4)
 
     def overkill_fraction(self) -> float:
         """Mirrors GameState._rebuild_stats(): the shop line, plus the Overkill
@@ -1262,7 +1279,7 @@ class State:
         if self.branch_levels.get("fortune", 0) > 0:
             bonus = self.g.branches["fortune"].extra_at_level(
                 "golden", self.branch_levels["fortune"])
-        return min(tier.golden_chance + bonus, MAX_GOLDEN_CHANCE)
+        return min((tier.golden_chance + bonus) * self.card_fx()["gold"], MAX_GOLDEN_CHANCE)
 
     def coverage(self, tier: "Tier | None" = None) -> float:
         """Share of spawns actually killed. 1.0 unless COVERAGE_MODEL is on.
@@ -1336,7 +1353,8 @@ class State:
         base = COVERAGE_MIN + span / (1.0 + math.exp(z))
         # Both bonuses close a share of what is still escaping, so neither can
         # push coverage past 1.0 and neither ever has zero marginal value.
-        closed = 1.0 - math.exp(-(reach + ambush))
+        edge = EDGE_BURN_CLOSE * self.card_fx()["edge"]  # E0: Hot Borders / Slow Burn burn what would walk off
+        closed = 1.0 - math.exp(-(reach + ambush + edge))
         return max(COVERAGE_MIN, min(1.0, base + (1.0 - base) * closed))
 
     def catnip_per_sec(self, tier: Tier, aura_on_boss: bool = False) -> float:
@@ -1396,14 +1414,18 @@ class State:
         # in that victim's OWN reward — so it rides the same per-enemy value the
         # rounding is applied to, rather than being added afterwards.
         bounty = 1.0 + self.overkill_bounty_multiple(tier)
-        total = sum(w for _e, w in tier.pool)
+        fx = self.card_fx()
+        # E0: Notoriety reweights the signatures in the pool; Bounty multiplies what they pay.
+        def wt(e, w):
+            return w * (fx["notoriety"] if e.is_signature else 1.0)
+        total = sum(wt(e, w) for e, w in tier.pool)
         ordinary = 0.0
         if total > 0.0:
             # A flier is only killed FLIER_CATCH_RATE of the time; everything
             # else in the pool is a certain kill once the aura can chew it.
             ordinary = sum(
-                whole_catnip(e.reward_catnip * bounty * cf)
-                * w * (FLIER_CATCH_RATE if e.is_flier else 1.0)
+                whole_catnip(e.reward_catnip * bounty * cf * (fx["bounty"] if e.is_signature else 1.0))
+                * wt(e, w) * (FLIER_CATCH_RATE if e.is_flier else 1.0)
                 for e, w in tier.pool) / total
         # The deeper-is-richer term (TierData.reward_multiplier). Applied to the
         # whole payout, golden included, exactly as GameState.add_currency does.
@@ -1996,6 +2018,121 @@ COVERAGE_SLOPE = 8.0
 # buyer value aura_radius, aura_reach and kitten_speed at all instead of scoring
 # them zero and never buying them.
 COVERAGE_PER_MULT = 0.02
+
+# --- E0 (2026-11-27): THE INCOME CARDS -----------------------------------------------------------------------------------
+# The playtest (notes 19, 30, 40) found the cards that change income doing much of the work: Hot Borders and Slow Burn
+# together kill nearly every enemy that would have walked off, Bounty and Notoriety pay the signatures, Thunderclap and
+# Ember Trail add aura damage, Gilded Kitten one hard kitten. pawsim had none of them. With CARDS_MODEL on, each card's
+# level is its EXPECTED level after the run's picks so far (catches_levels_for_points of the run's Catches), the picks
+# spread over the deck by weight (CARD_FOCUS multiplies the modelled income cards' weight: a player who seeks them), and a
+# fractional level reads between its table's steps. Effects:
+#   EDGE_BURN (Hot Borders, Slow Burn)   closes 1 - exp(-EDGE_BURN_CLOSE * sum of v) of what still escapes (coverage)
+#   SPAWN_RATE cost (Slow Burn)          the spawn rate x c
+#   SIGNATURE_BOUNTY (Bounty)            a signature pays x v
+#   SIGNATURE_FREQUENCY (Notoriety)      signatures turn up x v as often (the pool reweighted)
+#   GOLDEN_FREQUENCY (Gold Rush)         the golden chance x v (capped)
+#   AURA_PULSE (Thunderclap)             the aura x (1 + v / aura_pulse_interval_sec)
+#   AURA_TRAIL (Ember Trail)             the aura x (1 + AURA_TRAIL_UPTIME * v)
+#   GOLDEN_KITTEN (Gilded Kitten)        one kitten x v
+# EDGE_BURN_CLOSE and AURA_TRAIL_UPTIME are ASSUMPTIONS (pawsim has no space): named, exposed as econ_review levers, and to
+# be checked against the 5x soak. CARDS_UNCAPPED is E4 / D-d: a pick past the table adds the table's last step again.
+CARDS_MODEL = False
+CARDS_UNCAPPED = False
+CARD_FOCUS = 1.0
+EDGE_BURN_CLOSE = 4.0
+AURA_TRAIL_UPTIME = 0.5
+_CARDS_CACHE = {}
+_CARD_FX_CACHE = {}
+_PULSE_INTERVAL = []
+_CARD_MULTIPLIER_EFFECTS = {"SIGNATURE_BOUNTY", "SIGNATURE_FREQUENCY", "GOLDEN_FREQUENCY", "GOLDEN_KITTEN"}
+_CARD_MODELLED = {"EDGE_BURN", "SIGNATURE_BOUNTY", "SIGNATURE_FREQUENCY", "GOLDEN_FREQUENCY", "AURA_PULSE", "AURA_TRAIL",
+                  "GOLDEN_KITTEN"}
+
+
+def load_cards() -> list:
+    """Data/CardData.csv: id, effect, level_values, cost, cost_values, weight (the deck)."""
+    key = str(CSV_DIR)
+    if key not in _CARDS_CACHE:
+        out = []
+        with open(CSV_DIR / "CardData.csv", encoding="utf-8", newline="") as f:
+            for row in csv.DictReader(f):
+                vals = [float(x) for x in row["level_values"].split(";") if x.strip()]
+                costs = [float(x) for x in row.get("cost_values", "").split(";") if x.strip()]
+                out.append({"id": row["id"], "effect": row["effect"], "values": vals, "cost": row.get("cost", "NONE"),
+                            "costs": costs, "weight": float(row.get("weight") or 1.0)})
+        _CARDS_CACHE[key] = out
+    return _CARDS_CACHE[key]
+
+
+def _card_table_at(table: list, level: float, base: float) -> float:
+    """A card's value at a (fractional) level: base below the first level, the table's steps, past its end either held
+    (capped) or, uncapped, the last step added again per level (D-d)."""
+    if level <= 0.0 or not table:
+        return base
+    def at(n: int) -> float:
+        if n <= 0:
+            return base
+        if n <= len(table):
+            return table[n - 1]
+        if not CARDS_UNCAPPED:
+            return table[-1]
+        step = table[-1] - table[-2] if len(table) >= 2 else table[-1] - base
+        return table[-1] + (n - len(table)) * step
+    lo = int(math.floor(level))
+    frac = level - lo
+    return at(lo) + (at(lo + 1) - at(lo)) * frac if frac > 0.0 else at(lo)
+
+
+def expected_card_levels(picks: int) -> dict:
+    """{card id: expected level} after `picks` picks spread over the deck by weight (CARD_FOCUS on the modelled income
+    cards). Capped at the table's length unless CARDS_UNCAPPED."""
+    cards = load_cards()
+    w = {c["id"]: c["weight"] * (CARD_FOCUS if c["effect"] in _CARD_MODELLED else 1.0) for c in cards}
+    total = sum(w.values()) or 1.0
+    out = {}
+    for c in cards:
+        lv = picks * w[c["id"]] / total
+        if not CARDS_UNCAPPED:
+            lv = min(lv, float(len(c["values"])))
+        out[c["id"]] = lv
+    return out
+
+
+def card_effects(picks: int) -> dict:
+    """The modelled effects at `picks`: {"edge": sum v, "spawn": x, "bounty": x, "notoriety": x, "gold": x, "pulse": sum v,
+    "trail": sum v, "gilded": x}. Neutral when CARDS_MODEL is off."""
+    key = (picks, CARDS_MODEL, CARDS_UNCAPPED, CARD_FOCUS, str(CSV_DIR))
+    hit = _CARD_FX_CACHE.get(key)
+    if hit is not None:
+        return hit
+    fx = {"edge": 0.0, "spawn": 1.0, "bounty": 1.0, "notoriety": 1.0, "gold": 1.0, "pulse": 0.0, "trail": 0.0, "gilded": 1.0}
+    _CARD_FX_CACHE[key] = fx
+    if not CARDS_MODEL or picks <= 0:
+        return fx
+    levels = expected_card_levels(picks)
+    for c in load_cards():
+        lv = levels[c["id"]]
+        if lv <= 0.0:
+            continue
+        e = c["effect"]
+        if e == "EDGE_BURN":
+            fx["edge"] += _card_table_at(c["values"], lv, 0.0)
+        elif e == "SIGNATURE_BOUNTY":
+            fx["bounty"] *= _card_table_at(c["values"], lv, 1.0)
+        elif e == "SIGNATURE_FREQUENCY":
+            fx["notoriety"] *= _card_table_at(c["values"], lv, 1.0)
+        elif e == "GOLDEN_FREQUENCY":
+            fx["gold"] *= _card_table_at(c["values"], lv, 1.0)
+        elif e == "AURA_PULSE":
+            fx["pulse"] += _card_table_at(c["values"], lv, 0.0)
+        elif e == "AURA_TRAIL":
+            fx["trail"] += _card_table_at(c["values"], lv, 0.0)
+        elif e == "GOLDEN_KITTEN":
+            fx["gilded"] *= _card_table_at(c["values"], lv, 1.0)
+        if c["cost"] == "SPAWN_RATE" and c["costs"]:
+            fx["spawn"] *= _card_table_at(c["costs"], lv, 1.0)
+    return fx
+
 # Ambush, measured with the trunk owned (see coverage()).
 AMBUSH_PER_SLOW = 0.28
 AMBUSH_PER_BOUNCE = 0.215
@@ -2512,6 +2649,7 @@ def simulate(
             elif tier_last_utility == 0.0:
                 tier_last_utility, tier_last_check = util, t
 
+        s.run_picks = catches_levels_for_points(run_catches) if CARDS_MODEL else 0  # E0
         income = s.catnip_per_sec(tier, aura_on_boss=boss_engaged)
         # Catches rides the same kill rate the income does, on purpose.
         _killed = s.kill_rate_per_sec(tier, boss_engaged) * DT

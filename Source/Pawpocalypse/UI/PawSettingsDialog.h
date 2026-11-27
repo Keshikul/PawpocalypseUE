@@ -73,6 +73,10 @@ public:
 
 	// What a player does (the controls call these; so do the tests).
 	void PressSection(Pc::PcSettingsSection Section);
+	// D-e (2026-11-26): in a game (the realm running) the Game page is there: its Auto-pick box switches the loaded
+	// game's auto-pick.
+	bool IsInGame() const;
+	void ToggleAutoPick();
 	void StepSection(int64 Direction);
 	void PressClose();
 	void MoveSlider(Pc::PcSettingsSlider Which, double Value);
@@ -164,6 +168,13 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> SectionControls;
 	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UPawButton> SectionGame;     // D-e: shown in a game only
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UVerticalBox> GamePage;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UPawButton> AutoPickCheck;   // the loaded game's auto-pick
+	TWeakObjectPtr<UWidget> FirstControl;   // the page's first control (the desired focus)
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UVerticalBox> AudioPage;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UVerticalBox> VideoPage;
@@ -211,8 +222,6 @@ private:
 	TObjectPtr<UComboBoxString> MaxFpsOption;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> EffectsCheck;
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<UTextBlock> VideoNote;
 	// Controls
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> PromptsLabel;

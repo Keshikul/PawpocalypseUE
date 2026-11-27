@@ -55,6 +55,9 @@ void UPawSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	bWindowFromCommandLine = FParse::Value(Cmd, TEXT("ResX="), Ignored) || FParse::Value(Cmd, TEXT("ResY="), Ignored)
 		|| FParse::Param(Cmd, TEXT("windowed")) || FParse::Param(Cmd, TEXT("fullscreen"));
 	Reload();
+	// This PC's first run: fullscreen on the main monitor (written only when the player changes a setting, so the rule holds
+	// until then). Tests read their own storage through UseStorageForTest, which keeps the plain defaults.
+	FirstRunDefaults(Settings, bHadFile || !Storage.IsValid(), bWindowFromCommandLine);
 	// _ready(): load_settings() then apply_all(). The window exists one frame later.
 	StartupApply = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateWeakLambda(this, [this](float)
 	{
@@ -94,7 +97,8 @@ void UPawSettingsSubsystem::Reload()
 {
 	Settings = Pc::PcSettings();
 	TArray<uint8> Bytes;
-	if (Storage.IsValid() && Storage->Read(EntryName, Bytes))
+	bHadFile = Storage.IsValid() && Storage->Read(EntryName, Bytes);
+	if (bHadFile)
 	{
 		const std::string Text(reinterpret_cast<const char*>(Bytes.GetData()), static_cast<size_t>(Bytes.Num()));
 		if (!Pc::SettingsLoad(Text, Settings))
@@ -108,6 +112,14 @@ void UPawSettingsSubsystem::Reload()
 	ApplyLanguage();
 	// Whoever already listens acts on what was read (at startup nobody does yet: the device subsystem reads them itself).
 	OnChanged.Broadcast();
+}
+
+void UPawSettingsSubsystem::FirstRunDefaults(Pc::PcSettings& InOut, bool bInHadFile, bool bInWindowFromCommandLine)
+{
+	if (!bInHadFile && !bInWindowFromCommandLine)
+	{
+		InOut.bFullscreen = true; // ApplyVideo: WindowedFullscreen at the size of the monitor the window opened on (the main one)
+	}
 }
 
 void UPawSettingsSubsystem::UseStorageForTest(TSharedPtr<IPawSaveStorage> InStorage)

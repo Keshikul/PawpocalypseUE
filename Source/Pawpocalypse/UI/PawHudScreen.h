@@ -34,6 +34,7 @@ class UPawGameSubsystem;
 class UPawPounceClock;
 class UPawPromptIcon;
 class UPawPromptText;
+class UPawTooltip;
 class UPawRainbowBar;
 class UPawRainbowFrame;
 class UPawRealmSubsystem;
@@ -83,6 +84,13 @@ public:
 	// press (dock_navigator.gd): the selected dock button, pressed as a click would; false with nothing pressable selected.
 	bool PressSelected();
 	int64 GetBuyMultiplier() const;
+	// P4.1 (playtest 2026-11-26, notes 14 and 23): the shared tooltip beside the dock for a shop row, level with it. The
+	// tick shows it for the row that shows its ring (hovered, or selected by keys or a pad) on the Upgrades page and hides it
+	// otherwise; tests and drivers call ShowRowTip directly.
+	void ShowRowTip(int32 Row);
+	void HideTip();
+	UPawTooltip* GetTooltip() const { return Tooltip; }
+	int32 GetTipRow() const { return TipRow; }
 	// The Realms page: travel, the Bait, the auto-travel box.
 	void PressRealm(int32 Index);
 	void PressBait();
@@ -183,7 +191,6 @@ public:
 	FText GetCatnipText() const;
 	FText GetStardustText() const;
 	FText GetZoneText() const;
-	FText GetWaveText() const;
 	FText GetBiomeNameText() const;
 	UWidget* GetFieldPlate() const;
 	// D18 (S4): the SHIELDED tag beside the boss's line.
@@ -204,7 +211,6 @@ public:
 	}
 	FText GetQuickStatusText() const;
 	// Phase 6 slice 5b: the icons (Pawpocalypse.UI.Icons).
-	const UPawIconText* GetWaveLine() const { return WaveLine; }
 	const UPawIconText* GetReawakenProgressLine() const { return ReawakenProgressLine; }
 	const UPawIconText* GetTotalLine() const { return TotalLine; }
 	const UPawIconText* GetAchievementSummaryLine() const { return AchievementSummaryLine; }
@@ -225,9 +231,7 @@ public:
 	UPawRainbowFrame* GetZoneReady() const { return ZoneReady; }
 	// The dock's motion (UiJuice, phase 6 slice 5c): Pump steps it; the tests read and drive it.
 	FPawJuice& GetJuice() { return Juice; }
-	bool IsWaveVisible() const;
 	// What shows and hides with the wave line: its plum plate (R4d), else the line's box.
-	UWidget* WaveShown() const;
 	bool IsBossPanelVisible() const;
 	bool IsBossTimerVisible() const;
 	// The dock's rect in field units, as last reported to the realm.
@@ -295,6 +299,10 @@ private:
 	TArray<TObjectPtr<UPawButton>> Tabs;
 	UPROPERTY()
 	TArray<TObjectPtr<UPawButton>> Rows;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UPawTooltip> Tooltip; // P4.1: over everything but the ceremony, placed by ShowRowTip
+	int32 TipRow = INDEX_NONE;
+	void RefreshTooltip();
 	UPROPERTY()
 	TArray<TObjectPtr<UPawButton>> AmountButtons; // D18 (S4): Amount0..3
 	UPROPERTY()
@@ -406,12 +414,6 @@ private:
 	TObjectPtr<UTextBlock> CatnipText;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> StardustText;
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<UVerticalBox> WaveBox;
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<UPawIconText> WaveLine;
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<UProgressBar> WaveBar;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> ZonePlate;
 	// D18 (S4): the status panel (the biome's name, the next biome's line, the wave line) and the level's plate.

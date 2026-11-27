@@ -194,10 +194,20 @@ def inked_dashes(colour, w=4.0, edge=2.0, dash=18, gap=12):
 
 
 def aura_lift(c, x, y, r):
-    c.over(lambda d: d.ellipse([*P(x - r, y - r), *P(x + r, y + r)], fill=rgba(FX.AURA_LIFT, FX.AURA_LIFT_ALPHA)))
-    pts = arc_pts(x, y, r, 0, 2 * math.pi, 96)
-    c.over(lambda d: poly(d, pts, rgba(INK, FX.AURA_INK_ALPHA), FX.AURA_RING_WIDTH + FX.AURA_INK_EDGE * 2))
-    c.over(lambda d: poly(d, pts, rgba(FX.AURA_RING, 1.0), FX.AURA_RING_WIDTH))
+    # The fill, its outer AURA_FEATHER fading to clear (steps of the band, as the game's vertex gradient).
+    inner = r * (1.0 - FX.AURA_FEATHER)
+    c.over(lambda d: d.ellipse([*P(x - inner, y - inner), *P(x + inner, y + inner)], fill=rgba(FX.AURA_LIFT, FX.AURA_LIFT_ALPHA)))
+    steps = 12
+    for i in range(steps):
+        r0 = inner + (r - inner) * i / steps
+        r1 = inner + (r - inner) * (i + 1) / steps
+        a = FX.AURA_LIFT_ALPHA * (1.0 - (i + 0.5) / steps)
+        pts = arc_pts(x, y, (r0 + r1) / 2, 0, 2 * math.pi, 96)
+        c.over(lambda d, pts=pts, a=a, w=r1 - r0: poly(d, pts, rgba(FX.AURA_LIFT, a), w))
+    if FX.AURA_RING_WIDTH > 0:
+        pts = arc_pts(x, y, r, 0, 2 * math.pi, 96)
+        c.over(lambda d: poly(d, pts, rgba(INK, FX.AURA_INK_ALPHA), FX.AURA_RING_WIDTH + FX.AURA_INK_EDGE * 2))
+        c.over(lambda d: poly(d, pts, rgba(FX.AURA_RING, 1.0), FX.AURA_RING_WIDTH))
 
 
 AURAS = [

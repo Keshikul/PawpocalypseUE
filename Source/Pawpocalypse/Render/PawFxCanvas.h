@@ -19,6 +19,8 @@ public:
 	bool IsEmpty() const { return Indices.Num() == 0; }
 
 	void Circle(const FVector2D& Centre, double Radius, const FLinearColor& Color);
+	// A disc of Color whose outer Feather px fade to clear (the aura's soft edge: playtest 2026-11-26, note 31).
+	void FeatherDisc(const FVector2D& Centre, double Radius, double Feather, const FLinearColor& Color);
 	// PointCount points from Start to End (radians, clockwise on screen), stroked Width px wide.
 	void Arc(const FVector2D& Centre, double Radius, double Start, double End, int32 PointCount, const FLinearColor& Color, double Width);
 	void Line(const FVector2D& A, const FVector2D& B, const FLinearColor& Color, double Width);

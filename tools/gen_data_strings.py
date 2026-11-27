@@ -1,7 +1,7 @@
 """Writes Content/Pawpocalypse/Localization/Strings/ST_Data.csv, the string table of data-driven names (docs/08 §4).
 
 Data rows carry no label columns at runtime: the player-facing name of an upgrade, a biome or a boss is a string-table row
-keyed by convention from its id (`UPG_<id>_name`, `TIER_<id>_name`, `BOSS_<id>_name`, `CARD_<id>_name` / `_desc`,
+keyed by convention from its id (`UPG_<id>_name` / `_desc`, `TIER_<id>_name`, `BOSS_<id>_name`, `CARD_<id>_name` / `_desc`,
 `ACH_<id>_name` / `_desc`, `JOB_<id>_name` / `_desc`, `SKILL_<id>_name`), its English source the column exported from Godot
 into Data/*.csv, or the port's own line where the designer's text pass changed it (Data/TextOverrides.csv,
 tools/text_overrides.py: checked against Godot's line and its tokens). A card's description keeps Godot's `{v}` / `{c}`
@@ -26,7 +26,7 @@ OUT = ROOT / "Content" / "Pawpocalypse" / "Localization" / "Strings" / "ST_Data.
 
 # (prefix, csv, [(key suffix, the column holding the English)])
 AREAS = [
-    ("UPG", "UpgradeData.csv", [("name", "display_name")]),
+    ("UPG", "UpgradeData.csv", [("name", "display_name"), ("desc", "description")]),  # desc: P4.1's tooltip line
     ("TIER", "TierData.csv", [("name", "display_name")]),
     ("BOSS", "BossData.csv", [("name", "display_name")]),
     ("CARD", "CardData.csv", [("name", "display_name"), ("desc", "description")]),

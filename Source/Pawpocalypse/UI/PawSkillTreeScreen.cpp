@@ -19,12 +19,17 @@
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "Core/PawGameSubsystem.h"
+#include "Engine/Font.h"
 #include "Engine/World.h"
+#include "Fonts/FontMeasure.h"
+#include "Framework/Application/SlateApplication.h"
 #include "PcData.h"
 #include "PcTree.h"
 #include "PcTreeText.h"
 #include "Realm/PawRealmSubsystem.h"
 #include "Rendering/DrawElements.h"
+#include "Rendering/SlateRenderer.h"
+#include "UI/PawBoba.h"
 #include "UI/PawButton.h"
 #include "UI/PawPrompts.h"
 #include "UI/PawText.h"
@@ -36,6 +41,8 @@
 #include "UI/PawWidgets.h"
 #include "UI/PawTreeSky.h"
 #include "UI/PawUnicornCeremony.h"
+#include "UI/PawConfirmDialog.h"
+#include "Widgets/CommonActivatableWidgetContainer.h"
 
 const FName UPawSkillTreeScreen::PauseHolder(TEXT("tree"));
 
@@ -53,21 +60,32 @@ namespace
 	}
 
 	// skill_tree_ui.gd / skill_tree.tscn / upgrade_tooltip.gd / skill_tree_connector_layer.gd (presentation constants).
-	constexpr double NodePx = Pc::TreeLayout::NodeSize;  // NODE_SIZE
+	// The Compass concept's (C1, 2026-11-26: its drawSkill, drawLinks, drawRoot, drawLabels), in canvas px at zoom 1.
+	constexpr double NodePx = Pc::TreeLayout::NodeSize;  // a skill's square (84)
+	constexpr double JobScale = 1.25;                   // a job's diamond stands on a box this much bigger
+	constexpr double IconShare = 0.72, JobIconShare = 0.62; // the picture's share of its node's box
 	constexpr double ContentTop = 130.0;                // ContentArea offset_top
-	constexpr double HubPlateW = 150.0, HubPlateH = 44.0; // HUB_PLATE_SIZE (the least: the pill grows with its words)
-	constexpr double HubPadX = 14.0;                      // the words' room inside the pill's round ends
+	constexpr double HubRadius = Pc::TreeLayout::HubSize * 0.5; // the hub's yellow disc
+	constexpr double HubIconPx = 86.0;                  // the paw on it
+	constexpr double HubNamePx = 30.0;                  // its name under it, on a plate (a link runs under it)
+	constexpr double HubNameGap = 12.0;
+	constexpr double BranchNamePx = 30.0;               // a branch's name in the field
+	constexpr double BranchNameOutline = 4.0;
+	constexpr double NameFloorPx = 16.0;                // the names never smaller than this on screen (the text floor)
+	constexpr double BranchNameHalfW = 90.0, BranchNameHalfH = 22.0; // the room a name takes in the fit
 	constexpr double HaloPad = 16.0;                    // HALO_PAD
-	constexpr double HaloRadius = NodePx * 0.5 + HaloPad; // D18 (S4): round behind the hexagon (Godot HALO_RADIUS 26: a rounded square)
 	constexpr double HaloAlphaLow = 0.55, HaloAlphaHigh = 1.0; // HALO_ALPHA
 	constexpr double HaloPeriodSec = 1.6;               // HALO_PERIOD_SEC
 	constexpr double HaloGlowAlpha = 0.30;              // glow.bg_color = Color(Palette.GOLD, 0.30)
-	constexpr double ReadyLerp = 0.34;                  // READY_LERP
 	constexpr double ShinePeriodSec = 1.1;              // SHINE_PERIOD_SEC
-	constexpr double CaptionWidth = NodePx + 80.0;      // CAPTION_WIDTH
-	constexpr double CaptionPx = 16.0;                  // CAPTION_FONT_PX
-	constexpr double CaptionGap = 6.0;                  // name_label.position.y: + NODE_SIZE.y / 2 + 6
 	constexpr double CounterPx = 16.0;                  // counter font_size
+	constexpr double ChipPx = 16.0;                     // the level and price chips' words (the text floor)
+	constexpr double ChipStarPx = 18.0;                 // the price chip's star
+	constexpr double CheckRadius = 12.0;                // an owned one-time skill's tick
+	constexpr double PriceGap = 4.0;                    // between the node's box and its price chip
+	constexpr double ChipFloorPx = 16.0;                // a chip's words never smaller than this on screen (the text floor):
+	                                                    // the tree's fit zoom is about 0.55 at 1080p (the tour, 2026-11-26)
+	constexpr double ShadowX = 6.0, ShadowY = 7.0;      // a sticker's hard shadow
 	constexpr double CloseBrowseW = 60.0, CloseBrowseH = 36.0;   // CLOSE_BROWSE_SIZE
 	constexpr double CloseBrowseMarginX = 20.0, CloseBrowseMarginY = 60.0; // CLOSE_BROWSE_MARGIN
 	constexpr double CloseSpendW = 420.0, CloseSpendH = 92.0;    // CLOSE_SPEND_SIZE
@@ -75,8 +93,6 @@ namespace
 	constexpr double CloseSpendPx = 34.0;               // the Continue caption's font_size
 	constexpr double ZoomButtonPx = 44.0;               // ZoomIn custom_minimum_size
 	constexpr double ZoomBoxX = 24.0, ZoomBoxY = 150.0; // ZoomControls position
-	constexpr double WarnPx = 24.0;                     // the unspent plate's text
-	constexpr double WarnTop = 0.32;                    // its y: view.y * 0.32
 	constexpr double TipWidth = 380.0;                  // UpgradeTooltip WIDTH_PX
 	constexpr double TipMargin = 14.0;                  // MARGIN_PX
 	constexpr double TipTitlePx = 20.0;                 // its title font_size
@@ -86,9 +102,10 @@ namespace
 	constexpr double FollowSec = 0.18;                  // FOLLOW_SEC
 	constexpr double PanPxPerSec = 1400.0;              // PAN_PX_PER_SEC
 	constexpr double ZoomPerSec = 1.2;                  // ZOOM_PER_SEC
-	constexpr double LineWidth = 5.0, LineWidthOwned = 7.0; // LINE_WIDTH, LINE_WIDTH_OWNED
+	constexpr double LinkUnderWidth = 15.0, LinkCoreWidth = 6.5; // a link's ink road and its core
+	constexpr double LinkDash = 14.0, LinkGap = 9.0;    // the core of a link to a skill on sale now
 	constexpr double CloseSpendIconPx = 40.0;           // D18 (S4): the Reawaken swirl on Continue
-	constexpr double RainbowInset = 7.0, RainbowWidth = 5.0, RainbowCorner = 20.0; // RAINBOW_*
+	constexpr double RainbowInset = 7.0, RainbowWidth = 5.0; // the Unicorn's rings
 	constexpr int32 RainbowSegments = 10;
 	constexpr double RainbowTurnsPerSec = 0.12;
 	constexpr int32 PulseRings = 3;                     // PULSE_RINGS
@@ -96,16 +113,17 @@ namespace
 
 	std::string Utf8(const FString& S) { return std::string(TCHAR_TO_UTF8(*S)); }
 
-	FLinearColor TrunkColour(const FString& Id)
+	// A trunk's look (C1); an unknown trunk wears the first's.
+	const PawTree::FTrunkLook& TrunkLook(const FString& TrunkId)
 	{
-		for (const PawTree::FBranchColour& C : PawTree::BranchColours)
+		for (const PawTree::FTrunkLook& L : PawTree::TrunkLooks)
 		{
-			if (Id == C.Id)
+			if (TrunkId == L.Id)
 			{
-				return C.Colour;
+				return L;
 			}
 		}
-		return FLinearColor::White; // BRANCH_COLORS.get(id, Color.WHITE)
+		return PawTree::TrunkLooks[0];
 	}
 
 	bool InList(const FString& Id, const TCHAR* const* List, int32 Count)
@@ -120,14 +138,31 @@ namespace
 		return false;
 	}
 
-	// Godot's Color.lerp works on the stored (sRGB) values: lerp there, alpha linear.
-	FLinearColor LerpSrgb(const FLinearColor& A, const FLinearColor& B, double T)
+	// FPawFxCanvas takes sRGB floats (straight alpha); the tokens are linear. The widget's tint (a node's shine, a faint
+	// node's opacity) multiplies in.
+	FLinearColor ToCanvas(const FLinearColor& Linear, const FWidgetStyle& Style)
 	{
-		const FColor SA = A.ToFColorSRGB(), SB = B.ToFColorSRGB();
-		auto Mix = [T](uint8 X, uint8 Y) { return static_cast<uint8>(FMath::RoundToInt(FMath::Lerp(static_cast<double>(X), static_cast<double>(Y), T))); };
-		FLinearColor Out = PawTokens::Srgb(Mix(SA.R, SB.R), Mix(SA.G, SB.G), Mix(SA.B, SB.B));
-		Out.A = static_cast<float>(FMath::Lerp(static_cast<double>(A.A), static_cast<double>(B.A), T));
-		return Out;
+		const FLinearColor T = Linear * Style.GetColorAndOpacityTint();
+		const FColor S = T.ToFColorSRGB();
+		return FLinearColor(S.R / 255.0f, S.G / 255.0f, S.B / 255.0f, T.A);
+	}
+
+	// A rounded rectangle W x H about C, its corners R round (a chip, a skill's square), clockwise from the top right, open.
+	TArray<FVector2D> RoundRectPath(const FVector2D& C, double W, double H, double R)
+	{
+		R = FMath::Min(R, FMath::Min(W, H) * 0.5);
+		const double HX = W * 0.5 - R, HY = H * 0.5 - R;
+		const FVector2D Corners[4] = { FVector2D(HX, -HY), FVector2D(HX, HY), FVector2D(-HX, HY), FVector2D(-HX, -HY) };
+		TArray<FVector2D> P;
+		for (int32 K = 0; K < 4; ++K)
+		{
+			for (int32 I = 0; I <= 5; ++I)
+			{
+				const double A = UE_DOUBLE_HALF_PI * (K - 1) + UE_DOUBLE_HALF_PI * I / 5.0;
+				P.Add(C + Corners[K] + FVector2D(FMath::Cos(A), FMath::Sin(A)) * R);
+			}
+		}
+		return P;
 	}
 
 	FLinearColor WithAlpha(FLinearColor C, double A)
@@ -146,59 +181,82 @@ namespace
 
 // --- links ------------------------------------------------------------------------------------------------------------
 
-TArray<FVector2D> UPawTreeLinks::HexPath(const FVector2D& C, double Radius, int32 PerSide)
+TArray<FVector2D> UPawTreeLinks::RingPath(const FVector2D& C, const FVector2D& Half)
 {
+	// C1: a circle round the node (the Unicorn is a one-time unlock: a circle), from the top, clockwise, closed. (D18's
+	// hexagon until 2026-11-26.)
 	TArray<FVector2D> Pts;
-	const int32 Cuts = FMath::Max(1, PerSide);
-	for (int32 K = 0; K < 6; ++K)
+	const int32 Cuts = RainbowSegments * 6;
+	for (int32 I = 0; I < Cuts; ++I)
 	{
-		const double A0 = UE_DOUBLE_PI / 180.0 * (60.0 * K - 90.0), A1 = UE_DOUBLE_PI / 180.0 * (60.0 * (K + 1) - 90.0);
-		const FVector2D P0 = C + FVector2D(FMath::Cos(A0), FMath::Sin(A0)) * Radius;
-		const FVector2D P1 = C + FVector2D(FMath::Cos(A1), FMath::Sin(A1)) * Radius;
-		for (int32 I = 0; I < Cuts; ++I)
-		{
-			Pts.Add(P0 + (P1 - P0) * (static_cast<double>(I) / Cuts));
-		}
+		const double A = UE_DOUBLE_TWO_PI * I / Cuts - UE_DOUBLE_HALF_PI;
+		Pts.Add(C + FVector2D(FMath::Cos(A), FMath::Sin(A)) * Half.Y);
 	}
 	const FVector2D First = Pts[0]; // a copy: adding an element of the array to itself may reallocate under it
 	Pts.Add(First);
 	return Pts;
 }
 
-TArray<FVector2D> UPawTreeLinks::RingPath(const FVector2D& C, const FVector2D& Half)
-{
-	// D18 (S4, the UI concept's treeNode): a hexagon round the node's (its corner radius the node's half plus the inset).
-	return HexPath(C, Half.Y, RainbowSegments);
-}
-
 int32 UPawTreeLinks::NativePaint(const FPaintArgs& Args, const FGeometry& G, const FSlateRect& Culling, FSlateWindowElementList& Out,
 	int32 LayerId, const FWidgetStyle& Style, bool bParentEnabled) const
 {
 	const int32 Layer = Super::NativePaint(Args, G, Culling, Out, LayerId, Style, bParentEnabled) + 1;
-	// Unowned first, so an owned branch is never crossed by a grey line drawn over it (two passes, as Godot).
+	// C1 (the Compass concept's drawLinks): an ink road under every shown link first; then the cores, unowned first, so an
+	// owned branch is never crossed by a dim line drawn over it (two passes, as Godot). The core: the trunk's colour where
+	// owned, dashed cream to a skill on sale now, dim where not yet, darker where shut. A hidden skill's link is not drawn;
+	// one ring ahead, faint.
+	for (const FLink& L : Links)
+	{
+		if (L.Alpha > 0.0f)
+		{
+			Lines(Out, Layer, G, TArray<FVector2D>{ L.A, L.B }, WithAlpha(PawTree::LinkUnder, L.Alpha), LinkUnderWidth);
+		}
+	}
 	for (const bool bPassOwned : { false, true })
 	{
 		for (const FLink& L : Links)
 		{
-			if (L.bOwned != bPassOwned)
+			if (L.Alpha <= 0.0f || L.bOwned != bPassOwned)
 			{
 				continue;
 			}
 			const TArray<FVector2D> Seg{ L.A, L.B };
 			if (L.bShut)
 			{
-				Lines(Out, Layer, G, Seg, PawTree::LinkShut, LineWidth * 0.7); // "you cannot" darker than "not yet"
+				Lines(Out, Layer, G, Seg, WithAlpha(PawTree::LinkShut, PawTree::LinkShut.A * L.Alpha), LinkCoreWidth * 0.7);
+			}
+			else if (L.bOwned)
+			{
+				Lines(Out, Layer, G, Seg, WithAlpha(L.Colour, L.Alpha), LinkCoreWidth);
+			}
+			else if (L.bNext)
+			{
+				const FVector2D D = L.B - L.A;
+				const double Len = D.Size();
+				const FVector2D U = Len > 0.0 ? D / Len : FVector2D::ZeroVector;
+				for (double T = 0.0; T < Len; T += LinkDash + LinkGap)
+				{
+					Lines(Out, Layer, G, TArray<FVector2D>{ L.A + U * T, L.A + U * FMath::Min(T + LinkDash, Len) },
+						WithAlpha(PawTree::LinkNext, L.Alpha), LinkCoreWidth);
+				}
 			}
 			else
 			{
-				// D18 (S4, the UI concept's scrTree): an ink line with a core, cream where owned, slate where not (Godot:
-				// the trunk's colour, dim when not owned).
-				Lines(Out, Layer, G, Seg, PawTokens::INK, (bPassOwned ? LineWidthOwned : LineWidth) + 4.0);
-				Lines(Out, Layer, G, Seg, bPassOwned ? PawTokens::UI_TREE_LINK_ON : PawTokens::UI_TREE_LINK_OFF,
-					bPassOwned ? LineWidthOwned - 2.0 : LineWidth - 2.0);
+				Lines(Out, Layer, G, Seg, WithAlpha(PawTree::LinkOff, L.Alpha), LinkCoreWidth);
 			}
 		}
 	}
+	// The hub (the concept's drawRoot): a hard shadow, a die-cut rim, ink, the yellow disc; its paw and name stand on it.
+	if (bHub)
+	{
+		FPawFxCanvas Disc;
+		Disc.Circle(HubAt + FVector2D(ShadowX, ShadowY), HubRadius + 6.0, ToCanvas(PawTree::NodeShadow, Style));
+		Disc.Circle(HubAt, HubRadius + 6.0, ToCanvas(PawTree::NodeRim, Style));
+		Disc.Circle(HubAt, HubRadius + 2.0, ToCanvas(PawTokens::INK, Style));
+		Disc.Circle(HubAt, HubRadius, ToCanvas(PawTokens::UI_TREE_READY_RING, Style));
+		PawUi::PaintCanvas(Disc, Out, Layer + 1, G.GetAccumulatedRenderTransform());
+	}
+	const int32 RingLayer = Layer + 2;
 	const FVector2D Half = FVector2D(NodePx * 0.5 + RainbowInset);
 	auto DrawRainbow = [&](const FVector2D& C, const FVector2D& H, double Width, double Alpha)
 	{
@@ -211,7 +269,7 @@ int32 UPawTreeLinks::NativePaint(const FPaintArgs& Args, const FGeometry& G, con
 			Col.A = static_cast<float>(Alpha);
 			Colours.Add(Col);
 		}
-		FSlateDrawElement::MakeLines(Out, Layer, G.ToPaintGeometry(), Pts, Colours, ESlateDrawEffect::None, FLinearColor::White, true, static_cast<float>(Width));
+		FSlateDrawElement::MakeLines(Out, RingLayer, G.ToPaintGeometry(), Pts, Colours, ESlateDrawEffect::None, FLinearColor::White, true, static_cast<float>(Width));
 	};
 	// The pulse (the Unicorn): rings breathing outward behind its own.
 	const double Breath = 0.5 + 0.5 * FMath::Sin(PulseClock * UE_DOUBLE_TWO_PI * PulseHz);
@@ -223,15 +281,11 @@ int32 UPawTreeLinks::NativePaint(const FPaintArgs& Args, const FGeometry& G, con
 			DrawRainbow(C, Half + FVector2D(Grow), PulseWidth, (1.0 - static_cast<double>(K) / (PulseRings + 1)) * (0.35 + 0.5 * Breath));
 		}
 	}
-	for (const FVector2D& C : Rainbow)
+	for (const FVector2D& C : Pulse)
 	{
-		DrawRainbow(C, Half, RainbowWidth, 1.0);
+		DrawRainbow(C, Half, RainbowWidth, 1.0); // its own ring, in every state it shows in
 	}
-	for (const FVector2D& C : JobRings)
-	{
-		Lines(Out, Layer, G, RingPath(C, Half), PawTokens::GOLD, RainbowWidth); // JOB_RING_COLOUR
-	}
-	return Layer;
+	return RingLayer;
 }
 
 // --- a node -------------------------------------------------------------------------------------------------------------
@@ -299,11 +353,11 @@ bool UPawTreeNode::Initialize()
 	return bOk;
 }
 
-void UPawTreeNode::SetIconPath(const FString& Path)
+void UPawTreeNode::SetIconPath(const FString& Path, double Px)
 {
 	if (Icon)
 	{
-		const FSlateBrush B = PawUi::IconBrush(Path, NodeIconPx);
+		const FSlateBrush B = PawUi::IconBrush(Path, Px);
 		Icon->SetVisibility(B.GetResourceObject() ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 		Icon->SetBrush(B);
 	}
@@ -322,66 +376,133 @@ void UPawTreeNode::OnNodeReady()
 	{
 		SetStyle(PawUi::Resolve(UPawTreeNodeStyle::StaticClass()));
 	}
+	StardustBrush = PawUi::IconBrush(PawUi::CurrencyIconName(TEXT("stardust")), ChipStarPx); // the price chip's star
 }
 
-void UPawTreeNode::FrameColours(PcTreeNodeState S, const FLinearColor& Trunk, FLinearColor& OutFill, FLinearColor& OutEdge)
+void UPawTreeNode::FrameColours(PcTreeNodeState S, const FLinearColor& Card, FLinearColor& OutFill, FLinearColor& OutEdge)
 {
-	// D18 (S4, the UI concept's scrTree): owned green on an ink edge; a node to buy now raised with the gold ring; the
-	// rest slate on a slate edge (Godot: the trunk's colour, lerped from a plate one step above the plum sky). The ladder
-	// reads by value too: green, cream, slate.
-	(void)Trunk;
+	// C1 (the Compass concept's drawSkill; designer 2026-11-26: "Darker cards for the skill menu"): owned, the trunk's card
+	// on an ink edge; to buy now, dark in the gold ring; the rest dark on a darker edge. (D18 until then: owned green, the
+	// rest slate.)
 	switch (S)
 	{
 	case PcTreeNodeState::Owned:
-		OutFill = PawTokens::UI_TREE_OWNED;
+		OutFill = Card;
 		OutEdge = PawTokens::INK;
 		break;
 	case PcTreeNodeState::Ready:
-		OutFill = PawTokens::UI_BUTTON;
+		OutFill = PawTree::NodeDark;
 		OutEdge = PawTokens::UI_TREE_READY_RING;
 		break;
 	default:
-		OutFill = PawTokens::SKY_PLATE;
-		OutEdge = PawTokens::SKY_PLATE_EDGE;
+		OutFill = PawTree::NodeDark;
+		OutEdge = PawTree::NodeEdgeOff;
 		break;
 	}
 }
 
-void UPawTreeNode::SetLook(PcTreeNodeState InState, const FLinearColor& Trunk, bool bUnlock, const FText& Counter, bool bInShine)
+void UPawTreeNode::SetLook(const FPawNodeLook& In)
 {
-	State = InState;
+	const bool bShineChanged = Look.bShine != In.bShine;
+	Look = In;
 	FLinearColor Fill, Edge;
-	FrameColours(InState, Trunk, Fill, Edge);
-	// Unlocks keep their heavier border, a rounded square (the board's jobs); a skill is ROUND (restyle R4f, the board
-	// "Skill tree (plum)"; Godot drew both as squares, the unlocks rounder).
-	// D18 (S4): the ring of a node to buy now is the concept's heavy gold (5); the icon of a slate node faded (its 0.55).
-	// The node paints a hexagon in these (NativePaint); the old frame stays clear (R4f: a round skill, a rounded unlock).
-	const bool bHeavy = bUnlock || InState == PcTreeNodeState::Ready;
+	FrameColours(In.State, In.Card, Fill, Edge);
+	// The plate paints the sticker in these (its NativePaint); the old frame stays clear.
 	if (Plate)
 	{
-		Plate->SetLook(Fill, Edge, bHeavy ? 5.0f : 3.0f);
+		Plate->SetLook(In.Shape, Fill, Edge, In.bOwned ? PawTree::NodeRim : PawTree::NodeRimOff, In.State == PcTreeNodeState::Ready);
 	}
 	Frame->SetBrush(NoBrush());
 	if (Icon)
 	{
-		Icon->SetRenderOpacity(InState == PcTreeNodeState::Locked ? 0.55f : 1.0f);
+		// The picture full where owned or on sale, faded on what is not yet within reach (the concept's 0.55).
+		Icon->SetRenderOpacity(In.bOwned || In.Reveal == Pc::PcTreeReveal::Full ? 1.0f : 0.55f);
 	}
-	CounterText->SetText(Counter);
-	// Ink on the green and cream plates, pale on the slate one.
-	SetTextColour(CounterText, InState == PcTreeNodeState::Locked ? WithAlpha(PawTokens::SKY_STAR, 0.8) : PawTokens::INK);
-	if (bShine != bInShine)
+	// C1: the level is painted on a chip over the picture (NativePaint), not this text.
+	CounterText->SetText(In.Counter);
+	CounterText->SetVisibility(ESlateVisibility::Collapsed);
+	// The reveal: one ring ahead faint, the rest hidden (and so out of the mouse's and the pad's reach).
+	SetRenderOpacity(In.Reveal == Pc::PcTreeReveal::Ghost ? PawTree::GhostOpacity : 1.0f);
+	SetVisibility(In.Reveal == Pc::PcTreeReveal::Hidden ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+	if (bShineChanged)
 	{
-		bShine = bInShine;
 		ShineClock = 0.0;
 		SetColorAndOpacity(FLinearColor::White);
 	}
+	Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+int32 UPawTreeNode::NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling, FSlateWindowElementList& Out,
+	int32 LayerId, const FWidgetStyle& InStyle, bool bParentEnabled) const
+{
+	// After the children (a user widget's NativePaint runs after them): the chips over the picture. Only on a node shown in
+	// full (one ring ahead shows its shape and picture alone).
+	const int32 Layer = Super::NativePaint(Args, Geometry, Culling, Out, LayerId, InStyle, bParentEnabled);
+	const FVector2D Size(Geometry.GetLocalSize());
+	if (Look.Reveal != Pc::PcTreeReveal::Full || Size.X <= 0.0 || !FSlateApplication::IsInitialized() || !FSlateApplication::Get().GetRenderer())
+	{
+		return Layer;
+	}
+	const double S = FMath::Min(Size.X, Size.Y);
+	const FVector2D C = Size * 0.5;
+	const FLinearColor Tint = InStyle.GetColorAndOpacityTint();
+	// Readable at any zoom: zoomed out, the chips stay ChipFloorPx on screen (they grow against their node).
+	const UPawSkillTreeScreen* Owner = Screen.Get();
+	const double Zoom = Owner ? FMath::Max(Owner->GetZoom(), 0.05) : 1.0;
+	const double K = FMath::Max(1.0, ChipFloorPx / (ChipPx * Zoom));
+	ChipScale = K;
+	const double Px = ChipPx * K, StarPx = ChipStarPx * K, Tick = CheckRadius * K;
+	const TSharedRef<FSlateFontMeasure> Measure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+	const FSlateFontInfo Font(PawUi::PawFont(), PawUi::FontPt(Px), FName(TEXT("Black")));
+	// A chip (the concept's chip()): ink, its colour, its words with a picture before them, centred on At.
+	auto Chip = [&](const FVector2D& At, const FString& Words, const FLinearColor& Fill, const FSlateBrush* Picture)
+	{
+		const FVector2D WordsSize = Measure->Measure(Words, Font);
+		const double PicW = Picture ? StarPx + 3.0 * K : 0.0;
+		const double H = Px * 1.4, W = WordsSize.X + PicW + Px * 0.9;
+		FPawFxCanvas Pill;
+		Pill.Polygon(RoundRectPath(At, W + 4.0, H + 4.0, (H + 4.0) * 0.45), ToCanvas(PawTokens::INK, InStyle));
+		Pill.Polygon(RoundRectPath(At, W, H, H * 0.4), ToCanvas(Fill, InStyle));
+		PawUi::PaintCanvas(Pill, Out, Layer + 1, Geometry.GetAccumulatedRenderTransform());
+		const FVector2D Left = At - FVector2D(W * 0.5 - Px * 0.45, 0.0);
+		if (Picture)
+		{
+			FSlateDrawElement::MakeBox(Out, Layer + 2, Geometry.ToPaintGeometry(FVector2f(StarPx, StarPx),
+				FSlateLayoutTransform(FVector2f(Left - FVector2D(0.0, StarPx * 0.5)))), Picture, ESlateDrawEffect::None, Tint);
+		}
+		FSlateDrawElement::MakeText(Out, Layer + 2, Geometry.ToPaintGeometry(FVector2f(WordsSize),
+			FSlateLayoutTransform(FVector2f(Left + FVector2D(PicW, -WordsSize.Y * 0.5)))), Words, Font, ESlateDrawEffect::None, PawTokens::INK * Tint);
+	};
+	// An owned ladder's level, bottom right (green when full); an owned one-time skill's tick, top right; the price of what is
+	// on sale, under it (yellow when it can be paid). The concept: "readable without hovering".
+	if (!Look.Counter.IsEmpty())
+	{
+		Chip(C + FVector2D(S * 0.32, S * 0.5 - Px * 0.4), Look.Counter.ToString(), Look.bMaxed ? PawTokens::UI_TREE_OWNED : PawTokens::UI_CARD_PLATE, nullptr);
+	}
+	if (Look.bCheck)
+	{
+		const FVector2D At = C + FVector2D(S * 0.36, -S * 0.36);
+		FPawFxCanvas TickMark;
+		TickMark.Circle(At, Tick + 2.5 * K, ToCanvas(PawTokens::INK, InStyle));
+		TickMark.Circle(At, Tick, ToCanvas(PawTokens::UI_TREE_OWNED, InStyle));
+		const FVector2D Mark[3] = { At + FVector2D(-0.45, 0.0) * Tick, At + FVector2D(-0.1, 0.35) * Tick, At + FVector2D(0.5, -0.35) * Tick };
+		TickMark.Polyline(TConstArrayView<FVector2D>(Mark, 3), ToCanvas(PawTokens::INK, InStyle), Tick * 0.28);
+		PawUi::PaintCanvas(TickMark, Out, Layer + 1, Geometry.GetAccumulatedRenderTransform());
+	}
+	if (!Look.Price.IsEmpty())
+	{
+		Chip(C + FVector2D(0.0, S * 0.5 + PriceGap * K + Px * 0.7 + 2.0), Look.Price.ToString(), Look.bAffordable ? PawTokens::UI_TREE_READY_RING : PawTree::ChipShort,
+			StardustBrush.GetResourceObject() ? &StardustBrush : nullptr);
+	}
+	++ChipPaints;
+	return Layer + 2;
 }
 
 void UPawTreeNode::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 {
 	Super::NativeTick(Geometry, DeltaSeconds);
 	DeltaSeconds = PawUi::StepDelta(this, DeltaSeconds); // under a fixed step, that step once a frame (PawUiTime.h)
-	if (bShine)
+	if (Look.bShine)
 	{
 		// An unbought unlock you can buy now shines (self_modulate to SHINE_COLOR and back).
 		ShineClock = FMath::Fmod(ShineClock + DeltaSeconds, ShinePeriodSec);
@@ -401,11 +522,9 @@ void UPawTreeNode::NativeOnAddedToFocusPath(const FFocusEvent& InFocusEvent)
 	}
 }
 
-FText UPawTreeNode::GetCounter() const { return CounterText ? CounterText->GetText() : FText::GetEmpty(); }
 FLinearColor UPawTreeNode::GetFrameFill() const { return Plate ? Plate->GetFill() : FLinearColor::Transparent; }
 FLinearColor UPawTreeNode::GetFrameEdge() const { return Plate ? Plate->GetEdge() : FLinearColor::Transparent; }
-float UPawTreeNode::GetFrameEdgeWidth() const { return Plate ? Plate->GetEdgeWidth() : 0.0f; }
-int32 UPawTreeNode::GetHexPaints() const { return Plate ? Plate->GetPaints() : 0; }
+int32 UPawTreeNode::GetPlatePaints() const { return Plate ? Plate->GetPaints() : 0; }
 bool UPawTreeNode::IsFrameClear() const { return !Frame || Frame->Background.DrawAs == ESlateBrushDrawType::NoDrawType; }
 
 bool UPawHexPlate::Initialize()
@@ -416,16 +535,42 @@ bool UPawHexPlate::Initialize()
 	return bOk;
 }
 
-void UPawHexPlate::SetLook(const FLinearColor& InFill, const FLinearColor& InEdge, float InEdgeWidth)
+void UPawHexPlate::SetLook(EPawNodeShape InShape, const FLinearColor& InFill, const FLinearColor& InEdge, const FLinearColor& InRim, bool bInReadyRing)
 {
-	if (Fill == InFill && Edge == InEdge && EdgeWidth == InEdgeWidth)
+	if (Shape == InShape && Fill == InFill && Edge == InEdge && Rim == InRim && bReadyRing == bInReadyRing)
 	{
 		return;
 	}
+	Shape = InShape;
 	Fill = InFill;
 	Edge = InEdge;
-	EdgeWidth = InEdgeWidth;
+	Rim = InRim;
+	bReadyRing = bInReadyRing;
 	Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+TArray<FVector2D> UPawHexPlate::ShapePath(EPawNodeShape In, const FVector2D& C, double Size)
+{
+	switch (In)
+	{
+	case EPawNodeShape::Diamond:
+	{
+		const double R = Size * 0.66;
+		return { C + FVector2D(0.0, -R), C + FVector2D(R, 0.0), C + FVector2D(0.0, R), C + FVector2D(-R, 0.0) };
+	}
+	case EPawNodeShape::Circle:
+	{
+		TArray<FVector2D> P;
+		for (int32 I = 0; I < 48; ++I)
+		{
+			const double A = UE_DOUBLE_TWO_PI * I / 48.0 - UE_DOUBLE_HALF_PI;
+			P.Add(C + FVector2D(FMath::Cos(A), FMath::Sin(A)) * Size * 0.5);
+		}
+		return P;
+	}
+	default:
+		return RoundRectPath(C, Size * 0.94, Size * 0.94, Size * 0.17);
+	}
 }
 
 int32 UPawHexPlate::NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling, FSlateWindowElementList& Out,
@@ -433,24 +578,23 @@ int32 UPawHexPlate::NativePaint(const FPaintArgs& Args, const FGeometry& Geometr
 {
 	const int32 Layer = Super::NativePaint(Args, Geometry, Culling, Out, LayerId, InStyle, bParentEnabled) + 1;
 	const FVector2D Size(Geometry.GetLocalSize());
-	if (Size.X <= 0.0 || Size.Y <= 0.0 || (Fill.A <= 0.0f && Edge.A <= 0.0f))
+	if (Size.X <= 0.0 || Size.Y <= 0.0 || Fill.A <= 0.0f)
 	{
 		return Layer;
 	}
-	// FPawFxCanvas takes sRGB floats (straight alpha); the tokens are linear. The widget tint (a node's shine) multiplies in.
-	auto Canvas = [&InStyle](const FLinearColor& Linear)
-	{
-		const FLinearColor T = Linear * InStyle.GetColorAndOpacityTint();
-		const FColor S = T.ToFColorSRGB();
-		return FLinearColor(S.R / 255.0f, S.G / 255.0f, S.B / 255.0f, T.A);
-	};
-	const double R = FMath::Min(Size.X, Size.Y) * 0.5 - EdgeWidth * 0.5;
-	TArray<FVector2D> Pts = UPawTreeLinks::HexPath(Size * 0.5, R, 1);
+	// The concept's drawSkill, back to front: the hard shadow, the die-cut rim, the edge (a gold ring with an ink line
+	// inside it when it can be bought now), the fill. One canvas: drawn in call order.
+	const double S = FMath::Min(Size.X, Size.Y);
+	const FVector2D C = Size * 0.5;
 	FPawFxCanvas Paint;
-	Paint.Polygon(TConstArrayView<FVector2D>(Pts.GetData(), 6), Canvas(Fill));
-	const FVector2D Second = Pts[1]; // a copy: adding an element of the array to itself asserts (KB Unreal/24)
-	Pts.Add(Second);                 // one past the start: the last corner mitred like the others
-	Paint.Polyline(Pts, Canvas(Edge), EdgeWidth);
+	Paint.Polygon(ShapePath(Shape, C + FVector2D(ShadowX, ShadowY), S + 10.0), ToCanvas(PawTree::NodeShadow, InStyle));
+	Paint.Polygon(ShapePath(Shape, C, S + 11.0), ToCanvas(Rim, InStyle));
+	Paint.Polygon(ShapePath(Shape, C, S + (bReadyRing ? 7.0 : 4.0)), ToCanvas(Edge, InStyle));
+	if (bReadyRing)
+	{
+		Paint.Polygon(ShapePath(Shape, C, S + 1.5), ToCanvas(PawTokens::INK, InStyle));
+	}
+	Paint.Polygon(ShapePath(Shape, C, S), ToCanvas(Fill, InStyle));
 	PawUi::PaintCanvas(Paint, Out, Layer, Geometry.GetAccumulatedRenderTransform());
 	++Paints;
 	return Layer;
@@ -510,6 +654,11 @@ bool UPawSkillTreeScreen::Initialize()
 		UnicornSlot->SetVerticalAlignment(VAlign_Fill);
 	}
 	const bool bOk = Super::Initialize();
+	// The screen itself takes the keys when a click lands on nothing focusable (the sky, Continue, the zoom buttons): Slate
+	// gives focus to the first focusable widget under the click, and without this that was the game's viewport, so Back / Esc
+	// never reached NativeOnPreviewKeyDown and the unspent warning could not be answered (playtest 2026-11-26, notes 11, 27;
+	// KB U/24 "a read-only tab or panel leaves focus on SViewport").
+	SetIsFocusable(true);
 	if (bOk && PawUi::ShouldWire(this))
 	{
 		PawUi::UseAtlasIcons(this); // the asset's saved icon and plate brushes: the atlas's cells (one batch)
@@ -603,18 +752,6 @@ void UPawSkillTreeScreen::BuildChrome(UOverlay* Root)
 	LS->SetVerticalAlignment(VAlign_Bottom);
 	LS->SetPadding(FMargin(24.0f, 0.0f, 0.0f, 24.0f));
 
-	// The unspent warning, in the middle (playtest 2026-10-01 #32: the caption change at the bottom went unseen on a pad).
-	WarningPlate = T->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("WarningPlate"));
-	WarningPlate->SetBrush(Chrome(EPawChrome::Window)); // R3: the plum plate
-	WarningPlate->SetPadding(PlatePadding(FMargin(18.0f), EPawChrome::Window));
-	WarningPlate->SetVisibility(ESlateVisibility::Collapsed);
-	WarningText = MakeText(T, WarnPx, PawTokens::UI_TEXT, false, TEXT("WarningText"));
-	WarningText->SetJustification(ETextJustify::Center);
-	WarningPlate->SetContent(WarningText);
-	UOverlaySlot* WS = Root->AddChildToOverlay(WarningPlate);
-	WS->SetHorizontalAlignment(HAlign_Center);
-	WS->SetVerticalAlignment(VAlign_Top);
-
 	CloseButton = T->ConstructWidget<UPawButton>(PawUi::Resolve<UPawButton>(), TEXT("CloseButton"));
 	CloseButton->SetIsFocusable(false); // Back / B close it on the keys and pad; the selection stays on the tree
 	CloseSlot = Root->AddChildToOverlay(CloseButton);
@@ -682,83 +819,119 @@ void UPawSkillTreeScreen::BuildCanvas()
 		S->SetSize(Extent);
 		return S;
 	};
-	// Halos first (under the nodes).
+	// A node's box: a job's diamond stands on a bigger one (C1).
+	auto BoxOf = [G](const FString& Id)
+	{
+		const Pc::PcSkillBranch* B = G->Data().FindBranch(Utf8(Id));
+		return NodePx * (B && !B->JobId.empty() ? JobScale : 1.0);
+	};
+	// Halos first (under the nodes): round, the node's box and the pad.
 	for (const FString& Id : Order)
 	{
+		const double Box = BoxOf(Id);
 		UBorder* Halo = T->ConstructWidget<UBorder>();
-		Halo->SetBrush(Rounded(WithAlpha(PawTokens::GOLD, HaloGlowAlpha), WithAlpha(PawTokens::GOLD, HaloGlowAlpha), 0.0f, static_cast<float>(HaloRadius)));
+		Halo->SetBrush(Rounded(WithAlpha(PawTokens::GOLD, HaloGlowAlpha), WithAlpha(PawTokens::GOLD, HaloGlowAlpha), 0.0f, static_cast<float>(Box * 0.5 + HaloPad)));
 		Halo->SetVisibility(ESlateVisibility::Collapsed);
-		Place(Halo, V(Layout.Nodes.at(Utf8(Id))), FVector2D(NodePx + 2.0 * HaloPad));
+		Place(Halo, V(Layout.Nodes.at(Utf8(Id))), FVector2D(Box + 2.0 * HaloPad));
 		Halos.Add(Id, Halo);
 	}
-	// The hub: a pill just big enough for its words, on the sky, belonging to no trunk. HUB_PLATE_SIZE at least, wider when
-	// the words are ("Árbol de habilidades" ran past Godot's fixed 150: the language pass, 2026-11-20).
-	UBorder* Hub = T->ConstructWidget<UBorder>();
-	Hub->SetBrush(Rounded(WithAlpha(PawTokens::SKY_PLATE, 0.96), WithAlpha(PawTokens::SKY_PLATE_EDGE, 0.8), 2.0f, 18.0f));
-	Hub->SetHorizontalAlignment(HAlign_Center);
-	Hub->SetVerticalAlignment(VAlign_Center);
-	Hub->SetPadding(FMargin(static_cast<float>(HubPadX), 0.0f));
-	Hub->SetVisibility(ESlateVisibility::HitTestInvisible);
-	UTextBlock* HubText = MakeText(T, LabelPx, PawTokens::SKY_STAR);
+	// The hub (the concept's root): the links layer paints its yellow disc; a paw stands on it, its name under it, belonging
+	// to no trunk.
+	LinksLayer->HubAt = V(Layout.Hub);
+	LinksLayer->bHub = true;
+	UImage* HubPaw = T->ConstructWidget<UImage>();
+	HubPaw->SetBrush(PawUi::IconBrush(TEXT("ui_icon_upgrade_paw_damage"), HubIconPx));
+	HubPaw->SetVisibility(ESlateVisibility::HitTestInvisible);
+	UCanvasPanelSlot* PawSlot = Canvas->AddChildToCanvas(HubPaw);
+	PawSlot->SetAutoSize(true);
+	PawSlot->SetAlignment(FVector2D(0.5, 0.5));
+	PawSlot->SetPosition(V(Layout.Hub));
+	UTextBlock* HubText = Heavy(MakeText(T, HubNamePx, PawTokens::UI_TREE_READY_RING));
 	HubText->SetText(PawText::Ui(TEXT("TREE_hub")));
-	Hub->SetContent(HubText);
-	USizeBox* HubSize = T->ConstructWidget<USizeBox>();
-	HubSize->SetMinDesiredWidth(static_cast<float>(HubPlateW));
-	HubSize->SetMinDesiredHeight(static_cast<float>(HubPlateH));
-	HubSize->SetVisibility(ESlateVisibility::HitTestInvisible);
-	HubSize->SetContent(Hub);
-	UCanvasPanelSlot* HubSlot = Canvas->AddChildToCanvas(HubSize);
+	// On a dark plate: the Unicorn's link runs straight down under it (the tour, 2026-11-26).
+	UBorder* HubPlate = T->ConstructWidget<UBorder>();
+	HubPlate->SetBrush(Rounded(WithAlpha(PawTree::LinkUnder, 0.92), WithAlpha(PawTree::LinkUnder, 0.92), 0.0f, 12.0f));
+	HubPlate->SetPadding(FMargin(12.0f, 2.0f));
+	HubPlate->SetVisibility(ESlateVisibility::HitTestInvisible);
+	HubPlate->SetContent(HubText);
+	HubPlate->SetRenderTransformPivot(FVector2D(0.5, 0.0)); // it grows downward from under the disc (ApplyTransform)
+	HubName = HubPlate;
+	UCanvasPanelSlot* HubSlot = Canvas->AddChildToCanvas(HubPlate);
 	HubSlot->SetAutoSize(true);
-	HubSlot->SetAlignment(FVector2D(0.5, 0.5));
-	HubSlot->SetPosition(V(Layout.Hub));
+	HubSlot->SetAlignment(FVector2D(0.5, 0.0));
+	HubSlot->SetPosition(V(Layout.Hub) + FVector2D(0.0, HubRadius + HubNameGap));
 
 	for (const FString& Id : Order)
 	{
 		const FVector2D C = V(Layout.Nodes.at(Utf8(Id)));
+		const double Box = BoxOf(Id);
 		UPawTreeNode* N = T->ConstructWidget<UPawTreeNode>(PawUi::Resolve<UPawTreeNode>());
 		N->BranchId = Id;
 		N->Screen = this;
 		if (const Pc::PcSkillBranch* Branch = G->Data().FindBranch(Utf8(Id)))
 		{
-			N->SetIconPath(UTF8_TO_TCHAR(Branch->IconPath.c_str()));
+			N->SetIconPath(UTF8_TO_TCHAR(Branch->IconPath.c_str()), Box * (Branch->JobId.empty() ? IconShare : JobIconShare));
 		}
 		N->OnClicked().AddWeakLambda(this, [this, Id]() { PressNode(Id); });
-		Place(N, C, FVector2D(NodePx));
+		Place(N, C, FVector2D(Box));
 		Nodes.Add(Id, N);
 		Juice.Hover(N, this); // UiJuice.hover(btn)
-		// The caption below the square, two lines at a fixed width, outlined in the sky so a trunk line under it reads.
-		UTextBlock* Cap = MakeText(T, CaptionPx, PawTokens::SKY_STAR);
-		FSlateFontInfo Font = Cap->GetFont();
-		Font.OutlineSettings.OutlineSize = static_cast<int32>(OverFieldOutline);
-		Font.OutlineSettings.OutlineColor = WithAlpha(PawTokens::SKY_BASE, 0.95);
-		Cap->SetFont(Font);
-		Cap->SetJustification(ETextJustify::Center);
-		Cap->SetAutoWrapText(false);
-		Cap->SetWrapTextAt(static_cast<float>(CaptionWidth));
-		Cap->SetText(PawText::TreeLabel(Utf8(Id)));
-		UCanvasPanelSlot* CS = Canvas->AddChildToCanvas(Cap);
-		CS->SetPosition(FVector2D(C.X - CaptionWidth * 0.5, C.Y + NodePx * 0.5 + CaptionGap));
-		CS->SetSize(FVector2D(CaptionWidth, CaptionPx * 3.4));
-		Captions.Add(Id, Cap);
 	}
-	WriteNavigation();
+	// Each branch's name in the field (the concept's drawLabels): its trunk's colour on an ink outline, placed by RefreshAll
+	// past what is shown of it. No caption under a node since C1 (the name is in the tooltip).
+	for (const std::string& Trunk : Pc::TrunkOrder(G->Data()))
+	{
+		const FString TrunkId = UTF8_TO_TCHAR(Trunk.c_str());
+		UTextBlock* Name = Heavy(MakeText(T, BranchNamePx, WithAlpha(TrunkLook(TrunkId).Link, 0.9)));
+		FSlateFontInfo Font = Name->GetFont();
+		Font.OutlineSettings.OutlineSize = static_cast<int32>(BranchNameOutline);
+		Font.OutlineSettings.OutlineColor = PawTree::LinkUnder;
+		Name->SetFont(Font);
+		Name->SetText(PawText::TreeLabel(Trunk).ToUpper());
+		Name->SetVisibility(ESlateVisibility::Collapsed);
+		Name->SetRenderTransformPivot(FVector2D(0.5, 0.5));
+		UCanvasPanelSlot* NS = Canvas->AddChildToCanvas(Name);
+		NS->SetAutoSize(true);
+		NS->SetAlignment(FVector2D(0.5, 0.5));
+		BranchLabels.Add(TrunkId, Name);
+	}
+}
+
+std::set<std::string> UPawSkillTreeScreen::ShownIds() const
+{
+	std::set<std::string> Out;
+	for (const FString& Id : Shown)
+	{
+		Out.insert(Utf8(Id));
+	}
+	return Out;
 }
 
 void UPawSkillTreeScreen::WriteNavigation()
 {
-	// nav_pick() once per layout, written as explicit rules: no node that way = stay put (never off the tree).
+	// nav_pick() among the shown nodes (C1: a hidden node is out of the pad's reach), written as explicit rules: no node that
+	// way = stay put (never off the tree). Written again whenever the reveal changes.
+	const std::set<std::string> Among = ShownIds();
+	TArray<FString> Seen;
+	for (const FString& Id : Order)
+	{
+		if (Shown.Contains(Id))
+		{
+			Seen.Add(Id);
+		}
+	}
 	const Pc::PcVec2 Dirs[4] = { { 0.0, -1.0 }, { 0.0, 1.0 }, { -1.0, 0.0 }, { 1.0, 0.0 } };
 	const EUINavigation Nav[4] = { EUINavigation::Up, EUINavigation::Down, EUINavigation::Left, EUINavigation::Right };
-	for (int32 I = 0; I < Order.Num(); ++I)
+	for (int32 I = 0; I < Seen.Num(); ++I)
 	{
-		UPawTreeNode* N = Nodes[Order[I]];
+		UPawTreeNode* N = Nodes[Seen[I]];
 		for (int32 K = 0; K < 4; ++K)
 		{
-			const std::string Pick = Pc::TreeNavPick(Layout, Utf8(Order[I]), Dirs[K]);
+			const std::string Pick = Pc::TreeNavPick(Layout, Utf8(Seen[I]), Dirs[K], &Among);
 			N->SetNavigationRuleExplicit(Nav[K], Pick.empty() ? N : Nodes[UTF8_TO_TCHAR(Pick.c_str())].Get());
 		}
-		N->SetNavigationRuleExplicit(EUINavigation::Next, Nodes[Order[(I + 1) % Order.Num()]]);
-		N->SetNavigationRuleExplicit(EUINavigation::Previous, Nodes[Order[(I - 1 + Order.Num()) % Order.Num()]]);
+		N->SetNavigationRuleExplicit(EUINavigation::Next, Nodes[Seen[(I + 1) % Seen.Num()]]);
+		N->SetNavigationRuleExplicit(EUINavigation::Previous, Nodes[Seen[(I - 1 + Seen.Num()) % Seen.Num()]]);
 	}
 }
 
@@ -809,12 +982,29 @@ void UPawSkillTreeScreen::ApplyTransform()
 	T.Translation = Pan;
 	T.Scale = FVector2D(Zoom, Zoom);
 	Canvas->SetRenderTransform(T);
+	// The names keep the text floor on screen: zoomed out, they grow against the tree (the chips do the same in their paint).
+	NameScale = FMath::Max(1.0, NameFloorPx / (BranchNamePx * FMath::Max(Zoom, 0.05)));
+	const FVector2D Grow(NameScale, NameScale);
+	for (const TPair<FString, TObjectPtr<UTextBlock>>& KV : BranchLabels)
+	{
+		KV.Value->SetRenderScale(Grow);
+	}
+	if (HubName)
+	{
+		HubName->SetRenderScale(Grow);
+	}
 }
 
 void UPawSkillTreeScreen::FitAndCentre()
 {
-	const FVector2D View = ContentSize();
-	const Pc::PcRect2 B = Pc::TreeBounds(Layout);
+	FVector2D View = ContentSize();
+	if (bSpendMode)
+	{
+		// The spend step's Continue stands at the bottom centre: the tree fits above it (the tour, 2026-11-26: it covered
+		// the Unicorn, straight down from the hub).
+		View.Y = FMath::Max(View.Y * 0.5, View.Y - (CloseSpendH + CloseSpendGapBottom));
+	}
+	const Pc::PcRect2 B = GetFitBounds(); // C1: what is shown, not the whole tree
 	Zoom = Pc::TreeFitZoom(B, View.X, View.Y);
 	// _recenter_view(): the middle of the laid-out tree in the middle of the view.
 	Pan = View * 0.5 - FVector2D(B.CentreX(), B.CentreY()) * Zoom;
@@ -893,9 +1083,7 @@ void UPawSkillTreeScreen::StyleClose()
 		CloseSlot->SetPadding(FMargin(0.0f, 0.0f, 0.0f, static_cast<float>(CloseSpendGapBottom)));
 		CloseButton->SetMinDimensions(static_cast<int32>(CloseSpendW), static_cast<int32>(CloseSpendH));
 		CloseButton->SetLabelSize(CloseSpendPx);
-		const UPawGameSubsystem* G = Game();
-		const bool bUnspent = G && G->IsDataReady() && Pc::HasAffordableBranch(G->Data(), G->Progress());
-		CloseButton->SetLabel(PawText::Ui(!bConfirmLeaving ? TEXT("TREE_continue") : bUnspent ? TEXT("TREE_leave_unspent") : TEXT("TREE_start_next")));
+		CloseButton->SetLabel(PawText::Ui(TEXT("TREE_continue")));
 		// D18 (S4, the UI concept's scrTree): yellow, with the Reawaken swirl (it starts the next run). It stays big and in
 		// the middle (the designer, 2026-08-23); the concept draws it in the corner.
 		CloseButton->SetCallLook(true);
@@ -923,6 +1111,20 @@ void UPawSkillTreeScreen::RefreshAll()
 	}
 	const Pc::PcGameData& D = G->Data();
 	const Pc::PcProgress& P = G->Progress();
+	// The reveal (C1): owned or on sale in full, one ring ahead faint, the rest hidden. The pad's rules follow it.
+	TMap<FString, Pc::PcTreeReveal> Reveal;
+	TSet<FString> NowShown;
+	for (const FString& Id : Order)
+	{
+		const Pc::PcTreeReveal R = Pc::TreeNodeReveal(D, P, Utf8(Id));
+		Reveal.Add(Id, R);
+		if (R != Pc::PcTreeReveal::Hidden)
+		{
+			NowShown.Add(Id);
+		}
+	}
+	const bool bShownChanged = NowShown.Num() != Shown.Num() || !NowShown.Includes(Shown);
+	Shown = MoveTemp(NowShown);
 	for (const FString& Id : Order)
 	{
 		const std::string S = Utf8(Id);
@@ -933,54 +1135,91 @@ void UPawSkillTreeScreen::RefreshAll()
 		}
 		const PcTreeNodeState State = Pc::TreeNodeState(D, P, S);
 		const int64 Owned = Pc::BranchLevel(P, S);
-		FText Counter;
-		if (!B->bIsUnlock)
+		const int64 Max = Pc::BranchMaxLevel(*B);
+		FPawNodeLook Look;
+		Look.State = State;
+		Look.Reveal = Reveal[Id];
+		// The shape says the kind (C1): a job a diamond, a one-time skill a circle, a skill with levels a square.
+		Look.Shape = !B->JobId.empty() ? EPawNodeShape::Diamond : Max <= 1 ? EPawNodeShape::Circle : EPawNodeShape::Square;
+		Look.Card = TrunkLook(UTF8_TO_TCHAR(Pc::TreeTrunkOf(D, S).c_str())).Card;
+		Look.bOwned = Owned > 0;
+		// An owned ladder's level on a chip ("3/10", green when full); an owned one-time skill a tick.
+		if (Owned > 0 && Max > 1)
 		{
 			FFormatNamedArguments Args;
 			Args.Add(TEXT("owned"), PawText::Count(Owned));
-			Args.Add(TEXT("max"), PawText::Count(Pc::BranchMaxLevel(*B)));
-			Counter = PawText::Ui(TEXT("TREE_counter"), Args);
+			Args.Add(TEXT("max"), PawText::Count(Max));
+			Look.Counter = PawText::Ui(TEXT("TREE_counter"), Args);
+			Look.bMaxed = Owned >= Max;
+		}
+		Look.bCheck = Owned > 0 && Max <= 1;
+		// What is on sale (shown in full, not yet bought) shows its price; yellow when it can be paid now.
+		if (Look.Reveal == Pc::PcTreeReveal::Full && Owned == 0)
+		{
+			Look.Price = PawText::Amount(Pc::NextBranchCost(D, P, S));
+			Look.bAffordable = State == PcTreeNodeState::Ready;
 		}
 		// Shine: an unlock BUYABLE and unbought, in the spend step (a locked one would invite a click that does nothing).
 		const bool bShine = B->bIsUnlock && Owned == 0 && Pc::TreeCanBuyNow(D, P, S) && bSpendMode;
-		Nodes[Id]->SetLook(State, TrunkColour(Id), B->bIsUnlock, Counter, bShine);
+		Look.bShine = bShine;
+		Nodes[Id]->SetLook(Look);
 		Halos[Id]->SetVisibility(State == PcTreeNodeState::Ready ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 		// btn.disabled = maxed or not available or not affordable or not _spend_mode: no hover pop on a node that cannot be
 		// bought now. A READY node leans while it waits, on top of its halo (the halo does not rotate: a glow, not a frame).
 		Juice.SetHoverOff(Nodes[Id], !(bSpendMode && Pc::TreeCanBuyNow(D, P, S)));
 		Juice.Jitter(Nodes[Id], State == PcTreeNodeState::Ready && bSpendMode, FPawJuice::EffectsOn(this));
 	}
-	// The links (an edge is owned only when both ends are bought), the rainbow verbs, the breathing Unicorn, the job rings.
+	// The links (an edge is owned only when both ends are bought; its colour its trunk's), each as shown as its far end;
+	// the breathing Unicorn once it shows in full.
 	LinksLayer->Links.Reset();
 	for (const Pc::PcTreeLink& L : Pc::TreeLinks(D, P))
 	{
 		UPawTreeLinks::FLink Out;
 		Out.A = L.From == "hub" ? V(Layout.Hub) : V(Layout.Nodes.at(L.From));
 		Out.B = V(Layout.Nodes.at(L.To));
-		Out.Colour = TrunkColour(UTF8_TO_TCHAR(L.To.c_str()));
+		Out.Colour = TrunkLook(UTF8_TO_TCHAR(Pc::TreeTrunkOf(D, L.To).c_str())).Link;
 		Out.bOwned = L.bOwned;
 		Out.bShut = L.bShut;
+		const Pc::PcTreeReveal* R = Reveal.Find(UTF8_TO_TCHAR(L.To.c_str()));
+		const Pc::PcTreeReveal To = R ? *R : Pc::PcTreeReveal::Hidden;
+		Out.Alpha = To == Pc::PcTreeReveal::Hidden ? 0.0f : To == Pc::PcTreeReveal::Ghost ? PawTree::GhostOpacity : 1.0f;
+		Out.bNext = To == Pc::PcTreeReveal::Full && Pc::BranchLevel(P, L.To) == 0;
 		LinksLayer->Links.Add(Out);
 	}
-	LinksLayer->Rainbow.Reset();
 	LinksLayer->Pulse.Reset();
-	LinksLayer->JobRings.Reset();
 	for (const FString& Id : Order)
 	{
-		const FVector2D C = V(Layout.Nodes.at(Utf8(Id)));
-		if (InList(Id, PawTree::PulseBranches, UE_ARRAY_COUNT(PawTree::PulseBranches)))
+		if (InList(Id, PawTree::PulseBranches, UE_ARRAY_COUNT(PawTree::PulseBranches)) && Reveal[Id] == Pc::PcTreeReveal::Full)
 		{
-			LinksLayer->Pulse.Add(C);
+			LinksLayer->Pulse.Add(V(Layout.Nodes.at(Utf8(Id))));
 		}
-		if (InList(Id, PawTree::RainbowBranches, UE_ARRAY_COUNT(PawTree::RainbowBranches)))
+	}
+	// Each branch's name, past what is shown of it.
+	const std::set<std::string> Among = ShownIds();
+	TSet<FString> Named;
+	for (const Pc::PcTreeLabel& L : Pc::TreeBranchLabels(D, Layout, &Among))
+	{
+		const FString Trunk = UTF8_TO_TCHAR(L.Trunk.c_str());
+		if (const TObjectPtr<UTextBlock>* Name = BranchLabels.Find(Trunk))
 		{
-			LinksLayer->Rainbow.Add(C);
+			if (UCanvasPanelSlot* NS = Cast<UCanvasPanelSlot>((*Name)->Slot))
+			{
+				NS->SetPosition(V(L.At));
+			}
+			(*Name)->SetVisibility(ESlateVisibility::HitTestInvisible);
+			Named.Add(Trunk);
 		}
-		const Pc::PcSkillBranch* B = D.FindBranch(Utf8(Id));
-		if (B && !B->JobId.empty())
+	}
+	for (const TPair<FString, TObjectPtr<UTextBlock>>& KV : BranchLabels)
+	{
+		if (!Named.Contains(KV.Key))
 		{
-			LinksLayer->JobRings.Add(C);
+			KV.Value->SetVisibility(ESlateVisibility::Collapsed);
 		}
+	}
+	if (bShownChanged)
+	{
+		WriteNavigation();
 	}
 	FFormatNamedArguments Args;
 	Args.Add(TEXT("n"), PawText::Count(static_cast<int64>(P.Stardust)));
@@ -1160,17 +1399,10 @@ bool UPawSkillTreeScreen::PressNode(const FString& Id)
 	{
 		G->Slot().bAutoTravel = true;
 	}
-	if (Bought.bAutoCardOn)
-	{
-		G->Slot().bAutoPickCard = true;
-	}
 	if (UPawRealmSubsystem* R = Realm())
 	{
 		R->OnProgressChanged(true); // Vitality and the like change the kittens; every level the stats
 	}
-	// Spending resets the prompt: a warning left armed from an earlier press would fire on the wrong one.
-	bConfirmLeaving = false;
-	WarningPlate->SetVisibility(ESlateVisibility::Collapsed);
 	RefreshAll();
 	if (Id == TEXT("unlock_unicorn") && Unicorn)
 	{
@@ -1192,21 +1424,47 @@ void UPawSkillTreeScreen::PressClose()
 	{
 		return;
 	}
-	// ALWAYS asks after a Reawaken (designer 2026-10-01): leaving starts the next run.
-	if (bSpendMode && !bConfirmLeaving)
+	// ALWAYS asks after a Reawaken (designer 2026-10-01): leaving starts the next run. Since P4.7 a real question in the
+	// confirm dialog (playtest 2026-11-26, note 27), Stay selected: "You still have Stardust to spend." while something is
+	// affordable, else "Start the next run?". [Leave] [Stay]. One at a time.
+	if (bSpendMode && ModalStack.IsValid())
 	{
-		bConfirmLeaving = true;
+		if (IsAskingToLeave())
+		{
+			return;
+		}
 		const UPawGameSubsystem* G = Game();
 		const bool bUnspent = G && G->IsDataReady() && Pc::HasAffordableBranch(G->Data(), G->Progress());
-		WarningText->SetText(PawText::Ui(bUnspent ? TEXT("TREE_warn_unspent") : TEXT("TREE_warn_next")));
-		WarningPlate->SetVisibility(ESlateVisibility::HitTestInvisible);
-		Juice.PopIn(WarningPlate); // UiJuice.pop_in(_unspent_plate)
-		StyleClose();
+		ShowTip(FString(), false);
+		const TWeakObjectPtr<UPawSkillTreeScreen> Self(this);
+		LeaveDialog = UPawConfirmDialog::Open(ModalStack.Get(), PawText::Ui(bUnspent ? TEXT("TREE_leave_prompt") : TEXT("TREE_start_next")),
+			PawText::Ui(TEXT("TREE_leave_yes")), PawText::Ui(TEXT("TREE_leave_no")),
+			[Self]()
+			{
+				if (UPawSkillTreeScreen* S = Self.Get())
+				{
+					S->LeaveNow();
+				}
+			},
+			[Self]()
+			{
+				// Stay: the selection back on the tree where it was.
+				UPawSkillTreeScreen* S = Self.Get();
+				UWidget* Target = S ? S->NativeGetDesiredFocusTarget() : nullptr;
+				if (Target && S->CanTakeFocus())
+				{
+					Target->SetFocus();
+				}
+			});
 		return;
 	}
+	LeaveNow();
+}
+
+void UPawSkillTreeScreen::LeaveNow()
+{
 	ShowTip(FString(), false);
-	bConfirmLeaving = false;
-	WarningPlate->SetVisibility(ESlateVisibility::Collapsed);
+	LeaveDialog = nullptr;
 	const bool bWasSpending = bSpendMode;
 	bSpendMode = false;
 	TFunction<void()> Then = bWasSpending ? MoveTemp(OnSpendingFinished) : TFunction<void()>();
@@ -1260,11 +1518,11 @@ UWidget* UPawSkillTreeScreen::NativeGetDesiredFocusTarget() const
 	{
 		Id = UTF8_TO_TCHAR(Pc::CheapestAffordableBranch(G->Data(), G->Progress()).c_str());
 	}
-	if ((Id.IsEmpty() || !Nodes.Contains(Id)) && Nodes.Contains(LastSelectedRef()))
+	if ((Id.IsEmpty() || !Shown.Contains(Id)) && Shown.Contains(LastSelectedRef()))
 	{
 		Id = LastSelectedRef();
 	}
-	if ((Id.IsEmpty() || !Nodes.Contains(Id)) && Pc::TrunkWheel().size() > 0)
+	if ((Id.IsEmpty() || !Shown.Contains(Id)) && Pc::TrunkWheel().size() > 0)
 	{
 		Id = UTF8_TO_TCHAR(Pc::TrunkWheel().front().c_str());
 	}
@@ -1280,18 +1538,20 @@ TOptional<FUIInputConfig> UPawSkillTreeScreen::GetDesiredInputConfig() const
 
 void UPawSkillTreeScreen::NativeOnActivated()
 {
+	if (UPawBobaSubsystem* Boba = UPawBobaSubsystem::Of(this))
+	{
+		Boba->Suppress(TEXT("tree"), true); // P4.3, CLAUDE.md: Boba never over the skill tree (a cameo in flight is cut)
+	}
 	if (UPawRealmSubsystem* R = Realm())
 	{
 		R->SetPauseHold(PauseHolder, true);
 	}
 	BuildCanvas();
-	bConfirmLeaving = false;
-	WarningPlate->SetVisibility(ESlateVisibility::Collapsed);
 	ShowTip(FString(), false);
+	RefreshAll(); // the reveal first: the fit frames what is shown
 	// Recentred on every open: a player who dragged the canvas somewhere odd still finds the tree where they expect it.
 	bViewTouched = false;
 	FitAndCentre();
-	RefreshAll();
 	if (const UWidget* Target = NativeGetDesiredFocusTarget())
 	{
 		if (const UPawTreeNode* N = Cast<UPawTreeNode>(Target))
@@ -1305,6 +1565,10 @@ void UPawSkillTreeScreen::NativeOnActivated()
 void UPawSkillTreeScreen::NativeOnDeactivated()
 {
 	Super::NativeOnDeactivated();
+	if (UPawBobaSubsystem* Boba = UPawBobaSubsystem::Of(this))
+	{
+		Boba->Suppress(TEXT("tree"), false);
+	}
 	if (UPawRealmSubsystem* R = Realm())
 	{
 		R->SetPauseHold(PauseHolder, false);
@@ -1357,13 +1621,6 @@ void UPawSkillTreeScreen::NativeTick(const FGeometry& Geometry, float DeltaSecon
 	// The selection follows focus continuously (spike S4), by the nodes' focus events (NodeFocused); the tooltip follows the
 	// mouse's node or docks for the pad.
 	UpdateTip();
-	if (WarningPlate->GetVisibility() != ESlateVisibility::Collapsed)
-	{
-		if (UOverlaySlot* WS = Cast<UOverlaySlot>(WarningPlate->Slot))
-		{
-			WS->SetPadding(FMargin(0.0f, static_cast<float>(ViewSize.Y * WarnTop), 0.0f, 0.0f));
-		}
-	}
 }
 
 void UPawSkillTreeScreen::UpdateTip()
@@ -1547,10 +1804,38 @@ UPawTreeNode* UPawSkillTreeScreen::GetNode(const FString& Id) const
 	return N ? N->Get() : nullptr;
 }
 
-FText UPawSkillTreeScreen::GetCaption(const FString& Id) const
+FText UPawSkillTreeScreen::GetBranchLabel(const FString& Trunk) const
 {
-	const TObjectPtr<UTextBlock>* C = Captions.Find(Id);
-	return C ? (*C)->GetText() : FText::GetEmpty();
+	const TObjectPtr<UTextBlock>* N = BranchLabels.Find(Trunk);
+	return N && (*N)->GetVisibility() != ESlateVisibility::Collapsed ? (*N)->GetText() : FText::GetEmpty();
+}
+
+FVector2D UPawSkillTreeScreen::GetBranchLabelAt(const FString& Trunk) const
+{
+	const TObjectPtr<UTextBlock>* N = BranchLabels.Find(Trunk);
+	const UCanvasPanelSlot* S = N ? Cast<UCanvasPanelSlot>((*N)->Slot) : nullptr;
+	return S ? S->GetPosition() : FVector2D::ZeroVector;
+}
+
+Pc::PcRect2 UPawSkillTreeScreen::GetFitBounds() const
+{
+	// The shown nodes and the hub (PcTreeLayout), and the room each shown branch name takes.
+	const std::set<std::string> Among = ShownIds();
+	const Pc::PcRect2 B = Pc::TreeBounds(Layout, &Among);
+	double X0 = B.X, Y0 = B.Y, X1 = B.X + B.W, Y1 = B.Y + B.H;
+	for (const TPair<FString, TObjectPtr<UTextBlock>>& KV : BranchLabels)
+	{
+		if (KV.Value->GetVisibility() == ESlateVisibility::Collapsed)
+		{
+			continue;
+		}
+		const FVector2D At = GetBranchLabelAt(KV.Key);
+		X0 = FMath::Min(X0, At.X - BranchNameHalfW);
+		X1 = FMath::Max(X1, At.X + BranchNameHalfW);
+		Y0 = FMath::Min(Y0, At.Y - BranchNameHalfH);
+		Y1 = FMath::Max(Y1, At.Y + BranchNameHalfH);
+	}
+	return Pc::PcRect2{ X0, Y0, X1 - X0, Y1 - Y0 };
 }
 
 bool UPawSkillTreeScreen::IsHaloShown(const FString& Id) const
@@ -1560,5 +1845,23 @@ bool UPawSkillTreeScreen::IsHaloShown(const FString& Id) const
 }
 
 FText UPawSkillTreeScreen::GetStardustText() const { return StardustText ? StardustText->GetText() : FText::GetEmpty(); }
-FText UPawSkillTreeScreen::GetWarningText() const { return WarningText ? WarningText->GetText() : FText::GetEmpty(); }
-bool UPawSkillTreeScreen::IsWarningShown() const { return WarningPlate && WarningPlate->GetVisibility() != ESlateVisibility::Collapsed; }
+void UPawSkillTreeScreen::SetModalStack(UCommonActivatableWidgetStack* Stack) { ModalStack = Stack; }
+
+UPawConfirmDialog* UPawSkillTreeScreen::GetLeaveDialog() const
+{
+	UPawConfirmDialog* D = LeaveDialog.Get();
+	return D && D->IsActivated() && !D->IsAnswered() ? D : nullptr;
+}
+
+bool UPawSkillTreeScreen::IsAskingToLeave() const { return GetLeaveDialog() != nullptr; }
+
+bool UPawSkillTreeScreen::AnswerLeave(bool bLeave)
+{
+	UPawConfirmDialog* D = GetLeaveDialog();
+	if (!D)
+	{
+		return false;
+	}
+	bLeave ? D->PressYes() : D->PressNo();
+	return true;
+}

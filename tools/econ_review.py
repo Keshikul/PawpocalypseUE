@@ -7,6 +7,13 @@ pawsim (`--policy v4 --data csv`: Data/*.csv, the player who Reawakens as soon a
   * LOGS. Every shop buy (time, line, gain), every tree level (its gain at purchase, all else held), every Reawaken, and
     a sample of the field every 10 s; the metrics the review uses are computed from them.
   * LEVERS. A proposal is '+'-joined levers applied IN MEMORY (Data/ is never written): see apply() and the review.
+    Since 2026-11-26 (the playtest's economy pass, docs/WORKLIST-PLAYTEST-2026-11-26.md E0) also any number:
+    up.<upgrade>.<field>=<v>  tier.<n|all>.<field>=<v | *f>  code.card_level_cost_base|card_level_cost_growth=<v>,
+    'cards' / 'cardsunc' (E0, 2026-11-27: the income cards by expected level, capped / uncapped; 'focus<k>', 'edge<k>',
+    'trail<f>' their assumptions; 'card.<id>=*f' one card's values), and 'roster': each biome's enemy mix as the ladder of E1 (one common, the next biome's common as the rare, the
+    signature rarer, fliers and gristles from a spawn multiplier of 2 and 4), the rarer kinds' share rising with the
+    player's spawn multiplier. The summary adds the milestones the designer set (the first kitten at 15 min) and the
+    cat's share of the damage as kittens arrive.
 
 Usage:
     py tools/econ_review.py                                   # today's economy
@@ -40,6 +47,7 @@ BUYS: list = []       # (t, run, tier, uid, cost, gain)
 TREE: list = []       # dict per branch level bought
 REA: list = []        # dict per Reawaken
 TREESTEP: list = []   # (t, run, util0, util1, dps0, dps1, inc0, inc1) per tree spend
+KITTENS: list = []    # (t, run, kittens, kittens' DPS, the cat's own DPS) after each Kitten Count buy
 RULES: dict = {}      # proposal switches read by the hooks
 
 
@@ -126,6 +134,11 @@ def _buy_up(self, tier, reserve=0.0):
     r = _orig_buy_up(self, tier, reserve)
     for e in self.buy_log[n0:]:
         BUYS.append((CLOCK[0], self.reawaken_count, tier.index, e[0], e[1], e[2]))
+        if e[0] == "kitten_count":
+            # The designer, 2026-11-26: "We should be the strong one untill we get a few kittens."
+            cat = self.player_dps() + self.pounce_dps_sustained() + self.poop_dps_sustained()
+            KITTENS.append((CLOCK[0], self.reawaken_count, self.kitten_count(),
+                            self.kitten_count() * self.kitten_dps_each(), cat))
     return r
 
 
@@ -315,12 +328,120 @@ def _relock(P):
     P.State.reawaken = reawaken
 
 
+class RosterMixin:
+    """E1's enemy ladder (WORKLIST-PLAYTEST D-b): the pool is worked out from the player's spawn multiplier each time it is
+    read: weight = base x s^a for the kinds whose threshold s has reached. A property beats the instance's own `pool`."""
+
+    @property
+    def pool(self):
+        s = 1.0
+        if STATE is not None:
+            u = STATE.g.upgrades["spawn_rate"]
+            s = max(1.0, u.clamped(STATE.upgrade_levels["spawn_rate"], STATE.floors_reached(), STATE.reawaken_count))
+        return [(e, base * s ** a) for e, base, a, at in self._roster if s >= at]
+
+    @pool.setter
+    def pool(self, v):
+        self.__dict__["_plain_pool"] = v
+
+    @property
+    def avg_hp(self):
+        base = P.Tier.avg_hp.fget(self)
+        return base * (self.whg ** self.wave()) if hasattr(self, "whg") else base
+
+
+ROSTER = dict(common=(88.0, 0.0, 1.0), rare=(8.0, 0.6, 1.0), signature=(4.0, 0.8, 1.0), flier=(3.0, 0.5, 2.0),
+              gristle=(1.5, 0.7, 4.0))
+
+
+def _roster(g):
+    def own_common(t):
+        plain = [(e, w) for e, w in t.__dict__.get("pool", t.__dict__.get("_plain_pool", []))
+                 if not e.is_signature and not e.is_flier and "gristle" not in e.id]
+        return max(plain, key=lambda ew: ew[1])[0]
+    commons = [own_common(t) for t in g.tiers]
+    for i, t in enumerate(g.tiers):
+        pool = t.__dict__.get("pool", [])
+        sig = next((e for e, _w in sorted(pool, key=lambda ew: -ew[1]) if e.is_signature), None)
+        flier = next((e for e, _w in pool if e.is_flier), None)
+        grist = next((e for e, _w in pool if "gristle" in e.id), None)
+        rows = [(commons[i],) + ROSTER["common"]]
+        if i + 1 < len(commons):
+            rows.append((commons[i + 1],) + ROSTER["rare"])
+            if sig:
+                rows.append((sig,) + ROSTER["signature"])
+        elif sig:  # the last biome: its signature is its rare
+            b, a, at = ROSTER["rare"]
+            rows.append((sig, b + ROSTER["signature"][0], a, at))
+        if flier:
+            rows.append((flier,) + ROSTER["flier"])
+        if grist:
+            rows.append((grist,) + ROSTER["gristle"])
+        t.__dict__.pop("pool", None)
+        t._roster = rows
+        t.__class__ = type("Roster" + type(t).__name__, (RosterMixin, type(t)), {})
+
+
 def apply(name, g, P, RULES):
     name = "+".join(PRESETS.get(x, x) for x in name.split("+"))
     if not name.strip("+"):
         return
     for lever in name.split("+"):
-        if lever == "keepbait":
+        if lever == "roster":
+            _roster(g)
+        elif lever in ("cards", "cardsunc"):
+            # E0 (2026-11-27): the income cards by expected level over the run's picks (pawsim CARDS_MODEL); cardsunc:
+            # uncapped levels too (E4 / D-d: a pick past the table adds its last step again).
+            P.CARDS_MODEL = True
+            P.CARDS_UNCAPPED = lever == "cardsunc"
+        elif lever.startswith("card."):
+            # card.<id>=*f: that card's level values times f in pawsim's card model (E5: Hot Borders outward-only is
+            # card.hot_borders=*0.54, the measured -46 % exposure). Multiplier cards scale their gain (v - 1).
+            cid, v = lever[5:].split("=")
+            f = float(v.lstrip("*"))
+            cards = P.load_cards()
+            hit = [c for c in cards if c["id"] == cid]
+            if not hit:
+                raise SystemExit(f"card.{cid}: no such card")
+            c = hit[0]
+            mult = c["effect"] in P._CARD_MULTIPLIER_EFFECTS
+            c["values"] = [1.0 + (x - 1.0) * f if mult else x * f for x in c["values"]]
+            P._CARD_FX_CACHE.clear()
+        elif lever.startswith("focus"):
+            P.CARD_FOCUS = float(lever[5:])  # focus<k>: the income cards k times as likely to be picked
+        elif lever.startswith("edge"):
+            P.EDGE_BURN_CLOSE = float(lever[4:])  # edge<k>: edge burn v closes 1 - exp(-k v) of what escapes
+        elif lever.startswith("trail"):
+            P.AURA_TRAIL_UPTIME = float(lever[5:])  # trail<f>: the share of the time Ember Trail's trail burns
+        elif lever == "nobait":
+            # E2 (D-c): no Bait. A boss is summoned free once it is reachable; strength is the only gate (pawsim tries it
+            # when the fight would end inside TUNE_FIGHT_SEC x its tolerance: see fight<sec>).
+            P.State.bait_cost = lambda self, tier: 0.0
+            P.State.is_bait_unlocked = lambda self, tier: bool(tier is not None and tier.boss)
+        elif lever.startswith("fight"):
+            # fight<sec>: the player summons a boss once it would fall within <sec> seconds (the time limit E2 proposes);
+            # pawsim's own rule is TUNE_FIGHT_SEC x engage_tolerance (3).
+            sec = float(lever[5:])
+            for k in list(P.TUNE_FIGHT_SEC):
+                P.TUNE_FIGHT_SEC[k] = sec / 3.0
+        elif lever.startswith("up."):
+            path, v = lever[3:].split("=")
+            uid, field = path.split(".")
+            setattr(g.upgrades[uid], field, float(v))
+        elif lever.startswith("tier."):
+            path, v = lever[5:].split("=")
+            which, field = path.split(".")
+            for t in (g.tiers if which == "all" else [g.tiers[int(which) - 1]]):
+                setattr(t, field, float(getattr(t, field)) * float(v[1:]) if v.startswith("*") else float(v))
+        elif lever.startswith("code."):
+            key, v = lever[5:].split("=")
+            if key == "card_level_cost_base":
+                P.CATCHES_BASE = float(v)
+            elif key == "card_level_cost_growth":
+                P.CATCHES_GROWTH = float(v)
+            else:
+                raise SystemExit(f"code.{key}: only the card XP constants are levers")
+        elif lever == "keepbait":
             _keepbait(P)
         elif lever == "pass":
             _pass(P)
@@ -467,7 +588,9 @@ def metrics(res, g, label):
         tier_arrival={k: v / 60.0 for k, v in res.tier_arrival.items()},
         bosses=[(st / 60.0, dur, idx) for st, dur, idx in res.boss_log],
         runs=runs, rea=REA, tree=TREE, ticks=TICKS, buys=BUYS, treestep=TREESTEP, bait_ready=BAITREADY,
-        buys_by_line={},
+        buys_by_line={}, kittens=KITTENS,
+        first_kitten_min=next((x[0] / 60.0 for x in BUYS if x[3] == "kitten_count"), None),
+        first_reawaken_min=(REA[0]["t"] / 60.0) if REA else None,
     )
     for x in BUYS:
         e = out["buys_by_line"].setdefault(x[3], [0, []])
@@ -479,6 +602,18 @@ def metrics(res, g, label):
 
 def summary(m):
     print(f"\n===== {m['label']} =====")
+    fk, fr = m.get("first_kitten_min"), m.get("first_reawaken_min")
+    ta = m["tier_arrival"]
+    boss1 = m["bosses"][0][0] if m["bosses"] else None
+    print("milestones: first kitten %s min, biome 2 %s, biome 3 %s, first Reawaken %s, first boss %s" % tuple(
+        "-" if v is None else f"{v:.1f}" for v in (fk, ta.get(2, ta.get("2")), ta.get(3, ta.get("3")), fr, boss1)))
+    seen = set()
+    shares = []
+    for t, run, n, kd, cd in m.get("kittens", []):
+        if run == 0 and n not in seen and n <= 12:
+            seen.add(n)
+            shares.append(f"{n}: {100 * cd / max(cd + kd, 1e-9):.0f}%")
+    print("the cat's share of the damage as kittens arrive (first run): " + ", ".join(shares))
     print(f"cleared {m['cleared']}  game {m['total_min']:.0f} min  Reawakens {m['reawakens']}  end mult {m['end_mult']:.0f}x")
     print(f"kill-bound share of play {100 * m['kill_bound_share']:.0f}%")
     print(f"dead air {m['dead_air_min']:.1f} min   nothing NEW {m['drought_min']:.1f} min "

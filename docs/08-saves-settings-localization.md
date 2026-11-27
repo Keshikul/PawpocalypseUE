@@ -120,7 +120,8 @@ value the game holds does; an arbitrary double comes back within two units in th
 them), so the sandbox is the slots' (`PawStorageForThisRun`: -NoSave, -PawSaveDir=, off in automated runs). It is the one
 writer (each setter stores with Godot's clamp, writes the whole file, applies). Applied: the window (fitted to the work area
 and centred, or borderless fullscreen, both on the monitor holding the window's centre (review CR20, 2026-11-10: the
-primary before); `FSystemResolution::RequestResolutionChange`), `r.VSync`, `t.MaxFPS`, one frame after
+primary before); `FSystemResolution::RequestResolutionChange`; **a PC's first run, with no settings file yet, is borderless
+fullscreen on the main monitor at its own resolution**: playtest 2026-11-26, note 1, `FirstRunDefaults`), `r.VSync`, `t.MaxFPS`, one frame after
 startup and on change, never in the editor, never in a run with no settings storage (the bench and the tour keep their
 command line), the window never when the command line names one; the menu side (the HUD listens; "right" by default since
 2026-11-09, the designer's "mirror the ui", changed in Godot's settings_manager.gd first), ask before Reawakening
@@ -143,7 +144,9 @@ scale, window mode beyond windowed / fullscreen.
 The plan, as written at the start of the port:
 
 `UPawGameUserSettings : UGameUserSettings` (writes `GameUserSettings.ini`, per machine, never cloud):
-- Audio: master, music, SFX, UI volumes; mute all; mute when unfocused.
+- Audio: master, music, SFX, UI volumes; mute all; mute when unfocused. The music plays 10 dB under its slider
+  (`UPawAudioSubsystem::MusicTrimDb`: playtest 2026-11-26, note 37, "make it twice as silent"), so 45 % sounds half as loud
+  as before, on every install.
 - Video: window mode, resolution (window size; clamp to desktop; never offer sizes above it `[KB U/09 §6]`), vsync, frame cap
   (30/60/120/unlimited), unfocused frame cap, effects quality (full/reduced/off), UI scale (90-150%).
 - Controls: menu side (left/right), button prompts (Auto/Xbox/PlayStation/Steam Deck), tutorial tips on/off, ask before
@@ -212,7 +215,10 @@ only when its Source is today's English and its `{placeholders}` are the English
 translated again (`tools/loc_status.py` lists it). The language setting keeps Godot's codes (`settings.cfg` stays Godot's);
 `Pc::Languages()` (`PcLocales`, port of `locales.gd`, fixture `locales`) maps each to its culture. A language is offered only
 when its translation is complete (Godot: only loaded `.po` files, "so an unfinished language cannot be chosen by accident");
-`-PawDraftLanguages` offers the unfinished ones too, for review. The files are the translations: `port_po.py` keeps every
+`-PawDraftLanguages` offers the unfinished ones too, for review. **Frozen since 2026-11-26 (D28)**: English changes go in
+without translations until the retranslation near release; meanwhile a language covering 90 % of the lines stays offered
+and its changed or new lines show their English (`PawText::IsOffered`, `bTranslationFrozen`; `paw.Languages` reports the
+counts and fails only a language the rule would not offer). Never run `loc_status --todo/--apply` before the designer asks. The files are the translations: `port_po.py` keeps every
 row in use and fills only what Godot has; the port's own translations go in through `loc_status.py --apply` (a work file
 from `--todo`, stamped with the English the translator saw). All 22 translations complete 2026-11-20 (worklist §2c),
 no native read will come (the designer, 2026-11-23: they ship as they are, HANDOFF-LOG (137)). Each language is listed in

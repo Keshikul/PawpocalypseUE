@@ -1,113 +1,49 @@
 #pragma once
 
-// From the first try's skill_tree_ui.gd (BRANCH_COLORS, RAINBOW_BRANCHES, PULSE_BRANCHES), generated until D22
-// (tools/gen_tree_tables.py, deleted 2026-11-24); since then edited by hand. Colours are Godot's Color as it draws on an 8-bit target (to_rgba32), through PawTokens::Srgb like the palette.
+// The skill tree's own colours, edited by hand (they began as the first try's skill_tree_ui.gd tables; since 2026-11-26 the
+// Compass concept's, C1: docs/WORKLIST-PLAYTEST-2026-11-26.md). sRGB through PawTokens::Srgb like the palette.
 
 #include "CoreMinimal.h"
 #include "UI/PawTokens.h"
 
 namespace PawTree
 {
-	struct FBranchColour
+	// The Compass (concept C1, designer 2026-11-26): one look per trunk, shared by every skill growing off it. Card: an owned
+	// skill's fill; Link: an owned link's colour and the branch's name in the field. A branch reads its trunk's
+	// (PcTreeLayout's TreeTrunkOf); an unknown trunk draws the first.
+	struct FTrunkLook
 	{
 		const TCHAR* Id;
-		FLinearColor Colour;
+		FLinearColor Card;
+		FLinearColor Link;
+	};
+	inline const FTrunkLook TrunkLooks[] = {
+		{ TEXT("claws"), PawTokens::Srgb(0x7A, 0x3A, 0x45), PawTokens::Srgb(0xF2, 0x82, 0x6E) },
+		{ TEXT("instinct"), PawTokens::Srgb(0x7A, 0x55, 0x28), PawTokens::Srgb(0xF2, 0xB0, 0x5E) },
+		{ TEXT("unlock_aura"), PawTokens::Srgb(0x6E, 0x5F, 0x1E), PawTokens::Srgb(0xFF, 0xD4, 0x47) },
+		{ TEXT("unlock_unicorn"), PawTokens::Srgb(0x55, 0x3A, 0x7A), PawTokens::Srgb(0xC2, 0x9B, 0xFF) },
+		{ TEXT("fortune"), PawTokens::Srgb(0x3D, 0x6A, 0x2A), PawTokens::Srgb(0x8B, 0xD4, 0x5E) },
+		{ TEXT("unlock_snare"), PawTokens::Srgb(0x28, 0x5E, 0x58), PawTokens::Srgb(0x5E, 0xD6, 0xC3) },
 	};
 
-	// One colour per trunk, shared by everything growing off it (BRANCH_COLORS); a branch not listed draws white.
-	inline const FBranchColour BranchColours[] = {
-		{ TEXT("claws"), PawTokens::Srgb(255, 107, 71, 255) },
-		{ TEXT("unlock_pounce"), PawTokens::Srgb(255, 107, 71, 255) },
-		{ TEXT("pounce"), PawTokens::Srgb(255, 107, 71, 255) },
-		{ TEXT("unlock_reflex"), PawTokens::Srgb(255, 107, 71, 255) },
-		{ TEXT("unlock_overkill"), PawTokens::Srgb(255, 92, 143, 255) },
-		{ TEXT("overkill"), PawTokens::Srgb(255, 92, 143, 255) },
-		{ TEXT("instinct"), PawTokens::Srgb(79, 194, 247, 255) },
-		{ TEXT("vitality"), PawTokens::Srgb(79, 194, 247, 255) },
-		{ TEXT("unlock_aura"), PawTokens::Srgb(92, 232, 240, 255) },
-		{ TEXT("aura_damage"), PawTokens::Srgb(92, 232, 240, 255) },
-		{ TEXT("aura_reach"), PawTokens::Srgb(92, 232, 240, 255) },
-		{ TEXT("fortune"), PawTokens::Srgb(255, 214, 79, 255) },
-		{ TEXT("legacy"), PawTokens::Srgb(255, 214, 79, 255) },
-		{ TEXT("unlock_unicorn"), PawTokens::Srgb(224, 161, 255, 255) },
-		{ TEXT("unlock_poop"), PawTokens::Srgb(224, 161, 255, 255) },
-		{ TEXT("unicorn"), PawTokens::Srgb(224, 161, 255, 255) },
-		{ TEXT("unlock_snare"), PawTokens::Srgb(140, 217, 102, 255) },
-		{ TEXT("deadweight"), PawTokens::Srgb(140, 217, 102, 255) },
-		{ TEXT("funnel"), PawTokens::Srgb(140, 217, 102, 255) },
-		{ TEXT("play_with_food"), PawTokens::Srgb(140, 217, 102, 255) },
-		{ TEXT("unlock_prism"), PawTokens::Srgb(242, 191, 255, 255) },
-		{ TEXT("refraction"), PawTokens::Srgb(242, 191, 255, 255) },
-		{ TEXT("spectrum"), PawTokens::Srgb(242, 191, 255, 255) },
-		{ TEXT("unlock_full_spectrum"), PawTokens::Srgb(242, 191, 255, 255) },
-		{ TEXT("critical_mass"), PawTokens::Srgb(242, 191, 255, 255) },
-		{ TEXT("job_blacksmith"), PawTokens::Srgb(230, 140, 97, 255) },
-		{ TEXT("job_daredevil"), PawTokens::Srgb(242, 107, 107, 255) },
-		{ TEXT("job_town_crier"), PawTokens::Srgb(128, 199, 219, 255) },
-		{ TEXT("job_magician"), PawTokens::Srgb(184, 143, 224, 255) },
-		{ TEXT("job_engineer"), PawTokens::Srgb(148, 204, 140, 255) },
-		{ TEXT("job_unemployed"), PawTokens::Srgb(242, 209, 115, 255) },
-		{ TEXT("job_cat_burglar"), PawTokens::Srgb(115, 122, 148, 255) },
-		{ TEXT("job_sphinx"), PawTokens::Srgb(242, 209, 115, 255) },
-		{ TEXT("job_tax_collector"), PawTokens::Srgb(128, 184, 133, 255) },
-		{ TEXT("job_ratcatcher"), PawTokens::Srgb(184, 133, 102, 255) },
-		{ TEXT("dent"), PawTokens::Srgb(184, 189, 204, 255) },
-		{ TEXT("overtime"), PawTokens::Srgb(158, 199, 224, 255) },
-		{ TEXT("severance"), PawTokens::Srgb(140, 184, 143, 255) },
-		{ TEXT("traps"), PawTokens::Srgb(194, 143, 107, 255) },
-		{ TEXT("compound"), PawTokens::Srgb(133, 194, 138, 255) },
-		{ TEXT("momentum"), PawTokens::Srgb(224, 148, 107, 255) },
-		{ TEXT("carry"), PawTokens::Srgb(153, 204, 219, 255) },
-		{ TEXT("misdirection"), PawTokens::Srgb(189, 148, 219, 255) },
-		{ TEXT("fence"), PawTokens::Srgb(133, 143, 168, 255) },
-		{ TEXT("patience"), PawTokens::Srgb(235, 204, 122, 255) },
-		{ TEXT("pickpocket"), PawTokens::Srgb(122, 133, 158, 255) },
-		{ TEXT("long_lunch"), PawTokens::Srgb(158, 199, 148, 255) },
-		{ TEXT("levy"), PawTokens::Srgb(143, 204, 143, 255) },
-		{ TEXT("infestation"), PawTokens::Srgb(204, 148, 112, 255) },
-		{ TEXT("sleight_of_hand"), PawTokens::Srgb(199, 158, 230, 255) },
-		{ TEXT("anvil_paw"), PawTokens::Srgb(199, 204, 219, 255) },
-		{ TEXT("crash_landing"), PawTokens::Srgb(230, 133, 97, 255) },
-		{ TEXT("echo"), PawTokens::Srgb(143, 214, 224, 255) },
-		{ TEXT("riddle"), PawTokens::Srgb(240, 214, 133, 255) },
-		{ TEXT("blueprint"), PawTokens::Srgb(128, 178, 224, 255) },
-		{ TEXT("butchers_rhythm"), PawTokens::Srgb(230, 107, 97, 255) },
-		{ TEXT("standing_wave"), PawTokens::Srgb(107, 209, 230, 255) },
-		{ TEXT("sixth_sense"), PawTokens::Srgb(219, 194, 117, 255) },
-		{ TEXT("compound_interest"), PawTokens::Srgb(117, 209, 133, 255) },
-		{ TEXT("gridlock"), PawTokens::Srgb(148, 224, 112, 255) },
-		{ TEXT("hammerfall"), PawTokens::Srgb(214, 219, 235, 255) },
-		{ TEXT("crowd_work"), PawTokens::Srgb(128, 224, 235, 255) },
-		{ TEXT("cat_burglars_cut"), PawTokens::Srgb(148, 158, 189, 255) },
-		{ TEXT("inscrutable"), PawTokens::Srgb(245, 224, 148, 255) },
-		{ TEXT("pied_piper"), PawTokens::Srgb(214, 158, 117, 255) },
-		{ TEXT("nine_lives_insurance"), PawTokens::Srgb(235, 168, 128, 255) },
-		{ TEXT("grand_finale"), PawTokens::Srgb(204, 158, 240, 255) },
-		{ TEXT("union_rules"), PawTokens::Srgb(153, 199, 153, 255) },
-		{ TEXT("audit"), PawTokens::Srgb(138, 209, 148, 255) },
-		{ TEXT("prototype"), PawTokens::Srgb(143, 189, 235, 255) },
-		{ TEXT("swarm"), PawTokens::Srgb(158, 224, 133, 255) },
-		{ TEXT("auto_travel"), PawTokens::Srgb(148, 204, 240, 255) },
-		{ TEXT("auto_bait"), PawTokens::Srgb(235, 178, 112, 255) },
-		{ TEXT("auto_card"), PawTokens::Srgb(189, 168, 240, 255) },
-		{ TEXT("swarm_logic"), PawTokens::Srgb(240, 143, 112, 255) },
-		{ TEXT("last_stand"), PawTokens::Srgb(245, 107, 102, 255) },
-		{ TEXT("overflow"), PawTokens::Srgb(250, 189, 92, 255) },
-		{ TEXT("reputation"), PawTokens::Srgb(178, 214, 245, 255) },
-		{ TEXT("grudge_ledger"), PawTokens::Srgb(204, 184, 235, 255) },
-		{ TEXT("body_count"), PawTokens::Srgb(219, 153, 158, 255) },
-		{ TEXT("kitten_foreman"), PawTokens::Srgb(245, 219, 158, 255) },
-		{ TEXT("second_opinion"), PawTokens::Srgb(163, 204, 235, 255) },
-		{ TEXT("whisker_trade"), PawTokens::Srgb(245, 219, 158, 255) },
-		{ TEXT("curiosity"), PawTokens::Srgb(163, 204, 235, 255) },
-		{ TEXT("second_helping"), PawTokens::Srgb(255, 214, 79, 255) },
-		{ TEXT("cartography"), PawTokens::Srgb(184, 219, 178, 255) },
-		{ TEXT("deep_pockets"), PawTokens::Srgb(214, 189, 133, 255) },
-	};
+	// A skill's sticker (the concept's drawSkill): a hard shadow, a die-cut rim (bright when owned, faint when not), an
+	// edge, the fill. Not owned: the dark fill (designer 2026-11-26: "Darker cards for the skill menu").
+	inline const FLinearColor NodeDark = PawTokens::Srgb(0x1E, 0x18, 0x26);
+	inline const FLinearColor NodeShadow = PawTokens::Srgb(0x04, 0x02, 0x06, 217);
+	inline const FLinearColor NodeRim = PawTokens::Srgb(0xFF, 0xFD, 0xF6, 235);
+	inline const FLinearColor NodeRimOff = PawTokens::Srgb(0xFF, 0xFD, 0xF6, 56);
+	inline const FLinearColor NodeEdgeOff = PawTokens::Srgb(0x0E, 0x0A, 0x13);
+	// The links: an ink road under every one; its core the trunk's colour where owned, dashed cream to a skill on sale now,
+	// dim where not yet.
+	inline const FLinearColor LinkUnder = PawTokens::Srgb(0x0E, 0x0A, 0x13);
+	inline const FLinearColor LinkNext = PawTokens::Srgb(0xD9, 0xCB, 0xB5);
+	inline const FLinearColor LinkOff = PawTokens::Srgb(0x4E, 0x45, 0x5C);
+	// A price you cannot pay yet: the chip pale, not yellow.
+	inline const FLinearColor ChipShort = PawTokens::Srgb(0xEA, 0xDF, 0xCB);
+	// One ring ahead (the research's reveal): seen, faint.
+	inline constexpr float GhostOpacity = 0.3f;
 
-	// The nodes that hand the cat a verb: a rainbow ring in every state (RAINBOW_BRANCHES).
-	inline const TCHAR* const RainbowBranches[] = { TEXT("unlock_aura"), TEXT("unlock_pounce"), TEXT("unlock_reflex"), TEXT("unlock_overkill"), TEXT("unlock_unicorn"), TEXT("unlock_poop"), TEXT("unlock_snare"), TEXT("unlock_prism"), TEXT("unlock_full_spectrum") };
-	// Rainbow rings that also breathe (PULSE_BRANCHES).
+	// Rainbow rings that breathe (PULSE_BRANCHES): the Unicorn.
 	inline const TCHAR* const PulseBranches[] = { TEXT("unlock_unicorn") };
 
 	// The tooltip's colours (_on_node_hovered's bbcode, two of them not in the palette): the blurb, "Fully bought.", the
@@ -118,9 +54,8 @@ namespace PawTree
 	inline const FLinearColor TipReason = PawTokens::Srgb(0x6E, 0x62, 0x76);
 	inline const FLinearColor TipShort = PawTokens::Srgb(0xC9, 0x33, 0x23);
 
-	// scripts/systems/skill_tree_connector_layer.gd DIM (a link not walked) and SHUT (the road not taken); scripts/systems/skill_tree_ui.gd SHINE_COLOR, a self_modulate MULTIPLIER
-	// (above 1: the node brightens), not a colour.
-	inline const FLinearColor LinkDim = PawTokens::Srgb(76, 74, 97, 191);
+	// SHUT (the road not taken: a rival branch was bought); SHINE_COLOR, a self_modulate MULTIPLIER (above 1: the node
+	// brightens), not a colour.
 	inline const FLinearColor LinkShut = PawTokens::Srgb(43, 41, 54, 166);
 	inline const FLinearColor ShineTint = FLinearColor(1.3500f, 1.2500f, 0.8000f, 1.0000f);
 }

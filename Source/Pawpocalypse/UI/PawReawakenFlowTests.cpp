@@ -147,7 +147,7 @@ namespace
 				return nullptr;
 			}
 			Tree->PressClose();
-			Tree->PressClose();
+			Tree->AnswerLeave(true); // P4.7: the leave question's Leave
 			T.TestFalse(TEXT("the spend step is left"), Tree->IsActivated());
 			return Tree;
 		}
@@ -596,7 +596,7 @@ bool FPawReawakenResumesTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("opened once"), W.Root->MenuStack->GetNumWidgets(), 1);
 	const int64 TravelsBefore = W.Realm->GetSim().Travels;
 	Tree->PressClose();
-	Tree->PressClose();
+	Tree->AnswerLeave(true); // P4.7: the leave question's Leave
 	TestFalse(TEXT("the spend step is left"), Tree->IsActivated());
 	TestFalse(TEXT("then the run arrives and the flag clears"), P.bReawakenInProgress);
 	TestTrue(TEXT("the travel ran (or the run was already there)"), W.Realm->GetSim().Travels >= TravelsBefore);

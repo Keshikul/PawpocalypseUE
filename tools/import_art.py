@@ -21,6 +21,10 @@ pages and every cell of field.csv), all in /Game/Pawpocalypse/Art/Field. The dat
 The biome floors (group `floors`, phase 6 slice 2): SourceArt/svg/backdrops/backdrop_tier_<n>.png (the generator's own PNGs,
 512 px seamless surfaces) -> T_backdrop_tier_<n> in /Game/Pawpocalypse/Art/Backdrops: BC7, sRGB, mips (Godot imports them
 with mipmaps and draws them at half size), WRAP, Never Stream, the World group.
+
+Boba (group `boba`, P4.3, 2026-11-27): SourceArt/boba/boba_*.png (her photos, copied from the first try: LFS sources, not
+generated) -> T_boba_* in /Game/Pawpocalypse/Art/UI/Boba with the UI settings, and DA_Boba (a UPawIconSet: the stems in
+sorted order and their textures, rewritten whole each time).
 """
 
 import os
@@ -38,6 +42,7 @@ GROUPS = {
     "icons": "/Game/Pawpocalypse/Art/UI/Icons",
     "atlas": "/Game/Pawpocalypse/Art/Field",
     "floors": "/Game/Pawpocalypse/Art/Backdrops",
+    "boba": "/Game/Pawpocalypse/Art/UI/Boba",
 }
 ATLAS = "DA_FieldAtlas"
 
@@ -175,7 +180,9 @@ def inside_editor(groups):
             import_atlas(dest, failed)
             continue
         floors = group == "floors"
-        src = os.path.join(unreal.Paths.project_dir(), "SourceArt", *(("svg", "backdrops") if floors else ("png", group)))
+        boba = group == "boba"
+        src = os.path.join(unreal.Paths.project_dir(), "SourceArt",
+                           *(("svg", "backdrops") if floors else ("boba",) if boba else ("png", group)))
         pngs = sorted(f for f in os.listdir(src) if f.endswith(".png"))
         tasks = []
         for f in pngs:
@@ -208,6 +215,20 @@ def inside_editor(groups):
                 tex.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_EDITOR_ICON)
                 tex.set_editor_property("mip_gen_settings", unreal.TextureMipGenSettings.TMGS_NO_MIPMAPS)
                 tex.set_editor_property("lod_group", unreal.TextureGroup.TEXTUREGROUP_UI)
+            if not eal.save_asset(path, only_if_is_dirty=False):
+                failed.append("save " + path)
+        if boba:
+            # P4.3: her photos in sorted order (the title's card shows the first), a UPawIconSet with no atlas.
+            path = dest + "/DA_Boba"
+            wanted.add("DA_Boba")
+            photos = eal.load_asset(path) if eal.does_asset_exist(path) else None
+            if photos is None:
+                factory = unreal.DataAssetFactory()
+                factory.set_editor_property("data_asset_class", unreal.PawIconSet)
+                photos = tools.create_asset("DA_Boba", dest, unreal.PawIconSet, factory)
+            names = [f[:-4] for f in pngs]
+            photos.set_editor_property("names", names)
+            photos.set_editor_property("textures", [eal.load_asset(dest + "/T_" + n) for n in names])
             if not eal.save_asset(path, only_if_is_dirty=False):
                 failed.append("save " + path)
         if group == "icons":

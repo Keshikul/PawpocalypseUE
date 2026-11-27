@@ -29,6 +29,7 @@
 #include "PcData.h"
 #include "PcField.h"
 #include "PcHud.h"
+#include <algorithm>
 #include "PcProgress.h"
 #include "PcStats.h"
 #include "Realm/PawRealmSim.h"
@@ -59,7 +60,10 @@
 #include "UI/PawRootLayout.h"
 #include "UI/PawSettingsDialog.h"
 #include "UI/PawSkillTreeScreen.h"
+#include "UI/PawConfirmDialog.h"
 #include "UI/PawText.h"
+#include "Internationalization/StringTableCore.h"
+#include "Internationalization/StringTableRegistry.h"
 #include "UI/PawWidgets.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 
@@ -445,12 +449,13 @@ bool FPawLayoutTreeTest::RunTest(const FString& Parameters)
 					FMath::Max(All.Bottom, P.Rect.Bottom));
 			}
 		}
-		TestTrue(Where + TEXT(": nodes laid out"), Nodes > 40);
+		// C1: a fresh game shows the trunks and one ring ahead; every shown node is laid out (the hidden are collapsed).
+		TestTrue(Where + TEXT(": the shown nodes laid out"), Nodes == Tree->GetShownCount() && Nodes >= 6);
 		TestTrue(Where + FString::Printf(TEXT(": every node on screen %s"), *PawLayout::Describe(All)), PawLayout::OnScreen(All, Size.Screen));
 		// The content area: under the header (130 of layout), the whole width.
 		const FVector2D Centre(Size.Screen.X * 0.5, (130.0 * Size.Scale() + Size.Screen.Y) * 0.5);
 		const FVector2D Drawn((All.Left + All.Right) * 0.5, (All.Top + All.Bottom) * 0.5);
-		// The fit's bounds include the captions under the nodes (28 of layout, scaled by the zoom): a few px of grace.
+		// The fit's bounds include the hub and the branch names (C1), not only the nodes: a few px of grace.
 		const double Grace = 24.0 * Size.Scale();
 		TestTrue(Where + FString::Printf(TEXT(": centred (drawn at %.0f, %.0f; the middle %.0f, %.0f)"), Drawn.X, Drawn.Y, Centre.X, Centre.Y),
 			FMath::Abs(Drawn.X - Centre.X) <= Grace && FMath::Abs(Drawn.Y - Centre.Y) <= Grace);
@@ -467,8 +472,28 @@ bool FPawLayoutTreeTest::RunTest(const FString& Parameters)
 		const FString Where = FString::Printf(TEXT("spend %s"), Size.Name);
 		const TArray<PawLayout::FPart> Parts = Measure(*this, Tree, Size, TEXT("spend"));
 		TestEqual(Where + TEXT(": Continue covers no legend"), Clashes(*this, Parts, { TEXT("CloseButton") }, { TEXT("LegendPlate") }, Where), 0);
+		// C1: the tree fits above Continue (it covered the Unicorn, straight down from the hub: the tour, 2026-11-26).
+		FSlateRect Close(0, 0, 0, 0);
+		for (const PawLayout::FPart& P : Parts)
+		{
+			if (P.Widget.Get() == Tree->GetCloseButton())
+			{
+				Close = P.Rect;
+			}
+		}
+		int32 Covered = 0, Nodes = 0;
+		for (const PawLayout::FPart& P : Parts)
+		{
+			if (Cast<UPawTreeNode>(P.Widget.Get()))
+			{
+				++Nodes;
+				Covered += FSlateRect::DoRectanglesIntersect(P.Rect, Close) ? 1 : 0;
+			}
+		}
+		TestTrue(Where + TEXT(": Continue measured"), Close.GetSize().X > 0.0f && Nodes > 0);
+		TestEqual(Where + TEXT(": Continue covers no node"), Covered, 0);
 		Tree->PressClose();
-		Tree->PressClose();
+		Tree->AnswerLeave(true); // P4.7: the leave question's Leave
 	}
 	W.Close();
 	return true;
@@ -642,6 +667,25 @@ namespace
 			Visit(W.Hud, FString::Printf(TEXT("dock, %s"), TabNames[I]));
 		}
 		W.Hud->SelectTab(Pc::PcDockTab::Upgrades);
+		// P4.1: the tooltip beside the dock, on a row the Catnip cannot pay for (the red chip) and on the longest line.
+		{
+			auto RowOf = [](const char* Id)
+			{
+				const std::vector<std::string>& Order = Pc::ShopRowOrder();
+				return static_cast<int32>(std::find(Order.begin(), Order.end(), std::string(Id)) - Order.begin());
+			};
+			W.Hud->RefreshNow();
+			const double Keep = P.Catnip;
+			P.Catnip = 1.0;
+			W.Hud->RefreshNow(); // the readouts follow the Catnip, as a frame would (Language.Switch builds the screen fresh)
+			W.Hud->ShowRowTip(RowOf("shield_pierce"));
+			Visit(W.Hud, TEXT("dock, upgrades, tooltip (short)"));
+			P.Catnip = Keep;
+			W.Hud->RefreshNow();
+			W.Hud->ShowRowTip(RowOf("execute"));
+			Visit(W.Hud, TEXT("dock, upgrades, tooltip"));
+			W.Hud->HideTip();
+		}
 
 		// The card pick: every card, three a hand.
 		for (size_t C = 0; C < D.Cards.size(); C += 3)
@@ -721,6 +765,12 @@ namespace
 			Pause->PressSave();
 			Visit(Pause, TEXT("pause, slots"));
 			Pause->PressSlotsBack();
+			Pause->PressQuitGame();
+			Visit(Pause->GetQuitDialog(), TEXT("pause, quit question")); // P4.7
+			if (UPawConfirmDialog* Quit = Pause->GetQuitDialog())
+			{
+				Quit->PressNo();
+			}
 			Pause->PressContinue();
 		}
 		else
@@ -763,8 +813,8 @@ namespace
 		{
 			Visit(Tree, TEXT("spend step"));
 			Tree->PressClose();
-			Visit(Tree, TEXT("spend step, armed"));
-			Tree->PressClose();
+			Visit(Tree->GetLeaveDialog(), TEXT("spend step, leave question")); // P4.7
+			Tree->AnswerLeave(true);
 			W.Hud->Pump(1.0 / 60.0);
 			Visit(W.Hud->GetJobPicker(), TEXT("job picker"));
 		}
@@ -1018,7 +1068,7 @@ bool FPawLanguageSwitchTest::RunTest(const FString& Parameters)
 	PawText::RegisterTables();
 	PawText::RegisterTranslations();
 	const FCultureShown Restore;
-	TestTrue(TEXT("German is complete (offered to players)"), PawText::Languages(false).Contains(TEXT("de")));
+	TestTrue(TEXT("German is offered to players"), PawText::Languages(false).Contains(TEXT("de")));
 
 	TArray<FSwitchLook> Looks;
 	TArray<FString> Fails;
@@ -1077,7 +1127,24 @@ bool FPawLanguageSwitchTest::RunTest(const FString& Parameters)
 	}
 	TestTrue(FString::Printf(TEXT("the tour saw the screens (%d)"), Screens.Num()), Screens.Num() >= 20);
 
-	// Not a pass by seeing nothing: every screen has words, and German ones.
+	// Not a pass by seeing nothing: every screen has words, and German ones. During the translation freeze (D28,
+	// PawText::bTranslationFrozen) a screen made only of lines with no German translation yet reads the same in both (the
+	// leave question, P4.7); every one of its words must be such a line.
+	TSet<FString> NoGermanYet;
+	for (const FName Table : { PawText::TableUi, PawText::TableData, PawText::TableTree })
+	{
+		if (const FStringTableConstPtr Loaded = FStringTableRegistry::Get().FindStringTable(Table); Loaded.IsValid())
+		{
+			Loaded->EnumerateSourceStrings([&NoGermanYet, Table](const FString& Key, const FString& English)
+			{
+				if (PawText::TranslationIn(Table, Key, TEXT("de")).IsEmpty())
+				{
+					NoGermanYet.Add(English);
+				}
+				return true;
+			});
+		}
+	}
 	int32 Compared = 0;
 	for (const FString& Screen : Screens)
 	{
@@ -1088,7 +1155,13 @@ bool FPawLanguageSwitchTest::RunTest(const FString& Parameters)
 			continue;
 		}
 		TestTrue(FString::Printf(TEXT("%s: has words"), *Screen), (*En)->Words.Num() > 0);
-		TestFalse(FString::Printf(TEXT("%s: says something else in German"), *Screen), Counted((*En)->Words).OrderIndependentCompareEqual(Counted((*De)->Words)));
+		bool bAllWaiting = PawText::bTranslationFrozen;
+		for (const TPair<FString, FString>& W : (*En)->Words)
+		{
+			bAllWaiting = bAllWaiting && NoGermanYet.Contains(W.Value);
+		}
+		TestFalse(FString::Printf(TEXT("%s: says something else in German"), *Screen),
+			Counted((*En)->Words).OrderIndependentCompareEqual(Counted((*De)->Words)) && !bAllWaiting);
 	}
 
 	// Every look against the screen built fresh in its language.

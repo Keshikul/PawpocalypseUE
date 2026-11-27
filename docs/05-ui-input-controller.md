@@ -33,7 +33,7 @@ UPawRootLayout (owned by APawPlayerController, created on BeginPlay)
                     field overlay: Pounce clock, XP bar, boss banner/bar, status row (currencies, zone bar), tutorial overlay
                     UPawDock: tab strip (6 icon tabs with badges) + page switcher
   Layer.Menu    : UPawSkillTreeScreen (and over it its own UPawUnicornCeremony), UPawCardPickScreen, UPawReawakenCeremony, UPawPauseMenu, UPawVictoryScreen
-  Layer.Modal   : UPawSettingsDialog, confirm dialogs, UPawJobPicker
+  Layer.Modal   : UPawSettingsDialog, UPawConfirmDialog (P4.7: Quit game, the tree's Leave / Stay), UPawJobPicker
 Title map: UPawMainMenu (slots, settings, Report a bug, Discord, Boba garden)
 ```
 
@@ -184,7 +184,7 @@ Slate's events through the dialog) and `.Dialog`; 12 PawCore and 9 game-module s
 (Dev/PawPadPlay.cpp, Godot ci/check_padplay.gd) run by `py tools/padplay_tour.py` in a real `-game` window on a fresh
 sandboxed save folder: pad buttons and a trigger sent through `FSlateApplication` (the path XInput's events take), from the
 title through a new game, the shop (a press, LT held 1.4 s, X), a card (the guard), travel, the first boss's Bait, a Reawaken
-(armed on Cancel, up, A), the tree (a node, B asks, B leaves), the pause menu, Settings (RB to Controls, B back onto Settings),
+(armed on Cancel, up, A), the tree (a node, B asks; since P4.7 the leave question opens on Stay: left, A leaves), the pause menu, Settings (RB to Controls, B back onto Settings),
 save and quit, and the title on Continue; at the title, the dock, the card pick, the tree, the pause menu and the settings
 dialog THE FOCUS TOUR presses every direction and checks the focus is never lost; the tree's selection and tooltip
 follow the focus (review CR9). 45 checks. Found by it: pad A pressed a dock row twice (Common UI's simulated click and the dock; above), and the pause menu lost its return to Settings (Common UI
@@ -333,7 +333,7 @@ re-applies the desired focus target when a modal closes: `UPawPauseMenu::ReturnF
 
 **Built 2026-11-01 (phase 3, first slice; HANDOFF-LOG (21))**: `UPawRootLayout` (Game / Menu / Modal stacks, created by
 `APawPlayerController::BeginPlay`, the HUD pushed on Game in a map with a realm view); `UPawHudScreen` with the status row
-(Catnip, Stardust, the wave line, the zone plate with its rainbow frame), the Catches XP bar, the Pounce clock
+(Catnip, Stardust, the zone plate with its rainbow frame; the wave line until 2026-11-26, note 8), the Catches XP bar, the Pounce clock
 (`UPawPounceClock`, painted), the boss panel (status, HP bar recoloured while shielded, the fight clock, the DEFEATED / OUT OF
 TIME after-word until travel or the next summon), and the dock (one `UPawDock` was not needed: the dock is part of the HUD
 screen): six tabs with badges and Jobs hidden until a job is held, the Upgrades page (15 rows, Buy x1/x5/x10/Max, hold-to-buy,
@@ -377,6 +377,10 @@ screenshot tour: nothing evaluated them): `FPawRealmSim` re-scans after every fi
 currency change) and `UPawRealmSubsystem` after a progress change, a summon and a Reawaken; the earned ids queue in
 `EarnedAchievements` for the toast (not built). The card pick's decisions are in `PcHud` `CardPick` (L1 + 11 sabotages).
 
+**Since 2026-11-26 (D29, P4.5)**: under the hand, one row holds Reroll, an **Auto-pick cards** box and "You can turn it
+off in Settings." (stacked, Polish ran off the bottom at 1280 x 800 and 150 % UI); the box turns auto-pick on and takes a card of this hand at random at once (the screen
+then never opens while it is on). Settings has a **Game** page in a game only (its box switches the loaded game's
+auto-pick; RB steps over four pages there, three elsewhere).
 **Slice 4 (2026-11-02, HANDOFF-LOG (24))**: the **card pick** (`UPawCardPickScreen`, `catches_pick_ui.gd`), on the Menu stack.
 - **Who opens it**: the HUD, every frame (`UPawHudScreen::OpenCardPickIfDealt`), while the progress holds a hand and the pick is
   not already on the Menu stack (the player controller hands the HUD its root layout's Menu stack). A hand dealt by a kill and a
@@ -431,8 +435,18 @@ currency change) and `UPawRealmSubsystem` after a progress change, a summon and 
   selection ends when the mouse leaves the row; the first key with nothing selected SHOWS the remembered row rather than
   acting. In Unreal: explicit navigation rules on each row (`SetNavigationRuleExplicit`), focus = selection, hover sets focus.
 - Refresh: event-driven dirty flags spent at 15 Hz; hidden pages do nothing; no UMG property bindings `[KB U/09 §1]`.
+- **The width (D30, 2026-11-27): 480 px** (`PawUi::DockWidth`; the page wrap 432 and the button wrap 392 follow it). The
+  key legend under the pages wraps 24 px short of the page (a rich text with key caps draws ~4 % past its wrap).
+- **The shared tooltip (P4.1, 2026-11-27; C1's look):** `UPawTooltip` beside the dock on the field side, its centre level
+  with the row (`Pc::PlaceTip`, kept 16 px inside the screen), for the Upgrades row that shows its ring (hovered, or
+  selected by keys or a pad). The icon, the name and "Lv n"; the line (`UPG_<id>_desc`); Now → Next for the row's buy
+  (`Pc::UpgradeTip`: x1.42 a multiplier, 18% a share, 4 a count; maxed: Now and MAX); the price on the raised yellow, the
+  off plate and a red "Need {amount} more" when short; a locked row: its name and line only. Hidden on another page.
+  Achievements, Catches, the tabs and the tree move onto it next (docs/WORKLIST-PLAYTEST-2026-11-26.md P4.1).
 
 ### 6.2 Skill tree (`UPawSkillTreeScreen`)
+**The Compass, 2026-11-26 (D27, HANDOFF-LOG (158)); this paragraph overrides the hex-era notes below where they differ.** Layout: `PcTreeLayout` seats every skill on a grid (`GridPitch` 172 between squares, a skill 84 px), one root (the hub) in the middle, a slice of the compass per trunk (`TrunkWheel`: Claws straight up, clockwise), inner rings first; no shared square, no crossing link, no link over a skill (`Tests/PcTreeLayoutTests.cpp`, the old Godot fixture retired). Reveal: `TreeNodeReveal`: owned or on sale in full, one ring ahead at 30 %, the rest collapsed and out of the pad's reach (`TreeNavPick(..., &Among)`, rules written again when the reveal grows); the fit frames what is shown and the branch names. Look: a sticker per node in `UPawHexPlate` (name kept; a rounded square for a skill with levels, a circle for a one-time skill, a diamond 1.25x for a job; shadow, die-cut rim, edge, fill), owned in its trunk's card colour, the rest dark (`PawTree::TrunkLooks`, `NodeDark`), the gold ring when it can be bought now; chips painted by `UPawTreeNode::NativePaint` over the picture (an owned ladder's level, green when full; an owned one-time skill's tick; the price of what is on sale, yellow when affordable); links an ink road with a core (the trunk's colour where owned, dashed cream to a skill on sale, dim otherwise); the hub a yellow disc with the paw and its name; each trunk's name in the field (`TreeBranchLabels`). No captions (the name is the tooltip's). Kept: the sky (designer 2026-09-14), the halos, the shine, the Unicorn's rings (now round), the tooltip (its redesign comes with P4.1's shared tooltip, words approved: `TIP_*`).
+
 **Status 2026-11-02 (HANDOFF-LOG (24))**: the PawCore half is DONE: `PcTreeLayout` (branch order, the hex seating, limb push, separation, normalising, bounds, canvas, fit zoom, `nav_pick`, node states, links, cheapest / next affordable), every seat and pad pick EXACTLY Godot's on the shipping tree and 400 random trees. It reproduces Godot's 32-bit `Vector2` arithmetic: in plain double 4,496 pad picks and 147 seats differed (the lattice puts neighbours exactly on the 60 degree cone edge). NOTE: the tree today has **87 nodes** on a radial hex layout of six limbs (`TRUNK_WHEEL`), not one lattice; Stardust is spent ONLY in the Reawaken spend step (`open_for_spending`), browsing is read-only.
 **The screen, 2026-11-02 (HANDOFF-LOG (25))**: `UPawSkillTreeScreen` on the Menu stack (pause holder "tree"), as designed above: one canvas panel under a render transform (pan, zoom about the view's centre, fit on open), `UPawTreeLinks` painting links (owned only with both ends) and the rainbow / pulse / job rings under the nodes, `UPawTreeNode` (a Common button; the frame of its state in the trunk's colour, READY lerped a third of the way, unlocks heavier and rounder; the counter on ladders; the shine), gold halos breathing behind READY nodes, captions (BRANCH_LABELS), the hub plate, the Stardust line, +/- buttons, the legend, the tooltip (beside the mouse's node, docked bottom left for keys / pad). Browse: T / pad Y (the HUD), read-only, X. Spend: the HUD's Reawaken opens it (Continue; the cheapest node selected; a press buys; the two-press leave with the centre plate), then travels to the starting biome. Every word and colour of skill_tree_ui.gd is GENERATED (`tools/gen_tree_tables.py` -> ST_Tree.csv, PcTreeWording.h, PawTreeTables.h; L0 checks them current). **Placeholders then, filled since**: the glyphs (phase 5 slice 3b), the sky (skill_tree_sky.gd, phase 6 slice 5d), the node icons (5b), the READY jitter and the hover pop (UiJuice, 5c), the Unicorn ceremony (6a). Not built: the halo's soft shadow and the hover lighten. (The ceremony before the spend step and the job picker after it: §6.3, 2026-11-02.)
 - 87 nodes on a hex lattice, links drawn between them, pan and zoom, three node states, rings/halos/pulses.
@@ -446,7 +460,11 @@ currency change) and `UPawRealmSubsystem` after a progress change, a summon and 
   navigation; a test walks every node from where the tree opens. Q/X next affordable; right stick pans; RT/LT zoom.
 - Tooltip docked (pad) or following (mouse). Unicorn purchase plays `UPawUnicornCeremony` over the tree (AS BUILT, phase 6 slice 6a: the tree's last part, collapsed until it plays; while it plays it eats every click, holds the keys (the tree hands it each one and buys nothing: Back cannot close the tree), a press after 0.6 s skips to the fade, and the tree takes its focus back when it ends). **Boba never over the
   tree** (`UPawBobaSubsystem::Suppress()`, which also cuts a cameo in flight).
-- Asks before every return to the game after a Reawaken.
+- Asks before every return to the game after a Reawaken. **Since P4.7 (2026-11-26, playtest note 27)** in
+  `UPawConfirmDialog` on the Modal stack: "You still have Stardust to spend." (something affordable) or "Start the next
+  run?", [Leave] [Stay], Stay selected, Back = Stay; the press-twice plate and Continue's armed caption are gone. The
+  pause menu's **Quit game** (note 43) asks the same way: "Save and quit?" [Save and quit] [Cancel]; yes saves the active
+  slot and quits. The title's Exit and the Reawaken keep their own prompts; closing the window still saves silently.
 - **S4 measured**: 87 Common-button nodes in one canvas, links in a `HitTestInvisible` paint widget beneath them, geometry
   navigation written once: all 87 x 4 rules verified by pressing them; opening the screen costs 6-9 ms; auto-pan by render
   transform kept every focused node on screen at 2x zoom.
@@ -487,8 +505,17 @@ against the real hud.tscn's VictoryScreen (fixture `victory`). A second show whi
 `WindowPanel` (the theme's ink labels would be dark on the dark dim), the theme's OK button, ink text (the flavour 17 px).
 Measured from the real screen into `Tests/Data/victory_look_godot.txt` (the fixture writes it). Until 2026-11-03 Godot drew it in
 its DEFAULT theme (white labels, the engine's grey button). **Differences kept on purpose**: the selection ring also shows on
-a mouse hover (Common UI's hovered state is the selection; Godot rings only the focused button); no Boba "victory" visit or
-nyan fly-past (BobaCameo, phase 6).
+a mouse hover (Common UI's hovered state is the selection; Godot rings only the focused button). Since P4.3 (2026-11-27)
+Boba visits it, and the nyan fly-past comes 1.5 s after it lands (below).
+
+**Boba in the menus (P4.3, 2026-11-27; playtest notes 2 and 3).** `PcBoba` (PawCore) holds the rule, `UPawBobaSubsystem`
+draws it on `UPawBobaLayer` (in the viewport over every menu, never taking input). The title ("main_menu"), the pause menu,
+Settings and the victory say when they open and close: the first open menu brings her 6-14 s later, then every 25-60 s;
+the last to close stops the clock (a cameo in flight finishes). She flies across (4), spins across (1), crosses with the
+six-band rainbow trail (3), peeks in from an edge (4; upside down from the top) or drops in with a bounce (2), at 0.24-0.34
+of the screen's height, never the same photo twice running, `boba_cameo` with each. The skill tree suppresses her (a cameo
+in flight is cut). Nothing comes with the effects off, a forced one included (the title card's click, the victory's nyan).
+The title's card is straight (R4BobaAngle 0) with the first photo (DA_Boba, sorted: boba_big_eyes), a hover pop.
 
 **The title screen, 2026-11-04 (HANDOFF-LOG (37); phase 4 slice 3)**. **`UPawMainMenu`** (main_menu.tscn / main_menu.gd) on
 the Game stack of L_Title, the game's first map: the player controller pushes it wherever there is no realm. Its rules are

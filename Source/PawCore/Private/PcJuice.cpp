@@ -32,6 +32,41 @@ namespace Pc
 			return -c / 2 * ((t - 1) * (t - 3) - 1) + b;
 		}
 
+		// easing_equations.h bounce:: (P4.3, Boba's drop).
+		double BounceOut(double t, double b, double c, double d)
+		{
+			t /= d;
+			if (t < 1.0 / 2.75)
+			{
+				return c * (7.5625 * t * t) + b;
+			}
+			if (t < 2.0 / 2.75)
+			{
+				t -= 1.5 / 2.75;
+				return c * (7.5625 * t * t + 0.75) + b;
+			}
+			if (t < 2.5 / 2.75)
+			{
+				t -= 2.25 / 2.75;
+				return c * (7.5625 * t * t + 0.9375) + b;
+			}
+			t -= 2.625 / 2.75;
+			return c * (7.5625 * t * t + 0.984375) + b;
+		}
+		double BounceIn(double t, double b, double c, double d)
+		{
+			return c - BounceOut(d - t, 0.0, c, d) + b;
+		}
+		double BounceInOut(double t, double b, double c, double d)
+		{
+			if (t < d / 2.0)
+			{
+				return BounceIn(t * 2.0, b, c / 2.0, d);
+			}
+			const double H = c / 2.0;
+			return BounceOut(t * 2.0 - d, b + H, H, d);
+		}
+
 		constexpr double BackS = 1.70158;
 		double BackIn(double t, double b, double c, double d)
 		{
@@ -137,6 +172,7 @@ namespace Pc
 			case PcTrans::Quad: In = QuadIn; Out = QuadOut; InOut = QuadInOut; break;
 			case PcTrans::Back: In = BackIn; Out = BackOut; InOut = BackInOut; break;
 			case PcTrans::Elastic: In = ElasticIn; Out = ElasticOut; InOut = ElasticInOut; break;
+			case PcTrans::Bounce: In = BounceIn; Out = BounceOut; InOut = BounceInOut; break;
 			}
 			switch (Ease)
 			{

@@ -60,9 +60,10 @@ bool FPawLookRulesTest::RunTest(const FString& Parameters)
 	TestFalse(TEXT("moving left faces left"), Face(true, -8.0));
 	TestTrue(TEXT("a phase is in [0, 1)"), PhaseFor(123456789) >= 0.0 && PhaseFor(123456789) < 1.0);
 
-	// The glow breathes between 0.65 and 1.0.
-	TestEqual(TEXT("glow at its brightest"), GlowAlpha(0.25 / GlowHz, 0.0), 1.0, 1e-9);
-	TestEqual(TEXT("glow at its faintest"), GlowAlpha(0.75 / GlowHz, 0.0), 0.65, 1e-9);
+	// D31 (C3 option B): the glow breathes between 0.325 and 0.5, half the first try's 0.65-1.0, and is 1.10x (was 1.24).
+	TestEqual(TEXT("glow at its brightest"), GlowAlpha(0.25 / GlowHz, 0.0), 0.5, 1e-9);
+	TestEqual(TEXT("glow at its faintest"), GlowAlpha(0.75 / GlowHz, 0.0), 0.325, 1e-9);
+	TestEqual(TEXT("D31: the glow 1.10x the body"), GlowScale, 1.10);
 
 	// Godot's back ease-in: 0 at 0, 1 at 1, below zero early (it winds back first).
 	TestEqual(TEXT("back ease 0"), BackEaseIn(0.0), 0.0, 1e-12);

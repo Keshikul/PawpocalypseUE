@@ -29,6 +29,7 @@
 #include "UI/PawMainMenu.h"
 #include "UI/PawPauseMenu.h"
 #include "UI/PawSkillTreeScreen.h"
+#include "UI/PawConfirmDialog.h"
 #include "UI/PawToast.h"
 #include "UI/PawSettingsDialog.h"
 #include "UI/PawTokens.h"
@@ -269,7 +270,7 @@ bool FPawChromeTest::RunTest(const FString& Parameters)
 		{ UPawHudScreen::StaticClass(), TEXT("FieldPlate"), EPawChrome::PlateSmall, false },
 		{ UPawPauseMenu::StaticClass(), TEXT("Window"), EPawChrome::Window, false },
 		{ UPawSettingsDialog::StaticClass(), TEXT("Window"), EPawChrome::Window, false },
-		{ UPawSkillTreeScreen::StaticClass(), TEXT("WarningPlate"), EPawChrome::Window, false },
+		{ UPawConfirmDialog::StaticClass(), TEXT("Panel"), EPawChrome::Window, false }, // P4.7 (the tree's leave plate before)
 		{ UPawSkillTreeScreen::StaticClass(), TEXT("TipPanel"), EPawChrome::Window, false },
 		{ UPawToast::StaticClass(), TEXT("Plate"), EPawChrome::PlateSmall, false },
 		{ UPawHudScreen::StaticClass(), TEXT("TabSeparator"), EPawChrome::Separator, false },

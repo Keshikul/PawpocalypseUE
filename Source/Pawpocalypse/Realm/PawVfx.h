@@ -46,6 +46,7 @@ public:
 		Swipe,
 		Beam,
 		Shards,
+		Shock, // Thunderclap's detonation (playtest 2026-11-26, note 32)
 	};
 
 	// The field's events of a frame (FPawRealmSim::FrameEvents, in order).
@@ -60,6 +61,8 @@ public:
 	bool Burst(const FContext& C, const FVector2D& At, const FLinearColor& Color, double EndRadius, double Duration = 0.35,
 		double Width = 3.0, bool bOnCat = false);
 	bool Slam(const FContext& C, const FVector2D& At, double Radius, bool bQuiet);
+	// The aura's detonation (Thunderclap, Standing Wave): a bold ring to Radius round the cat, over a flash (PawFxLook::Pulse*).
+	bool Shock(const FContext& C, double Radius);
 	bool Swipe(const FContext& C, const FVector2D& Origin, const FVector2D& Target, double Reach, bool bCrit, bool bEarned);
 	bool Beam(const FContext& C, const FVector2D& From, const FVector2D& To, const FLinearColor& Color, double Width = 6.0,
 		double Duration = 0.18);

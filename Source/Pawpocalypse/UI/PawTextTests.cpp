@@ -28,7 +28,8 @@ bool FPawTextPortWordsTest::RunTest(const FString& Parameters)
 	{
 		++PerTable.FindOrAdd(Line.Table);
 	}
-	TestTrue(TEXT("the text pass's lines (279 on 2026-11-09)"), Lines.Num() >= 279);
+	// 279 on 2026-11-09; 276 since 2026-11-26, when three left the game with their strings (the playtest's notes 4, 10, 22).
+	TestTrue(TEXT("the text pass's lines (276 since 2026-11-26)"), Lines.Num() >= 276);
 	TestTrue(TEXT("lines in ST_UI"), PerTable.FindRef(PawText::TableUi) > 0);
 	TestTrue(TEXT("lines in ST_Data"), PerTable.FindRef(PawText::TableData) > 0);
 	TestTrue(TEXT("lines in ST_Tree"), PerTable.FindRef(PawText::TableTree) > 0);

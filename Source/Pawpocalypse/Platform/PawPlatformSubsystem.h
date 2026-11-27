@@ -46,6 +46,9 @@ public:
 
 	// The presence token for where the player is: "#Biome_<id>" in a running realm with a biome, else "" (cleared).
 	static FString PresenceToken(bool bInRealm, const FString& BiomeId);
+	// Opens a web page: in the platform's overlay while one runs (the Steam overlay: the player stays in the game), else in
+	// the system's browser.
+	static void OpenWebPage(const FString& Url);
 
 	// The Steam overlay opened (true) or closed (false).
 	TMulticastDelegate<void(bool)> OnOverlay;

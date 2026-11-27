@@ -79,6 +79,9 @@ public:
 
 	// Hovered by the mouse (anywhere on the card, Take and Banish included) or Take / Banish selected: the card lifts.
 	bool IsLifted() const;
+	// Lifted: held (a test), hovered, or its Take / Banish selected by the keys or a pad (the ring's rule): the deal's first
+	// focus does not lift a card under a mouse (playtest 2026-11-26, note 6).
+	static bool LiftRule(bool bHeld, bool bHovered, bool bSelected, bool bLastWasPointer);
 	// The lift's tween, one frame (NativeTick; the tests drive it). D18 (S4): it also puts Take on the yellow plate while lifted.
 	void StepLift(double DeltaSeconds);
 	// The tests' pointer: lifted as if hovered (IsHovered needs a real cursor over a window).
@@ -137,8 +140,6 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> BodyText;
 	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<UTextBlock> WarnText;
-	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> Take;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> Banish;
@@ -168,10 +169,14 @@ public:
 	bool Take(int32 Index);
 	bool Banish(int32 Index);
 	bool Reroll();
+	// The Auto-pick box (D-e, playtest 2026-11-26 note 36): auto-pick on, and a card of this hand taken at random now;
+	// the screen closes. (While auto-pick is on the screen never opens: Settings turns it off.)
+	bool AutoPick();
 	// The buttons' way in: through the guard.
 	void ClickTake(int32 Index);
 	void ClickBanish(int32 Index);
 	void ClickReroll();
+	void ClickAutoPick();
 
 	// MenuFocus.guard_ok for this screen, now.
 	bool IsGuardOpen() const;
@@ -189,6 +194,8 @@ public:
 	// Cards drawn (pooled ones beyond the hand are collapsed).
 	int32 GetShownCardCount() const;
 	UPawButton* GetRerollButton() const { return RerollButton; }
+	UPawButton* GetAutoPickButton() const { return AutoPickButton; }
+	FText GetAutoPickNote() const;
 	UWidget* GetDim() const;
 	FText GetTitleText() const;
 	FText GetSubtitleText() const;
@@ -224,6 +231,10 @@ private:
 	TObjectPtr<UHorizontalBox> Row;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UPawButton> RerollButton;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UPawButton> AutoPickButton;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> AutoPickNote;
 	UPROPERTY()
 	TArray<TObjectPtr<UPawCardFace>> Faces; // pooled: a deal reuses them and hides the rest (screens are pooled too, rule 5)
 

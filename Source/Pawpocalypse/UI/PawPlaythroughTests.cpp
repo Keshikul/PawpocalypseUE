@@ -418,7 +418,7 @@ bool FPawPlaythroughTest::RunTest(const FString& Parameters)
 	TestFalse(TEXT("out: the Unicorn's ceremony has ended"), Tree->IsCeremonyPlaying());
 	const int64 Where = Pc::ReawakenTravelIndex(D, P);
 	Tree->PressClose();
-	Tree->PressClose();
+	Tree->AnswerLeave(true); // P4.7: the leave question's Leave
 	if (UPawJobPicker* Picker = W.Hud->GetJobPicker(); Picker && Picker->IsActivated())
 	{
 		Picker->Pick(Picker->GetRowCount() - 1); // the baseline

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <map>
 #include <set>
@@ -44,22 +45,6 @@ namespace Pc
 			return std::ldexp(std::nearbyint(std::ldexp(M, 24)), E - 24);
 		}
 
-		// Godot's CMP_EPSILON as a real_t, and the 32-bit Math::is_equal_approx.
-		const double CmpEpsilon = R32(0.00001);
-		bool Approx32(double A, double B)
-		{
-			if (A == B)
-			{
-				return true;
-			}
-			double Tolerance = R32(CmpEpsilon * std::fabs(A));
-			if (Tolerance < CmpEpsilon)
-			{
-				Tolerance = CmpEpsilon;
-			}
-			return std::fabs(R32(A - B)) < Tolerance;
-		}
-
 		double Rad(double Deg) { return Deg * Pi / 180.0; } // deg_to_rad: GDScript double
 
 		// --- Vector2, 32-bit ---
@@ -73,15 +58,7 @@ namespace Pc
 		double LengthSq(PcVec2 A) { return R32(R32(A.X * A.X) + R32(A.Y * A.Y)); }
 		double Length(PcVec2 A) { return R32(std::sqrt(LengthSq(A))); }
 		double DistanceTo(PcVec2 A, PcVec2 B) { return Length(Sub(A, B)); }
-		double Angle(PcVec2 A) { return R32(std::atan2(A.Y, A.X)); }
 		double AngleTo(PcVec2 A, PcVec2 To) { return R32(std::atan2(Cross(A, To), Dot(A, To))); }
-		PcVec2 Rotated(PcVec2 A, double By)
-		{
-			const double B = R32(By);
-			const double S = R32(std::sin(B)), C = R32(std::cos(B));
-			return { R32(R32(A.X * C) - R32(A.Y * S)), R32(R32(A.X * S) + R32(A.Y * C)) };
-		}
-		PcVec2 FromAngle(double A) { const double B = R32(A); return { R32(std::cos(B)), R32(std::sin(B)) }; }
 		PcVec2 Normalized(PcVec2 A)
 		{
 			double L = LengthSq(A);
@@ -94,312 +71,284 @@ namespace Pc
 		}
 		PcVec2 Min(PcVec2 A, PcVec2 B) { return { std::min(A.X, B.X), std::min(A.Y, B.Y) }; }
 		PcVec2 Max(PcVec2 A, PcVec2 B) { return { std::max(A.X, B.X), std::max(A.Y, B.Y) }; }
-		bool Approx32(PcVec2 A, PcVec2 B) { return Approx32(A.X, B.X) && Approx32(A.Y, B.Y); }
-
-		// Geometry2D::get_closest_point_to_segment.
-		PcVec2 ClosestOnSegment(PcVec2 Point, PcVec2 A, PcVec2 B)
-		{
-			const PcVec2 P = Sub(Point, A);
-			const PcVec2 N = Sub(B, A);
-			const double L2 = LengthSq(N);
-			if (L2 < R32(1e-20))
-			{
-				return A;
-			}
-			const double D = R32(Dot(N, P) / L2);
-			if (D <= 0.0)
-			{
-				return A;
-			}
-			if (D >= 1.0)
-			{
-				return B;
-			}
-			return Add(A, Mul(N, D));
-		}
-
-		// Geometry2D::segment_intersects_segment: parallel and colinear segments never intersect.
-		bool SegmentsIntersect(PcVec2 FromA, PcVec2 ToA, PcVec2 FromB, PcVec2 ToB)
-		{
-			const PcVec2 B = Sub(ToA, FromA);
-			PcVec2 C = Sub(FromB, FromA);
-			PcVec2 D = Sub(ToB, FromA);
-			const double ABLen = Dot(B, B);
-			if (ABLen <= 0.0)
-			{
-				return false;
-			}
-			const PcVec2 Bn = Div(B, ABLen);
-			C = { R32(R32(C.X * Bn.X) + R32(C.Y * Bn.Y)), R32(R32(C.Y * Bn.X) - R32(C.X * Bn.Y)) };
-			D = { R32(R32(D.X * Bn.X) + R32(D.Y * Bn.Y)), R32(R32(D.Y * Bn.X) - R32(D.X * Bn.Y)) };
-			if ((C.Y < -CmpEpsilon && D.Y < -CmpEpsilon) || (C.Y > CmpEpsilon && D.Y > CmpEpsilon))
-			{
-				return false;
-			}
-			if (Approx32(C.Y, D.Y))
-			{
-				return false;
-			}
-			const double ABPos = R32(D.X + R32(R32(R32(C.X - D.X) * D.Y) / R32(D.Y - C.Y)));
-			return !(ABPos < 0.0 || ABPos > 1.0);
-		}
 
 		const PcVec2 CanvasCentre = Div(V(CanvasW, CanvasH), 2.0); // CANVAS_SIZE / 2.0
-		const double NodeSizeX = R32(NodeSize);                 // NODE_SIZE.x
-		const double LinkClear = NodeSizeX * 1.15;              // LINK_CLEARANCE: NODE_SIZE.x * 1.15, a GDScript double
-
-		struct Cell
+		// --- the Compass grid (C1, designer 2026-11-26: "The compass is better but can you space it out a little") ---
+		// Integer squares around the root at (0, 0). Every rule below is decided on whole numbers or on doubles computed the
+		// same way every time, so the layout is the same on every machine (the concept page ran the same steps in JavaScript).
+		struct GridCell
 		{
-			int Q = 0;
-			int R = 0;
-			bool operator==(const Cell& O) const { return Q == O.Q && R == O.R; }
-			bool operator<(const Cell& O) const { return Q != O.Q ? Q < O.Q : R < O.R; }
+			int X = 0;
+			int Y = 0;
+			bool operator<(const GridCell& O) const { return X != O.X ? X < O.X : Y < O.Y; }
+			bool operator==(const GridCell& O) const { return X == O.X && Y == O.Y; }
 		};
 
-		// _hex_to_px: computed in GDScript doubles, stored in a Vector2.
-		PcVec2 HexToPx(Cell C)
+		// Halves round up (toward +infinity), as the concept's JavaScript Math.round does: -3.5 is -3, not -4.
+		int RoundHalfUp(double X) { return static_cast<int>(std::floor(X + 0.5)); }
+
+		int Orient(GridCell P, GridCell Q, GridCell R)
 		{
-			return V(HexPitch * (static_cast<double>(C.Q) + static_cast<double>(C.R) * 0.5),
-				HexPitch * std::sqrt(3.0) * 0.5 * static_cast<double>(C.R));
+			const long long V2 = static_cast<long long>(Q.X - P.X) * (R.Y - P.Y) - static_cast<long long>(Q.Y - P.Y) * (R.X - P.X);
+			return V2 > 0 ? 1 : (V2 < 0 ? -1 : 0);
 		}
 
-		// The cells exactly Ring steps from Centre, in Godot's fixed order.
-		std::vector<Cell> HexRing(Cell Centre, int Ring)
+		// Two links cross when each one's ends lie strictly on both sides of the other; links sharing an end never cross.
+		bool LinksCross(GridCell A, GridCell B, GridCell C, GridCell D)
 		{
-			std::vector<Cell> Out;
-			for (int DQ = -Ring; DQ <= Ring; ++DQ)
+			if (A == C || A == D || B == C || B == D)
 			{
-				for (int DR = -Ring; DR <= Ring; ++DR)
-				{
-					if (std::max(std::max(std::abs(DQ), std::abs(DR)), std::abs(-DQ - DR)) != Ring)
-					{
-						continue;
-					}
-					Out.push_back({ Centre.Q + DQ, Centre.R + DR });
-				}
+				return false;
 			}
-			return Out;
+			return Orient(A, B, C) * Orient(A, B, D) < 0 && Orient(C, D, A) * Orient(C, D, B) < 0;
 		}
 
-		const Cell ConeOrigin{ ConeOriginQ, ConeOriginR };
-
-		struct Taken
+		// The distance from square C to the link A-B (in squares).
+		double SquareToLink(GridCell C, GridCell A, GridCell B)
 		{
-			std::map<Cell, std::string> Cells; // "" = reserved (the hub's line behind the trunk)
-			bool Has(Cell C) const { return Cells.count(C) != 0; }
+			const double VX = B.X - A.X, VY = B.Y - A.Y, L2 = VX * VX + VY * VY;
+			const double T = L2 > 0.0 ? std::clamp(((C.X - A.X) * VX + (C.Y - A.Y) * VY) / L2, 0.0, 1.0) : 0.0;
+			return std::hypot(A.X + VX * T - C.X, A.Y + VY * T - C.Y);
+		}
+
+		// The angle and radius of a square seen from the root, x shrunk by the ellipse's stretch (the screen is wide).
+		double GridAngle(double X, double Y) { return std::atan2(Y, X / GridStretch); }
+		double GridRadius(double X, double Y) { return std::hypot(X / GridStretch, Y); }
+
+		// Each trunk's slice of the compass: TrunkWheel's order clockwise from straight up, equal slices.
+		struct Slice
+		{
+			double Lo = 0.0, Hi = 0.0, Mid = 0.0; // degrees
 		};
 
-		int FreeNeighbours(Cell C, const Taken& T)
+		bool InSlice(const Slice& S, double X, double Y)
 		{
-			const PcVec2 Origin = HexToPx(ConeOrigin);
-			int N = 0;
-			for (const Cell& Near : HexRing(C, 1))
+			double A = GridAngle(X, Y) * 180.0 / Pi;
+			while (A < S.Lo - 180.0)
 			{
-				if (!T.Has(Near) && std::fabs(Angle(Sub(HexToPx(Near), Origin))) <= Rad(ConeHalfDeg))
-				{
-					++N;
-				}
+				A += 360.0;
 			}
-			return N;
+			while (A > S.Lo + 180.0)
+			{
+				A -= 360.0;
+			}
+			return A >= S.Lo && A <= S.Hi;
 		}
 
-		int Crossings(Cell From, Cell To, const Taken& T)
+		struct GridPlacement
 		{
-			const PcVec2 A = HexToPx(From), B = HexToPx(To);
-			int N = 0;
-			for (const auto& KV : T.Cells)
+			std::map<std::string, GridCell> Cells;
+			std::vector<std::string> Unseated; // nothing clear within reach: placed anyway, reported (a bug)
+		};
+
+		GridPlacement PlaceOnGrid(const PcGameData& D, const std::vector<std::string>& Trunks)
+		{
+			GridPlacement Out;
+			std::map<std::string, std::string> TrunkOf;
+			std::map<std::string, int> DepthOf;
+			std::map<std::string, std::vector<std::string>> Kids;
+			for (const PcSkillBranch& B : D.Branches)
 			{
-				if (KV.first == From || KV.first == To)
+				if (!B.Parent.empty() && !IsBranchRetired(D, B.Id))
 				{
-					continue;
-				}
-				const PcVec2 C = HexToPx(KV.first);
-				if (DistanceTo(ClosestOnSegment(C, A, B), C) < LinkClear)
-				{
-					++N;
+					Kids[B.Parent].push_back(B.Id);
 				}
 			}
-			return N;
-		}
-
-		bool CutsALink(Cell From, Cell To, const std::vector<std::pair<Cell, Cell>>& Links)
-		{
-			const PcVec2 A = HexToPx(From), B = HexToPx(To);
-			for (const auto& L : Links)
+			for (const PcSkillBranch& B : D.Branches)
 			{
-				if (L.first == From || L.second == From || L.first == To || L.second == To)
+				if (IsBranchRetired(D, B.Id))
 				{
-					continue;
+					continue; // not laid out (D-e)
 				}
-				if (SegmentsIntersect(A, B, HexToPx(L.first), HexToPx(L.second)))
+				const PcSkillBranch* T = &B;
+				int Depth = 0;
+				while (T && !T->Parent.empty() && Depth < 64)
 				{
-					return true;
-				}
-			}
-			return false;
-		}
-
-		// _seat(): the free cell a child takes. The score is GDScript arithmetic (double) on Vector2 results (32-bit).
-		Cell Seat(Cell Parent, const Taken& T, const std::vector<std::pair<Cell, Cell>>& Links, int Kids)
-		{
-			const PcVec2 ParentPx = HexToPx(Parent);
-			const PcVec2 Origin = HexToPx(ConeOrigin);
-			Cell Best = Parent, Fallback = Parent;
-			double BestScore = Inf, FallbackScore = Inf;
-			for (int Ring = 1; Ring <= HexReach; ++Ring)
-			{
-				for (const Cell& C : HexRing(Parent, Ring))
-				{
-					if (T.Has(C))
+					const PcSkillBranch* Up = D.FindBranch(T->Parent);
+					if (!Up)
 					{
-						continue;
+						break;
 					}
-					const PcVec2 Px = HexToPx(C);
-					const double Stray = std::fabs(Angle(Sub(Px, Origin)));
-					double Score = DistanceTo(Px, ParentPx);
-					Score += ConePenalty * Stray;
-					Score += BackwardPenalty * std::max(ParentPx.X - Px.X, 0.0);
-					Score += CrowdingPenalty * static_cast<double>(std::max(Kids - FreeNeighbours(C, T), 0));
-					const bool bCrosses = Crossings(Parent, C, T) > 0 || CutsALink(Parent, C, Links);
-					if (Stray > Rad(ConeHalfDeg) || bCrosses)
+					T = Up;
+					++Depth;
+				}
+				TrunkOf[B.Id] = T ? T->Id : B.Id;
+				DepthOf[B.Id] = Depth;
+			}
+			std::map<std::string, int> SizeOf;
+			std::function<int(const std::string&)> Size = [&](const std::string& Id)
+			{
+				const auto It = SizeOf.find(Id);
+				if (It != SizeOf.end())
+				{
+					return It->second;
+				}
+				int N = 1;
+				const auto K = Kids.find(Id);
+				if (K != Kids.end())
+				{
+					for (const std::string& C : K->second)
 					{
-						const double Penalised = Score + (bCrosses ? 100000.0 : 0.0);
-						if (Penalised < FallbackScore)
-						{
-							FallbackScore = Penalised;
-							Fallback = C;
-						}
-						continue;
-					}
-					if (Score < BestScore)
-					{
-						BestScore = Score;
-						Best = C;
+						N += Size(C);
 					}
 				}
-				if (BestScore < Inf && Ring >= 2)
+				return SizeOf[Id] = N;
+			};
+			// The slices, and each trunk's own square on them.
+			const double Span = 360.0 / static_cast<double>(std::max<size_t>(Trunks.size(), 1));
+			std::map<std::string, Slice> Slices;
+			std::map<std::string, GridCell> TrunkAt;
+			for (size_t I = 0; I < Trunks.size(); ++I)
+			{
+				Slice S;
+				S.Lo = -90.0 - Span * 0.5 + Span * static_cast<double>(I);
+				S.Hi = S.Lo + Span;
+				S.Mid = (S.Lo + S.Hi) * 0.5;
+				Slices[Trunks[I]] = S;
+				const double A = S.Mid * Pi / 180.0;
+				TrunkAt[Trunks[I]] = { RoundHalfUp(std::cos(A) * GridTrunkRadius * GridStretch), RoundHalfUp(std::sin(A) * GridTrunkRadius) };
+			}
+			// Inner rings first; at one depth, the trunks in PlaceOrder; the bigger subtree first; then by id.
+			std::vector<std::string> Order;
+			for (const PcSkillBranch& B : D.Branches)
+			{
+				if (!IsBranchRetired(D, B.Id))
 				{
-					break;
+					Order.push_back(B.Id);
 				}
 			}
-			return BestScore < Inf ? Best : Fallback;
-		}
+			const std::vector<std::string>& Pref = GridPlaceOrder();
+			auto Rank = [&](const std::string& Trunk)
+			{
+				const auto It = std::find(Pref.begin(), Pref.end(), Trunk);
+				return It == Pref.end() ? static_cast<long long>(Pref.size()) + static_cast<long long>(std::find(Trunks.begin(), Trunks.end(), Trunk) - Trunks.begin())
+					: static_cast<long long>(It - Pref.begin());
+			};
+			std::sort(Order.begin(), Order.end(), [&](const std::string& A, const std::string& B)
+			{
+				if (DepthOf[A] != DepthOf[B]) return DepthOf[A] < DepthOf[B];
+				if (Rank(TrunkOf[A]) != Rank(TrunkOf[B])) return Rank(TrunkOf[A]) < Rank(TrunkOf[B]);
+				if (Size(A) != Size(B)) return Size(A) > Size(B);
+				return A < B;
+			});
 
-		// Children of each parent, in branch order (_children_by_parent).
-		std::map<std::string, std::vector<std::string>> ChildrenByParent(const PcGameData& D, const std::vector<std::string>& Order)
-		{
-			std::map<std::string, std::vector<std::string>> Out;
+			std::map<GridCell, std::string> Used{ { GridCell{ 0, 0 }, std::string() } }; // "" = the root
+			std::vector<std::pair<GridCell, GridCell>> Links;
 			for (const std::string& Id : Order)
 			{
 				const PcSkillBranch* B = D.FindBranch(Id);
-				if (B && !B->Parent.empty())
+				const std::string& Trunk = TrunkOf[Id];
+				const auto SIt = Slices.find(Trunk);
+				const Slice S = SIt == Slices.end() ? Slice{} : SIt->second;
+				const bool bTrunk = B->Parent.empty() || !Out.Cells.count(B->Parent);
+				const GridCell From = bTrunk ? GridCell{ 0, 0 } : Out.Cells[B->Parent];
+				GridCell Best{};
+				bool bFound = false;
+				if (bTrunk && TrunkAt.count(Id) && !Used.count(TrunkAt[Id]))
 				{
-					Out[B->Parent].push_back(Id);
+					Best = TrunkAt[Id];
+					bFound = true;
 				}
+				else
+				{
+					const double Want = bTrunk ? GridTrunkRadius : GridRadius(From.X, From.Y) + GridRingStep;
+					const double MidRad = S.Mid * Pi / 180.0;
+					double BestScore = -Inf;
+					for (const int Reach : { 3, 5, 8 })
+					{
+						for (int DX = -Reach; DX <= Reach; ++DX)
+						{
+							for (int DY = -Reach; DY <= Reach; ++DY)
+							{
+								if (!DX && !DY)
+								{
+									continue;
+								}
+								const GridCell To{ From.X + DX, From.Y + DY };
+								if (Used.count(To))
+								{
+									continue;
+								}
+								const double R = GridRadius(To.X, To.Y);
+								if (R < GridMinRadius)
+								{
+									continue;
+								}
+								bool bClear = true;
+								for (const auto& L : Links)
+								{
+									if (LinksCross(L.first, L.second, From, To))
+									{
+										bClear = false;
+										break;
+									}
+								}
+								for (auto U = Used.begin(); bClear && U != Used.end(); ++U)
+								{
+									if (!(U->first == From) && !(U->first == To) && SquareToLink(U->first, From, To) < GridLinkClearance)
+									{
+										bClear = false; // the new link would pass over a skill
+									}
+								}
+								for (size_t K = 0; bClear && K < Links.size(); ++K)
+								{
+									const auto& L = Links[K];
+									if (!(L.first == To) && !(L.second == To) && SquareToLink(To, L.first, L.second) < GridLinkClearance)
+									{
+										bClear = false; // the new skill would sit on a link already drawn
+									}
+								}
+								if (!bClear)
+								{
+									continue;
+								}
+								const double Len = std::hypot(static_cast<double>(DX), static_cast<double>(DY));
+								const double Clean = (DX == 0 || DY == 0 || std::abs(DX) == std::abs(DY)) ? 0.0 : 1.0;
+								double DA = std::fabs(GridAngle(To.X, To.Y) - MidRad);
+								if (DA > Pi)
+								{
+									DA = 2.0 * Pi - DA;
+								}
+								int Crowd = 0;
+								for (int AX = -1; AX <= 1; ++AX)
+								{
+									for (int AY = -1; AY <= 1; ++AY)
+									{
+										const auto O = Used.find(GridCell{ To.X + AX, To.Y + AY });
+										if (O != Used.end() && !O->second.empty() && TrunkOf[O->second] != Trunk)
+										{
+											++Crowd;
+										}
+									}
+								}
+								const double Outside = InSlice(S, To.X, To.Y) ? 0.0 : 1.0;
+								const double Score = -std::fabs(R - Want) * GridRingWeight - (Len - 1.0) * 1.1 - Clean * 0.9
+									- DA * GridCentreWeight - Outside * GridOutsideWeight - static_cast<double>(Crowd) * 1.5;
+								if (Score > BestScore)
+								{
+									BestScore = Score;
+									Best = To;
+									bFound = true;
+								}
+							}
+						}
+						if (bFound)
+						{
+							break;
+						}
+					}
+				}
+				if (!bFound)
+				{
+					Out.Unseated.push_back(Id);
+					const double MidRad = S.Mid * Pi / 180.0;
+					Best = { From.X + RoundHalfUp(std::cos(MidRad) * 6.0 * GridStretch), From.Y + RoundHalfUp(std::sin(MidRad) * 6.0) };
+				}
+				Out.Cells[Id] = Best;
+				Used[Best] = Id;
+				Links.push_back({ From, Best });
 			}
 			return Out;
-		}
-
-		// _lay_out_limb(): one trunk's subtree on its own lattice; id -> cell in seating order.
-		std::vector<std::pair<std::string, Cell>> LayOutLimb(const std::string& Trunk, const std::map<std::string, std::vector<std::string>>& Children)
-		{
-			std::vector<std::pair<std::string, Cell>> CellOf{ { Trunk, Cell{ 0, 0 } } };
-			std::map<std::string, Cell> Lookup{ { Trunk, Cell{ 0, 0 } } };
-			Taken T;
-			T.Cells[Cell{ 0, 0 }] = Trunk;
-			for (int Back = 1; Back <= HexReach; ++Back)
-			{
-				T.Cells[Cell{ -Back, 0 }] = "";
-			}
-			std::vector<std::pair<Cell, Cell>> Links{ { ConeOrigin, Cell{ 0, 0 } } };
-			std::vector<std::string> Queue{ Trunk };
-			for (size_t Head = 0; Head < Queue.size(); ++Head)
-			{
-				const std::string Id = Queue[Head];
-				const auto Kids = Children.find(Id);
-				if (Kids == Children.end())
-				{
-					continue;
-				}
-				for (const std::string& Kid : Kids->second)
-				{
-					const auto Grand = Children.find(Kid);
-					const int GrandKids = Grand == Children.end() ? 0 : static_cast<int>(Grand->second.size());
-					const Cell C = Seat(Lookup[Id], T, Links, GrandKids);
-					T.Cells[C] = Kid;
-					Lookup[Kid] = C;
-					CellOf.push_back({ Kid, C });
-					Links.push_back({ Lookup[Id], C });
-					Queue.push_back(Kid);
-				}
-			}
-			return CellOf;
-		}
-
-		struct Segment
-		{
-			PcVec2 A, B;
-		};
-
-		bool ShareAnEnd(const Segment& S, const Segment& O)
-		{
-			return Approx32(S.A, O.A) || Approx32(S.A, O.B) || Approx32(S.B, O.A) || Approx32(S.B, O.B);
-		}
-
-		using Placed = std::vector<std::pair<std::string, PcVec2>>;
-
-		bool LimbIsClear(const Placed& Limb, const std::vector<Segment>& Links, const Placed& Done, const std::vector<Segment>& DoneLinks)
-		{
-			for (const auto& N : Limb)
-			{
-				for (const auto& O : Done)
-				{
-					const double Need = O.first == "hub" ? HexPitch : LimbGapPx;
-					if (DistanceTo(N.second, O.second) < Need - 0.5)
-					{
-						return false;
-					}
-				}
-			}
-			for (const Segment& L : Links)
-			{
-				for (const auto& O : Done)
-				{
-					const PcVec2 C = O.second;
-					if (Approx32(C, L.A) || Approx32(C, L.B))
-					{
-						continue;
-					}
-					if (DistanceTo(ClosestOnSegment(C, L.A, L.B), C) < LinkClear)
-					{
-						return false;
-					}
-				}
-				for (const Segment& S : DoneLinks)
-				{
-					if (ShareAnEnd(L, S))
-					{
-						continue;
-					}
-					if (SegmentsIntersect(L.A, L.B, S.A, S.B))
-					{
-						return false;
-					}
-				}
-			}
-			return true;
-		}
-
-		const PcVec2* Find(const Placed& P, const std::string& Id)
-		{
-			for (const auto& KV : P)
-			{
-				if (KV.first == Id)
-				{
-					return &KV.second;
-				}
-			}
-			return nullptr;
 		}
 
 		// _layout_bounds(): Vector2 min / max, a Rect2 of 32-bit parts.
@@ -420,7 +369,7 @@ namespace Pc
 			}
 			if (MinP.X == Inf)
 			{
-				return { CanvasCentre.X, CanvasCentre.Y, 0.0, 0.0 };
+				MinP = MaxP = Hub; // nothing shown: the hub alone (the first try: an empty rect at the canvas centre)
 			}
 			MinP = Min(MinP, Sub(Hub, HubHalf));
 			MaxP = Max(MaxP, Add(Hub, HubHalf));
@@ -431,8 +380,16 @@ namespace Pc
 
 	const std::vector<std::string>& TrunkWheel()
 	{
-		static const std::vector<std::string> Wheel{ "instinct", "claws", "unlock_aura", "fortune", "unlock_unicorn", "unlock_snare" };
+		// The Compass (C1, 2026-11-26), clockwise from straight up.
+		static const std::vector<std::string> Wheel{ "claws", "instinct", "unlock_aura", "unlock_unicorn", "fortune", "unlock_snare" };
 		return Wheel;
+	}
+
+	const std::vector<std::string>& GridPlaceOrder()
+	{
+		// The order the trunks seat their skills in, at one depth (the concept page's, whose result was checked clean).
+		static const std::vector<std::string> Order{ "claws", "instinct", "unlock_aura", "fortune", "unlock_snare", "unlock_unicorn" };
+		return Order;
 	}
 
 	std::vector<std::string> TrunkOrder(const PcGameData& D)
@@ -461,7 +418,10 @@ namespace Pc
 		std::vector<std::string> Names;
 		for (const PcSkillBranch& B : D.Branches)
 		{
-			Names.push_back(B.Id);
+			if (!IsBranchRetired(D, B.Id))
+			{
+				Names.push_back(B.Id); // a retired skill is not on the tree (D-e)
+			}
 		}
 		std::sort(Names.begin(), Names.end());
 		std::map<std::string, std::vector<std::string>> Kids;
@@ -492,7 +452,7 @@ namespace Pc
 		}
 		for (const PcSkillBranch& B : D.Branches)
 		{
-			if (!Seen.count(B.Id))
+			if (!Seen.count(B.Id) && !IsBranchRetired(D, B.Id))
 			{
 				Seen.insert(B.Id);
 				Out.push_back(B.Id);
@@ -552,66 +512,13 @@ namespace Pc
 	{
 		PcTreeLayout L;
 		L.Order = BranchOrder(D);
-		const auto Children = ChildrenByParent(D, L.Order);
-		const std::vector<std::string> Trunks = TrunkOrder(D);
-
-		// _compute_layout(): every limb about the hub at (0, 0).
-		Placed Done{ { "hub", PcVec2{} } };
-		std::vector<Segment> DoneLinks;
-		for (size_t I = 0; I < Trunks.size(); ++I)
-		{
-			const std::string& Trunk = Trunks[I];
-			const double Axis = -Pi / 2.0 + Tau * static_cast<double>(I) / static_cast<double>(Trunks.size()); // GDScript double
-			const PcVec2 Dir = FromAngle(Axis);
-			const auto Local = LayOutLimb(Trunk, Children);
-			Placed Limb;
-			std::vector<Segment> Links;
-			const double Start = static_cast<double>(-ConeOriginQ);
-			for (int Step = 0; Step <= LimbPushMax * 2; ++Step)
-			{
-				// dir * HEX_PITCH * (start + step * 0.5): two Vector2 x scalar products, left to right.
-				const PcVec2 Offset = Mul(Mul(Dir, HexPitch), Start + static_cast<double>(Step) * 0.5);
-				Limb.clear();
-				for (const auto& KV : Local)
-				{
-					Limb.push_back({ KV.first, Add(Rotated(HexToPx(KV.second), Axis), Offset) });
-				}
-				Links.clear();
-				Links.push_back({ PcVec2{}, *Find(Limb, Trunk) });
-				for (const auto& KV : Local)
-				{
-					const PcSkillBranch* B = D.FindBranch(KV.first);
-					if (B && !B->Parent.empty())
-					{
-						const PcVec2* From = Find(Limb, B->Parent);
-						if (From)
-						{
-							Links.push_back({ *From, *Find(Limb, KV.first) });
-						}
-					}
-				}
-				if (LimbIsClear(Limb, Links, Done, DoneLinks))
-				{
-					break;
-				}
-				if (Step == LimbPushMax * 2)
-				{
-					L.UnclearLimbs.push_back(Trunk);
-				}
-			}
-			Done.insert(Done.end(), Limb.begin(), Limb.end());
-			DoneLinks.insert(DoneLinks.end(), Links.begin(), Links.end());
-		}
+		const GridPlacement G = PlaceOnGrid(D, TrunkOrder(D));
+		L.UnclearLimbs = G.Unseated;
 		L.Hub = CanvasCentre;
-		for (const auto& KV : Done)
+		for (const auto& KV : G.Cells)
 		{
-			if (KV.first != "hub")
-			{
-				L.Nodes[KV.first] = Add(CanvasCentre, KV.second);
-			}
+			L.Nodes[KV.first] = PcVec2{ CanvasCentre.X + GridPitch * KV.second.X, CanvasCentre.Y + GridPitch * KV.second.Y };
 		}
-
-		SeparateTreeNodes(L);
 
 		// _normalise_layout(): the top left at FitMargin (never pulled back if it is already further in).
 		const PcRect2 Extent = BoundsOf(L.Order, L.Nodes, L.Hub);
@@ -628,9 +535,72 @@ namespace Pc
 		return L;
 	}
 
-	PcRect2 TreeBounds(const PcTreeLayout& L)
+	PcRect2 TreeBounds(const PcTreeLayout& L, const std::set<std::string>* Among)
 	{
-		return BoundsOf(L.Order, L.Nodes, L.Hub);
+		if (!Among)
+		{
+			return BoundsOf(L.Order, L.Nodes, L.Hub);
+		}
+		std::vector<std::string> Shown;
+		for (const std::string& Id : L.Order)
+		{
+			if (Among->count(Id))
+			{
+				Shown.push_back(Id);
+			}
+		}
+		return BoundsOf(Shown, L.Nodes, L.Hub);
+	}
+
+	std::string TreeTrunkOf(const PcGameData& D, const std::string& Id)
+	{
+		const PcSkillBranch* B = D.FindBranch(Id);
+		for (size_t Guard = 0; B && Guard <= D.Branches.size(); ++Guard)
+		{
+			const PcSkillBranch* Up = B->Parent.empty() ? nullptr : D.FindBranch(B->Parent);
+			if (!Up)
+			{
+				return B->Id;
+			}
+			B = Up;
+		}
+		return std::string();
+	}
+
+	std::vector<PcTreeLabel> TreeBranchLabels(const PcGameData& D, const PcTreeLayout& L, const std::set<std::string>* Among)
+	{
+		std::vector<PcTreeLabel> Out;
+		for (const std::string& Trunk : TrunkOrder(D))
+		{
+			std::vector<PcVec2> Shown;
+			for (const auto& KV : L.Nodes)
+			{
+				if ((!Among || Among->count(KV.first)) && TreeTrunkOf(D, KV.first) == Trunk)
+				{
+					Shown.push_back(PcVec2{ KV.second.X - L.Hub.X, KV.second.Y - L.Hub.Y });
+				}
+			}
+			if (Shown.empty())
+			{
+				continue;
+			}
+			double CX = 0.0, CY = 0.0;
+			for (const PcVec2& P : Shown)
+			{
+				CX += P.X;
+				CY += P.Y;
+			}
+			const double Len = std::hypot(CX, CY);
+			const double UX = Len > 0.0 ? CX / Len : 0.0, UY = Len > 0.0 ? CY / Len : -1.0;
+			double Reach = -Inf;
+			for (const PcVec2& P : Shown)
+			{
+				Reach = std::max(Reach, P.X * UX + P.Y * UY);
+			}
+			Reach += GridLabelReach * GridPitch;
+			Out.push_back(PcTreeLabel{ Trunk, PcVec2{ L.Hub.X + UX * Reach, L.Hub.Y + UY * Reach } });
+		}
+		return Out;
 	}
 
 	PcVec2 TreeCanvasSize(const PcRect2& B)
@@ -654,7 +624,7 @@ namespace Pc
 		return std::clamp(std::min(ViewW / NeedW, ViewH / NeedH), ZoomMin, FitMax);
 	}
 
-	std::string TreeNavPick(const PcTreeLayout& L, const std::string& FromId, const PcVec2& Direction)
+	std::string TreeNavPick(const PcTreeLayout& L, const std::string& FromId, const PcVec2& Direction, const std::set<std::string>* Among)
 	{
 		const auto FromIt = L.Nodes.find(FromId);
 		if (FromIt == L.Nodes.end())
@@ -670,7 +640,7 @@ namespace Pc
 			for (const std::string& Id : L.Order)
 			{
 				const auto It = L.Nodes.find(Id);
-				if (Id == FromId || It == L.Nodes.end())
+				if (Id == FromId || It == L.Nodes.end() || (Among && !Among->count(Id)))
 				{
 					continue;
 				}
@@ -772,6 +742,27 @@ namespace Pc
 			}
 		}
 		return false;
+	}
+
+	PcTreeReveal TreeNodeReveal(const PcGameData& D, const PcProgress& P, const std::string& Id)
+	{
+		const PcSkillBranch* B = D.FindBranch(Id);
+		if (!B || IsBranchRetired(D, Id))
+		{
+			return PcTreeReveal::Hidden;
+		}
+		if (BranchLevel(P, Id) > 0 || IsBranchAvailable(D, P, Id))
+		{
+			return PcTreeReveal::Full;
+		}
+		// One ring ahead: faint under a parent that shows in full (a trunk's parent is the hub, always there).
+		if (B->Parent.empty() || !D.FindBranch(B->Parent))
+		{
+			return PcTreeReveal::Ghost;
+		}
+		const PcSkillBranch* Up = D.FindBranch(B->Parent);
+		const bool bParentFull = BranchLevel(P, Up->Id) > 0 || IsBranchAvailable(D, P, Up->Id);
+		return bParentFull ? PcTreeReveal::Ghost : PcTreeReveal::Hidden;
 	}
 
 	std::vector<PcTreeLink> TreeLinks(const PcGameData& D, const PcProgress& P)

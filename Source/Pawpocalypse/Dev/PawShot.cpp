@@ -878,7 +878,7 @@ namespace
 			if (UPawSkillTreeScreen* T = H ? H->GetSkillTree() : nullptr; T && T->IsActivated())
 			{
 				T->PressClose();
-				T->PressClose();
+				T->AnswerLeave(true); // P4.7: the leave question's Leave
 			}
 			else
 			{

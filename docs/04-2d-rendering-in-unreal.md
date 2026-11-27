@@ -148,7 +148,7 @@ their OWN Z band where order inside the band does not matter.
 **Phase 6 slice 1 (2026-11-05): the atlas sprites.** The creatures are their Godot drawings: `UPawSpriteRenderer::AddSprite`
 draws a cell of the field atlas (`UPawSpriteAtlas`, `DA_FieldAtlas`; doc 07 §2) on three components per page: MASKED
 (`M_Sprite`: opaque art, per-pixel depth), SOFT (`M_SpriteSoft`, translucent: art whose tint has alpha < 1, the shielded mouse,
-the illusory kitten, the dying boss, and the whitened signature glow) and SHADOW (the ground shadow). 9 custom floats: linear
+the illusory kitten, the dying boss, and the whitened signature glow: white x the tint, so D31's gold glow is a GOLD tint) and SHADOW (the ground shadow). 9 custom floats: linear
 tint RGBA, the cell's U0 V0 U1 V1 (mirrored by swapping U0/U1), whiten. Translucent bands keep their order by
 `SetTranslucentSortPriority` (as of slice 3: backdrop fill -1 < zones / ground effects 0 < shadows 1 < under effects 2 < soft sprites 3 < over effects 4 < the old ring effects 5). Two pages then: 9 sprite and shape components in
 all; since R5 four pages (the rig's layers, 249 cells), 12 sprite components. The view (`APawRealmView::DrawCreatures`) draws Godot's look from `Realm/PawFieldLook.h`: sizes, the breathing pulse,

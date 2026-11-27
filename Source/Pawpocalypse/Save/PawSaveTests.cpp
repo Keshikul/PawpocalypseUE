@@ -5,6 +5,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Core/PawGameSubsystem.h"
+#include "PcTree.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
@@ -200,6 +201,40 @@ bool FPawSaveRoundTripTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("summary: kills"), M.Kills, static_cast<int64>(31337));
 	TestTrue(TEXT("summary: stamped"), M.LastPlayedUnix > 1.7e9);
 	TestFalse(TEXT("no summary for an empty slot"), W.Save->ReadSlotSummary(4, M));
+	W.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FPawSaveRetiredTest, "Pawpocalypse.Save.RetiredRefund",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPawSaveRetiredTest::RunTest(const FString& Parameters)
+{
+	// D-e (2026-11-26): a save that owns a retired skill (Auto-Card) gets back what it paid when it loads; the level goes.
+	FSaveWorld W;
+	if (!W.Open(*this))
+	{
+		W.Close();
+		return false;
+	}
+	W.Play();
+	const Pc::PcSkillBranch* Card = W.D().FindBranch("auto_card");
+	if (!TestNotNull(TEXT("the row stays in the data"), Card) || !TestTrue(TEXT("retired"), Pc::IsBranchRetired(W.D(), "auto_card")))
+	{
+		W.Close();
+		return false;
+	}
+	W.P().BranchLevels["auto_card"] = 1;
+	const double Before = W.P().Stardust;
+	W.Save->SaveGame(2);
+	W.Save->Flush();
+	W.Game->NewGame();
+	TestTrue(TEXT("loaded"), W.Save->LoadGame(2) == EPawLoadOutcome::Loaded);
+	TestEqual(TEXT("refunded what it paid"), W.P().Stardust, Before + Card->LevelCosts[0], 1e-9);
+	TestEqual(TEXT("the level gone"), Pc::BranchLevel(W.P(), "auto_card"), static_cast<int64>(0));
+	TestTrue(TEXT("loaded again"), W.Save->LoadGame(2) == EPawLoadOutcome::Loaded);
+	TestEqual(TEXT("each load of the old file refunds once (the file still holds it until the next save)"), W.P().Stardust,
+		Before + Card->LevelCosts[0], 1e-9);
 	W.Close();
 	return true;
 }

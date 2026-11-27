@@ -14,10 +14,12 @@ namespace PawLook
 	constexpr double PulseAmplitude = 0.03;
 	constexpr double PulseHz = 1.4;
 
-	// enemy.gd
-	constexpr double GlowScale = 1.24;        // the signature glow: a white silhouette this much larger, behind
-	constexpr double GlowAlphaMin = 0.65;     // GLOW_ALPHA, breathing between the two
-	constexpr double GlowAlphaMax = 1.0;
+	// enemy.gd; D31 (playtest 2026-11-26, notes 17 and 20; C3 option B, designer 2026-11-27: "Make the outline thinner (b)
+	// and change color to gold"): the signature glow a GOLD silhouette (PawTokens::GOLD) 1.10x (was a white 1.24x), at half
+	// its alpha (was 0.65-1.0), behind.
+	constexpr double GlowScale = 1.10;
+	constexpr double GlowAlphaMin = 0.325;    // breathing between the two
+	constexpr double GlowAlphaMax = 0.5;
 	constexpr double GlowHz = 1.1;
 	inline const FLinearColor ShieldTint(0.55f, 0.9f, 1.0f, 0.6f); // a Godot modulate (sRGB space); also boss.gd's
 	inline const FLinearColor SnareTint(0.46f, 0.64f, 0.95f, 1.0f);

@@ -8,6 +8,394 @@ in whichever file holds it.
 
 ---
 
+## 2026-11-27 (160) - The gold signature glow (D31); committed and pushed; build 0.1.3 on Steam; the achievements republished
+
+**Where the project is.** Everything through (159) and this entry is committed and pushed (branch
+`phase8-pace-media-bosses`). ProjectVersion 0.1.3. The designer: "Make the outline thinner (b) amd change color to gold.
+Commit and push.make sute all docs are up to date. Upload to steam".
+
+**What happened.**
+- **D31, the signatures' glow** (C3 option B, in gold): `PawFieldLook.h` GlowScale 1.24 -> 1.10, GlowAlpha 0.65-1.0 ->
+  0.325-0.5; the glow pass tints its whitened silhouette `PawTokens::GOLD` (the sprite shader multiplies the silhouette by
+  the tint: no material change). Their drawn size unchanged. The C3 sheet has the pick as a column.
+  - **Proof:** `Realm.Look.Rules` (the alpha's range, the 1.10) and `Realm.View` (a moth spawned: every glow sprite gold,
+    at most half opaque); sabotages `glow_white_again`, `glow_thick_again`, `glow_full_alpha_again`, all CAUGHT (the last
+    one missed by `Realm.View` first: it draws one moment of the breathing; the rules test pins the brightest).
+- **The docs**: doc 01 D31; docs 02 and 04 (the glow); doc 05 (the dock's width, the tooltip, Boba); doc 10 (the build
+  table, the achievements); doc 11 and WORKLIST-SLICE6 (Boba, 6c, built); 00-START-HERE (where the project is on
+  2026-11-27, the branch, the reading table, what waits); the playtest worklist (C3 picked).
+- **Steam**:
+  - **Build**: `py tools/package.py --config Shipping --steam --bump` -> 0.1.3 (UAT 241 s, 262.5 MB, audit PASS);
+    `py tools/steam_upload.py` -> **BuildID 26966137** (7 files changed, 133.5 MB, 141 chunks), live nowhere.
+  - **Achievements** (Steamworks, published): the localization CSV re-imported: "Boundless Vitality" is "Big Family" (its
+    22 old translations cleared: the other languages show the English until the retranslation), and the Rainbow Gut goals
+    name their skill (`br_unicorn_1` said "Unlock Unicorn", `br_unicorn_5` "Reach Unicorn level 5": the `unicorn` node is
+    Rainbow Gut on the tree). `steam_files.py --check` holds a skill goal's description to the tree's label now (its
+    self-test plants an old name). The draft file's three lines corrected.
+  - **Not uploaded: the store page pack** (version 4, `build/steam/localization/storepage_localization.json`). Its text
+    describes E2 (a boss called back for free, "summon") and an 83-skill tree; today's game has Bait and 86 skills, and the
+    page draft says to publish it with those changes, not before.
+- **Proof**: `check_all` exit 0 (`build/check_all_160.log`); the glow's tests and sabotages above.
+
+### Open (the designer's)
+- Set BuildID 26966137 live: Steamworks > SteamPipe > Builds > Preview Change > Set Build Live Now (the SMS code). Today
+  26943569 (0.1.2) is live on the default branch.
+- The store page pack waits for E2 and the tree's 83 skills (or a text change).
+- The rest of (159)'s decisions: the economy (r7), C4-C6, the achievements' "how to earn" words.
+
+### Next step
+The designer's decisions above; then E1-E6 on the economy's yes, C4-C6 as picked, P4.1's rest.
+
+---
+
+## 2026-11-27 (159) - The night: the dock at 480 (P4.8), the shared tooltip (P4.1, Upgrades), Boba (P4.3), pawsim's income cards and the economy proposal (E0), concepts C3-C6
+
+**Where the project is.** As (158), uncommitted. The designer's last word was "Go" on docs/OVERNIGHT-PLAN-2026-11-26.md.
+Nothing was committed, packaged or uploaded; `Data/` is unchanged.
+
+**What stopped the engine work, and how often.** The Ice project used the machine on and off all night: a game window
+(`L_Look_Slice -game`, ~4.7 GB), two of its automation runs (~16-20 GB; 1.3 GB left free once) and its editor. Each time
+the night moved to engine-free work (the plan's rule) and resumed when the machine was free. Ice was never touched.
+
+**What happened.**
+- **P4.8, the dock 568 → 480 (D30, D-j).** `PawUi::DockWidth` 480; the HUD's `PageWrap` / `ButtonWrap` follow it.
+  - Grafted into WBP_HudScreen: `props:DockBox`, `wrapat:` RealmsBlurb, JobsBlurb, StageText, UnicornText, MultiplierText,
+    CatnipMultiplierText, CatchesSummary, AmountLabel (auto-wrap now: "Cantidad a comprar" was 5 px short);
+    `props:` ReawakenProgressLine, AchievementSummaryLine, DockLegend, ReawakenButton, BaitButton.
+  - The key legend wraps (it ran past the dock in 24 languages on one line), 24 px short of the page: a rich text with
+    inline key caps draws ~4 % past its wrap (French drew 449 px against 432). KB U/09 has it.
+  - **The parity test now compares wraps** (`Pawpocalypse.UI.Widgets.Parity`: a text's `WrapTextAt` / auto-wrap, a
+    prompt text's and an icon text's `WrapAt`). Two P4.8 sabotages were missed without it. It found three wraps the
+    assets still held from the first try: the job picker's note (516; code 1268: the panel before five cards a row),
+    the card's flavour (266; code 260) and the card's sentence (258; code 268). The first two now follow the code; the
+    card's sentence keeps 258, which is what fits (at 268 Czech and Spanish ran 2-4 px over), and the code says so
+    (`BodyTextWrap`).
+  - **Proof:** all UI and Input tests PASS (139); the screen tour's dock pages read clean. Sabotages (realm, 4 new):
+    `dock_back_to_568` (UI.Hud.Dock's pin), `page_wrap_not_following_dock`, `dock_legend_unwrapped`,
+    `card_text_wrap_at_box` (UI.Widgets.Parity), all CAUGHT.
+- **E0, pawsim learns the income cards** (`tools/pawsim.py` CARDS_MODEL, off by default). Each card at its expected level
+  over the run's picks; Hot Borders / Slow Burn (edge burn and its spawn cost), Bounty, Notoriety, Gold Rush, Thunderclap /
+  Close Quarters, Ember Trail, Gilded Kitten. econ_review levers `cards`, `cardsunc` (uncapped, E4), `focus<k>`,
+  `edge<k>`, `trail<f>`, `card.<id>=*f`.
+  - **Proof:** with the model off, econ_review's output is identical line for line to pawsim before the change; the
+    mirror gate passes (60,657 assertions); `tools/check_pawsim_cards.py` (new, in check_all) checks the effects against
+    hand arithmetic, `--self-test` catches 5 / 5 planted faults.
+- **The economy proposal:** `docs/ECONOMY-REVIEW-2026-11-27.md`. 14 sets measured with E1-E6 together. Recommended
+  **r7**: the first kitten at 17 min, biome 2 at 11, the first boss at 83, but the game is 3.5 h (target ~6) and waits
+  over 3 min are 19 % (target 10). The late waits are structural: plenty of Catnip, no buy big enough to notice. Its
+  decisions are in its §5.
+- **Concepts C3-C6** (`tools/art/review_signatures.py`, `review_engineer_hat.py`, `review_boss_summon.py`,
+  `review_kitten_icon.py` → `build/review/c3..c6_*.png`), on one page for the picks:
+  https://claude.ai/artifact/1peVFaqQKN1SYf1Vnjax5b (private). Recommended: C3 B's fainter glow at 80 px; C4 B (the hat
+  side-on); C5 the boss at 1.8x and the Summon button as drawn (its words a draft); C6 C (a kitten with a Stardust plus).
+- **P4.1, the shared tooltip, for the Upgrades rows** (C1's look; the words approved 2026-11-26).
+  - PawCore: `Pc::UpgradeTip` (now and next for the row's buy, capped; the price; what is short; the number's kind:
+    multiplier, share, count) and `Pc::PlaceTip` (beside the dock on the field side, level with the row, on screen).
+  - `UPawTooltip` (new piece, baked WBP_Tooltip, grafted `add:Tooltip` into WBP_HudScreen). The HUD shows it for the
+    row that shows its ring (hovered, or selected by keys or a pad) on the Upgrades page; `ShowRowTip` / `HideTip`.
+  - The words, English only (D28): `TIP_now`, `TIP_next`, `TIP_short` (and `TIP_percent`, "{v}%") in ST_UI; `UPG_<id>_desc` as UpgradeData.csv's new
+    `description` column (the numbers untouched, checked field by field), through `gen_paw_rows`, `gen_data_strings`
+    and `import_data` (DT_UpgradeData re-imported).
+  - **Proof:** PawCore 220 / 220; `UI.Hud.Tooltip` (content per state, the tick hiding it); the 23-language pass with
+    two tooltip visits (`Layout.Languages`, `Language.Switch`); all UI and Input tests. Sabotages: 7 PawCore and 6
+    realm, all CAUGHT.
+  - **Left:** the achievements (their "how to earn" lines drafted, below), the Catches rows (with P4.6), the tabs and
+    quick bar, the tree's tooltip onto the card.
+- **P4.3, Boba** (playtest notes 2 and 3).
+  - Her 14 photos copied from the first try (read only) into `SourceArt/boba` (LFS), imported by the new `import_art.py
+    --run boba` (T_boba_*, DA_Boba).
+  - PawCore `PcBoba`: the clock (the first menu 6-14 s, then 25-60 s; the last menu stops it), the kinds by weight
+    (flyby 4, spin 1, nyan 3, peek 4, drop 2), never the same photo twice running, every kind's path as a pose over time,
+    the nyan trail; `TRANS_BOUNCE` added to the easing (`PcTrans::Bounce`, appended).
+  - `UPawBobaSubsystem` (ticks while paused, plays `boba_cameo`) and `UPawBobaLayer` (WBP_BobaLayer, in the viewport over
+    every menu, no input). The title, pause, Settings and victory open her clock; the victory's nyan comes 1.5 s in; the
+    skill tree cuts and holds her. A forced cameo obeys the effects switch (the first try's did not). `paw.Boba 0` turns
+    her off; store_shots, store_clips and screen_tour set it (no cameo in a shot by chance).
+  - The title's card straight (`R4BobaAngle` 0, grafted `slot:BobaCard`), the first photo in the well (`add:` and
+    `slot:BobaPhotoImage`), a hover pop, a click brings her. The photo first came out stretched: a `UBorder`'s alignment
+    set after `SetContent` never reaches its content's slot (KB U/09 already had it; the code now sets the slot).
+  - **Parity now compares every part's tilt** too: the tilt sabotage was missed without it.
+  - **Proof:** PawCore 226 / 226 ("Boba:", "Juice: the bounce easing"); `UI.Boba.Photos / Menus / NeverOverTree / Victory
+    / Title`, `UI.Tree.Opens` (held off while the tree is up). Sabotages: 7 PawCore and 8 realm, all CAUGHT (two missed
+    first: a redundant cancel removed, and the tilt now compared). The screen tour's title shows her, straight.
+  - **Not done:** the pause menu's "CEO on duty" photo (new words).
+- **New words, drafted, not shipped:** `docs/TEXT-DRAFT-2026-11-27.csv`, nine lines: the achievements' "how to earn",
+  one per kind of goal with the data's numbers (the first try's `requirement_text` says "mice" and lost its dashes).
+  `text_audit` passes them.
+
+### The morning report
+
+**Built and proven tonight:** P4.8 (the dock), P4.1 for the Upgrades rows, P4.3 (Boba), E0 (pawsim's cards), the
+economy proposal, C3-C6. **`check_all` exit 0** (`build/check_all_night3.log`, 02:40, nothing else running: every gate,
+the editor, game and Shipping builds included). The run before it (`check_all_night2.log`) failed one gate, `L0 static`
+ui-rules: the tooltip formatted a share with `FText::AsPercent` (the engine's way; now `PawText::Fixed` in `TIP_percent`,
+"{v}%": the sign's place per language, no words, English only) and the checker's key pattern had no `TIP_` prefix.
+
+**What failed and how it was fixed:** the French and Dutch key legend (rich text draws past its wrap); three stale wraps
+in the assets (found by the stricter parity check); the Czech and Spanish card text at 268; the tooltip's language visit
+(the readouts not refreshed); the stretched photo; four sabotages missed at first (two blind spots in Parity, one
+redundant guard, one build that failed on a warning).
+
+**Decisions waiting for the designer:**
+1. **The economy** (`docs/ECONOMY-REVIEW-2026-11-27.md` §5): take r7 for the first hour; the length (accept ~3.5 h for
+   now, or tougher later bosses with more waiting); the late shop (the waits' cause); the 5x soak on a package to
+   calibrate (your word: packaging).
+2. **C3-C6 picks:** https://claude.ai/artifact/1peVFaqQKN1SYf1Vnjax5b
+3. **The words:** `docs/TEXT-DRAFT-2026-11-27.csv` (the achievements' "how to earn").
+4. **A commit** (everything since `38871c6` is uncommitted), then the Steam uploads: the store page pack and the
+   achievements file ("Big Family").
+
+### Next step
+- The designer's picks above. Then: P4.1's rest (achievements once the words are approved; the tree's tooltip), C3-C6 as
+  picked, E1-E6 on the economy's yes.
+
+---
+
+## 2026-11-26 (158) - The Compass skill tree; the words approved (English only); the store page version 4 in 21 languages; P4.7's quit and leave questions
+
+**Where the project is.** As (157), uncommitted.
+
+**The designer's answers:**
+- On the concept: "The compass is better but can you space it out a little? All icons are touching." then "Compass is
+  good. You can build it" (D27).
+- "Text approved. Dont translate anything though. We still might change stuff. We will retranslate closer to release";
+  asked what other languages show meanwhile: "Offer them, gaps in English" (D28).
+- On the store page: "It feels very stale right now. I would like it to be slightly more warm, maybe some puns. But not
+  too long. Research similar games descriptions again", then "Good text. Create the translations and upload file for
+  steam. Continue with the rest of the tasks".
+
+**What happened.**
+- **The Compass in PawCore** (`PcTreeLayout`): a grid placer (`GridPitch` 172, a skill 84 px; a slice per trunk from
+  `TrunkWheel`, Claws straight up; trunks 3.5 squares out; inner rings first; no shared square, no crossing link, no link
+  over a skill, no skill on a link). `TreeNodeReveal` (owned or on sale in full, one ring ahead faint, the rest hidden),
+  `TreeNavPick(..., &Among)`, `TreeBounds(L, &Among)`, `TreeTrunkOf`, `TreeBranchLabels`. The hex lattice, its Godot
+  fixture (`tree_layout_godot.tsv`, 2.2 MB) and its 17 sabotages are gone. Tests: the Compass's invariants on the shipping
+  tree and on the tree without the four skills D-c / D-e remove, the reveal, the pad among the shown, a hand-made nav case,
+  the branch names; 21 layout sabotages CAUGHT (one dropped: normalising never runs on a real tree).
+- **The screen** (`UPawSkillTreeScreen`, D27; doc 05 §6.2): stickers by kind (a square per ladder, a circle per one-time
+  skill, a diamond per job), owned in the trunk's card colour, the rest dark, the gold ring to buy now (`UPawHexPlate`
+  paints them); chips over the picture (`UPawTreeNode::NativePaint`: an owned ladder's level, green when full; a tick; the
+  price with the Stardust star, yellow when affordable); links an ink road with a core (the trunk's colour where owned,
+  dashed to what is on sale, faint one ring ahead, none to a hidden skill); the hub a yellow disc with the paw and its name
+  on a plate; each trunk's name in the field; no captions. Fit to what is shown, above Continue in the spend step; chips
+  and names never under 16 px on screen. The sky stays (the designer asked for it 2026-09-14). No graft was needed (the
+  board is built at run time). `PawTreeTables.h`: `TrunkLooks` and the sticker colours replace the first try's tables.
+- **The screen tour** found three faults, each fixed and tested: chips ~8 px at the fit zoom, the Unicorn's link through
+  the hub's name, Continue over the Unicorn.
+- **The words** (D28): the Vitality rename is in (Extra Kittens, Big Family; `Data/TextOverrides.csv`, ST_Tree); the other
+  approved lines go in with their features. `PawText::bTranslationFrozen` / `IsOffered`: a language covering 90 % of the
+  lines stays offered, its changed lines in English; `paw.Languages` fails only a language the rule would not offer;
+  `steam_files.py` leaves a name without a current translation blank (Steam shows the English). Memory:
+  `no-translation-until-release`.
+- **The store page, version 4** (`docs/STEAM-PAGE-DRAFT-2026-11-18.md`): research of 26 pages
+  (`build/steam/research/NOTES-2026-11-26-tone.md`); warmer, two puns, one running joke (the cat's list of enemies), the
+  same length. Translated into the 20 store languages (the store is the exception to the freeze, on the designer's word),
+  checked and stamped: **`build/steam/localization/storepage_localization.json`** (itemid 5720010) and `readable/`.
+- **KB:** `Unreal/24` (an `FSlateFontInfo` from a forward-declared `UFont*` is ambiguous: include `Engine/Font.h`).
+- **P4.7, the quit and leave questions** (playtest notes 27, 43; the words approved): `UPawConfirmDialog` (a new baked
+  `WBP_ConfirmDialog` on the Modal stack: the safe answer selected, Back = no, the first answer counts, closed before it
+  runs). The pause menu's **Quit game** ("Save and quit?" [Save and quit] [Cancel]; yes saves the active slot and quits;
+  grafted `add:QuitGameButton`). The tree's spend step asks in it ("You still have Stardust to spend." or "Start the next
+  run?", [Leave] [Stay]); the press-twice plate is gone (`remove:WarningPlate`), with TREE_warn_unspent, TREE_warn_next and
+  TREE_leave_unspent (their 66 translation rows by `port_po.py`, their override row). `AnswerLeave(bool)` for the drivers
+  (the soak, the shots, the tests); the pad tour answers with the D-pad and A. The title's Exit and the Reawaken keep
+  their own prompts. New key `PAUSE_quit_save` (`PAUSE_save_quit` was taken by the armed menu button).
+  - `Language.Switch` now lets a screen read the same in German only while every word is a line with no German yet (D28).
+  - **Found on the way:** the pad-only playthrough (nightly L4) had failed since D17 E2 (2026-11-12): it seeded the wave
+    count, which no longer earns Bait (`BaitKillsByBiome` does). Fixed; 46 / 46.
+
+**Proof.**
+- PawCore 215 / 215 test cases; `Pawpocalypse.UI` 117 tests after two fixes (the empty-count language rule, the layout
+  test's node count); the tree's 10 tests.
+- `Pawpocalypse.UI.Pause.QuitGame` (new), the tree's Spend and KeepsKeys rewritten for the question; all UI tests pass.
+- Sabotages: 21 layout (PawCore), 33 screen and language (realm), 12 for P4.7, every one CAUGHT (`confirm_answers_twice`
+  missed first: its guard was redundant, the cleared callbacks are what make the first answer count; the guard went); five realm entries were stale (the hex,
+  green owned nodes, captions) and were rewritten or retired; `--list` shows none stale.
+- `check_all`: NOT PROVEN. The run of 2026-11-26 evening (`build/check_all_p42.log`) passed its first four gates (no mutant,
+  L0 static, L1 PawCore, mirror) and was stopped by the session for low memory during `validator fuzz 3k`. That gate runs
+  only `pawcore_sim.exe`; a headless editor (`UnrealEditor-Cmd`, ~19 GB, gone by the time it was looked at; very likely the Ice project's test run, see P4.5) held the
+  memory. Run again on the designer's "Go": 40 gates PASS (every engine suite, the editor, game and Shipping builds), one
+  FAIL: `loc_status --self-test` expected the real German files to hold no stale line, which the freeze now makes false;
+  it now counts only the planted row among the NEW stale lines (passes). After P4.7 (`build/check_all_p47.log`): 41 PASS,
+  1 FAIL: `sabotage targets current` (`confirm_no_runs_yes` pointed at the line rewritten for `confirm_answers_twice`);
+  retargeted, both `--list` exit 0, the sabotage CAUGHT. The next full run comes after P4.5.
+
+### Open (the designer's)
+- **Upload in Steamworks:** the store pack (by the safe route if the English About already has its GIFs: KB Steam/05),
+  together with the bosses' Summon (E2) and the 83-skill tree, not before; the achievements again ("Big Family":
+  `build/steam/steamworks`).
+- The economy proposal (E1-E6) still to write and approve.
+
+### P4.5 (auto-pick free, D-e / D29): built
+Paused once while an editor of another project ("Ice") was open (this project's tools refuse while any editor runs);
+resumed when it closed.
+- **Rules:** CodeConstants `auto_pick_free` (1) and `retired_branches` (auto_card). `HasAutoCard` asks the setting alone;
+  a retired skill and everything under it is hidden, never for sale, off the order, layout and links;
+  `RefundRetiredBranches` gives back what it paid, run by the save loader after `ApplySave`. The row stays, so no fixture
+  sweep: the draw and tree replays run under the first try's rules (their loaders clear both). Deleting the row was
+  measured first: 44 Godot-fixture tests failed. D-c's three removals with E2 are one line in `retired_branches`.
+- **Screens:** the card screen's one row: Reroll, the **Auto-pick cards** box (on, and a card of this hand taken at once)
+  and "You can turn it off in Settings." (stacked under Reroll, Polish ran off the bottom at 1280 x 800, 150 % UI: the
+  language pass found it twice). The Settings **Game** page, in a game only (RB over four pages there). The tree screen's
+  dead Auto-Card switch went; the tree tests count the skills on the tree (86). Grafts: `PawCardPickScreen`
+  add:AutoPickButton, add:AutoPickNote, then wrap:RerollButton>ToolRow, remove/add:AutoPickButton, remove/add:AutoPickNote;
+  `PawSettingsDialog` add:SectionGame, add:GamePage. The words: PICK_auto, PICK_auto_note, SETTINGS_section_game,
+  SETTINGS_auto_pick (English only). DT_CodeConstants re-imported.
+- **Proof:** PawCore 217 / 217 ("D-e", "Settings: the Game page"); `UI.CardPick.AutoPick`, `UI.Settings.GamePage`,
+  `Save.RetiredRefund`; all UI and save tests. Sabotages: 11 PawCore (`retired_child_kept` missed first: Auto-Card has no
+  children; a check that retires a skill with children now covers it) and 8 realm, all CAUGHT; `tree_auto_card_not_switched`
+  retired, three targets moved with the code.
+- **`check_all` after P4.5: NOT PROVEN.** `build/check_all_p45.log` passed every gate up to `L3 Pawpocalypse.Realm`
+  (the static gates, PawCore, the mirror, the fuzz, the sabotage targets, DataTable parity, Data, Realm); the session
+  stopped it for low memory during `L3 Pawpocalypse.UI`. The memory was another project's: the Ice project's own
+  automation run (`UnrealEditor-Cmd ... Ice.uproject -ExecCmds="Automation RunTests Ice."`, ~16 GB) ran at the same time
+  (and was very likely the "stray ~19 GB editor" of the first stopped run). Not touched. Run `check_all` again when
+  nothing else heavy runs; the UI suite itself passed in full on its own just before (130 tests).
+- **`check_all` overnight (`build/check_all_night1.log`, nothing else running): 40 PASS, 1 FAIL:** `L3 Pawpocalypse.Input`
+  (`Input.Screens` expected section_prev from Audio to wrap to Controls; in a game it wraps to the Game page now, D29;
+  the test reads the last page shown). Fixed; the suite passes (19). Not re-run in full: the next full run closes P4.8.
+- **Left for P4.6:** the Catches page's toggle (`AutoPickButton` on the HUD, `PcCatchesPage::bAutoPickShown`): hidden for
+  good now (nobody can own Auto-Card); it goes with the Catches page's rebuild.
+
+### Next step
+- P4.1: the shared hover tooltip (Upgrades, Achievements, Catches) and the tree's (`TIP_*`).
+- Then P4.3 Boba, P4.8 the dock, C3-C5; E0 and the economy proposal.
+
+---
+
+## 2026-11-26 (157) - Playtest Phase 1 built; the skill tree concept; the words drafted; the economy tools
+
+**Where the project is.** As (156), uncommitted.
+
+**The designer's answers:**
+- "Slow down game even more. We should be able to afford a kitten at 15 min. We should be the strong one untill we get a
+  few kittens. Continue with the plan". The other §2 decisions take the recommendations: the worklist's §2 header.
+- On the C1 concept: "Darker cards for the skill menu. But i also want you to work on the layout not just style".
+
+**What happened.**
+
+**Phase 1 (the worklist's P1.1-P1.14).**
+- **The tree, pause, settings and title screens are focusable.** A click on nothing focusable no longer gives the keys
+  to the viewport, so Esc closes the tree and answers its unspent warning.
+- **Swell and lift:** the slot cards' swell and the card pick's lift follow the ring rule (`SlotSwells`, `LiftRule`).
+- **The Upgrades dot** asks only rows the shop shows and sells.
+- **Settings:** the scroll boxes leave the selection ring room (grafted `slot:Pages`, `slot:Body`).
+- **Gone:** the video note, the Reawaken blurb, the card's downside line and the wave bar, with their 5 strings and
+  110 translation rows retired, and `Pc::WaveLine`.
+- **Pause:** the buttons have no icons.
+- **The cat** is clamped to the field on the pointer path (`PointerStep`).
+- **Report a bug** goes to Steam's discussions, in the overlay under Steam (`UPawPlatformSubsystem::OpenWebPage`).
+- **First run:** borderless fullscreen on the main monitor (`FirstRunDefaults`).
+- **The app icon:** `SourceArt/icon/Pawpocalypse.ico` from the key art (`tools/make_app_icon.py`, everyday gates
+  `app icon` and its self-test), set in `Pawpocalypse.Target.cs`. `*.ico` goes to LFS.
+- **Music** sits 10 dB under its slider (`MusicTrimDb`).
+- **Effects:**
+  - Ember Trail is red.
+  - The zone and Thunderclap colours moved to `fx_look.py` → `PawFxLook.h`.
+  - The aura is a feathered fill with no ring (`FPawFxCanvas::FeatherDisc`).
+  - Thunderclap is a held white shock ring (`EKind::Shock`).
+- **The title's Exit** asks first (`AskQuit`).
+
+**Proof.**
+- **New tests:**
+  - `Pawpocalypse.UI.Tree.KeepsKeys`
+  - `UI.Title.SlotSwell`
+  - `UI.CardPick.Lift`
+  - `UI.Settings.FirstRun`
+  - checks added to `Settings.Look`, `Hud.Readouts`, `CardPick.Look`, `Pause.*`, `Title.BackAndQuit`, `Audio.Rules`,
+    `Realm.Vfx.Mapping/Look`, `Input.PointerOverField`, PcHud "tab badges".
+- **The asset tests failed before the grafts** (Settings.Look, Hud.Readouts, CardPick.Look), then passed.
+- **21 new sabotages**, all CAUGHT; `vfx_pulse_fades_at_once` MISSED first and was made stronger.
+- **Retired:** the sabotages of removed code (`hud_wave_held_unclamped`, `wave_plate_left_behind`,
+  `pick_warning_always`). The text pass's floor was lowered 279 → 276 (`PawTextTests.cpp`).
+- **`check_all` passes every gate** (`build/check_all_p1b.log`).
+- **The screen tour** (`build/tour/ue`) shows settings, pause and the Reawaken tab as intended.
+
+**Found and corrected in the plan:**
+- "Fleet Paws can't be earned" was wrong: Legacy's starting levels reach every upgrade-level achievement.
+- The Kitten Speed cap clamp moved to E3: it changes the `stats_godot.tsv` column.
+
+**The skill tree concept C1** (https://claude.ai/artifact/5HCPtMKZ3GruMxwa5JR74E):
+- v1: the real 87 skills in Sticker Box on a darker board.
+- v2, after the designer's answer:
+  - **Layouts:** A, boards (one per branch, the whole tree on one screen, stacks under their parent); B, rings; today's.
+  - **Cards:** dark by default, light as an option.
+  - Without the four skills that D-c and D-e remove.
+- Its source is the published artifact itself (read it back with the Artifact tool); the data came from the layout
+  fixture, ST_Tree, SkillBranchData and the skill icons.
+
+**Words:** `docs/TEXT-DRAFT-2026-11-26.csv`, 42 lines for §5. `text_audit` flags only the two lines that drop
+`{max}` on purpose.
+
+**E0, the economy tools.**
+- **New levers in `tools/econ_review.py`:**
+  - `roster` (E1's ladder, weights rising with the spawn multiplier);
+  - `nobait`, `fight<sec>`;
+  - `up.<id>.<field>=v`, `tier.<n|all>.<field>=v|*f`, `code.card_level_cost_*`.
+- **The summary prints** the milestones and the cat's share of damage as kittens arrive.
+- **Today:** kitten 3.4 min, biome 2 4.5, Reawaken 9.8, boss 50.5, game 175 min.
+- **Sweeps (in memory):**
+  - roster + half the Backyard: kitten 5.8.
+  - Kitten Count +1 a buy from 1,500 Catnip and the Spawn Rate line ×1.4 a level: kitten 15.5.
+  - The same from 900 with the first Spawn Rate level at 60 Catnip: kitten 16.5, biome 2 8.9, Reawaken 22, boss
+    109, game 239 min, waits over 3 min 19 %.
+  - Biome 2 at 4,000 Catnip: biome 2 20.1 min.
+  - No Bait with the 120 s rule: about the same as with Bait.
+  - Boss HP ×4: the game 357 min, but waits 30 % and nothing new for 60 min.
+- **Cards are still not in pawsim:** the next E0 step.
+
+### Open (the designer's)
+- C1: a layout, A or B, and the card tone.
+- The words in `docs/TEXT-DRAFT-2026-11-26.csv`.
+- The other §6 concepts come next.
+
+### Next step
+- E0: pawsim learns the income cards (edge burn first).
+- Then one economy proposal (E1-E6 together) with its numbers, in `docs/ECONOMY-REVIEW-2026-11-26.md`.
+- In parallel: C3-C5 review sheets.
+
+---
+
+## 2026-11-26 (156) - The designer's Steam playtest: 44 notes, and the plan (nothing built)
+
+**Where the project is.** As (155), committed and pushed (`38871c6`). The designer played 0.1.2 from Steam and wrote 44
+notes: "Before doing anything read through and make a very detailed plan on how to fix stuff". The plan is
+[WORKLIST-PLAYTEST-2026-11-26.md](WORKLIST-PLAYTEST-2026-11-26.md); this entry adds only that file and this entry.
+
+**What happened.** Read-only investigation of every note:
+- the code and data;
+- Godot's last commit (`350b2f5`) and its 2026-10-01 playtest;
+- pawsim / `econ_review` in memory (`Data/` untouched);
+- research on enemy progression in similar games (Bills Must Be Paid, Vampire Survivors, Brotato, Nodebuster).
+
+**Findings that shape the plan:**
+- **The port is not an older Godot.** All 34 notes from 2026-10-01 are in. Missing: only the tutorial (6d), Boba (6c)
+  and the upgrade hover tooltip.
+- **The game is spawn-bound 98 % of the time**, so fewer enemies slow income directly.
+- **pawsim models no card effects**, so the real game runs faster than pawsim.
+- **Removing Bait** (the designer's note 42) removes D24's only lengthening lever.
+- **"2 kittens a buy" is D17 E4**, and the "free golden kitten" was a Vitality kitten.
+
+**Bugs found:**
+- the tree loses focus, so Esc and the unspent-Stardust plate do nothing;
+- the slot swell follows focus under the mouse;
+- the Upgrades dot counts hidden and locked rows;
+- the cat is unclamped under the dock;
+- Kitten Speed overshoots its cap, which makes Fleet Paws unearnable;
+- Ember Trail is a hard-coded blue.
+
+### Open (the designer's)
+- The 14 decisions in the worklist's §2 (each has a recommendation).
+- A go for Phase 1 (bugs and removals, no decisions needed).
+- The BuildID 26943569 items from (155) still stand.
+
+### Next step
+On the designer's go:
+- **Phase 1:** start with P1.1 (the tree's focus), then P1.2-P1.14.
+- **In parallel:** the text draft (§5) and the concepts, C1 (the skill tree and its tooltip) first.
+
+---
+
 ## 2026-11-26 (155) - The Steam features: achievements, rich presence, Cloud saves, the overlay's pause, Steam Input's pads
 
 **Where the project is.** As (154), plus this entry's work, uncommitted; ProjectVersion 0.1.2. The designer: "The build is
